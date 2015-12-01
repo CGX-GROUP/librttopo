@@ -1,0 +1,12 @@
+test:
+  script:
+    - apt-get update -qq
+    - apt-get install -y
+        build-essential autoconf libtool
+        libgeos-dev
+    - lsb_release -a
+    - ./autogen.sh
+    - ./configure
+    - make
+    - make install
+    - make uninstall
