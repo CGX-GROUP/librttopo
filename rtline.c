@@ -36,7 +36,7 @@ rtline_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 	result->type = RTLINETYPE;
 	
 	result->flags = points->flags;
-	FLAGS_SET_BBOX(result->flags, bbox?1:0);
+	RTFLAGS_SET_BBOX(result->flags, bbox?1:0);
 
 	RTDEBUGF(3, "rtline_construct type=%d", result->type);
 
@@ -75,7 +75,7 @@ void rtline_free (RTLINE  *line)
 void printRTLINE(RTLINE *line)
 {
 	rtnotice("RTLINE {");
-	rtnotice("    ndims = %i", (int)FLAGS_NDIMS(line->flags));
+	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(line->flags));
 	rtnotice("    srid = %i", (int)line->srid);
 	printPA(line->points);
 	rtnotice("}");
@@ -111,7 +111,7 @@ rtline_clone_deep(const RTLINE *g)
 
 	if ( g->bbox ) ret->bbox = gbox_copy(g->bbox);
 	if ( g->points ) ret->points = ptarray_clone_deep(g->points);
-	FLAGS_SET_READONLY(ret->flags,0);
+	RTFLAGS_SET_READONLY(ret->flags,0);
 
 	return ret;
 }
@@ -164,8 +164,8 @@ rtline_from_rtgeom_array(int srid, uint32_t ngeoms, RTGEOM **geoms)
 	 */
 	for (i=0; i<ngeoms; i++)
 	{
-		if ( FLAGS_GET_Z(geoms[i]->flags) ) hasz = RT_TRUE;
-		if ( FLAGS_GET_M(geoms[i]->flags) ) hasm = RT_TRUE;
+		if ( RTFLAGS_GET_Z(geoms[i]->flags) ) hasz = RT_TRUE;
+		if ( RTFLAGS_GET_M(geoms[i]->flags) ) hasm = RT_TRUE;
 		if ( hasz && hasm ) break; /* Nothing more to learn! */
 	}
 
@@ -230,8 +230,8 @@ rtline_from_ptarray(int srid, uint32_t npoints, RTPOINT **points)
 			rterror("rtline_from_ptarray: invalid input type: %s", rttype_name(points[i]->type));
 			return NULL;
 		}
-		if ( FLAGS_GET_Z(points[i]->flags) ) hasz = RT_TRUE;
-		if ( FLAGS_GET_M(points[i]->flags) ) hasm = RT_TRUE;
+		if ( RTFLAGS_GET_Z(points[i]->flags) ) hasz = RT_TRUE;
+		if ( RTFLAGS_GET_M(points[i]->flags) ) hasm = RT_TRUE;
 		if ( hasz && hasm ) break; /* Nothing more to learn! */
 	}
 
@@ -301,7 +301,7 @@ rtline_get_rtpoint(const RTLINE *line, int where)
 	if ( rtline_is_empty(line) || where < 0 || where >= line->points->npoints )
 		return NULL;
 
-	pa = ptarray_construct_empty(FLAGS_GET_Z(line->flags), FLAGS_GET_M(line->flags), 1);
+	pa = ptarray_construct_empty(RTFLAGS_GET_Z(line->flags), RTFLAGS_GET_M(line->flags), 1);
 	pt = getPoint4d(line->points, where);
 	ptarray_append_point(pa, &pt, RT_TRUE);
 	rtpoint = rtpoint_construct(line->srid, NULL, pa);
@@ -382,7 +382,7 @@ rtline_measured_from_rtline(const RTLINE *rtline, double m_start, double m_end)
 		return NULL;
 	}
 
-	hasz = FLAGS_GET_Z(rtline->flags);
+	hasz = RTFLAGS_GET_Z(rtline->flags);
 	hasm = 1;
 
 	/* Null points or npoints == 0 will result in empty return geometry */
@@ -438,7 +438,7 @@ rtline_remove_repeated_points(const RTLINE *rtline, double tolerance)
 int
 rtline_is_closed(const RTLINE *line)
 {
-	if (FLAGS_GET_Z(line->flags))
+	if (RTFLAGS_GET_Z(line->flags))
 		return ptarray_is_closed_3d(line->points);
 
 	return ptarray_is_closed_2d(line->points);
@@ -451,7 +451,7 @@ rtline_is_trajectory(const RTLINE *line)
   int i, n;
   double m = -1 * FLT_MAX;
 
-  if ( ! FLAGS_GET_M(line->flags) ) {
+  if ( ! RTFLAGS_GET_M(line->flags) ) {
     rtnotice("Line does not have M dimension");
     return RT_FALSE;
   }

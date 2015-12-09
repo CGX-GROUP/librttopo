@@ -109,7 +109,7 @@ asx3d3_point_buf(const RTPOINT *point, char *srs, char *output, int precision, i
 	char *ptr = output;
 	/* int dimension=2; */
 
-	/* if (FLAGS_GET_Z(point->flags)) dimension = 3; */
+	/* if (RTFLAGS_GET_Z(point->flags)) dimension = 3; */
 	/*	if ( srs )
 		{
 			ptr += sprintf(ptr, "<%sPoint srsName=\"%s\">", defid, srs);
@@ -168,7 +168,7 @@ asx3d3_line_buf(const RTLINE *line, char *srs, char *output, int precision, int 
 	RTPOINTARRAY *pa;
 
 
-	/* if (FLAGS_GET_Z(line->flags)) dimension = 3; */
+	/* if (RTFLAGS_GET_Z(line->flags)) dimension = 3; */
 
 	pa = line->points;
 	ptr += sprintf(ptr, "<LineSet %s vertexCount='%d'>", defid, pa->npoints);
@@ -419,7 +419,7 @@ asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision
 	int i;
 	int dimension=2;
 
-	if (FLAGS_GET_Z(col->flags)) dimension = 3;
+	if (RTFLAGS_GET_Z(col->flags)) dimension = 3;
 	RTGEOM *subgeom;
 	ptr = output;
 	x3dtype="";
@@ -826,7 +826,7 @@ pointArray_toX3D3(RTPOINTARRAY *pa, char *output, int precision, int opts, int i
 
 	ptr = output;
 
-	if ( ! FLAGS_GET_Z(pa->flags) )
+	if ( ! RTFLAGS_GET_Z(pa->flags) )
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
@@ -908,7 +908,7 @@ pointArray_toX3D3(RTPOINTARRAY *pa, char *output, int precision, int opts, int i
 static size_t
 pointArray_X3Dsize(RTPOINTARRAY *pa, int precision)
 {
-	if (FLAGS_NDIMS(pa->flags) == 2)
+	if (RTFLAGS_NDIMS(pa->flags) == 2)
 		return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(" "))
 		       * 2 * pa->npoints;
 

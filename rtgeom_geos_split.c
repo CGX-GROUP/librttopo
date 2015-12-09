@@ -132,7 +132,7 @@ rtline_split_by_line(const RTLINE* rtline_in, const RTGEOM* blade_in)
 		return NULL;
 	}
 
-	diff = GEOS2RTGEOM(gdiff, FLAGS_GET_Z(rtline_in->flags));
+	diff = GEOS2RTGEOM(gdiff, RTFLAGS_GET_Z(rtline_in->flags));
 	GEOSGeom_destroy(gdiff);
 	if (NULL == diff)
 	{
@@ -166,8 +166,8 @@ rtline_split_by_point(const RTLINE* rtline_in, const RTPOINT* blade_in)
 	RTMLINE* out;
 
 	out = rtmline_construct_empty(rtline_in->srid,
-		FLAGS_GET_Z(rtline_in->flags),
-		FLAGS_GET_M(rtline_in->flags));
+		RTFLAGS_GET_Z(rtline_in->flags),
+		RTFLAGS_GET_M(rtline_in->flags));
 	if ( rtline_split_by_point_to(rtline_in, blade_in, out) < 2 )
 	{
 		rtmline_add_rtline(out, rtline_clone_deep(rtline_in));
@@ -186,8 +186,8 @@ rtline_split_by_mpoint(const RTLINE* rtline_in, const RTMPOINT* mp)
   int i, j;
 
   out = rtmline_construct_empty(rtline_in->srid,
-          FLAGS_GET_Z(rtline_in->flags),
-          FLAGS_GET_M(rtline_in->flags));
+          RTFLAGS_GET_Z(rtline_in->flags),
+          RTFLAGS_GET_M(rtline_in->flags));
   rtmline_add_rtline(out, rtline_clone_deep(rtline_in));
 
   for (i=0; i<mp->ngeoms; ++i)
@@ -313,7 +313,7 @@ rtpoly_split_by_line(const RTPOLY* rtpoly_in, const RTLINE* blade_in)
 	GEOSGeometry* polygons;
 	const GEOSGeometry *vgeoms[1];
 	int i,n;
-	int hasZ = FLAGS_GET_Z(rtpoly_in->flags);
+	int hasZ = RTFLAGS_GET_Z(rtpoly_in->flags);
 
 
 	/* Possible outcomes:

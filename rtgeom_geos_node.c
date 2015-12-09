@@ -73,8 +73,8 @@ static RTMPOINT*
 rtgeom_extract_endpoints(const RTGEOM* rtg)
 {
 	RTMPOINT* col = rtmpoint_construct_empty(SRID_UNKNOWN,
-	                              FLAGS_GET_Z(rtg->flags),
-	                              FLAGS_GET_M(rtg->flags));
+	                              RTFLAGS_GET_Z(rtg->flags),
+	                              RTFLAGS_GET_M(rtg->flags));
 	rtgeom_collect_endpoints(rtg, col);
 
 	return col;
@@ -112,7 +112,7 @@ rtgeom_extract_unique_endpoints(const RTGEOM* rtg)
 	}
 	GEOSGeom_destroy(gepall);
 
-	ret = GEOS2RTGEOM(gepu, FLAGS_GET_Z(rtg->flags));
+	ret = GEOS2RTGEOM(gepu, RTFLAGS_GET_Z(rtg->flags));
 	GEOSGeom_destroy(gepu);
 	if ( ! ret ) {
 		rterror("Error during GEOS2RTGEOM");
@@ -177,7 +177,7 @@ rtgeom_node(const RTGEOM* rtgeom_in)
 		return NULL;
 	}
 
-	lines = GEOS2RTGEOM(gm, FLAGS_GET_Z(rtgeom_in->flags));
+	lines = GEOS2RTGEOM(gm, RTFLAGS_GET_Z(rtgeom_in->flags));
 	GEOSGeom_destroy(gm);
 	if ( ! lines ) {
 		rtgeom_free(ep);
@@ -195,8 +195,8 @@ rtgeom_node(const RTGEOM* rtgeom_in)
 	 */
 
 	col = rtcollection_construct_empty(RTMULTILINETYPE, rtgeom_in->srid,
-	                              FLAGS_GET_Z(rtgeom_in->flags),
-	                              FLAGS_GET_M(rtgeom_in->flags));
+	                              RTFLAGS_GET_Z(rtgeom_in->flags),
+	                              RTFLAGS_GET_M(rtgeom_in->flags));
 
 	np = rtgeom_ngeoms(ep);
 	for (pn=0; pn<np; ++pn) { /* for each point */

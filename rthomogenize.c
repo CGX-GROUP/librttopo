@@ -81,7 +81,7 @@ rtcollection_build_buffer(const RTCOLLECTION *col, HomogenizeBuffer *buffer)
 				/* Init if necessary */
 				if ( ! buffer->buf[geom->type] )
 				{
-					RTCOLLECTION *bufcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
+					RTCOLLECTION *bufcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
 					bufcol->type = rttype_get_collectiontype(geom->type);
 					buffer->buf[geom->type] = bufcol;
 				}
@@ -127,7 +127,7 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	if ( ntypes == 0 )
 	{
 		RTCOLLECTION *outcol;
-		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
+		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
 		outgeom = rtcollection_as_rtgeom(outcol);
 	}
 	/* One type, return homogeneous collection */
@@ -151,7 +151,7 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	{
 		int j;
 		RTCOLLECTION *outcol;
-		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
+		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
 		for ( j = 0; j < RTNUMTYPES; j++ )
 		{
 			if ( buffer.buf[j] )

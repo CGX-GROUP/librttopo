@@ -50,7 +50,7 @@ void printRTTIN(RTTIN *tin)
 		rterror("printRTTIN called with something else than a TIN");
 
 	rtnotice("RTTIN {");
-	rtnotice("    ndims = %i", (int)FLAGS_NDIMS(tin->flags));
+	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(tin->flags));
 	rtnotice("    SRID = %i", (int)tin->srid);
 	rtnotice("    ngeoms = %i", (int)tin->ngeoms);
 
@@ -87,7 +87,7 @@ int rttin_is_closed(const RTTIN *tin)
 	RTTRIANGLE *patch;
 
 	/* If surface is not 3D, it's can't be closed */
-	if (!FLAGS_GET_Z(tin->flags)) return 0;
+	if (!RTFLAGS_GET_Z(tin->flags)) return 0;
 
 	/* Max theorical arcs number if no one is shared ... */
 	narcs = 3 * tin->ngeoms;

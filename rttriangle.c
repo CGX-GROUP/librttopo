@@ -32,7 +32,7 @@ rttriangle_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 	result->type = RTTRIANGLETYPE;
 
 	result->flags = points->flags;
-	FLAGS_SET_BBOX(result->flags, bbox?1:0);
+	RTFLAGS_SET_BBOX(result->flags, bbox?1:0);
 	
 	result->srid = srid;
 	result->points = points;
@@ -72,7 +72,7 @@ void printRTTRIANGLE(RTTRIANGLE *triangle)
                 rterror("printRTTRIANGLE called with something else than a Triangle");
 
 	rtnotice("RTTRIANGLE {");
-	rtnotice("    ndims = %i", (int)FLAGS_NDIMS(triangle->flags));
+	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(triangle->flags));
 	rtnotice("    SRID = %i", (int)triangle->srid);
 	printPA(triangle->points);
 	rtnotice("}");
@@ -133,8 +133,8 @@ rttriangle_from_rtline(const RTLINE *shell)
 	if ( shell->points->npoints != 4 )
 		rterror("rttriangle_from_rtline: shell must have exactly 4 points");
 
-	if (   (!FLAGS_GET_Z(shell->flags) && !ptarray_is_closed_2d(shell->points)) ||
-	        (FLAGS_GET_Z(shell->flags) && !ptarray_is_closed_3d(shell->points)) )
+	if (   (!RTFLAGS_GET_Z(shell->flags) && !ptarray_is_closed_2d(shell->points)) ||
+	        (RTFLAGS_GET_Z(shell->flags) && !ptarray_is_closed_3d(shell->points)) )
 		rterror("rttriangle_from_rtline: shell must be closed");
 
 	pa = ptarray_clone_deep(shell->points);

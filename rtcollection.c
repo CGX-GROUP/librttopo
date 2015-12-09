@@ -46,10 +46,10 @@ rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
 	hasm = 0;
 	if ( ngeoms > 0 )
 	{
-		hasz = FLAGS_GET_Z(geoms[0]->flags);
-		hasm = FLAGS_GET_M(geoms[0]->flags);
+		hasz = RTFLAGS_GET_Z(geoms[0]->flags);
+		hasm = RTFLAGS_GET_M(geoms[0]->flags);
 #ifdef CHECK_RTGEOM_ZM
-		zm = FLAGS_GET_ZM(geoms[0]->flags);
+		zm = RTFLAGS_GET_ZM(geoms[0]->flags);
 
 		RTDEBUGF(3, "rtcollection_construct type[0]=%d", geoms[0]->type);
 
@@ -57,8 +57,8 @@ rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
 		{
 			RTDEBUGF(3, "rtcollection_construct type=[%d]=%d", i, geoms[i]->type);
 
-			if ( zm != FLAGS_GET_ZM(geoms[i]->flags) )
-				rterror("rtcollection_construct: mixed dimension geometries: %d/%d", zm, FLAGS_GET_ZM(geoms[i]->flags));
+			if ( zm != RTFLAGS_GET_ZM(geoms[i]->flags) )
+				rterror("rtcollection_construct: mixed dimension geometries: %d/%d", zm, RTFLAGS_GET_ZM(geoms[i]->flags));
 		}
 #endif
 	}
@@ -67,7 +67,7 @@ rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
 	ret = rtalloc(sizeof(RTCOLLECTION));
 	ret->type = type;
 	ret->flags = gflags(hasz,hasm,0);
-	FLAGS_SET_BBOX(ret->flags, bbox?1:0);
+	RTFLAGS_SET_BBOX(ret->flags, bbox?1:0);
 	ret->srid = srid;
 	ret->ngeoms = ngeoms;
 	ret->maxgeoms = ngeoms;
@@ -430,7 +430,7 @@ RTCOLLECTION* rtcollection_extract(RTCOLLECTION *col, int type)
 	else
 	{
 		rtfree(geomlist);
-		outcol = rtcollection_construct_empty(outtype, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
+		outcol = rtcollection_construct_empty(outtype, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
 	}
 
 	return outcol;
@@ -506,7 +506,7 @@ int rtcollection_count_vertices(RTCOLLECTION *col)
 RTCOLLECTION* rtcollection_simplify(const RTCOLLECTION *igeom, double dist, int preserve_collapsed)
 {
  	int i;
-	RTCOLLECTION *out = rtcollection_construct_empty(igeom->type, igeom->srid, FLAGS_GET_Z(igeom->flags), FLAGS_GET_M(igeom->flags));
+	RTCOLLECTION *out = rtcollection_construct_empty(igeom->type, igeom->srid, RTFLAGS_GET_Z(igeom->flags), RTFLAGS_GET_M(igeom->flags));
 
 	if( rtcollection_is_empty(igeom) )
 		return out; /* should we return NULL instead ? */

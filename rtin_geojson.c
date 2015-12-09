@@ -121,7 +121,7 @@ parse_geojson_coord(json_object *poObj, int *hasz, RTPOINTARRAY *pa)
 		{
 			*hasz = RT_FALSE;
 			/* Initialize Z coordinate, if required */
-			if ( FLAGS_GET_Z(pa->flags) ) pt.z = 0.0;
+			if ( RTFLAGS_GET_Z(pa->flags) ) pt.z = 0.0;
 		}
 		else 
 		{
@@ -130,7 +130,7 @@ parse_geojson_coord(json_object *poObj, int *hasz, RTPOINTARRAY *pa)
 		}
 
 		/* Initialize M coordinate, if required */
-		if ( FLAGS_GET_M(pa->flags) ) pt.m = 0.0;
+		if ( RTFLAGS_GET_M(pa->flags) ) pt.m = 0.0;
 
 	}
 	else

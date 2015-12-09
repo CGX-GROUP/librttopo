@@ -297,8 +297,8 @@ rtgeom_as_multi(const RTGEOM *rtgeom)
 		ogeom = (RTGEOM *)rtcollection_construct_empty(
 			RTMULTITYPE[type],
 			rtgeom->srid,
-			FLAGS_GET_Z(rtgeom->flags),
-			FLAGS_GET_M(rtgeom->flags)
+			RTFLAGS_GET_Z(rtgeom->flags),
+			RTFLAGS_GET_M(rtgeom->flags)
 		);
 	}
 	else
@@ -326,8 +326,8 @@ rtgeom_as_curve(const RTGEOM *rtgeom)
 	RTGEOM *ogeom;
 	int type = rtgeom->type;
 	/*
-	int hasz = FLAGS_GET_Z(rtgeom->flags);
-	int hasm = FLAGS_GET_M(rtgeom->flags);
+	int hasz = RTFLAGS_GET_Z(rtgeom->flags);
+	int hasm = RTFLAGS_GET_M(rtgeom->flags);
 	int srid = rtgeom->srid;
 	*/
 
@@ -505,7 +505,7 @@ rtgeom_same(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 		return RT_FALSE;
 	}
 
-	if ( FLAGS_GET_ZM(rtgeom1->flags) != FLAGS_GET_ZM(rtgeom2->flags) )
+	if ( RTFLAGS_GET_ZM(rtgeom1->flags) != RTFLAGS_GET_ZM(rtgeom2->flags) )
 	{
 		RTDEBUG(3, " ZM flags differ");
 
@@ -587,7 +587,7 @@ rtgeom_drop_bbox(RTGEOM *rtgeom)
 {
 	if ( rtgeom->bbox ) rtfree(rtgeom->bbox);
 	rtgeom->bbox = NULL;
-	FLAGS_SET_BBOX(rtgeom->flags, 0);
+	RTFLAGS_SET_BBOX(rtgeom->flags, 0);
 }
 
 /**
@@ -602,7 +602,7 @@ rtgeom_add_bbox(RTGEOM *rtgeom)
 	if ( rtgeom_is_empty(rtgeom) ) return;
 
 	if ( rtgeom->bbox ) return;
-	FLAGS_SET_BBOX(rtgeom->flags, 1);
+	RTFLAGS_SET_BBOX(rtgeom->flags, 1);
 	rtgeom->bbox = gbox_new(rtgeom->flags);
 	rtgeom_calculate_gbox(rtgeom, rtgeom->bbox);
 }
@@ -612,7 +612,7 @@ rtgeom_add_bbox_deep(RTGEOM *rtgeom, RTGBOX *gbox)
 {
 	if ( rtgeom_is_empty(rtgeom) ) return;
 
-	FLAGS_SET_BBOX(rtgeom->flags, 1);
+	RTFLAGS_SET_BBOX(rtgeom->flags, 1);
 	
 	if ( ! ( gbox || rtgeom->bbox ) )
 	{
@@ -652,7 +652,7 @@ rtgeom_get_bbox(const RTGEOM *rtg)
 int rtgeom_calculate_gbox(const RTGEOM *rtgeom, RTGBOX *gbox)
 {
 	gbox->flags = rtgeom->flags;
-	if( FLAGS_GET_GEODETIC(rtgeom->flags) )
+	if( RTFLAGS_GET_GEODETIC(rtgeom->flags) )
 		return rtgeom_calculate_gbox_geodetic(rtgeom, gbox);
 	else
 		return rtgeom_calculate_gbox_cartesian(rtgeom, gbox);	
@@ -836,21 +836,21 @@ int
 rtgeom_has_z(const RTGEOM *geom)
 {
 	if ( ! geom ) return RT_FALSE;
-	return FLAGS_GET_Z(geom->flags);
+	return RTFLAGS_GET_Z(geom->flags);
 }
 
 int 
 rtgeom_has_m(const RTGEOM *geom)
 {
 	if ( ! geom ) return RT_FALSE;
-	return FLAGS_GET_M(geom->flags);
+	return RTFLAGS_GET_M(geom->flags);
 }
 
 int 
 rtgeom_ndims(const RTGEOM *geom)
 {
 	if ( ! geom ) return 0;
-	return FLAGS_NDIMS(geom->flags);
+	return RTFLAGS_NDIMS(geom->flags);
 }
 
 
@@ -863,26 +863,26 @@ rtgeom_set_geodetic(RTGEOM *geom, int value)
 	RTCOLLECTION *col;
 	int i;
 	
-	FLAGS_SET_GEODETIC(geom->flags, value);
+	RTFLAGS_SET_GEODETIC(geom->flags, value);
 	if ( geom->bbox )
-		FLAGS_SET_GEODETIC(geom->bbox->flags, value);
+		RTFLAGS_SET_GEODETIC(geom->bbox->flags, value);
 	
 	switch(geom->type)
 	{
 		case RTPOINTTYPE:
 			pt = (RTPOINT*)geom;
 			if ( pt->point )
-				FLAGS_SET_GEODETIC(pt->point->flags, value);
+				RTFLAGS_SET_GEODETIC(pt->point->flags, value);
 			break;
 		case RTLINETYPE:
 			ln = (RTLINE*)geom;
 			if ( ln->points )
-				FLAGS_SET_GEODETIC(ln->points->flags, value);
+				RTFLAGS_SET_GEODETIC(ln->points->flags, value);
 			break;
 		case RTPOLYGONTYPE:
 			ply = (RTPOLY*)geom;
 			for ( i = 0; i < ply->nrings; i++ )
-				FLAGS_SET_GEODETIC(ply->rings[i]->flags, value);
+				RTFLAGS_SET_GEODETIC(ply->rings[i]->flags, value);
 			break;
 		case RTMULTIPOINTTYPE:
 		case RTMULTILINETYPE:

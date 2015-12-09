@@ -53,7 +53,7 @@ rtmline_measured_from_rtmline(const RTMLINE *rtmline, double m_start, double m_e
 		return NULL;
 	}
 
-	hasz = FLAGS_GET_Z(rtmline->flags);
+	hasz = RTFLAGS_GET_Z(rtmline->flags);
 	hasm = 1;
 
 	/* Calculate the total length of the mline */

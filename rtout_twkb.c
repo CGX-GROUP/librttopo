@@ -91,7 +91,7 @@ static void write_bbox(TWKB_STATE *ts, int ndims)
 */
 static int ptarray_to_twkb_buf(const RTPOINTARRAY *pa, TWKB_GLOBALS *globals, TWKB_STATE *ts, int register_npoints, int minpoints)
 {
-	int ndims = FLAGS_NDIMS(pa->flags);
+	int ndims = RTFLAGS_NDIMS(pa->flags);
 	int i, j;
 	bytebuffer_t b;
 	bytebuffer_t *b_p;

@@ -83,16 +83,16 @@ gbox_to_gml2(const RTGBOX *bbox, const char *srs, int precision, const char *pre
 		return output;
 	}
 
-	pa = ptarray_construct_empty(FLAGS_GET_Z(bbox->flags), 0, 2);
+	pa = ptarray_construct_empty(RTFLAGS_GET_Z(bbox->flags), 0, 2);
 
 	pt.x = bbox->xmin;
 	pt.y = bbox->ymin;
-	if (FLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmin;
+	if (RTFLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmin;
 	ptarray_append_point(pa, &pt, RT_TRUE);
 
 	pt.x = bbox->xmax;
 	pt.y = bbox->ymax;
-	if (FLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmax;
+	if (RTFLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmax;
 	ptarray_append_point(pa, &pt, RT_TRUE);
 
 	size = pointArray_GMLsize(pa, precision);
@@ -138,13 +138,13 @@ gbox_to_gml3(const RTGBOX *bbox, const char *srs, int precision, int opts, const
 		return output;
 	}
 
-	if (FLAGS_GET_Z(bbox->flags)) dimension = 3;
+	if (RTFLAGS_GET_Z(bbox->flags)) dimension = 3;
 
-	pa = ptarray_construct_empty(FLAGS_GET_Z(bbox->flags), 0, 1);
+	pa = ptarray_construct_empty(RTFLAGS_GET_Z(bbox->flags), 0, 1);
 
 	pt.x = bbox->xmin;
 	pt.y = bbox->ymin;
-	if (FLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmin;
+	if (RTFLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmin;
 	ptarray_append_point(pa, &pt, RT_TRUE);
 
 	size = pointArray_GMLsize(pa, precision) * 2;
@@ -166,7 +166,7 @@ gbox_to_gml3(const RTGBOX *bbox, const char *srs, int precision, int opts, const
 	ptarray_remove_point(pa, 0);
 	pt.x = bbox->xmax;
 	pt.y = bbox->ymax;
-	if (FLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmax;
+	if (RTFLAGS_GET_Z(bbox->flags)) pt.z = bbox->zmax;
 	ptarray_append_point(pa, &pt, RT_TRUE);
 
 	ptr += sprintf(ptr, "<%supperCorner>", prefix);
@@ -656,7 +656,7 @@ pointArray_toGML2(RTPOINTARRAY *pa, char *output, int precision)
 
 	ptr = output;
 
-	if ( ! FLAGS_GET_Z(pa->flags) )
+	if ( ! RTFLAGS_GET_Z(pa->flags) )
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
@@ -797,7 +797,7 @@ asgml3_point_buf(const RTPOINT *point, const char *srs, char *output, int precis
 	char *ptr = output;
 	int dimension=2;
 
-	if (FLAGS_GET_Z(point->flags)) dimension = 3;
+	if (RTFLAGS_GET_Z(point->flags)) dimension = 3;
 
 	ptr += sprintf(ptr, "<%sPoint", prefix);
 	if ( srs ) ptr += sprintf(ptr, " srsName=\"%s\"", srs);
@@ -864,7 +864,7 @@ asgml3_line_buf(const RTLINE *line, const char *srs, char *output, int precision
 	int dimension=2;
 	int shortline = ( opts & RT_GML_SHORTLINE );
 
-	if (FLAGS_GET_Z(line->flags)) dimension = 3;
+	if (RTFLAGS_GET_Z(line->flags)) dimension = 3;
 
 	if ( shortline )
 	{
@@ -951,7 +951,7 @@ asgml3_circstring_buf(const RTCIRCSTRING *circ, const char *srs, char *output, i
 	char* ptr = output;
 	int dimension=2;
 
-	if (FLAGS_GET_Z(circ->flags))
+	if (RTFLAGS_GET_Z(circ->flags))
 	{
 		dimension = 3;
 	}
@@ -1024,7 +1024,7 @@ asgml3_poly_buf(const RTPOLY *poly, const char *srs, char *output, int precision
 	char *ptr=output;
 	int dimension=2;
 
-	if (FLAGS_GET_Z(poly->flags)) dimension = 3;
+	if (RTFLAGS_GET_Z(poly->flags)) dimension = 3;
 	if (is_patch)
 	{
 		ptr += sprintf(ptr, "<%sPolygonPatch", prefix);
@@ -1129,7 +1129,7 @@ asgml3_compound_buf(const RTCOMPOUND *col, const char *srs, char *output, int pr
 	char* ptr = output;
 	int dimension=2;
 
-	if (FLAGS_GET_Z(col->flags))
+	if (RTFLAGS_GET_Z(col->flags))
 	{
 		dimension = 3;
 	}
@@ -1249,7 +1249,7 @@ static size_t asgml3_curvepoly_buf(const RTCURVEPOLY* poly, const char *srs, cha
 	char *ptr=output;
 	int dimension=2;
 
-	if (FLAGS_GET_Z(poly->flags))
+	if (RTFLAGS_GET_Z(poly->flags))
 	{
 		dimension = 3;
 	}
@@ -1356,7 +1356,7 @@ asgml3_triangle_buf(const RTTRIANGLE *triangle, const char *srs, char *output, i
 	char *ptr=output;
 	int dimension=2;
 
-	if (FLAGS_GET_Z(triangle->flags)) dimension = 3;
+	if (RTFLAGS_GET_Z(triangle->flags)) dimension = 3;
 	ptr += sprintf(ptr, "<%sTriangle", prefix);
 	if (srs) ptr += sprintf(ptr, " srsName=\"%s\"", srs);
 	if (id)  ptr += sprintf(ptr, " %sid=\"%s\"", prefix, id);
@@ -1903,7 +1903,7 @@ pointArray_toGML3(RTPOINTARRAY *pa, char *output, int precision, int opts)
 
 	ptr = output;
 
-	if ( ! FLAGS_GET_Z(pa->flags) )
+	if ( ! RTFLAGS_GET_Z(pa->flags) )
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
@@ -1973,7 +1973,7 @@ pointArray_toGML3(RTPOINTARRAY *pa, char *output, int precision, int opts)
 static size_t
 pointArray_GMLsize(RTPOINTARRAY *pa, int precision)
 {
-	if (FLAGS_NDIMS(pa->flags) == 2)
+	if (RTFLAGS_NDIMS(pa->flags) == 2)
 		return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(", ")) * 2 * pa->npoints;
 
 	return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(", ")) * 3 * pa->npoints;

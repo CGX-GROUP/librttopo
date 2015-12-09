@@ -197,7 +197,7 @@ rtcircstring_stroke(const RTCIRCSTRING *icurve, uint32_t perQuad)
 
 	RTDEBUGF(2, "rtcircstring_stroke called., dim = %d", icurve->points->flags);
 
-	ptarray = ptarray_construct_empty(FLAGS_GET_Z(icurve->points->flags), FLAGS_GET_M(icurve->points->flags), 64);
+	ptarray = ptarray_construct_empty(RTFLAGS_GET_Z(icurve->points->flags), RTFLAGS_GET_M(icurve->points->flags), 64);
 
 	for (i = 2; i < icurve->points->npoints; i+=2)
 	{
@@ -249,7 +249,7 @@ rtcompound_stroke(const RTCOMPOUND *icompound, uint32_t perQuad)
 
 	RTDEBUG(2, "rtcompound_stroke called.");
 
-	ptarray = ptarray_construct_empty(FLAGS_GET_Z(icompound->flags), FLAGS_GET_M(icompound->flags), 64);
+	ptarray = ptarray_construct_empty(RTFLAGS_GET_Z(icompound->flags), RTFLAGS_GET_M(icompound->flags), 64);
 
 	for (i = 0; i < icompound->ngeoms; i++)
 	{
@@ -336,7 +336,7 @@ rtmcurve_stroke(const RTMCURVE *mcurve, uint32_t perQuad)
 	RTGEOM **lines;
 	int i;
 
-	RTDEBUGF(2, "rtmcurve_stroke called, geoms=%d, dim=%d.", mcurve->ngeoms, FLAGS_NDIMS(mcurve->flags));
+	RTDEBUGF(2, "rtmcurve_stroke called, geoms=%d, dim=%d.", mcurve->ngeoms, RTFLAGS_NDIMS(mcurve->flags));
 
 	lines = rtalloc(sizeof(RTGEOM *)*mcurve->ngeoms);
 

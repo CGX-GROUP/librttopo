@@ -50,7 +50,7 @@ void printRTPSURFACE(RTPSURFACE *psurf)
 		rterror("printRTPSURFACE called with something else than a POLYHEDRALSURFACE");
 
 	rtnotice("RTPSURFACE {");
-	rtnotice("    ndims = %i", (int)FLAGS_NDIMS(psurf->flags));
+	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(psurf->flags));
 	rtnotice("    SRID = %i", (int)psurf->srid);
 	rtnotice("    ngeoms = %i", (int)psurf->ngeoms);
 
@@ -93,7 +93,7 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 	RTPOLY *patch;
 
 	/* If surface is not 3D, it's can't be closed */
-	if (!FLAGS_GET_Z(psurface->flags)) return 0;
+	if (!RTFLAGS_GET_Z(psurface->flags)) return 0;
 
 	/* If surface is less than 4 faces hard to be closed too */
 	if (psurface->ngeoms < 4) return 0;

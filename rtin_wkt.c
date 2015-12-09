@@ -70,9 +70,9 @@ static uint8_t wkt_dimensionality(char *dimensionality)
 	for( i = 0; i < strlen(dimensionality); i++ )
 	{
 		if( (dimensionality[i] == 'Z') || (dimensionality[i] == 'z') )
-			FLAGS_SET_Z(flags,1);
+			RTFLAGS_SET_Z(flags,1);
 		else if( (dimensionality[i] == 'M') || (dimensionality[i] == 'm') )
-			FLAGS_SET_M(flags,1);
+			RTFLAGS_SET_M(flags,1);
 		/* only a space is accepted in between */
 		else if( ! isspace(dimensionality[i]) ) break;
 	}
@@ -86,16 +86,16 @@ static uint8_t wkt_dimensionality(char *dimensionality)
 */
 static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 {
-	int hasz = FLAGS_GET_Z(flags);
-	int hasm = FLAGS_GET_M(flags);
+	int hasz = RTFLAGS_GET_Z(flags);
+	int hasm = RTFLAGS_GET_M(flags);
 	int i = 0;
 	
 	/* Error on junk */
 	if( ! geom ) 
 		return RT_FAILURE;
 
-	FLAGS_SET_Z(geom->flags, hasz);
-	FLAGS_SET_M(geom->flags, hasm);
+	RTFLAGS_SET_Z(geom->flags, hasz);
+	RTFLAGS_SET_M(geom->flags, hasm);
 	
 	switch( geom->type )
 	{
@@ -104,8 +104,8 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 			RTPOINT *pt = (RTPOINT*)geom;
 			if ( pt->point )
 			{
-				FLAGS_SET_Z(pt->point->flags, hasz);
-				FLAGS_SET_M(pt->point->flags, hasm);
+				RTFLAGS_SET_Z(pt->point->flags, hasz);
+				RTFLAGS_SET_M(pt->point->flags, hasm);
 			}
 			break;
 		}
@@ -116,8 +116,8 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 			RTLINE *ln = (RTLINE*)geom;
 			if ( ln->points )
 			{
-				FLAGS_SET_Z(ln->points->flags, hasz);
-				FLAGS_SET_M(ln->points->flags, hasm);
+				RTFLAGS_SET_Z(ln->points->flags, hasz);
+				RTFLAGS_SET_M(ln->points->flags, hasm);
 			}
 			break;
 		}
@@ -128,8 +128,8 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 			{
 				if( poly->rings[i] )
 				{
-					FLAGS_SET_Z(poly->rings[i]->flags, hasz);
-					FLAGS_SET_M(poly->rings[i]->flags, hasm);
+					RTFLAGS_SET_Z(poly->rings[i]->flags, hasz);
+					RTFLAGS_SET_M(poly->rings[i]->flags, hasm);
 				}
 			}
 			break;
@@ -168,8 +168,8 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 */
 static int wkt_pointarray_dimensionality(RTPOINTARRAY *pa, uint8_t flags)
 {	
-	int hasz = FLAGS_GET_Z(flags);
-	int hasm = FLAGS_GET_M(flags);
+	int hasz = RTFLAGS_GET_Z(flags);
+	int hasm = RTFLAGS_GET_M(flags);
 	int ndims = 2 + hasz + hasm;
 
 	/* No dimensionality or array means we go with what we have */
@@ -177,7 +177,7 @@ static int wkt_pointarray_dimensionality(RTPOINTARRAY *pa, uint8_t flags)
 		return RT_TRUE;
 		
 	RTDEBUGF(5,"dimensionality ndims == %d", ndims);
-	RTDEBUGF(5,"FLAGS_NDIMS(pa->flags) == %d", FLAGS_NDIMS(pa->flags));
+	RTDEBUGF(5,"RTFLAGS_NDIMS(pa->flags) == %d", RTFLAGS_NDIMS(pa->flags));
 	
 	/* 
 	* ndims > 2 implies that the flags have something useful to add,
@@ -186,13 +186,13 @@ static int wkt_pointarray_dimensionality(RTPOINTARRAY *pa, uint8_t flags)
 	if( ndims > 2 )
 	{
 		/* Mismatch implies a problem */
-		if ( FLAGS_NDIMS(pa->flags) != ndims )
+		if ( RTFLAGS_NDIMS(pa->flags) != ndims )
 			return RT_FALSE;
 		/* Match means use the explicit dimensionality */
 		else
 		{
-			FLAGS_SET_Z(pa->flags, hasz);
-			FLAGS_SET_M(pa->flags, hasm);
+			RTFLAGS_SET_Z(pa->flags, hasz);
+			RTFLAGS_SET_M(pa->flags, hasm);
 		}
 	}
 
@@ -211,8 +211,8 @@ POINT wkt_parser_coord_2(double c1, double c2)
 	p.x = c1;
 	p.y = c2;
 	p.z = p.m = 0.0;
-	FLAGS_SET_Z(p.flags, 0);
-	FLAGS_SET_M(p.flags, 0);
+	RTFLAGS_SET_Z(p.flags, 0);
+	RTFLAGS_SET_M(p.flags, 0);
 	return p;
 }
 
@@ -228,8 +228,8 @@ POINT wkt_parser_coord_3(double c1, double c2, double c3)
 		p.y = c2;
 		p.z = c3;
 		p.m = 0;
-		FLAGS_SET_Z(p.flags, 1);
-		FLAGS_SET_M(p.flags, 0);
+		RTFLAGS_SET_Z(p.flags, 1);
+		RTFLAGS_SET_M(p.flags, 0);
 		return p;
 }
 
@@ -243,8 +243,8 @@ POINT wkt_parser_coord_4(double c1, double c2, double c3, double c4)
 	p.y = c2;
 	p.z = c3;
 	p.m = c4;
-	FLAGS_SET_Z(p.flags, 1);
-	FLAGS_SET_M(p.flags, 1);
+	RTFLAGS_SET_Z(p.flags, 1);
+	RTFLAGS_SET_M(p.flags, 1);
 	return p;
 }
 
@@ -261,7 +261,7 @@ RTPOINTARRAY* wkt_parser_ptarray_add_coord(RTPOINTARRAY *pa, POINT p)
 	}
 	
 	/* Check that the coordinate has the same dimesionality as the array */
-	if( FLAGS_NDIMS(p.flags) != FLAGS_NDIMS(pa->flags) )
+	if( RTFLAGS_NDIMS(p.flags) != RTFLAGS_NDIMS(pa->flags) )
 	{
 		ptarray_free(pa);
 		SET_PARSER_ERROR(PARSER_ERROR_MIXDIMS);
@@ -271,12 +271,12 @@ RTPOINTARRAY* wkt_parser_ptarray_add_coord(RTPOINTARRAY *pa, POINT p)
 	/* While parsing the point arrays, XYM and XMZ points are both treated as XYZ */
 	pt.x = p.x;
 	pt.y = p.y;
-	if( FLAGS_GET_Z(pa->flags) )
+	if( RTFLAGS_GET_Z(pa->flags) )
 		pt.z = p.z;
-	if( FLAGS_GET_M(pa->flags) )
+	if( RTFLAGS_GET_M(pa->flags) )
 		pt.m = p.m;
 	/* If the destination is XYM, we'll write the third coordinate to m */
-	if( FLAGS_GET_M(pa->flags) && ! FLAGS_GET_Z(pa->flags) )
+	if( RTFLAGS_GET_M(pa->flags) && ! RTFLAGS_GET_Z(pa->flags) )
 		pt.m = p.z;
 		
 	ptarray_append_point(pa, &pt, RT_TRUE); /* Allow duplicate points in array */
@@ -288,7 +288,7 @@ RTPOINTARRAY* wkt_parser_ptarray_add_coord(RTPOINTARRAY *pa, POINT p)
 */
 RTPOINTARRAY* wkt_parser_ptarray_new(POINT p)
 {
-	int ndims = FLAGS_NDIMS(p.flags);
+	int ndims = RTFLAGS_NDIMS(p.flags);
 	RTPOINTARRAY *pa = ptarray_construct_empty((ndims>2), (ndims>3), 4);
 	RTDEBUG(4,"entered");
 	if ( ! pa )
@@ -310,7 +310,7 @@ RTGEOM* wkt_parser_point_new(RTPOINTARRAY *pa, char *dimensionality)
 	
 	/* No pointarray means it is empty */
 	if( ! pa )
-		return rtpoint_as_rtgeom(rtpoint_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(flags), FLAGS_GET_M(flags)));
+		return rtpoint_as_rtgeom(rtpoint_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(flags), RTFLAGS_GET_M(flags)));
 
 	/* If the number of dimensions is not consistent, we have a problem. */
 	if( wkt_pointarray_dimensionality(pa, flags) == RT_FALSE )
@@ -344,7 +344,7 @@ RTGEOM* wkt_parser_linestring_new(RTPOINTARRAY *pa, char *dimensionality)
 
 	/* No pointarray means it is empty */
 	if( ! pa )
-		return rtline_as_rtgeom(rtline_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(flags), FLAGS_GET_M(flags)));
+		return rtline_as_rtgeom(rtline_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(flags), RTFLAGS_GET_M(flags)));
 
 	/* If the number of dimensions is not consistent, we have a problem. */
 	if( wkt_pointarray_dimensionality(pa, flags) == RT_FALSE )
@@ -378,7 +378,7 @@ RTGEOM* wkt_parser_circularstring_new(RTPOINTARRAY *pa, char *dimensionality)
 
 	/* No pointarray means it is empty */
 	if( ! pa )
-		return rtcircstring_as_rtgeom(rtcircstring_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(flags), FLAGS_GET_M(flags)));
+		return rtcircstring_as_rtgeom(rtcircstring_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(flags), RTFLAGS_GET_M(flags)));
 
 	/* If the number of dimensions is not consistent, we have a problem. */
 	if( wkt_pointarray_dimensionality(pa, flags) == RT_FALSE )
@@ -414,7 +414,7 @@ RTGEOM* wkt_parser_triangle_new(RTPOINTARRAY *pa, char *dimensionality)
 
 	/* No pointarray means it is empty */
 	if( ! pa )
-		return rttriangle_as_rtgeom(rttriangle_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(flags), FLAGS_GET_M(flags)));
+		return rttriangle_as_rtgeom(rttriangle_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(flags), RTFLAGS_GET_M(flags)));
 
 	/* If the number of dimensions is not consistent, we have a problem. */
 	if( wkt_pointarray_dimensionality(pa, flags) == RT_FALSE )
@@ -455,7 +455,7 @@ RTGEOM* wkt_parser_polygon_new(RTPOINTARRAY *pa, char dimcheck)
 		return NULL;	
 	}
 
-	poly = rtpoly_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(pa->flags), FLAGS_GET_M(pa->flags));
+	poly = rtpoly_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(pa->flags), RTFLAGS_GET_M(pa->flags));
 	
 	/* Error out if we can't build this polygon. */
 	if( ! poly )
@@ -480,7 +480,7 @@ RTGEOM* wkt_parser_polygon_add_ring(RTGEOM *poly, RTPOINTARRAY *pa, char dimchec
 	}
 
 	/* Rings must agree on dimensionality */
-	if( FLAGS_NDIMS(poly->flags) != FLAGS_NDIMS(pa->flags) )
+	if( RTFLAGS_NDIMS(poly->flags) != RTFLAGS_NDIMS(pa->flags) )
 	{
 		ptarray_free(pa);
 		rtgeom_free(poly);
@@ -521,17 +521,17 @@ RTGEOM* wkt_parser_polygon_add_ring(RTGEOM *poly, RTPOINTARRAY *pa, char dimchec
 RTGEOM* wkt_parser_polygon_finalize(RTGEOM *poly, char *dimensionality)
 {
 	uint8_t flags = wkt_dimensionality(dimensionality);
-	int flagdims = FLAGS_NDIMS(flags);
+	int flagdims = RTFLAGS_NDIMS(flags);
 	RTDEBUG(4,"entered");
 	
 	/* Null input implies empty return */
 	if( ! poly )
-		return rtpoly_as_rtgeom(rtpoly_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(flags), FLAGS_GET_M(flags)));
+		return rtpoly_as_rtgeom(rtpoly_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(flags), RTFLAGS_GET_M(flags)));
 
 	/* If the number of dimensions are not consistent, we have a problem. */
 	if( flagdims > 2 )
 	{
-		if ( flagdims != FLAGS_NDIMS(poly->flags) )
+		if ( flagdims != RTFLAGS_NDIMS(poly->flags) )
 		{
 			rtgeom_free(poly);
 			SET_PARSER_ERROR(PARSER_ERROR_MIXDIMS);
@@ -563,7 +563,7 @@ RTGEOM* wkt_parser_curvepolygon_new(RTGEOM *ring)
 	}
 	
 	/* Construct poly and add the ring. */
-	poly = rtcurvepoly_as_rtgeom(rtcurvepoly_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(ring->flags), FLAGS_GET_M(ring->flags)));
+	poly = rtcurvepoly_as_rtgeom(rtcurvepoly_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(ring->flags), RTFLAGS_GET_M(ring->flags)));
 	/* Return the result. */
 	return wkt_parser_curvepolygon_add_ring(poly,ring);
 }
@@ -581,7 +581,7 @@ RTGEOM* wkt_parser_curvepolygon_add_ring(RTGEOM *poly, RTGEOM *ring)
 	}
 	
 	/* All the elements must agree on dimensionality */
-	if( FLAGS_NDIMS(poly->flags) != FLAGS_NDIMS(ring->flags) )
+	if( RTFLAGS_NDIMS(poly->flags) != RTFLAGS_NDIMS(ring->flags) )
 	{
 		RTDEBUG(4,"dimensionality does not match");
 		rtgeom_free(ring);
@@ -652,17 +652,17 @@ RTGEOM* wkt_parser_curvepolygon_add_ring(RTGEOM *poly, RTGEOM *ring)
 RTGEOM* wkt_parser_curvepolygon_finalize(RTGEOM *poly, char *dimensionality)
 {
 	uint8_t flags = wkt_dimensionality(dimensionality);
-	int flagdims = FLAGS_NDIMS(flags);
+	int flagdims = RTFLAGS_NDIMS(flags);
 	RTDEBUG(4,"entered");
 	
 	/* Null input implies empty return */
 	if( ! poly )
-		return rtcurvepoly_as_rtgeom(rtcurvepoly_construct_empty(SRID_UNKNOWN, FLAGS_GET_Z(flags), FLAGS_GET_M(flags)));
+		return rtcurvepoly_as_rtgeom(rtcurvepoly_construct_empty(SRID_UNKNOWN, RTFLAGS_GET_Z(flags), RTFLAGS_GET_M(flags)));
 
 	if ( flagdims > 2 )
 	{
 		/* If the number of dimensions are not consistent, we have a problem. */
-		if( flagdims != FLAGS_NDIMS(poly->flags) )
+		if( flagdims != RTFLAGS_NDIMS(poly->flags) )
 		{
 			rtgeom_free(poly);
 			SET_PARSER_ERROR(PARSER_ERROR_MIXDIMS);
@@ -754,7 +754,7 @@ RTGEOM* wkt_parser_compound_add_geom(RTGEOM *col, RTGEOM *geom)
 	}
 
 	/* All the elements must agree on dimensionality */
-	if( FLAGS_NDIMS(col->flags) != FLAGS_NDIMS(geom->flags) )
+	if( RTFLAGS_NDIMS(col->flags) != RTFLAGS_NDIMS(geom->flags) )
 	{
 		rtgeom_free(col);
 		rtgeom_free(geom);
@@ -791,12 +791,12 @@ RTGEOM* wkt_parser_collection_add_geom(RTGEOM *col, RTGEOM *geom)
 RTGEOM* wkt_parser_collection_finalize(int rttype, RTGEOM *geom, char *dimensionality) 
 {
 	uint8_t flags = wkt_dimensionality(dimensionality);
-	int flagdims = FLAGS_NDIMS(flags);
+	int flagdims = RTFLAGS_NDIMS(flags);
 	
 	/* No geometry means it is empty */
 	if( ! geom )
 	{
-		return rtcollection_as_rtgeom(rtcollection_construct_empty(rttype, SRID_UNKNOWN, FLAGS_GET_Z(flags), FLAGS_GET_M(flags)));
+		return rtcollection_as_rtgeom(rtcollection_construct_empty(rttype, SRID_UNKNOWN, RTFLAGS_GET_Z(flags), RTFLAGS_GET_M(flags)));
 	}
 
 	/* There are 'Z' or 'M' tokens in the signature */
@@ -808,7 +808,7 @@ RTGEOM* wkt_parser_collection_finalize(int rttype, RTGEOM *geom, char *dimension
 		for ( i = 0 ; i < col->ngeoms; i++ )
 		{
 			RTGEOM *subgeom = col->geoms[i];
-			if ( FLAGS_NDIMS(flags) != FLAGS_NDIMS(subgeom->flags) &&
+			if ( RTFLAGS_NDIMS(flags) != RTFLAGS_NDIMS(subgeom->flags) &&
 				 ! rtgeom_is_empty(subgeom) )
 			{
 				rtgeom_free(geom);
@@ -817,8 +817,8 @@ RTGEOM* wkt_parser_collection_finalize(int rttype, RTGEOM *geom, char *dimension
 			}
 			
 			if ( rttype == RTCOLLECTIONTYPE &&
-			   ( (FLAGS_GET_Z(flags) != FLAGS_GET_Z(subgeom->flags)) ||
-			     (FLAGS_GET_M(flags) != FLAGS_GET_M(subgeom->flags)) ) &&
+			   ( (RTFLAGS_GET_Z(flags) != RTFLAGS_GET_Z(subgeom->flags)) ||
+			     (RTFLAGS_GET_M(flags) != RTFLAGS_GET_M(subgeom->flags)) ) &&
 				! rtgeom_is_empty(subgeom) )
 			{
 				rtgeom_free(geom);

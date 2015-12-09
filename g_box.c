@@ -58,7 +58,7 @@ BOX3D* box3d_from_gbox(const RTGBOX *gbox)
 	b->ymin = gbox->ymin;
 	b->ymax = gbox->ymax;
 
-	if ( FLAGS_GET_Z(gbox->flags) )
+	if ( RTFLAGS_GET_Z(gbox->flags) )
 	{
 		b->zmin = gbox->zmin;
 		b->zmax = gbox->zmax;
@@ -96,12 +96,12 @@ void gbox_expand(RTGBOX *g, double d)
 	g->xmax += d;
 	g->ymin -= d;
 	g->ymax += d;
-	if ( FLAGS_GET_Z(g->flags) )
+	if ( RTFLAGS_GET_Z(g->flags) )
 	{
 		g->zmin -= d;
 		g->zmax += d;
 	}
-	if ( FLAGS_GET_M(g->flags) )
+	if ( RTFLAGS_GET_M(g->flags) )
 	{
 		g->mmin -= d;
 		g->mmax += d;
@@ -140,14 +140,14 @@ int gbox_union(const RTGBOX *g1, const RTGBOX *g2, RTGBOX *gout)
 
 int gbox_same(const RTGBOX *g1, const RTGBOX *g2)
 {
-	if (FLAGS_GET_ZM(g1->flags) != FLAGS_GET_ZM(g2->flags))
+	if (RTFLAGS_GET_ZM(g1->flags) != RTFLAGS_GET_ZM(g2->flags))
 		return RT_FALSE;
 
 	if (!gbox_same_2d(g1, g2)) return RT_FALSE;
 
-	if (FLAGS_GET_Z(g1->flags) && (g1->zmin != g2->zmin || g1->zmax != g2->zmax))
+	if (RTFLAGS_GET_Z(g1->flags) && (g1->zmin != g2->zmin || g1->zmax != g2->zmax))
 		return RT_FALSE;
-	if (FLAGS_GET_M(g1->flags) && (g1->mmin != g2->mmin || g1->mmax != g2->mmax))
+	if (RTFLAGS_GET_M(g1->flags) && (g1->mmin != g2->mmin || g1->mmax != g2->mmax))
 		return RT_FALSE;
 
 	return RT_TRUE;
@@ -184,7 +184,7 @@ int gbox_is_valid(const RTGBOX *gbox)
 		return RT_FALSE;
 		
 	/* Z */
-	if ( FLAGS_GET_GEODETIC(gbox->flags) || FLAGS_GET_Z(gbox->flags) )
+	if ( RTFLAGS_GET_GEODETIC(gbox->flags) || RTFLAGS_GET_Z(gbox->flags) )
 	{
 		if ( ! isfinite(gbox->zmin) || isnan(gbox->zmin) ||
 		     ! isfinite(gbox->zmax) || isnan(gbox->zmax) )
@@ -192,7 +192,7 @@ int gbox_is_valid(const RTGBOX *gbox)
 	}
 
 	/* M */
-	if ( FLAGS_GET_M(gbox->flags) )
+	if ( RTFLAGS_GET_M(gbox->flags) )
 	{
 		if ( ! isfinite(gbox->mmin) || isnan(gbox->mmin) ||
 		     ! isfinite(gbox->mmax) || isnan(gbox->mmax) )
@@ -235,7 +235,7 @@ int gbox_merge(const RTGBOX *new_box, RTGBOX *merge_box)
 {
 	assert(merge_box);
 
-	if ( FLAGS_GET_ZM(merge_box->flags) != FLAGS_GET_ZM(new_box->flags) )
+	if ( RTFLAGS_GET_ZM(merge_box->flags) != RTFLAGS_GET_ZM(new_box->flags) )
 		return RT_FAILURE;
 
 	if ( new_box->xmin < merge_box->xmin) merge_box->xmin = new_box->xmin;
@@ -243,12 +243,12 @@ int gbox_merge(const RTGBOX *new_box, RTGBOX *merge_box)
 	if ( new_box->xmax > merge_box->xmax) merge_box->xmax = new_box->xmax;
 	if ( new_box->ymax > merge_box->ymax) merge_box->ymax = new_box->ymax;
 
-	if ( FLAGS_GET_Z(merge_box->flags) || FLAGS_GET_GEODETIC(merge_box->flags) )
+	if ( RTFLAGS_GET_Z(merge_box->flags) || RTFLAGS_GET_GEODETIC(merge_box->flags) )
 	{
 		if ( new_box->zmin < merge_box->zmin) merge_box->zmin = new_box->zmin;
 		if ( new_box->zmax > merge_box->zmax) merge_box->zmax = new_box->zmax;
 	}
-	if ( FLAGS_GET_M(merge_box->flags) )
+	if ( RTFLAGS_GET_M(merge_box->flags) )
 	{
 		if ( new_box->mmin < merge_box->mmin) merge_box->mmin = new_box->mmin;
 		if ( new_box->mmax > merge_box->mmax) merge_box->mmax = new_box->mmax;
@@ -261,7 +261,7 @@ int gbox_overlaps(const RTGBOX *g1, const RTGBOX *g2)
 {
 
 	/* Make sure our boxes are consistent */
-	if ( FLAGS_GET_GEODETIC(g1->flags) != FLAGS_GET_GEODETIC(g2->flags) )
+	if ( RTFLAGS_GET_GEODETIC(g1->flags) != RTFLAGS_GET_GEODETIC(g2->flags) )
 		rterror("gbox_overlaps: cannot compare geodetic and non-geodetic boxes");
 
 	/* Check X/Y first */
@@ -271,7 +271,7 @@ int gbox_overlaps(const RTGBOX *g1, const RTGBOX *g2)
 
 	/* Deal with the geodetic case special: we only compare the geodetic boxes (x/y/z) */
 	/* Never the M dimension */
-	if ( FLAGS_GET_GEODETIC(g1->flags) && FLAGS_GET_GEODETIC(g2->flags) )
+	if ( RTFLAGS_GET_GEODETIC(g1->flags) && RTFLAGS_GET_GEODETIC(g2->flags) )
 	{
 		if ( g1->zmax < g2->zmin || g1->zmin > g2->zmax )
 			return RT_FALSE;
@@ -280,14 +280,14 @@ int gbox_overlaps(const RTGBOX *g1, const RTGBOX *g2)
 	}
 		
 	/* If both geodetic or both have Z, check Z */
-	if ( FLAGS_GET_Z(g1->flags) && FLAGS_GET_Z(g2->flags) )
+	if ( RTFLAGS_GET_Z(g1->flags) && RTFLAGS_GET_Z(g2->flags) )
 	{
 		if ( g1->zmax < g2->zmin || g1->zmin > g2->zmax )
 			return RT_FALSE;
 	}
 	
 	/* If both have M, check M */
-	if ( FLAGS_GET_M(g1->flags) && FLAGS_GET_M(g2->flags) )
+	if ( RTFLAGS_GET_M(g1->flags) && RTFLAGS_GET_M(g2->flags) )
 	{
 		if ( g1->mmax < g2->mmin || g1->mmin > g2->mmax )
 			return RT_FALSE;
@@ -301,7 +301,7 @@ gbox_overlaps_2d(const RTGBOX *g1, const RTGBOX *g2)
 {
 
 	/* Make sure our boxes are consistent */
-	if ( FLAGS_GET_GEODETIC(g1->flags) != FLAGS_GET_GEODETIC(g2->flags) )
+	if ( RTFLAGS_GET_GEODETIC(g1->flags) != RTFLAGS_GET_GEODETIC(g2->flags) )
 		rterror("gbox_overlaps: cannot compare geodetic and non-geodetic boxes");
 
 	/* Check X/Y first */
@@ -376,22 +376,22 @@ char* gbox_to_string(const RTGBOX *gbox)
 
 	str = (char*)rtalloc(sz);
 
-	if ( FLAGS_GET_GEODETIC(gbox->flags) )
+	if ( RTFLAGS_GET_GEODETIC(gbox->flags) )
 	{
 		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->xmax, gbox->ymax, gbox->zmax);
 		return str;
 	}
-	if ( FLAGS_GET_Z(gbox->flags) && FLAGS_GET_M(gbox->flags) )
+	if ( RTFLAGS_GET_Z(gbox->flags) && RTFLAGS_GET_M(gbox->flags) )
 	{
 		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->mmin, gbox->xmax, gbox->ymax, gbox->zmax, gbox->mmax);
 		return str;
 	}
-	if ( FLAGS_GET_Z(gbox->flags) )
+	if ( RTFLAGS_GET_Z(gbox->flags) )
 	{
 		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->xmax, gbox->ymax, gbox->zmax);
 		return str;
 	}
-	if ( FLAGS_GET_M(gbox->flags) )
+	if ( RTFLAGS_GET_M(gbox->flags) )
 	{
 		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->mmin, gbox->xmax, gbox->ymax, gbox->mmax);
 		return str;
@@ -415,10 +415,10 @@ void gbox_duplicate(const RTGBOX *original, RTGBOX *duplicate)
 
 size_t gbox_serialized_size(uint8_t flags)
 {
-	if ( FLAGS_GET_GEODETIC(flags) )
+	if ( RTFLAGS_GET_GEODETIC(flags) )
 		return 6 * sizeof(float);
 	else
-		return 2 * FLAGS_NDIMS(flags) * sizeof(float);
+		return 2 * RTFLAGS_NDIMS(flags) * sizeof(float);
 }
 
 
@@ -519,8 +519,8 @@ int ptarray_calculate_gbox_cartesian(const RTPOINTARRAY *pa, RTGBOX *gbox )
 	if ( ! gbox ) return RT_FAILURE;
 	if ( pa->npoints < 1 ) return RT_FAILURE;
 
-	has_z = FLAGS_GET_Z(pa->flags);
-	has_m = FLAGS_GET_M(pa->flags);
+	has_z = RTFLAGS_GET_Z(pa->flags);
+	has_m = RTFLAGS_GET_M(pa->flags);
 	gbox->flags = gflags(has_z, has_m, 0);
 	RTDEBUGF(4, "ptarray_calculate_gbox Z: %d M: %d", has_z, has_m);
 
@@ -555,7 +555,7 @@ int ptarray_calculate_gbox_cartesian(const RTPOINTARRAY *pa, RTGBOX *gbox )
 
 static int rtcircstring_calculate_gbox_cartesian(RTCIRCSTRING *curve, RTGBOX *gbox)
 {
-	uint8_t flags = gflags(FLAGS_GET_Z(curve->flags), FLAGS_GET_M(curve->flags), 0);
+	uint8_t flags = gflags(RTFLAGS_GET_Z(curve->flags), RTFLAGS_GET_M(curve->flags), 0);
 	RTGBOX tmp;
 	RTPOINT4D p1, p2, p3;
 	int i;
@@ -687,13 +687,13 @@ void gbox_float_round(RTGBOX *gbox)
 	gbox->ymin = next_float_down(gbox->ymin);
 	gbox->ymax = next_float_up(gbox->ymax);
 
-	if ( FLAGS_GET_M(gbox->flags) )
+	if ( RTFLAGS_GET_M(gbox->flags) )
 	{
 		gbox->mmin = next_float_down(gbox->mmin);
 		gbox->mmax = next_float_up(gbox->mmax);
 	}
 
-	if ( FLAGS_GET_Z(gbox->flags) )
+	if ( RTFLAGS_GET_Z(gbox->flags) )
 	{
 		gbox->zmin = next_float_down(gbox->zmin);
 		gbox->zmax = next_float_up(gbox->zmax);

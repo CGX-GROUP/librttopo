@@ -54,7 +54,7 @@ rtcircstring_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 	result->type = RTCIRCSTRINGTYPE;
 	
 	result->flags = points->flags;
-	FLAGS_SET_BBOX(result->flags, bbox?1:0);
+	RTFLAGS_SET_BBOX(result->flags, bbox?1:0);
 
 	result->srid = srid;
 	result->points = points;
@@ -98,7 +98,7 @@ void rtcircstring_free(RTCIRCSTRING *curve)
 void printRTCIRCSTRING(RTCIRCSTRING *curve)
 {
 	rtnotice("RTCIRCSTRING {");
-	rtnotice("    ndims = %i", (int)FLAGS_NDIMS(curve->flags));
+	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(curve->flags));
 	rtnotice("    srid = %i", (int)curve->srid);
 	printPA(curve->points);
 	rtnotice("}");
@@ -151,8 +151,8 @@ rtcircstring_from_rtpointarray(int srid, uint32_t npoints, RTPOINT **points)
 			        rttype_name(points[i]->type));
 			return NULL;
 		}
-		if (FLAGS_GET_Z(points[i]->flags)) zmflag |= 2;
-		if (FLAGS_GET_M(points[i]->flags)) zmflag |= 1;
+		if (RTFLAGS_GET_Z(points[i]->flags)) zmflag |= 2;
+		if (RTFLAGS_GET_M(points[i]->flags)) zmflag |= 1;
 		if (zmflag == 3) break;
 	}
 
@@ -187,7 +187,7 @@ rtcircstring_from_rtmpoint(int srid, RTMPOINT *mpoint)
 {
 	uint32_t i;
 	RTPOINTARRAY *pa;
-	char zmflag = FLAGS_GET_ZM(mpoint->flags);
+	char zmflag = RTFLAGS_GET_ZM(mpoint->flags);
 	size_t ptsize, size;
 	uint8_t *newpoints, *ptr;
 
@@ -224,7 +224,7 @@ rtcircstring_addpoint(RTCIRCSTRING *curve, RTPOINT *point, uint32_t where)
 
 	newpa = ptarray_addPoint(curve->points,
 	                         getPoint_internal(point->point, 0),
-	                         FLAGS_NDIMS(point->flags), where);
+	                         RTFLAGS_NDIMS(point->flags), where);
 	ret = rtcircstring_construct(curve->srid, NULL, newpa);
 
 	return ret;
@@ -254,7 +254,7 @@ rtcircstring_setPoint4d(RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *newpoint
 int
 rtcircstring_is_closed(const RTCIRCSTRING *curve)
 {
-	if (FLAGS_GET_Z(curve->flags))
+	if (RTFLAGS_GET_Z(curve->flags))
 		return ptarray_is_closed_3d(curve->points);
 
 	return ptarray_is_closed_2d(curve->points);
@@ -292,7 +292,7 @@ RTPOINT* rtcircstring_get_rtpoint(const RTCIRCSTRING *circ, int where) {
 	if ( rtcircstring_is_empty(circ) || where < 0 || where >= circ->points->npoints )
 		return NULL;
 
-	pa = ptarray_construct_empty(FLAGS_GET_Z(circ->flags), FLAGS_GET_M(circ->flags), 1);
+	pa = ptarray_construct_empty(RTFLAGS_GET_Z(circ->flags), RTFLAGS_GET_M(circ->flags), 1);
 	pt = getPoint4d(circ->points, where);
 	ptarray_append_point(pa, &pt, RT_TRUE);
 	rtpoint = rtpoint_construct(circ->srid, NULL, pa);

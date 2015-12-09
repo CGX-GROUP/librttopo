@@ -37,14 +37,14 @@ rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points)
 
 	if ( nrings < 1 ) rterror("rtpoly_construct: need at least 1 ring");
 
-	hasz = FLAGS_GET_Z(points[0]->flags);
-	hasm = FLAGS_GET_M(points[0]->flags);
+	hasz = RTFLAGS_GET_Z(points[0]->flags);
+	hasm = RTFLAGS_GET_M(points[0]->flags);
 
 #ifdef CHECK_POLY_RINGS_ZM
-	zm = FLAGS_GET_ZM(points[0]->flags);
+	zm = RTFLAGS_GET_ZM(points[0]->flags);
 	for (i=1; i<nrings; i++)
 	{
-		if ( zm != FLAGS_GET_ZM(points[i]->flags) )
+		if ( zm != RTFLAGS_GET_ZM(points[i]->flags) )
 			rterror("rtpoly_construct: mixed dimensioned rings");
 	}
 #endif
@@ -52,7 +52,7 @@ rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points)
 	result = (RTPOLY*) rtalloc(sizeof(RTPOLY));
 	result->type = RTPOLYGONTYPE;
 	result->flags = gflags(hasz, hasm, 0);
-	FLAGS_SET_BBOX(result->flags, bbox?1:0);
+	RTFLAGS_SET_BBOX(result->flags, bbox?1:0);
 	result->srid = srid;
 	result->nrings = nrings;
 	result->maxrings = nrings;
@@ -101,7 +101,7 @@ void printRTPOLY(RTPOLY *poly)
 {
 	int t;
 	rtnotice("RTPOLY {");
-	rtnotice("    ndims = %i", (int)FLAGS_NDIMS(poly->flags));
+	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(poly->flags));
 	rtnotice("    SRID = %i", (int)poly->srid);
 	rtnotice("    nrings = %i", (int)poly->nrings);
 	for (t=0; t<poly->nrings; t++)
@@ -143,7 +143,7 @@ rtpoly_clone_deep(const RTPOLY *g)
 	{
 		ret->rings[i] = ptarray_clone_deep(g->rings[i]);
 	}
-	FLAGS_SET_READONLY(ret->flags,0);
+	RTFLAGS_SET_READONLY(ret->flags,0);
 	return ret;
 }
 
@@ -351,7 +351,7 @@ int rtpoly_count_vertices(RTPOLY *poly)
 RTPOLY* rtpoly_simplify(const RTPOLY *ipoly, double dist, int preserve_collapsed)
 {
 	int i;
-	RTPOLY *opoly = rtpoly_construct_empty(ipoly->srid, FLAGS_GET_Z(ipoly->flags), FLAGS_GET_M(ipoly->flags));
+	RTPOLY *opoly = rtpoly_construct_empty(ipoly->srid, RTFLAGS_GET_Z(ipoly->flags), RTFLAGS_GET_M(ipoly->flags));
 
 	RTDEBUGF(2, "%s: simplifying polygon with %d rings", __func__, ipoly->nrings);
 
@@ -482,7 +482,7 @@ rtpoly_is_closed(const RTPOLY *poly)
 		
 	for ( i = 0; i < poly->nrings; i++ )
 	{
-		if (FLAGS_GET_Z(poly->flags))
+		if (RTFLAGS_GET_Z(poly->flags))
 		{
 			if ( ! ptarray_is_closed_3d(poly->rings[i]) )
 				return RT_FALSE;

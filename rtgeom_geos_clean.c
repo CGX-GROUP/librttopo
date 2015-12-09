@@ -194,7 +194,7 @@ ptarray_close2d(RTPOINTARRAY* ring)
 		/* close it up */
 		newring = ptarray_addPoint(ring,
 		                           getPoint_internal(ring, 0),
-		                           FLAGS_NDIMS(ring->flags),
+		                           RTFLAGS_NDIMS(ring->flags),
 		                           ring->npoints);
 		ring = newring;
 	}
@@ -224,7 +224,7 @@ ring_make_geos_friendly(RTPOINTARRAY* ring)
 		/* let's add another... */
 		ring = ptarray_addPoint(ring,
 		                        getPoint_internal(ring, 0),
-		                        FLAGS_NDIMS(ring->flags),
+		                        RTFLAGS_NDIMS(ring->flags),
 		                        ring->npoints);
 		if ( oring != ring_in ) ptarray_free(oring);
 	}
@@ -288,7 +288,7 @@ rtline_make_geos_friendly(RTLINE *line)
 		/* Duplicate point */
 		line->points = ptarray_addPoint(line->points,
 		                                getPoint_internal(line->points, 0),
-		                                FLAGS_NDIMS(line->points->flags),
+		                                RTFLAGS_NDIMS(line->points->flags),
 		                                line->points->npoints);
 		ret = (RTGEOM*)line;
 #else
@@ -995,7 +995,7 @@ rtgeom_make_valid(RTGEOM* rtgeom_in)
 	GEOSGeometry* geosout;
 	RTGEOM *rtgeom_out;
 
-	is3d = FLAGS_GET_Z(rtgeom_in->flags);
+	is3d = RTFLAGS_GET_Z(rtgeom_in->flags);
 
 	/*
 	 * Step 1 : try to convert to GEOS, if impossible, clean that up first

@@ -2617,7 +2617,7 @@ int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, RTGBOX *gbox)
 	RTDEBUGF(4, "got type %d", geom->type);
 
 	/* Add a geodetic flag to the incoming gbox */
-	gbox->flags = gflags(FLAGS_GET_Z(geom->flags),FLAGS_GET_M(geom->flags),1);
+	gbox->flags = gflags(RTFLAGS_GET_Z(geom->flags),RTFLAGS_GET_M(geom->flags),1);
 
 	switch (geom->type)
 	{
@@ -2842,7 +2842,7 @@ double ptarray_length_spheroid(const RTPOINTARRAY *pa, const SPHEROID *s)
 		return 0.0;
 
 	/* See if we have a third dimension */
-	hasz = FLAGS_GET_Z(pa->flags);
+	hasz = RTFLAGS_GET_Z(pa->flags);
 
 	/* Initialize first point */
 	getPoint4d_p(pa, 0, &p);

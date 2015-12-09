@@ -123,9 +123,9 @@ static uint32_t rtgeom_wkb_type(const RTGEOM *geom, uint8_t variant)
 
 	if ( variant & RTWKB_EXTENDED )
 	{
-		if ( FLAGS_GET_Z(geom->flags) )
+		if ( RTFLAGS_GET_Z(geom->flags) )
 			wkb_type |= RTWKBZOFFSET;
-		if ( FLAGS_GET_M(geom->flags) )
+		if ( RTFLAGS_GET_M(geom->flags) )
 			wkb_type |= RTWKBMOFFSET;
 /*		if ( geom->srid != SRID_UNKNOWN && ! (variant & RTWKB_NO_SRID) ) */
 		if ( rtgeom_wkb_needs_srid(geom, variant) )
@@ -134,10 +134,10 @@ static uint32_t rtgeom_wkb_type(const RTGEOM *geom, uint8_t variant)
 	else if ( variant & RTWKB_ISO )
 	{
 		/* Z types are in the 1000 range */
-		if ( FLAGS_GET_Z(geom->flags) )
+		if ( RTFLAGS_GET_Z(geom->flags) )
 			wkb_type += 1000;
 		/* M types are in the 2000 range */
-		if ( FLAGS_GET_M(geom->flags) )
+		if ( RTFLAGS_GET_M(geom->flags) )
 			wkb_type += 2000;
 		/* ZM types are in the 1000 + 2000 = 3000 range, see above */
 	}
@@ -287,7 +287,7 @@ static size_t empty_to_wkb_size(const RTGEOM *geom, uint8_t variant)
 	if ( geom->type == RTPOINTTYPE )
 	{
 		const RTPOINT *pt = (RTPOINT*)geom;
-		size += RTWKB_DOUBLE_SIZE * FLAGS_NDIMS(pt->point->flags);		
+		size += RTWKB_DOUBLE_SIZE * RTFLAGS_NDIMS(pt->point->flags);		
 	}
 	/* num-elements */
 	else
@@ -318,7 +318,7 @@ static uint8_t* empty_to_wkb_buf(const RTGEOM *geom, uint8_t *buf, uint8_t varia
 		const RTPOINT *pt = (RTPOINT*)geom;
 		static double nn = NAN;
 		int i;
-		for ( i = 0; i < FLAGS_NDIMS(pt->point->flags); i++ )
+		for ( i = 0; i < RTFLAGS_NDIMS(pt->point->flags); i++ )
 		{
 			buf = double_to_wkb_buf(nn, buf, variant);
 		}
@@ -342,7 +342,7 @@ static size_t ptarray_to_wkb_size(const RTPOINTARRAY *pa, uint8_t variant)
 	size_t size = 0;
 
 	if ( variant & (RTWKB_ISO | RTWKB_EXTENDED) )
-		dims = FLAGS_NDIMS(pa->flags);
+		dims = RTFLAGS_NDIMS(pa->flags);
 
 	/* Include the npoints if it's not a POINT type) */
 	if ( ! ( variant & RTWKB_NO_NPOINTS ) )
@@ -357,7 +357,7 @@ static size_t ptarray_to_wkb_size(const RTPOINTARRAY *pa, uint8_t variant)
 static uint8_t* ptarray_to_wkb_buf(const RTPOINTARRAY *pa, uint8_t *buf, uint8_t variant)
 {
 	int dims = 2;
-	int pa_dims = FLAGS_NDIMS(pa->flags);
+	int pa_dims = RTFLAGS_NDIMS(pa->flags);
 	int i, j;
 	double *dbl_ptr;
 

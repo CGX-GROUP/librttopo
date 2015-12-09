@@ -23,10 +23,10 @@ static char *
 rtgeom_flagchars(RTGEOM *rtg)
 {
 	int flagno = 0;
-	if ( FLAGS_GET_Z(rtg->flags) ) tflags[flagno++] = 'Z';
-	if ( FLAGS_GET_M(rtg->flags) ) tflags[flagno++] = 'M';
-	if ( FLAGS_GET_BBOX(rtg->flags) ) tflags[flagno++] = 'B';
-	if ( FLAGS_GET_GEODETIC(rtg->flags) ) tflags[flagno++] = 'G';
+	if ( RTFLAGS_GET_Z(rtg->flags) ) tflags[flagno++] = 'Z';
+	if ( RTFLAGS_GET_M(rtg->flags) ) tflags[flagno++] = 'M';
+	if ( RTFLAGS_GET_BBOX(rtg->flags) ) tflags[flagno++] = 'B';
+	if ( RTFLAGS_GET_GEODETIC(rtg->flags) ) tflags[flagno++] = 'G';
 	if ( rtg->srid != SRID_UNKNOWN ) tflags[flagno++] = 'S';
 	tflags[flagno] = '\0';
 

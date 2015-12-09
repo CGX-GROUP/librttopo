@@ -131,11 +131,11 @@ uint8_t gflags(int hasz, int hasm, int geodetic)
 {
 	uint8_t flags = 0;
 	if ( hasz )
-		FLAGS_SET_Z(flags, 1);
+		RTFLAGS_SET_Z(flags, 1);
 	if ( hasm )
-		FLAGS_SET_M(flags, 1);
+		RTFLAGS_SET_M(flags, 1);
 	if ( geodetic )
-		FLAGS_SET_GEODETIC(flags, 1);
+		RTFLAGS_SET_GEODETIC(flags, 1);
 	return flags;
 }
 

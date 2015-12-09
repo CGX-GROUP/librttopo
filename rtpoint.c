@@ -72,7 +72,7 @@ rtpoint_get_z(const RTPOINT *point)
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(point) )
 		rterror("rtpoint_get_z called with empty geometry");
-	if ( ! FLAGS_GET_Z(point->flags) )
+	if ( ! RTFLAGS_GET_Z(point->flags) )
 		rterror("rtpoint_get_z called without z dimension");
 	getPoint4d_p(point->point, 0, &pt);
 	return pt.z;
@@ -84,7 +84,7 @@ rtpoint_get_m(const RTPOINT *point)
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(point) )
 		rterror("rtpoint_get_m called with empty geometry");
-	if ( ! FLAGS_GET_M(point->flags) )
+	if ( ! RTFLAGS_GET_M(point->flags) )
 		rterror("rtpoint_get_m called without m dimension");
 	getPoint4d_p(point->point, 0, &pt);
 	return pt.m;
@@ -105,9 +105,9 @@ rtpoint_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *point)
 
 	result = rtalloc(sizeof(RTPOINT));
 	result->type = RTPOINTTYPE;
-	FLAGS_SET_Z(flags, FLAGS_GET_Z(point->flags));
-	FLAGS_SET_M(flags, FLAGS_GET_M(point->flags));
-	FLAGS_SET_BBOX(flags, bbox?1:0);
+	RTFLAGS_SET_Z(flags, RTFLAGS_GET_Z(point->flags));
+	RTFLAGS_SET_M(flags, RTFLAGS_GET_M(point->flags));
+	RTFLAGS_SET_BBOX(flags, bbox?1:0);
 	result->flags = flags;
 	result->srid = srid;
 	result->point = point;
@@ -193,8 +193,8 @@ void rtpoint_free(RTPOINT *pt)
 void printRTPOINT(RTPOINT *point)
 {
 	rtnotice("RTPOINT {");
-	rtnotice("    ndims = %i", (int)FLAGS_NDIMS(point->flags));
-	rtnotice("    BBOX = %i", FLAGS_GET_BBOX(point->flags) ? 1 : 0 );
+	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(point->flags));
+	rtnotice("    BBOX = %i", RTFLAGS_GET_BBOX(point->flags) ? 1 : 0 );
 	rtnotice("    SRID = %i", (int)point->srid);
 	printPA(point->point);
 	rtnotice("}");

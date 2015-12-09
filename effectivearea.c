@@ -233,7 +233,7 @@ static void tune_areas(EFFECTIVE_AREAS *ea, int avoid_collaps, int set_area, dou
 	
 	MINHEAP tree = initiate_minheap(npoints);
 	
-	int is3d = FLAGS_GET_Z(ea->inpts->flags);
+	int is3d = RTFLAGS_GET_Z(ea->inpts->flags);
 	
 	
 	/*Add all keys (index in initial_arealist) into minheap array*/
@@ -337,7 +337,7 @@ void ptarray_calc_areas(EFFECTIVE_AREAS *ea, int avoid_collaps, int set_area, do
 	RTDEBUG(2, "Entered  ptarray_calc_areas");
 	int i;
 	int npoints=ea->inpts->npoints;
-	int is3d = FLAGS_GET_Z(ea->inpts->flags);
+	int is3d = RTFLAGS_GET_Z(ea->inpts->flags);
 	double area;
 	
 	const double *P1;
@@ -396,10 +396,10 @@ static RTPOINTARRAY * ptarray_set_effective_area(RTPOINTARRAY *inpts,int avoid_c
 	if(set_area)
 		set_m=1;
 	else
-		set_m=FLAGS_GET_M(inpts->flags);
+		set_m=RTFLAGS_GET_M(inpts->flags);
 	ea=initiate_effectivearea(inpts);
 
-	opts = ptarray_construct_empty(FLAGS_GET_Z(inpts->flags), set_m, inpts->npoints);
+	opts = ptarray_construct_empty(RTFLAGS_GET_Z(inpts->flags), set_m, inpts->npoints);
 
 	ptarray_calc_areas(ea,avoid_collaps,set_area,trshld);	
 	
@@ -446,9 +446,9 @@ static RTLINE* rtline_set_effective_area(const RTLINE *iline,int set_area, doubl
 	if(set_area)
 		set_m=1;
 	else
-		set_m=FLAGS_GET_M(iline->flags);
+		set_m=RTFLAGS_GET_M(iline->flags);
 	
-	RTLINE *oline = rtline_construct_empty(iline->srid, FLAGS_GET_Z(iline->flags), set_m);
+	RTLINE *oline = rtline_construct_empty(iline->srid, RTFLAGS_GET_Z(iline->flags), set_m);
 
 
 			
@@ -469,8 +469,8 @@ static RTPOLY* rtpoly_set_effective_area(const RTPOLY *ipoly,int set_area, doubl
 	if(set_area)
 		set_m=1;
 	else
-		set_m=FLAGS_GET_M(ipoly->flags);
-	RTPOLY *opoly = rtpoly_construct_empty(ipoly->srid, FLAGS_GET_Z(ipoly->flags), set_m);
+		set_m=RTFLAGS_GET_M(ipoly->flags);
+	RTPOLY *opoly = rtpoly_construct_empty(ipoly->srid, RTFLAGS_GET_Z(ipoly->flags), set_m);
 
 	if( rtpoly_is_empty(ipoly) )
 		return opoly; /* should we return NULL instead ? */
@@ -507,8 +507,8 @@ static RTCOLLECTION* rtcollection_set_effective_area(const RTCOLLECTION *igeom,i
 	if(set_area)
 		set_m=1;
 	else
-		set_m=FLAGS_GET_M(igeom->flags);
-	RTCOLLECTION *out = rtcollection_construct_empty(igeom->type, igeom->srid, FLAGS_GET_Z(igeom->flags), set_m);
+		set_m=RTFLAGS_GET_M(igeom->flags);
+	RTCOLLECTION *out = rtcollection_construct_empty(igeom->type, igeom->srid, RTFLAGS_GET_Z(igeom->flags), set_m);
 
 	if( rtcollection_is_empty(igeom) )
 		return out; /* should we return NULL instead ? */

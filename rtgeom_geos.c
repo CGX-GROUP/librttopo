@@ -207,7 +207,7 @@ ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *pa)
 	const RTPOINT2D *p2d;
 	GEOSCoordSeq sq;
 
-	if ( FLAGS_GET_Z(pa->flags) ) 
+	if ( RTFLAGS_GET_Z(pa->flags) ) 
 		dims = 3;
 
 	if ( ! (sq = GEOSCoordSeq_create(pa->npoints, dims)) ) 
@@ -257,14 +257,14 @@ ptarray_to_GEOSLinearRing(const RTPOINTARRAY *pa, int autofix)
 		/* check ring for being closed and fix if not */
 		if ( ! ptarray_is_closed_2d(pa) ) 
 		{
-			npa = ptarray_addPoint(pa, getPoint_internal(pa, 0), FLAGS_NDIMS(pa->flags), pa->npoints);
+			npa = ptarray_addPoint(pa, getPoint_internal(pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
 			pa = npa;
 		}
 		/* TODO: check ring for having at least 4 vertices */
 #if 0
 		while ( pa->npoints < 4 ) 
 		{
-			npa = ptarray_addPoint(npa, getPoint_internal(pa, 0), FLAGS_NDIMS(pa->flags), pa->npoints);
+			npa = ptarray_addPoint(npa, getPoint_internal(pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
 		}
 #endif
 	}
@@ -385,7 +385,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 			/* Duplicate point, to make geos-friendly */
 			rtl->points = ptarray_addPoint(rtl->points,
 		                           getPoint_internal(rtl->points, 0),
-		                           FLAGS_NDIMS(rtl->points->flags),
+		                           RTFLAGS_NDIMS(rtl->points->flags),
 		                           rtl->points->npoints);
 		}
 		sq = ptarray_to_GEOSCoordSeq(rtl->points);
@@ -504,7 +504,7 @@ rtgeom_normalize(const RTGEOM *geom1)
 	int srid ;
 
 	srid = (int)(geom1->srid);
-	is3d = FLAGS_GET_Z(geom1->flags);
+	is3d = RTFLAGS_GET_Z(geom1->flags);
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -555,7 +555,7 @@ rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
 	srid = (int)(geom1->srid);
 	error_if_srid_mismatch(srid, (int)(geom2->srid));
 
-	is3d = (FLAGS_GET_Z(geom1->flags) || FLAGS_GET_Z(geom2->flags)) ;
+	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -623,7 +623,7 @@ rtgeom_linemerge(const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g3 ;
-	int is3d = FLAGS_GET_Z(geom1->flags);
+	int is3d = RTFLAGS_GET_Z(geom1->flags);
 	int srid = geom1->srid;
 
 	/* Empty.Linemerge() == Empty */
@@ -684,7 +684,7 @@ rtgeom_unaryunion(const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g3 ;
-	int is3d = FLAGS_GET_Z(geom1->flags);
+	int is3d = RTFLAGS_GET_Z(geom1->flags);
 	int srid = geom1->srid;
 
 	/* Empty.UnaryUnion() == Empty */
@@ -751,7 +751,7 @@ rtgeom_difference(const RTGEOM *geom1, const RTGEOM *geom2)
 	srid = (int)(geom1->srid);
 	error_if_srid_mismatch(srid, (int)(geom2->srid));
 
-	is3d = (FLAGS_GET_Z(geom1->flags) || FLAGS_GET_Z(geom2->flags)) ;
+	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -825,7 +825,7 @@ rtgeom_symdifference(const RTGEOM* geom1, const RTGEOM* geom2)
 	srid = (int)(geom1->srid);
 	error_if_srid_mismatch(srid, (int)(geom2->srid));
 
-	is3d = (FLAGS_GET_Z(geom1->flags) || FLAGS_GET_Z(geom2->flags)) ;
+	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -901,7 +901,7 @@ rtgeom_union(const RTGEOM *geom1, const RTGEOM *geom2)
 	srid = (int)(geom1->srid);
 	error_if_srid_mismatch(srid, (int)(geom2->srid));
 
-	is3d = (FLAGS_GET_Z(geom1->flags) || FLAGS_GET_Z(geom2->flags)) ;
+	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -973,7 +973,7 @@ rtgeom_clip_by_rect(const RTGEOM *geom1, double x0, double y0, double x1, double
 	if ( rtgeom_is_empty(geom1) )
 		return rtgeom_clone_deep(geom1);
 
-	is3d = FLAGS_GET_Z(geom1->flags);
+	is3d = RTFLAGS_GET_Z(geom1->flags);
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -1299,7 +1299,7 @@ rtgeom_buildarea(const RTGEOM *geom)
 	GEOSGeometry* geos_out;
 	RTGEOM* geom_out;
 	int SRID = (int)(geom->srid);
-	int is3d = FLAGS_GET_Z(geom->flags);
+	int is3d = RTFLAGS_GET_Z(geom->flags);
 
 	/* Can't build an area from an empty! */
 	if ( rtgeom_is_empty(geom) )
@@ -1391,7 +1391,7 @@ rtgeom_geos_noop(const RTGEOM* geom_in)
 	GEOSGeometry *geosgeom;
 	RTGEOM* geom_out;
 
-	int is3d = FLAGS_GET_Z(geom_in->flags);
+	int is3d = RTFLAGS_GET_Z(geom_in->flags);
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 	geosgeom = RTGEOM2GEOS(geom_in, 0);
@@ -1428,7 +1428,7 @@ rtgeom_snap(const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 	srid = geom1->srid;
 	error_if_srid_mismatch(srid, (int)(geom2->srid));
 
-	is3d = (FLAGS_GET_Z(geom1->flags) || FLAGS_GET_Z(geom2->flags)) ;
+	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -1491,7 +1491,7 @@ rtgeom_sharedpaths(const RTGEOM* geom1, const RTGEOM* geom2)
 	srid = geom1->srid;
 	error_if_srid_mismatch(srid, (int)(geom2->srid));
 
-	is3d = (FLAGS_GET_Z(geom1->flags) || FLAGS_GET_Z(geom2->flags)) ;
+	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtnotice, rtgeom_geos_error);
 

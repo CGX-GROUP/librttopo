@@ -90,21 +90,21 @@ typedef enum RTORD_T {
 * ---RGBMZ
 * Three unused bits, followed by ReadOnly, Geodetic, HasBBox, HasM and HasZ flags.
 */
-#define FLAGS_GET_Z(flags) ((flags) & 0x01)
-#define FLAGS_GET_M(flags) (((flags) & 0x02)>>1)
-#define FLAGS_GET_BBOX(flags) (((flags) & 0x04)>>2)
-#define FLAGS_GET_GEODETIC(flags) (((flags) & 0x08)>>3)
-#define FLAGS_GET_READONLY(flags) (((flags) & 0x10)>>4)
-#define FLAGS_GET_SOLID(flags) (((flags) & 0x20)>>5)
-#define FLAGS_SET_Z(flags, value) ((flags) = (value) ? ((flags) | 0x01) : ((flags) & 0xFE))
-#define FLAGS_SET_M(flags, value) ((flags) = (value) ? ((flags) | 0x02) : ((flags) & 0xFD))
-#define FLAGS_SET_BBOX(flags, value) ((flags) = (value) ? ((flags) | 0x04) : ((flags) & 0xFB))
-#define FLAGS_SET_GEODETIC(flags, value) ((flags) = (value) ? ((flags) | 0x08) : ((flags) & 0xF7))
-#define FLAGS_SET_READONLY(flags, value) ((flags) = (value) ? ((flags) | 0x10) : ((flags) & 0xEF))
-#define FLAGS_SET_SOLID(flags, value) ((flags) = (value) ? ((flags) | 0x20) : ((flags) & 0xDF))
-#define FLAGS_NDIMS(flags) (2 + FLAGS_GET_Z(flags) + FLAGS_GET_M(flags))
-#define FLAGS_GET_ZM(flags) (FLAGS_GET_M(flags) + FLAGS_GET_Z(flags) * 2)
-#define FLAGS_NDIMS_BOX(flags) (FLAGS_GET_GEODETIC(flags) ? 3 : FLAGS_NDIMS(flags))
+#define RTFLAGS_GET_Z(flags) ((flags) & 0x01)
+#define RTFLAGS_GET_M(flags) (((flags) & 0x02)>>1)
+#define RTFLAGS_GET_BBOX(flags) (((flags) & 0x04)>>2)
+#define RTFLAGS_GET_GEODETIC(flags) (((flags) & 0x08)>>3)
+#define RTFLAGS_GET_READONLY(flags) (((flags) & 0x10)>>4)
+#define RTFLAGS_GET_SOLID(flags) (((flags) & 0x20)>>5)
+#define RTFLAGS_SET_Z(flags, value) ((flags) = (value) ? ((flags) | 0x01) : ((flags) & 0xFE))
+#define RTFLAGS_SET_M(flags, value) ((flags) = (value) ? ((flags) | 0x02) : ((flags) & 0xFD))
+#define RTFLAGS_SET_BBOX(flags, value) ((flags) = (value) ? ((flags) | 0x04) : ((flags) & 0xFB))
+#define RTFLAGS_SET_GEODETIC(flags, value) ((flags) = (value) ? ((flags) | 0x08) : ((flags) & 0xF7))
+#define RTFLAGS_SET_READONLY(flags, value) ((flags) = (value) ? ((flags) | 0x10) : ((flags) & 0xEF))
+#define RTFLAGS_SET_SOLID(flags, value) ((flags) = (value) ? ((flags) | 0x20) : ((flags) & 0xDF))
+#define RTFLAGS_NDIMS(flags) (2 + RTFLAGS_GET_Z(flags) + RTFLAGS_GET_M(flags))
+#define RTFLAGS_GET_ZM(flags) (RTFLAGS_GET_M(flags) + RTFLAGS_GET_Z(flags) * 2)
+#define RTFLAGS_NDIMS_BOX(flags) (RTFLAGS_GET_GEODETIC(flags) ? 3 : RTFLAGS_NDIMS(flags))
 
 /**
 * Macros for manipulating the 'typemod' int. An int32_t used as follows:
@@ -115,15 +115,15 @@ typedef enum RTORD_T {
 * ZM Flags = Bottom 2 bits.
 */
 
-#define TYPMOD_GET_SRID(typmod) ((((typmod) & 0x1FFFFF00)<<3)>>11)
-#define TYPMOD_SET_SRID(typmod, srid) ((typmod) = (((typmod) & 0xE00000FF) | ((srid & 0x001FFFFF)<<8)))
+#define RTTYPMOD_GET_SRID(typmod) ((((typmod) & 0x1FFFFF00)<<3)>>11)
+#define RTTYPMOD_SET_SRID(typmod, srid) ((typmod) = (((typmod) & 0xE00000FF) | ((srid & 0x001FFFFF)<<8)))
 #define RTTYPMOD_GET_TYPE(typmod) ((typmod & 0x000000FC)>>2)
 #define RTTYPMOD_SET_TYPE(typmod, type) ((typmod) = (typmod & 0xFFFFFF03) | ((type & 0x0000003F)<<2))
-#define TYPMOD_GET_Z(typmod) ((typmod & 0x00000002)>>1)
-#define TYPMOD_SET_Z(typmod) ((typmod) = typmod | 0x00000002)
-#define TYPMOD_GET_M(typmod) (typmod & 0x00000001)
-#define TYPMOD_SET_M(typmod) ((typmod) = typmod | 0x00000001)
-#define TYPMOD_GET_NDIMS(typmod) (2+TYPMOD_GET_Z(typmod)+TYPMOD_GET_M(typmod))
+#define RTTYPMOD_GET_Z(typmod) ((typmod & 0x00000002)>>1)
+#define RTTYPMOD_SET_Z(typmod) ((typmod) = typmod | 0x00000002)
+#define RTTYPMOD_GET_M(typmod) (typmod & 0x00000001)
+#define RTTYPMOD_SET_M(typmod) ((typmod) = typmod | 0x00000001)
+#define RTTYPMOD_GET_NDIMS(typmod) (2+RTTYPMOD_GET_Z(typmod)+RTTYPMOD_GET_M(typmod))
 
 /**
 * Maximum allowed SRID value in serialized geometry.
@@ -318,7 +318,7 @@ typedef struct
 	/* Array of POINT 2D, 3D or 4D, possibly missaligned. */
 	uint8_t *serialized_pointlist;
 
-	/* Use FLAGS_* macros to handle */
+	/* Use RTFLAGS_* macros to handle */
 	uint8_t  flags;
 
 	int npoints;   /* how many points we are currently storing */
@@ -1670,7 +1670,7 @@ extern int rtgeom_nudge_geodetic(RTGEOM *geom);
 extern int rtgeom_force_geodetic(RTGEOM *geom);
 
 /**
-* Set the FLAGS geodetic bit on geometry an all sub-geometries and pointlists
+* Set the RTFLAGS geodetic bit on geometry an all sub-geometries and pointlists
 */
 extern void rtgeom_set_geodetic(RTGEOM *geom, int value);
 

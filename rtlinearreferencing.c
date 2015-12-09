@@ -477,8 +477,8 @@ rtmline_clip_to_ordinate_range(const RTMLINE *mline, char ordinate, double from,
 		char homogeneous = 1;
 		size_t geoms_size = 0;
 		rtgeom_out = rtcollection_construct_empty(RTMULTILINETYPE, mline->srid, hasz, hasm);
-		FLAGS_SET_Z(rtgeom_out->flags, hasz);
-		FLAGS_SET_M(rtgeom_out->flags, hasm);
+		RTFLAGS_SET_Z(rtgeom_out->flags, hasz);
+		RTFLAGS_SET_M(rtgeom_out->flags, hasm);
 		for ( i = 0; i < mline->ngeoms; i ++ )
 		{
 			col = rtline_clip_to_ordinate_range(mline->geoms[i], ordinate, from, to);
@@ -551,7 +551,7 @@ rtline_clip_to_ordinate_range(const RTLINE *line, char ordinate, double from, do
 	double ordinate_value_p = 0.0, ordinate_value_q = 0.0;
 	char hasz = rtgeom_has_z(rtline_as_rtgeom(line));
 	char hasm = rtgeom_has_m(rtline_as_rtgeom(line));
-	char dims = FLAGS_NDIMS(line->flags);
+	char dims = RTFLAGS_NDIMS(line->flags);
 
 	/* Null input, nothing we can do. */
 	if ( ! line )

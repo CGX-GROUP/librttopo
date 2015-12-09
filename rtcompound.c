@@ -195,7 +195,7 @@ rtcompound_contains_point(const RTCOMPOUND *comp, const RTPOINT2D *pt)
 RTCOMPOUND *
 rtcompound_construct_from_rtline(const RTLINE *rtline)
 {
-  RTCOMPOUND* ogeom = rtcompound_construct_empty(rtline->srid, FLAGS_GET_Z(rtline->flags), FLAGS_GET_M(rtline->flags));
+  RTCOMPOUND* ogeom = rtcompound_construct_empty(rtline->srid, RTFLAGS_GET_Z(rtline->flags), RTFLAGS_GET_M(rtline->flags));
   rtcompound_add_rtgeom(ogeom, rtgeom_clone((RTGEOM*)rtline));
 	/* ogeom->bbox = rtline->bbox; */
   return ogeom;

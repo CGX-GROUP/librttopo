@@ -245,7 +245,7 @@ getPoint4d_p(const RTPOINTARRAY *pa, int n, RTPOINT4D *op)
 
 	/* Get a pointer to nth point offset and zmflag */
 	ptr=getPoint_internal(pa, n);
-	zmflag=FLAGS_GET_ZM(pa->flags);
+	zmflag=RTFLAGS_GET_ZM(pa->flags);
 
 	RTDEBUGF(4, "ptr %p, zmflag %d", ptr, zmflag);
 
@@ -330,7 +330,7 @@ getPoint3dz_p(const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op)
 #endif
 
 	RTDEBUGF(2, "getPoint3dz_p called on array of %d-dimensions / %u pts",
-	         FLAGS_NDIMS(pa->flags), pa->npoints);
+	         RTFLAGS_NDIMS(pa->flags), pa->npoints);
 
 	/* Get a pointer to nth point offset */
 	ptr=getPoint_internal(pa, n);
@@ -339,7 +339,7 @@ getPoint3dz_p(const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op)
 	 * if input RTPOINTARRAY has the Z, it is artays
 	 * at third position so make a single copy
 	 */
-	if ( FLAGS_GET_Z(pa->flags) )
+	if ( RTFLAGS_GET_Z(pa->flags) )
 	{
 		memcpy(op, ptr, sizeof(RTPOINT3DZ));
 	}
@@ -381,12 +381,12 @@ getPoint3dm_p(const RTPOINTARRAY *pa, int n, RTPOINT3DM *op)
 #endif
 
 	RTDEBUGF(2, "getPoint3dm_p(%d) called on array of %d-dimensions / %u pts",
-	         n, FLAGS_NDIMS(pa->flags), pa->npoints);
+	         n, RTFLAGS_NDIMS(pa->flags), pa->npoints);
 
 
 	/* Get a pointer to nth point offset and zmflag */
 	ptr=getPoint_internal(pa, n);
-	zmflag=FLAGS_GET_ZM(pa->flags);
+	zmflag=RTFLAGS_GET_ZM(pa->flags);
 
 	/*
 	 * if input RTPOINTARRAY has the M and NO Z,
@@ -486,7 +486,7 @@ getPoint3dz_cp(const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 	
-	if ( ! FLAGS_GET_Z(pa->flags) )
+	if ( ! RTFLAGS_GET_Z(pa->flags) )
 	{
 		rterror("getPoint3dz_cp: no Z coordinates in point array");
 		return 0; /*error */
@@ -507,7 +507,7 @@ getPoint4d_cp(const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 	
-	if ( ! (FLAGS_GET_Z(pa->flags) && FLAGS_GET_Z(pa->flags)) )
+	if ( ! (RTFLAGS_GET_Z(pa->flags) && RTFLAGS_GET_Z(pa->flags)) )
 	{
 		rterror("getPoint3dz_cp: no Z and M coordinates in point array");
 		return 0; /*error */
@@ -537,7 +537,7 @@ ptarray_set_point4d(RTPOINTARRAY *pa, int n, const RTPOINT4D *p4d)
 	uint8_t *ptr;
 	assert(n >= 0 && n < pa->npoints);
 	ptr=getPoint_internal(pa, n);
-	switch ( FLAGS_GET_ZM(pa->flags) )
+	switch ( RTFLAGS_GET_ZM(pa->flags) )
 	{
 	case 3:
 		memcpy(ptr, p4d, sizeof(RTPOINT4D));
@@ -601,26 +601,26 @@ void printPA(RTPOINTARRAY *pa)
 	char *mflag;
 
 
-	if ( FLAGS_GET_M(pa->flags) ) mflag = "M";
+	if ( RTFLAGS_GET_M(pa->flags) ) mflag = "M";
 	else mflag = "";
 
 	rtnotice("      RTPOINTARRAY%s{", mflag);
 	rtnotice("                 ndims=%i,   ptsize=%i",
-	         FLAGS_NDIMS(pa->flags), ptarray_point_size(pa));
+	         RTFLAGS_NDIMS(pa->flags), ptarray_point_size(pa));
 	rtnotice("                 npoints = %i", pa->npoints);
 
 	for (t =0; t<pa->npoints; t++)
 	{
 		getPoint4d_p(pa, t, &pt);
-		if (FLAGS_NDIMS(pa->flags) == 2)
+		if (RTFLAGS_NDIMS(pa->flags) == 2)
 		{
 			rtnotice("                    %i : %lf,%lf",t,pt.x,pt.y);
 		}
-		if (FLAGS_NDIMS(pa->flags) == 3)
+		if (RTFLAGS_NDIMS(pa->flags) == 3)
 		{
 			rtnotice("                    %i : %lf,%lf,%lf",t,pt.x,pt.y,pt.z);
 		}
-		if (FLAGS_NDIMS(pa->flags) == 4)
+		if (RTFLAGS_NDIMS(pa->flags) == 4)
 		{
 			rtnotice("                    %i : %lf,%lf,%lf,%lf",t,pt.x,pt.y,pt.z,pt.m);
 		}

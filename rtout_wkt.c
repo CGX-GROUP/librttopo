@@ -27,9 +27,9 @@ static void dimension_qualifiers_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *s
 
 	/* Extended RTWKT: POINTM(0 0 0) */
 #if 0
-	if ( (variant & RTWKT_EXTENDED) && ! (variant & RTWKT_IS_CHILD) && FLAGS_GET_M(geom->flags) && (!FLAGS_GET_Z(geom->flags)) )
+	if ( (variant & RTWKT_EXTENDED) && ! (variant & RTWKT_IS_CHILD) && RTFLAGS_GET_M(geom->flags) && (!RTFLAGS_GET_Z(geom->flags)) )
 #else
-	if ( (variant & RTWKT_EXTENDED) && FLAGS_GET_M(geom->flags) && (!FLAGS_GET_Z(geom->flags)) )
+	if ( (variant & RTWKT_EXTENDED) && RTFLAGS_GET_M(geom->flags) && (!RTFLAGS_GET_Z(geom->flags)) )
 #endif
 	{
 		stringbuffer_append(sb, "M"); /* "M" */
@@ -37,12 +37,12 @@ static void dimension_qualifiers_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *s
 	}
 
 	/* ISO RTWKT: POINT ZM (0 0 0 0) */
-	if ( (variant & RTWKT_ISO) && (FLAGS_NDIMS(geom->flags) > 2) )
+	if ( (variant & RTWKT_ISO) && (RTFLAGS_NDIMS(geom->flags) > 2) )
 	{
 		stringbuffer_append(sb, " ");
-		if ( FLAGS_GET_Z(geom->flags) )
+		if ( RTFLAGS_GET_Z(geom->flags) )
 			stringbuffer_append(sb, "Z");
-		if ( FLAGS_GET_M(geom->flags) )
+		if ( RTFLAGS_GET_M(geom->flags) )
 			stringbuffer_append(sb, "M");
 		stringbuffer_append(sb, " ");
 	}
@@ -74,7 +74,7 @@ static void ptarray_to_wkt_sb(const RTPOINTARRAY *ptarray, stringbuffer_t *sb, i
 
 	/* ISO and extended formats include all dimensions */
 	if ( variant & ( RTWKT_ISO | RTWKT_EXTENDED ) )
-		dimensions = FLAGS_NDIMS(ptarray->flags);
+		dimensions = RTFLAGS_NDIMS(ptarray->flags);
 
 	/* Opening paren? */
 	if ( ! (variant & RTWKT_NO_PARENS) )
@@ -587,7 +587,7 @@ static void rtgeom_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *sb, int precisi
 {
 	RTDEBUGF(4, "rtgeom_to_wkt_sb: type %s, hasz %d, hasm %d",
 		rttype_name(geom->type), (geom->type),
-		FLAGS_GET_Z(geom->flags)?1:0, FLAGS_GET_M(geom->flags)?1:0);
+		RTFLAGS_GET_Z(geom->flags)?1:0, RTFLAGS_GET_M(geom->flags)?1:0);
 
 	switch (geom->type)
 	{

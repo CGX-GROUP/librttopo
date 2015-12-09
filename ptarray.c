@@ -23,14 +23,14 @@ int
 ptarray_has_z(const RTPOINTARRAY *pa)
 {
 	if ( ! pa ) return RT_FALSE;
-	return FLAGS_GET_Z(pa->flags);
+	return RTFLAGS_GET_Z(pa->flags);
 }
 
 int
 ptarray_has_m(const RTPOINTARRAY *pa)
 {
 	if ( ! pa ) return RT_FALSE;
-	return FLAGS_GET_M(pa->flags);
+	return RTFLAGS_GET_M(pa->flags);
 }
 
 /*
@@ -40,9 +40,9 @@ ptarray_has_m(const RTPOINTARRAY *pa)
 int inline
 ptarray_point_size(const RTPOINTARRAY *pa)
 {
-	RTDEBUGF(5, "ptarray_point_size: FLAGS_NDIMS(pa->flags)=%x",FLAGS_NDIMS(pa->flags));
+	RTDEBUGF(5, "ptarray_point_size: RTFLAGS_NDIMS(pa->flags)=%x",RTFLAGS_NDIMS(pa->flags));
 
-	return sizeof(double)*FLAGS_NDIMS(pa->flags);
+	return sizeof(double)*RTFLAGS_NDIMS(pa->flags);
 }
 
 RTPOINTARRAY*
@@ -86,7 +86,7 @@ ptarray_insert_point(RTPOINTARRAY *pa, const RTPOINT4D *p, int where)
 	RTDEBUGF(5,"pa = %p; p = %p; where = %d", pa, p, where);
 	RTDEBUGF(5,"pa->npoints = %d; pa->maxpoints = %d", pa->npoints, pa->maxpoints);
 	
-	if ( FLAGS_GET_READONLY(pa->flags) ) 
+	if ( RTFLAGS_GET_READONLY(pa->flags) ) 
 	{
 		rterror("ptarray_insert_point: called on read-only point array");
 		return RT_FAILURE;
@@ -159,8 +159,8 @@ ptarray_append_point(RTPOINTARRAY *pa, const RTPOINT4D *pt, int repeated_points)
 
 		/* Return RT_SUCCESS and do nothing else if previous point in list is equal to this one */
 		if ( (pt->x == tmp.x) && (pt->y == tmp.y) &&
-		     (FLAGS_GET_Z(pa->flags) ? pt->z == tmp.z : 1) &&
-		     (FLAGS_GET_M(pa->flags) ? pt->m == tmp.m : 1) )
+		     (RTFLAGS_GET_Z(pa->flags) ? pt->z == tmp.z : 1) &&
+		     (RTFLAGS_GET_M(pa->flags) ? pt->m == tmp.m : 1) )
 		{
 			return RT_SUCCESS;
 		}
@@ -189,13 +189,13 @@ ptarray_append_ptarray(RTPOINTARRAY *pa1, RTPOINTARRAY *pa2, double gap_toleranc
 	
 	if ( ! npoints ) return RT_SUCCESS; /* nothing more to do */
 
-	if( FLAGS_GET_READONLY(pa1->flags) )
+	if( RTFLAGS_GET_READONLY(pa1->flags) )
 	{
 		rterror("ptarray_append_ptarray: target pointarray is read-only");
 		return RT_FAILURE;
 	}
 
-	if( FLAGS_GET_ZM(pa1->flags) != FLAGS_GET_ZM(pa2->flags) )
+	if( RTFLAGS_GET_ZM(pa1->flags) != RTFLAGS_GET_ZM(pa2->flags) )
 	{
 		rterror("ptarray_append_ptarray: appending mixed dimensionality is not allowed");
 		return RT_FAILURE;
@@ -284,7 +284,7 @@ RTPOINTARRAY* ptarray_construct_reference_data(char hasz, char hasm, uint32_t np
 	RTPOINTARRAY *pa = rtalloc(sizeof(RTPOINTARRAY));
 	RTDEBUGF(5, "hasz = %d, hasm = %d, npoints = %d, ptlist = %p", hasz, hasm, npoints, ptlist);
 	pa->flags = gflags(hasz, hasm, 0);
-	FLAGS_SET_READONLY(pa->flags, 1); /* We don't own this memory, so we can't alter or free it. */
+	RTFLAGS_SET_READONLY(pa->flags, 1); /* We don't own this memory, so we can't alter or free it. */
 	pa->npoints = npoints;
 	pa->maxpoints = npoints;
 	pa->serialized_pointlist = ptlist;
@@ -318,7 +318,7 @@ void ptarray_free(RTPOINTARRAY *pa)
 {
 	if(pa)
 	{
-		if(pa->serialized_pointlist && ( ! FLAGS_GET_READONLY(pa->flags) ) )
+		if(pa->serialized_pointlist && ( ! RTFLAGS_GET_READONLY(pa->flags) ) )
 			rtfree(pa->serialized_pointlist);	
 		rtfree(pa);
 		RTDEBUG(5,"Freeing a PointArray");
@@ -411,8 +411,8 @@ ptarray_segmentize2d(const RTPOINTARRAY *ipa, double dist)
 	RTPOINT4D pbuf;
 	RTPOINTARRAY *opa;
 	int ipoff=0; /* input point offset */
-	int hasz = FLAGS_GET_Z(ipa->flags);
-	int hasm = FLAGS_GET_M(ipa->flags);
+	int hasz = RTFLAGS_GET_Z(ipa->flags);
+	int hasm = RTFLAGS_GET_M(ipa->flags);
 
 	pbuf.x = pbuf.y = pbuf.z = pbuf.m = 0;
 
@@ -473,7 +473,7 @@ ptarray_same(const RTPOINTARRAY *pa1, const RTPOINTARRAY *pa2)
 	uint32_t i;
 	size_t ptsize;
 
-	if ( FLAGS_GET_ZM(pa1->flags) != FLAGS_GET_ZM(pa2->flags) ) return RT_FALSE;
+	if ( RTFLAGS_GET_ZM(pa1->flags) != RTFLAGS_GET_ZM(pa2->flags) ) return RT_FALSE;
 	RTDEBUG(5,"dimensions are the same");
 	
 	if ( pa1->npoints != pa2->npoints ) return RT_FALSE;
@@ -523,8 +523,8 @@ ptarray_addPoint(const RTPOINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t wher
 
 	RTDEBUG(3, "initialized point buffer");
 
-	ret = ptarray_construct(FLAGS_GET_Z(pa->flags),
-	                        FLAGS_GET_M(pa->flags), pa->npoints+1);
+	ret = ptarray_construct(RTFLAGS_GET_Z(pa->flags),
+	                        RTFLAGS_GET_M(pa->flags), pa->npoints+1);
 
 	if ( where == -1 ) where = pa->npoints;
 
@@ -567,8 +567,8 @@ ptarray_removePoint(RTPOINTARRAY *pa, uint32_t which)
 	}
 #endif
 
-	ret = ptarray_construct(FLAGS_GET_Z(pa->flags),
-	                        FLAGS_GET_M(pa->flags), pa->npoints-1);
+	ret = ptarray_construct(RTFLAGS_GET_Z(pa->flags),
+	                        RTFLAGS_GET_M(pa->flags), pa->npoints-1);
 
 	/* copy initial part */
 	if ( which )
@@ -592,11 +592,11 @@ ptarray_merge(RTPOINTARRAY *pa1, RTPOINTARRAY *pa2)
 	RTPOINTARRAY *pa;
 	size_t ptsize = ptarray_point_size(pa1);
 
-	if (FLAGS_GET_ZM(pa1->flags) != FLAGS_GET_ZM(pa2->flags))
+	if (RTFLAGS_GET_ZM(pa1->flags) != RTFLAGS_GET_ZM(pa2->flags))
 		rterror("ptarray_cat: Mixed dimension");
 
-	pa = ptarray_construct( FLAGS_GET_Z(pa1->flags),
-	                        FLAGS_GET_M(pa1->flags),
+	pa = ptarray_construct( RTFLAGS_GET_Z(pa1->flags),
+	                        RTFLAGS_GET_M(pa1->flags),
 	                        pa1->npoints + pa2->npoints);
 
 	memcpy(         getPoint_internal(pa, 0),
@@ -629,7 +629,7 @@ ptarray_clone_deep(const RTPOINTARRAY *in)
 	out->npoints = in->npoints;
 	out->maxpoints = in->maxpoints;
 
-	FLAGS_SET_READONLY(out->flags, 0);
+	RTFLAGS_SET_READONLY(out->flags, 0);
 
 	size = in->npoints * ptarray_point_size(in);
 	out->serialized_pointlist = rtalloc(size);
@@ -652,7 +652,7 @@ ptarray_clone(const RTPOINTARRAY *in)
 	out->npoints = in->npoints;
 	out->maxpoints = in->maxpoints;
 
-	FLAGS_SET_READONLY(out->flags, 1);
+	RTFLAGS_SET_READONLY(out->flags, 1);
 
 	out->serialized_pointlist = in->serialized_pointlist;
 
@@ -685,7 +685,7 @@ ptarray_is_closed_3d(const RTPOINTARRAY *in)
 int
 ptarray_is_closed_z(const RTPOINTARRAY *in)
 {
-	if ( FLAGS_GET_Z(in->flags) )
+	if ( RTFLAGS_GET_Z(in->flags) )
 		return ptarray_is_closed_3d(in);
 	else
 		return ptarray_is_closed_2d(in);
@@ -1002,8 +1002,8 @@ ptarray_force_dims(const RTPOINTARRAY *pa, int hasz, int hasm)
 {
 	/* TODO handle zero-length point arrays */
 	int i;
-	int in_hasz = FLAGS_GET_Z(pa->flags);
-	int in_hasm = FLAGS_GET_M(pa->flags);
+	int in_hasz = RTFLAGS_GET_Z(pa->flags);
+	int in_hasm = RTFLAGS_GET_M(pa->flags);
 	RTPOINT4D pt;
 	RTPOINTARRAY *pa_out = ptarray_construct_empty(hasz, hasm, pa->npoints);
 	
@@ -1036,7 +1036,7 @@ ptarray_substring(RTPOINTARRAY *ipa, double from, double to, double tolerance)
 	 * Create a dynamic pointarray with an initial capacity
 	 * equal to full copy of input points
 	 */
-	dpa = ptarray_construct_empty(FLAGS_GET_Z(ipa->flags), FLAGS_GET_M(ipa->flags), ipa->npoints);
+	dpa = ptarray_construct_empty(RTFLAGS_GET_Z(ipa->flags), RTFLAGS_GET_M(ipa->flags), ipa->npoints);
 
 	/* Compute total line length */
 	length = ptarray_length_2d(ipa);
@@ -1420,8 +1420,8 @@ ptarray_remove_repeated_points_minpoints(const RTPOINTARRAY *in, double toleranc
 	RTDEBUGF(3, " ptsize: %d", ptsize);
 
 	/* Allocate enough space for all points */
-	out = ptarray_construct(FLAGS_GET_Z(in->flags),
-	                        FLAGS_GET_M(in->flags), in->npoints);
+	out = ptarray_construct(RTFLAGS_GET_Z(in->flags),
+	                        RTFLAGS_GET_M(in->flags), in->npoints);
 
 	/* Now fill up the actual points (NOTE: could be optimized) */
 
@@ -1524,10 +1524,10 @@ ptarray_simplify(RTPOINTARRAY *inpts, double epsilon, unsigned int minpts)
 	stack[++sp] = inpts->npoints-1;
 
 	RTDEBUGF(2, "Input has %d pts and %d dims", inpts->npoints,
-	                                            FLAGS_NDIMS(inpts->flags));
+	                                            RTFLAGS_NDIMS(inpts->flags));
 
 	/* Allocate output RTPOINTARRAY, and add first point. */
-	outpts = ptarray_construct_empty(FLAGS_GET_Z(inpts->flags), FLAGS_GET_M(inpts->flags), inpts->npoints);
+	outpts = ptarray_construct_empty(RTFLAGS_GET_Z(inpts->flags), RTFLAGS_GET_M(inpts->flags), inpts->npoints);
 	getPoint4d_p(inpts, 0, &pt);
 	ptarray_append_point(outpts, &pt, RT_FALSE);
 
@@ -1635,7 +1635,7 @@ ptarray_length(const RTPOINTARRAY *pts)
 	if ( pts->npoints < 2 ) return 0.0;
 
 	/* compute 2d length if 3d is not available */
-	if ( ! FLAGS_GET_Z(pts->flags) ) return ptarray_length_2d(pts);
+	if ( ! RTFLAGS_GET_Z(pts->flags) ) return ptarray_length_2d(pts);
 
 	getPoint3dz_p(pts, 0, &frm);
 	for ( i=1; i < pts->npoints; i++ )
@@ -1684,15 +1684,15 @@ getPoint_internal(const RTPOINTARRAY *pa, int n)
 	size = ptarray_point_size(pa);
 	
 	ptr = pa->serialized_pointlist + size * n;
-	if ( FLAGS_NDIMS(pa->flags) == 2)
+	if ( RTFLAGS_NDIMS(pa->flags) == 2)
 	{
 		RTDEBUGF(5, "point = %g %g", *((double*)(ptr)), *((double*)(ptr+8)));
 	}
-	else if ( FLAGS_NDIMS(pa->flags) == 3)
+	else if ( RTFLAGS_NDIMS(pa->flags) == 3)
 	{
 		RTDEBUGF(5, "point = %g %g %g", *((double*)(ptr)), *((double*)(ptr+8)), *((double*)(ptr+16)));
 	}
-	else if ( FLAGS_NDIMS(pa->flags) == 4)
+	else if ( RTFLAGS_NDIMS(pa->flags) == 4)
 	{
 		RTDEBUGF(5, "point = %g %g %g %g", *((double*)(ptr)), *((double*)(ptr+8)), *((double*)(ptr+16)), *((double*)(ptr+24)));
 	}
@@ -1713,7 +1713,7 @@ ptarray_affine(RTPOINTARRAY *pa, const AFFINE *a)
 
 	RTDEBUG(2, "rtgeom_affine_ptarray start");
 
-	if ( FLAGS_GET_Z(pa->flags) )
+	if ( RTFLAGS_GET_Z(pa->flags) )
 	{
 		RTDEBUG(3, " has z");
 
@@ -1803,7 +1803,7 @@ ptarray_grid(const RTPOINTARRAY *pa, const gridspec *grid)
 
 	RTDEBUGF(2, "ptarray_grid called on %p", pa);
 
-	dpa = ptarray_construct_empty(FLAGS_GET_Z(pa->flags),FLAGS_GET_M(pa->flags), pa->npoints);
+	dpa = ptarray_construct_empty(RTFLAGS_GET_Z(pa->flags),RTFLAGS_GET_M(pa->flags), pa->npoints);
 
 	for (ipn=0; ipn<pa->npoints; ++ipn)
 	{
@@ -1818,11 +1818,11 @@ ptarray_grid(const RTPOINTARRAY *pa, const gridspec *grid)
 			pt.y = rint((pt.y - grid->ipy)/grid->ysize) *
 			         grid->ysize + grid->ipy;
 
-		if ( FLAGS_GET_Z(pa->flags) && grid->zsize )
+		if ( RTFLAGS_GET_Z(pa->flags) && grid->zsize )
 			pt.z = rint((pt.z - grid->ipz)/grid->zsize) *
 			         grid->zsize + grid->ipz;
 
-		if ( FLAGS_GET_M(pa->flags) && grid->msize )
+		if ( RTFLAGS_GET_M(pa->flags) && grid->msize )
 			pt.m = rint((pt.m - grid->ipm)/grid->msize) *
 			         grid->msize + grid->ipm;
 
