@@ -118,19 +118,19 @@ static uint32_t rttype_from_twkb_type(uint8_t twkb_type)
 	switch (twkb_type)
 	{
 		case 1:
-			return POINTTYPE;
+			return RTPOINTTYPE;
 		case 2:
-			return LINETYPE;
+			return RTLINETYPE;
 		case 3:
-			return POLYGONTYPE;
+			return RTPOLYGONTYPE;
 		case 4:
-			return MULTIPOINTTYPE;
+			return RTMULTIPOINTTYPE;
 		case 5:
-			return MULTILINETYPE;
+			return RTMULTILINETYPE;
 		case 6:
-			return MULTIPOLYGONTYPE;
+			return RTMULTIPOLYGONTYPE;
 		case 7:
-			return COLLECTIONTYPE;
+			return RTCOLLECTIONTYPE;
 
 		default: /* Error! */
 			rterror("Unknown WKB type");
@@ -433,7 +433,7 @@ static RTCOLLECTION* rtmultipoly_from_twkb_state(twkb_parse_state *s)
 
 
 /**
-* COLLECTION, MULTIPOINTTYPE, MULTILINETYPE, MULTIPOLYGONTYPE
+* COLLECTION, RTMULTIPOINTTYPE, RTMULTILINETYPE, RTMULTIPOLYGONTYPE
 **/
 static RTCOLLECTION* rtcollection_from_twkb_state(twkb_parse_state *s)
 {
@@ -594,25 +594,25 @@ RTGEOM* rtgeom_from_twkb_state(twkb_parse_state *s)
 	/* Switch to code for the particular type we're dealing with */
 	switch( s->rttype )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			geom = rtpoint_as_rtgeom(rtpoint_from_twkb_state(s));
 			break;
-		case LINETYPE:
+		case RTLINETYPE:
 			geom = rtline_as_rtgeom(rtline_from_twkb_state(s));
 			break;
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			geom = rtpoly_as_rtgeom(rtpoly_from_twkb_state(s));
 			break;
-		case MULTIPOINTTYPE:
+		case RTMULTIPOINTTYPE:
 			geom = rtcollection_as_rtgeom(rtmultipoint_from_twkb_state(s));
 			break;
-		case MULTILINETYPE:
+		case RTMULTILINETYPE:
 			geom = rtcollection_as_rtgeom(rtmultiline_from_twkb_state(s));
 			break;
-		case MULTIPOLYGONTYPE:
+		case RTMULTIPOLYGONTYPE:
 			geom = rtcollection_as_rtgeom(rtmultipoly_from_twkb_state(s));
 			break;
-		case COLLECTIONTYPE:
+		case RTCOLLECTIONTYPE:
 			geom = rtcollection_as_rtgeom(rtcollection_from_twkb_state(s));
 			break;
 		/* Unknown type! */

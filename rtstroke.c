@@ -47,17 +47,17 @@ rtgeom_has_arc(const RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
-	case LINETYPE:
-	case POLYGONTYPE:
-	case TRIANGLETYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
+	case RTPOINTTYPE:
+	case RTLINETYPE:
+	case RTPOLYGONTYPE:
+	case RTTRIANGLETYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
 		return RT_FALSE;
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return RT_TRUE;
 	/* It's a collection that MAY contain an arc */
 	default:
@@ -254,7 +254,7 @@ rtcompound_stroke(const RTCOMPOUND *icompound, uint32_t perQuad)
 	for (i = 0; i < icompound->ngeoms; i++)
 	{
 		geom = icompound->geoms[i];
-		if (geom->type == CIRCSTRINGTYPE)
+		if (geom->type == RTCIRCSTRINGTYPE)
 		{
 			tmp = rtcircstring_stroke((RTCIRCSTRING *)geom, perQuad);
 			for (j = 0; j < tmp->points->npoints; j++)
@@ -264,7 +264,7 @@ rtcompound_stroke(const RTCOMPOUND *icompound, uint32_t perQuad)
 			}
 			rtline_free(tmp);
 		}
-		else if (geom->type == LINETYPE)
+		else if (geom->type == RTLINETYPE)
 		{
 			tmp = (RTLINE *)geom;
 			for (j = 0; j < tmp->points->npoints; j++)
@@ -301,18 +301,18 @@ rtcurvepoly_stroke(const RTCURVEPOLY *curvepoly, uint32_t perQuad)
 	for (i = 0; i < curvepoly->nrings; i++)
 	{
 		tmp = curvepoly->rings[i];
-		if (tmp->type == CIRCSTRINGTYPE)
+		if (tmp->type == RTCIRCSTRINGTYPE)
 		{
 			line = rtcircstring_stroke((RTCIRCSTRING *)tmp, perQuad);
 			ptarray[i] = ptarray_clone_deep(line->points);
 			rtline_free(line);
 		}
-		else if (tmp->type == LINETYPE)
+		else if (tmp->type == RTLINETYPE)
 		{
 			line = (RTLINE *)tmp;
 			ptarray[i] = ptarray_clone_deep(line->points);
 		}
-		else if (tmp->type == COMPOUNDTYPE)
+		else if (tmp->type == RTCOMPOUNDTYPE)
 		{
 			line = rtcompound_stroke((RTCOMPOUND *)tmp, perQuad);
 			ptarray[i] = ptarray_clone_deep(line->points);
@@ -343,15 +343,15 @@ rtmcurve_stroke(const RTMCURVE *mcurve, uint32_t perQuad)
 	for (i = 0; i < mcurve->ngeoms; i++)
 	{
 		const RTGEOM *tmp = mcurve->geoms[i];
-		if (tmp->type == CIRCSTRINGTYPE)
+		if (tmp->type == RTCIRCSTRINGTYPE)
 		{
 			lines[i] = (RTGEOM *)rtcircstring_stroke((RTCIRCSTRING *)tmp, perQuad);
 		}
-		else if (tmp->type == LINETYPE)
+		else if (tmp->type == RTLINETYPE)
 		{
 			lines[i] = (RTGEOM *)rtline_construct(mcurve->srid, NULL, ptarray_clone_deep(((RTLINE *)tmp)->points));
 		}
-		else if (tmp->type == COMPOUNDTYPE)
+		else if (tmp->type == RTCOMPOUNDTYPE)
 		{
 			lines[i] = (RTGEOM *)rtcompound_stroke((RTCOMPOUND *)tmp, perQuad);
 		}
@@ -362,7 +362,7 @@ rtmcurve_stroke(const RTMCURVE *mcurve, uint32_t perQuad)
 		}
 	}
 
-	ogeom = (RTMLINE *)rtcollection_construct(MULTILINETYPE, mcurve->srid, NULL, mcurve->ngeoms, lines);
+	ogeom = (RTMLINE *)rtcollection_construct(RTMULTILINETYPE, mcurve->srid, NULL, mcurve->ngeoms, lines);
 	return ogeom;
 }
 
@@ -383,11 +383,11 @@ rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad)
 	for (i = 0; i < msurface->ngeoms; i++)
 	{
 		tmp = msurface->geoms[i];
-		if (tmp->type == CURVEPOLYTYPE)
+		if (tmp->type == RTCURVEPOLYTYPE)
 		{
 			polys[i] = (RTGEOM *)rtcurvepoly_stroke((RTCURVEPOLY *)tmp, perQuad);
 		}
-		else if (tmp->type == POLYGONTYPE)
+		else if (tmp->type == RTPOLYGONTYPE)
 		{
 			poly = (RTPOLY *)tmp;
 			ptarray = rtalloc(sizeof(POINTARRAY *)*poly->nrings);
@@ -398,7 +398,7 @@ rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad)
 			polys[i] = (RTGEOM *)rtpoly_construct(msurface->srid, NULL, poly->nrings, ptarray);
 		}
 	}
-	ogeom = (RTMPOLY *)rtcollection_construct(MULTIPOLYGONTYPE, msurface->srid, NULL, msurface->ngeoms, polys);
+	ogeom = (RTMPOLY *)rtcollection_construct(RTMULTIPOLYGONTYPE, msurface->srid, NULL, msurface->ngeoms, polys);
 	return ogeom;
 }
 
@@ -419,16 +419,16 @@ rtcollection_stroke(const RTCOLLECTION *collection, uint32_t perQuad)
 		tmp = collection->geoms[i];
 		switch (tmp->type)
 		{
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			geoms[i] = (RTGEOM *)rtcircstring_stroke((RTCIRCSTRING *)tmp, perQuad);
 			break;
-		case COMPOUNDTYPE:
+		case RTCOMPOUNDTYPE:
 			geoms[i] = (RTGEOM *)rtcompound_stroke((RTCOMPOUND *)tmp, perQuad);
 			break;
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 			geoms[i] = (RTGEOM *)rtcurvepoly_stroke((RTCURVEPOLY *)tmp, perQuad);
 			break;
-		case COLLECTIONTYPE:
+		case RTCOLLECTIONTYPE:
 			geoms[i] = (RTGEOM *)rtcollection_stroke((RTCOLLECTION *)tmp, perQuad);
 			break;
 		default:
@@ -436,7 +436,7 @@ rtcollection_stroke(const RTCOLLECTION *collection, uint32_t perQuad)
 			break;
 		}
 	}
-	ocol = rtcollection_construct(COLLECTIONTYPE, collection->srid, NULL, collection->ngeoms, geoms);
+	ocol = rtcollection_construct(RTCOLLECTIONTYPE, collection->srid, NULL, collection->ngeoms, geoms);
 	return ocol;
 }
 
@@ -446,22 +446,22 @@ rtgeom_stroke(const RTGEOM *geom, uint32_t perQuad)
 	RTGEOM * ogeom = NULL;
 	switch (geom->type)
 	{
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		ogeom = (RTGEOM *)rtcircstring_stroke((RTCIRCSTRING *)geom, perQuad);
 		break;
-	case COMPOUNDTYPE:
+	case RTCOMPOUNDTYPE:
 		ogeom = (RTGEOM *)rtcompound_stroke((RTCOMPOUND *)geom, perQuad);
 		break;
-	case CURVEPOLYTYPE:
+	case RTCURVEPOLYTYPE:
 		ogeom = (RTGEOM *)rtcurvepoly_stroke((RTCURVEPOLY *)geom, perQuad);
 		break;
-	case MULTICURVETYPE:
+	case RTMULTICURVETYPE:
 		ogeom = (RTGEOM *)rtmcurve_stroke((RTMCURVE *)geom, perQuad);
 		break;
-	case MULTISURFACETYPE:
+	case RTMULTISURFACETYPE:
 		ogeom = (RTGEOM *)rtmsurface_stroke((RTMSURFACE *)geom, perQuad);
 		break;
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		ogeom = (RTGEOM *)rtcollection_stroke((RTCOLLECTION *)geom, perQuad);
 		break;
 	default:
@@ -714,7 +714,7 @@ pta_unstroke(const POINTARRAY *points, int type, int srid)
 
 	start = 0;
 	edge_type = edges_in_arcs[0];
-	outcol = rtcollection_construct_empty(COMPOUNDTYPE, srid, ptarray_has_z(points), ptarray_has_m(points));
+	outcol = rtcollection_construct_empty(RTCOMPOUNDTYPE, srid, ptarray_has_z(points), ptarray_has_m(points));
 	for( i = 1; i < num_edges; i++ )
 	{
 		if( edge_type != edges_in_arcs[i] )
@@ -763,7 +763,7 @@ rtpolygon_unstroke(const RTPOLY *poly)
 	for (i=0; i<poly->nrings; i++)
 	{
 		geoms[i] = pta_unstroke(poly->rings[i], poly->flags, poly->srid);
-		if (geoms[i]->type == CIRCSTRINGTYPE || geoms[i]->type == COMPOUNDTYPE)
+		if (geoms[i]->type == RTCIRCSTRINGTYPE || geoms[i]->type == RTCOMPOUNDTYPE)
 		{
 			hascurve = 1;
 		}
@@ -777,7 +777,7 @@ rtpolygon_unstroke(const RTPOLY *poly)
 		return rtgeom_clone((RTGEOM *)poly);
 	}
 
-	return (RTGEOM *)rtcollection_construct(CURVEPOLYTYPE, poly->srid, NULL, poly->nrings, geoms);
+	return (RTGEOM *)rtcollection_construct(RTCURVEPOLYTYPE, poly->srid, NULL, poly->nrings, geoms);
 }
 
 RTGEOM *
@@ -792,7 +792,7 @@ rtmline_unstroke(const RTMLINE *mline)
 	for (i=0; i<mline->ngeoms; i++)
 	{
 		geoms[i] = rtline_unstroke((RTLINE *)mline->geoms[i]);
-		if (geoms[i]->type == CIRCSTRINGTYPE || geoms[i]->type == COMPOUNDTYPE)
+		if (geoms[i]->type == RTCIRCSTRINGTYPE || geoms[i]->type == RTCOMPOUNDTYPE)
 		{
 			hascurve = 1;
 		}
@@ -805,7 +805,7 @@ rtmline_unstroke(const RTMLINE *mline)
 		}
 		return rtgeom_clone((RTGEOM *)mline);
 	}
-	return (RTGEOM *)rtcollection_construct(MULTICURVETYPE, mline->srid, NULL, mline->ngeoms, geoms);
+	return (RTGEOM *)rtcollection_construct(RTMULTICURVETYPE, mline->srid, NULL, mline->ngeoms, geoms);
 }
 
 RTGEOM * 
@@ -820,7 +820,7 @@ rtmpolygon_unstroke(const RTMPOLY *mpoly)
 	for (i=0; i<mpoly->ngeoms; i++)
 	{
 		geoms[i] = rtpolygon_unstroke((RTPOLY *)mpoly->geoms[i]);
-		if (geoms[i]->type == CURVEPOLYTYPE)
+		if (geoms[i]->type == RTCURVEPOLYTYPE)
 		{
 			hascurve = 1;
 		}
@@ -833,7 +833,7 @@ rtmpolygon_unstroke(const RTMPOLY *mpoly)
 		}
 		return rtgeom_clone((RTGEOM *)mpoly);
 	}
-	return (RTGEOM *)rtcollection_construct(MULTISURFACETYPE, mpoly->srid, NULL, mpoly->ngeoms, geoms);
+	return (RTGEOM *)rtcollection_construct(RTMULTISURFACETYPE, mpoly->srid, NULL, mpoly->ngeoms, geoms);
 }
 
 RTGEOM *
@@ -843,13 +843,13 @@ rtgeom_unstroke(const RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_unstroke((RTLINE *)geom);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpolygon_unstroke((RTPOLY *)geom);
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		return rtmline_unstroke((RTMLINE *)geom);
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		return rtmpolygon_unstroke((RTMPOLY *)geom);
 	default:
 		return rtgeom_clone(geom);

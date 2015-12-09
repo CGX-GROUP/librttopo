@@ -115,7 +115,7 @@ rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
 			rterror("Some unspecified error.");
-			result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+			result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 		RTGEOM *vertical_line;
 		if(!rtgeom_has_z(rt1))
@@ -129,7 +129,7 @@ rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 				/*should never get here. all cases ought to be error handled earlier*/
 				rtfree(vertical_line);
 				rterror("Some unspecified error.");
-				result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+				result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 			}			
 			rtfree(vertical_line);	
 		}	
@@ -144,7 +144,7 @@ rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 				/*should never get here. all cases ought to be error handled earlier*/
 				rtfree(vertical_line);
 				rterror("Some unspecified error.");
-				return (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+				return (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 			}	
 			rtfree(vertical_line);		
 		}			
@@ -156,14 +156,14 @@ rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
 			rterror("Some unspecified error.");
-			result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+			result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 	}
 	/*if thedl.distance is unchanged there where only empty geometries input*/
 	if (thedl.distance == initdistance)
 	{
 		RTDEBUG(3, "didn't find geometries to measure between, returning null");
-		result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 	else
 	{
@@ -220,7 +220,7 @@ rt_dist3d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
 			rterror("Some unspecified error.");
-			return (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+			return (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 		
 		RTGEOM *vertical_line;
@@ -235,7 +235,7 @@ rt_dist3d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode
 				/*should never get here. all cases ought to be error handled earlier*/
 				rtfree(vertical_line);	
 				rterror("Some unspecified error.");
-				return (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+				return (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 			}		
 			rtfree(vertical_line);		
 		}	
@@ -251,7 +251,7 @@ rt_dist3d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode
 				/*should never get here. all cases ought to be error handled earlier*/
 				rtfree(vertical_line);	
 				rterror("Some unspecified error.");
-				result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+				result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 			}	
 			rtfree(vertical_line);			
 		}	
@@ -263,13 +263,13 @@ rt_dist3d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
 			rterror("Some unspecified error.");
-			result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+			result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 	}
 	if (thedl.distance == initdistance)
 	{
 		RTDEBUG(3, "didn't find geometries to measure between, returning null");
-		result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 	else
 	{
@@ -461,19 +461,19 @@ rt_dist3d_distribute_bruteforce(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3
 
 	RTDEBUGF(2, "rt_dist3d_distribute_bruteforce is called with typ1=%d, type2=%d", rtg1->type, rtg2->type);
 
-	if  ( t1 == POINTTYPE )
+	if  ( t1 == RTPOINTTYPE )
 	{
-		if  ( t2 == POINTTYPE )
+		if  ( t2 == RTPOINTTYPE )
 		{
 			dl->twisted=1;
 			return rt_dist3d_point_point((RTPOINT *)rtg1, (RTPOINT *)rtg2, dl);
 		}
-		else if  ( t2 == LINETYPE )
+		else if  ( t2 == RTLINETYPE )
 		{
 			dl->twisted=1;
 			return rt_dist3d_point_line((RTPOINT *)rtg1, (RTLINE *)rtg2, dl);
 		}
-		else if  ( t2 == POLYGONTYPE )
+		else if  ( t2 == RTPOLYGONTYPE )
 		{
 			dl->twisted=1;
 			return rt_dist3d_point_poly((RTPOINT *)rtg1, (RTPOLY *)rtg2,dl);
@@ -484,19 +484,19 @@ rt_dist3d_distribute_bruteforce(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3
 			return RT_FALSE;
 		}
 	}
-	else if ( t1 == LINETYPE )
+	else if ( t1 == RTLINETYPE )
 	{
-		if ( t2 == POINTTYPE )
+		if ( t2 == RTPOINTTYPE )
 		{
 			dl->twisted=(-1);
 			return rt_dist3d_point_line((RTPOINT *)rtg2,(RTLINE *)rtg1,dl);
 		}
-		else if ( t2 == LINETYPE )
+		else if ( t2 == RTLINETYPE )
 		{
 			dl->twisted=1;
 			return rt_dist3d_line_line((RTLINE *)rtg1,(RTLINE *)rtg2,dl);
 		}
-		else if ( t2 == POLYGONTYPE )
+		else if ( t2 == RTPOLYGONTYPE )
 		{
 			dl->twisted=1;
 			return rt_dist3d_line_poly((RTLINE *)rtg1,(RTPOLY *)rtg2,dl);
@@ -507,19 +507,19 @@ rt_dist3d_distribute_bruteforce(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3
 			return RT_FALSE;
 		}
 	}
-	else if ( t1 == POLYGONTYPE )
+	else if ( t1 == RTPOLYGONTYPE )
 	{
-		if ( t2 == POLYGONTYPE )
+		if ( t2 == RTPOLYGONTYPE )
 		{
 			dl->twisted=1;
 			return rt_dist3d_poly_poly((RTPOLY *)rtg1, (RTPOLY *)rtg2,dl);
 		}
-		else if ( t2 == POINTTYPE )
+		else if ( t2 == RTPOINTTYPE )
 		{
 			dl->twisted=-1;
 			return rt_dist3d_point_poly((RTPOINT *)rtg2, (RTPOLY *)rtg1,dl);
 		}
-		else if ( t2 == LINETYPE )
+		else if ( t2 == RTLINETYPE )
 		{
 			dl->twisted=-1;
 			return rt_dist3d_line_poly((RTLINE *)rtg2,(RTPOLY *)rtg1,dl);

@@ -69,16 +69,16 @@ rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
 
 	switch(geom->type)
 	{
-		case POINTTYPE:
-		case LINETYPE:
-		case CIRCSTRINGTYPE:
-		case TRIANGLETYPE:
+		case RTPOINTTYPE:
+		case RTLINETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTTRIANGLETYPE:
 		{
 			RTLINE *g = (RTLINE*)geom;
       if ( ! ptarray_transform(g->points, inpj, outpj) ) return RT_FAILURE;
 			break;
 		}
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 		{
 			RTPOLY *g = (RTPOLY*)geom;
 			for ( i = 0; i < g->nrings; i++ )
@@ -87,16 +87,16 @@ rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
 			}
 			break;
 		}
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COLLECTIONTYPE:
-		case COMPOUNDTYPE:
-		case CURVEPOLYTYPE:
-		case MULTICURVETYPE:
-		case MULTISURFACETYPE:
-		case POLYHEDRALSURFACETYPE:
-		case TINTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOLLECTIONTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTCURVEPOLYTYPE:
+		case RTMULTICURVETYPE:
+		case RTMULTISURFACETYPE:
+		case RTPOLYHEDRALSURFACETYPE:
+		case RTTINTYPE:
 		{
 			RTCOLLECTION *g = (RTCOLLECTION*)geom;
 			for ( i = 0; i < g->ngeoms; i++ )

@@ -1654,16 +1654,16 @@ rtgeom_segmentize_sphere(const RTGEOM *rtg_in, double max_seg_length)
 	
 	switch (rtg_in->type)
 	{
-	case MULTIPOINTTYPE:
-	case POINTTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTPOINTTYPE:
 		return rtgeom_clone_deep(rtg_in);
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		rtline = rtgeom_as_rtline(rtg_in);
 		pa_out = ptarray_segmentize_sphere(rtline->points, max_seg_length);
 		return rtline_as_rtgeom(rtline_construct(rtg_in->srid, NULL, pa_out));
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		rtpoly_in = rtgeom_as_rtpoly(rtg_in);
 		rtpoly_out = rtpoly_construct_empty(rtg_in->srid, rtgeom_has_z(rtg_in), rtgeom_has_m(rtg_in));
 		for ( i = 0; i < rtpoly_in->nrings; i++ )
@@ -1673,9 +1673,9 @@ rtgeom_segmentize_sphere(const RTGEOM *rtg_in, double max_seg_length)
 		}
 		return rtpoly_as_rtgeom(rtpoly_out);
 		break;
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
 		rtcol_in = rtgeom_as_rtcollection(rtg_in);
 		rtcol_out = rtcollection_construct_empty(rtg_in->type, rtg_in->srid, rtgeom_has_z(rtg_in), rtgeom_has_m(rtg_in));
 		for ( i = 0; i < rtcol_in->ngeoms; i++ )
@@ -1938,11 +1938,11 @@ double rtgeom_area_sphere(const RTGEOM *rtgeom, const SPHEROID *spheroid)
 	type = rtgeom->type;
 
 	/* Anything but polygons and collections returns zero */
-	if ( ! ( type == POLYGONTYPE || type == MULTIPOLYGONTYPE || type == COLLECTIONTYPE ) )
+	if ( ! ( type == RTPOLYGONTYPE || type == RTMULTIPOLYGONTYPE || type == RTCOLLECTIONTYPE ) )
 		return 0.0;
 
 	/* Actually calculate area */
-	if ( type == POLYGONTYPE )
+	if ( type == RTPOLYGONTYPE )
 	{
 		RTPOLY *poly = (RTPOLY*)rtgeom;
 		int i;
@@ -1964,7 +1964,7 @@ double rtgeom_area_sphere(const RTGEOM *rtgeom, const SPHEROID *spheroid)
 	}
 
 	/* Recurse into sub-geometries to get area */
-	if ( type == MULTIPOLYGONTYPE || type == COLLECTIONTYPE )
+	if ( type == RTMULTIPOLYGONTYPE || type == RTCOLLECTIONTYPE )
 	{
 		RTCOLLECTION *col = (RTCOLLECTION*)rtgeom;
 		int i;
@@ -2118,17 +2118,17 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 		check_intersection = RT_TRUE;
 
 	/* Point/line combinations can all be handled with simple point array iterations */
-	if ( ( type1 == POINTTYPE || type1 == LINETYPE ) &&
-	     ( type2 == POINTTYPE || type2 == LINETYPE ) )
+	if ( ( type1 == RTPOINTTYPE || type1 == RTLINETYPE ) &&
+	     ( type2 == RTPOINTTYPE || type2 == RTLINETYPE ) )
 	{
 		POINTARRAY *pa1, *pa2;
 
-		if ( type1 == POINTTYPE )
+		if ( type1 == RTPOINTTYPE )
 			pa1 = ((RTPOINT*)rtgeom1)->point;
 		else
 			pa1 = ((RTLINE*)rtgeom1)->points;
 
-		if ( type2 == POINTTYPE )
+		if ( type2 == RTPOINTTYPE )
 			pa2 = ((RTPOINT*)rtgeom2)->point;
 		else
 			pa2 = ((RTLINE*)rtgeom2)->points;
@@ -2137,8 +2137,8 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 	}
 
 	/* Point/Polygon cases, if point-in-poly, return zero, else return distance. */
-	if ( ( type1 == POLYGONTYPE && type2 == POINTTYPE ) ||
-	     ( type2 == POLYGONTYPE && type1 == POINTTYPE ) )
+	if ( ( type1 == RTPOLYGONTYPE && type2 == RTPOINTTYPE ) ||
+	     ( type2 == RTPOLYGONTYPE && type1 == RTPOINTTYPE ) )
 	{
 		const POINT2D *p;
 		RTPOLY *rtpoly;
@@ -2146,7 +2146,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 		double distance = FLT_MAX;
 		int i;
 
-		if ( type1 == POINTTYPE )
+		if ( type1 == RTPOINTTYPE )
 		{
 			rtpt = (RTPOINT*)rtgeom1;
 			rtpoly = (RTPOLY*)rtgeom2;
@@ -2177,8 +2177,8 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 	}
 
 	/* Line/polygon case, if start point-in-poly, return zero, else return distance. */
-	if ( ( type1 == POLYGONTYPE && type2 == LINETYPE ) ||
-	     ( type2 == POLYGONTYPE && type1 == LINETYPE ) )
+	if ( ( type1 == RTPOLYGONTYPE && type2 == RTLINETYPE ) ||
+	     ( type2 == RTPOLYGONTYPE && type1 == RTLINETYPE ) )
 	{
 		const POINT2D *p;
 		RTPOLY *rtpoly;
@@ -2186,7 +2186,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 		double distance = FLT_MAX;
 		int i;
 
-		if ( type1 == LINETYPE )
+		if ( type1 == RTLINETYPE )
 		{
 			rtline = (RTLINE*)rtgeom1;
 			rtpoly = (RTPOLY*)rtgeom2;
@@ -2222,8 +2222,8 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 	}
 
 	/* Polygon/polygon case, if start point-in-poly, return zero, else return distance. */
-	if ( ( type1 == POLYGONTYPE && type2 == POLYGONTYPE ) ||
-	     ( type2 == POLYGONTYPE && type1 == POLYGONTYPE ) )
+	if ( ( type1 == RTPOLYGONTYPE && type2 == RTPOLYGONTYPE ) ||
+	     ( type2 == RTPOLYGONTYPE && type1 == RTPOLYGONTYPE ) )
 	{
 		const POINT2D *p;
 		RTPOLY *rtpoly1 = (RTPOLY*)rtgeom1;
@@ -2312,8 +2312,8 @@ int rtgeom_covers_rtgeom_sphere(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 	type2 = rtgeom2->type;
 
 	/* Currently a restricted implementation */
-	if ( ! ( (type1 == POLYGONTYPE || type1 == MULTIPOLYGONTYPE || type1 == COLLECTIONTYPE) &&
-	         (type2 == POINTTYPE || type2 == MULTIPOINTTYPE || type2 == COLLECTIONTYPE) ) )
+	if ( ! ( (type1 == RTPOLYGONTYPE || type1 == RTMULTIPOLYGONTYPE || type1 == RTCOLLECTIONTYPE) &&
+	         (type2 == RTPOINTTYPE || type2 == RTMULTIPOINTTYPE || type2 == RTCOLLECTIONTYPE) ) )
 	{
 		rterror("rtgeom_covers_rtgeom_sphere: only POLYGON covers POINT tests are currently supported");
 		return RT_FALSE;
@@ -2333,7 +2333,7 @@ int rtgeom_covers_rtgeom_sphere(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 
 
 	/* Handle the polygon/point case */
-	if ( type1 == POLYGONTYPE && type2 == POINTTYPE )
+	if ( type1 == RTPOLYGONTYPE && type2 == RTPOINTTYPE )
 	{
 		POINT2D pt_to_test;
 		getPoint2d_p(((RTPOINT*)rtgeom2)->point, 0, &pt_to_test);
@@ -2621,24 +2621,24 @@ int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, GBOX *gbox)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		result = rtpoint_calculate_gbox_geodetic((RTPOINT*)geom, gbox);
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		result = rtline_calculate_gbox_geodetic((RTLINE *)geom, gbox);
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		result = rtpolygon_calculate_gbox_geodetic((RTPOLY *)geom, gbox);
 		break;
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		result = rttriangle_calculate_gbox_geodetic((RTTRIANGLE *)geom, gbox);
 		break;
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		result = rtcollection_calculate_gbox_geodetic((RTCOLLECTION *)geom, gbox);
 		break;
 	default:
@@ -2721,20 +2721,20 @@ int rtgeom_check_geodetic(const RTGEOM *geom)
 		
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return rtpoint_check_geodetic((RTPOINT *)geom);
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_check_geodetic((RTLINE *)geom);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_check_geodetic((RTPOLY *)geom);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return rttriangle_check_geodetic((RTTRIANGLE *)geom);
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_check_geodetic((RTCOLLECTION *)geom);
 	default:
 		rterror("rtgeom_check_geodetic: unsupported input geometry type: %d - %s",
@@ -2809,16 +2809,16 @@ int rtgeom_force_geodetic(RTGEOM *geom)
 {
 	switch ( rtgeom_get_type(geom) )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return rtpoint_force_geodetic((RTPOINT *)geom);
-		case LINETYPE:
+		case RTLINETYPE:
 			return rtline_force_geodetic((RTLINE *)geom);
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return rtpoly_force_geodetic((RTPOLY *)geom);
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COLLECTIONTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOLLECTIONTYPE:
 			return rtcollection_force_geodetic((RTCOLLECTION *)geom);
 		default:
 			rterror("unsupported input geometry type: %d", rtgeom_get_type(geom));
@@ -2894,13 +2894,13 @@ double rtgeom_length_spheroid(const RTGEOM *geom, const SPHEROID *s)
 
 	type = geom->type;
 
-	if ( type == POINTTYPE || type == MULTIPOINTTYPE )
+	if ( type == RTPOINTTYPE || type == RTMULTIPOINTTYPE )
 		return 0.0;
 
-	if ( type == LINETYPE )
+	if ( type == RTLINETYPE )
 		return ptarray_length_spheroid(((RTLINE*)geom)->points, s);
 
-	if ( type == POLYGONTYPE )
+	if ( type == RTPOLYGONTYPE )
 	{
 		RTPOLY *poly = (RTPOLY*)geom;
 		for ( i = 0; i < poly->nrings; i++ )
@@ -2910,7 +2910,7 @@ double rtgeom_length_spheroid(const RTGEOM *geom, const SPHEROID *s)
 		return length;
 	}
 
-	if ( type == TRIANGLETYPE )
+	if ( type == RTTRIANGLETYPE )
 		return ptarray_length_spheroid(((RTTRIANGLE*)geom)->points, s);
 
 	if ( rttype_is_collection( type ) )
@@ -3001,13 +3001,13 @@ rtgeom_nudge_geodetic(RTGEOM *geom)
 
 	type = geom->type;
 
-	if ( type == POINTTYPE )
+	if ( type == RTPOINTTYPE )
 		return ptarray_nudge_geodetic(((RTPOINT*)geom)->point);
 
-	if ( type == LINETYPE )
+	if ( type == RTLINETYPE )
 		return ptarray_nudge_geodetic(((RTLINE*)geom)->points);
 
-	if ( type == POLYGONTYPE )
+	if ( type == RTPOLYGONTYPE )
 	{
 		RTPOLY *poly = (RTPOLY*)geom;
 		for ( i = 0; i < poly->nrings; i++ )
@@ -3018,7 +3018,7 @@ rtgeom_nudge_geodetic(RTGEOM *geom)
 		return rv;
 	}
 
-	if ( type == TRIANGLETYPE )
+	if ( type == RTTRIANGLETYPE )
 		return ptarray_nudge_geodetic(((RTTRIANGLE*)geom)->points);
 
 	if ( rttype_is_collection( type ) )

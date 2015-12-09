@@ -142,33 +142,33 @@ rtgeom_make_geos_friendly(RTGEOM *geom)
 	RTDEBUGF(2, "rtgeom_make_geos_friendly enter (type %d)", geom->type);
 	switch (geom->type)
 	{
-	case POINTTYPE:
-	case MULTIPOINTTYPE:
+	case RTPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		/* a point is artays valid */
 		return geom;
 		break;
 
-	case LINETYPE:
+	case RTLINETYPE:
 		/* lines need at least 2 points */
 		return rtline_make_geos_friendly((RTLINE *)geom);
 		break;
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		/* polygons need all rings closed and with npoints > 3 */
 		return rtpoly_make_geos_friendly((RTPOLY *)geom);
 		break;
 
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_make_geos_friendly((RTCOLLECTION *)geom);
 		break;
 
-	case CIRCSTRINGTYPE:
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTISURFACETYPE:
-	case MULTICURVETYPE:
+	case RTCIRCSTRINGTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTICURVETYPE:
 	default:
 		rterror("rtgeom_make_geos_friendly: unsupported input geometry type: %s (%d)", rttype_name(geom->type), geom->type);
 		break;
@@ -1056,7 +1056,7 @@ rtgeom_make_valid(RTGEOM* rtgeom_in)
 		 * otherwise we couldn't have a collection and a non-collection */
 		assert(rtgeom_in != rtgeom_out);
 		ogeoms[0] = rtgeom_out;
-		ogeom = (RTGEOM *)rtcollection_construct(MULTITYPE[rtgeom_out->type],
+		ogeom = (RTGEOM *)rtcollection_construct(RTMULTITYPE[rtgeom_out->type],
 		                          rtgeom_out->srid, rtgeom_out->bbox, 1, ogeoms);
 		rtgeom_out->bbox = NULL;
 		rtgeom_out = ogeom;

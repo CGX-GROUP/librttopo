@@ -355,12 +355,12 @@ rt_seg_interact(const POINT2D *p1, const POINT2D *p2, const POINT2D *q1, const P
 }
 
 /**
-** @brief returns the kind of #CG_SEGMENT_INTERSECTION_TYPE  behavior of lineseg 1 (constructed from p1 and p2) and lineseg 2 (constructed from q1 and q2)
+** @brief returns the kind of #RTCG_SEGMENT_INTERSECTION_TYPE  behavior of lineseg 1 (constructed from p1 and p2) and lineseg 2 (constructed from q1 and q2)
 **	@param p1 start point of first straight linesegment
 **	@param p2 end point of first straight linesegment
 **	@param q1 start point of second line segment
 **	@param q2 end point of second line segment
-**	@return a #CG_SEGMENT_INTERSECTION_TYPE
+**	@return a #RTCG_SEGMENT_INTERSECTION_TYPE
 ** 	Returns one of
 **		SEG_ERROR = -1,
 **		SEG_NO_INTERSECTION = 0,
@@ -444,10 +444,10 @@ int rt_segment_intersects(const POINT2D *p1, const POINT2D *p2, const POINT2D *q
 }
 
 /**
-** @brief rtline_crossing_direction: returns the kind of #CG_LINE_CROSS_TYPE behavior  of 2 linestrings
+** @brief rtline_crossing_direction: returns the kind of #RTCG_LINE_CROSS_TYPE behavior  of 2 linestrings
 ** @param l1 first line string
 ** @param l2 second line string
-** @return a #CG_LINE_CROSS_TYPE
+** @return a #RTCG_LINE_CROSS_TYPE
 **   LINE_NO_CROSS = 0
 **   LINE_CROSS_LEFT = -1
 **   LINE_CROSS_RIGHT = 1

@@ -62,10 +62,10 @@ rtline_split_by_line(const RTLINE* rtline_in, const RTGEOM* blade_in)
 	int ret;
 
 	/* ASSERT blade_in is LINE or MULTILINE */
-	assert (blade_in->type == LINETYPE ||
-	        blade_in->type == MULTILINETYPE ||
-	        blade_in->type == POLYGONTYPE ||
-	        blade_in->type == MULTIPOLYGONTYPE );
+	assert (blade_in->type == RTLINETYPE ||
+	        blade_in->type == RTMULTILINETYPE ||
+	        blade_in->type == RTPOLYGONTYPE ||
+	        blade_in->type == RTMULTIPOLYGONTYPE );
 
 	/* Possible outcomes:
 	 *
@@ -92,7 +92,7 @@ rtline_split_by_line(const RTLINE* rtline_in, const RTGEOM* blade_in)
 	}
 
 	/* If blade is a polygon, pick its boundary */
-	if ( blade_in->type == POLYGONTYPE || blade_in->type == MULTIPOLYGONTYPE )
+	if ( blade_in->type == RTPOLYGONTYPE || blade_in->type == RTMULTIPOLYGONTYPE )
 	{
 		gdiff = GEOSBoundary(g2);
 		GEOSGeom_destroy(g2);
@@ -145,7 +145,7 @@ rtline_split_by_line(const RTLINE* rtline_in, const RTGEOM* blade_in)
 	{
 		components = rtalloc(sizeof(RTGEOM*)*1);
 		components[0] = diff;
-		out = rtcollection_construct(COLLECTIONTYPE, rtline_in->srid,
+		out = rtcollection_construct(RTCOLLECTIONTYPE, rtline_in->srid,
 		                             NULL, 1, components);
 	}
 	else
@@ -153,7 +153,7 @@ rtline_split_by_line(const RTLINE* rtline_in, const RTGEOM* blade_in)
 	  /* Set SRID */
 		rtgeom_set_srid((RTGEOM*)out, rtline_in->srid);
 	  /* Force collection type */
-	  out->type = COLLECTIONTYPE;
+	  out->type = RTCOLLECTIONTYPE;
 	}
 
 
@@ -174,7 +174,7 @@ rtline_split_by_point(const RTLINE* rtline_in, const RTPOINT* blade_in)
 	}
 
 	/* Turn multiline into collection */
-	out->type = COLLECTIONTYPE;
+	out->type = RTCOLLECTIONTYPE;
 
 	return (RTGEOM*)out;
 }
@@ -211,7 +211,7 @@ rtline_split_by_mpoint(const RTLINE* rtline_in, const RTMPOINT* mp)
   }
 
   /* Turn multiline into collection */
-  out->type = COLLECTIONTYPE;
+  out->type = RTCOLLECTIONTYPE;
 
   return (RTGEOM*)out;
 }
@@ -283,15 +283,15 @@ rtline_split(const RTLINE* rtline_in, const RTGEOM* blade_in)
 {
 	switch (blade_in->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return rtline_split_by_point(rtline_in, (RTPOINT*)blade_in);
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return rtline_split_by_mpoint(rtline_in, (RTMPOINT*)blade_in);
 
-	case LINETYPE:
-	case MULTILINETYPE:
-	case POLYGONTYPE:
-	case MULTIPOLYGONTYPE:
+	case RTLINETYPE:
+	case RTMULTILINETYPE:
+	case RTPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		return rtline_split_by_line(rtline_in, blade_in);
 
 	default:
@@ -381,7 +381,7 @@ rtpoly_split_by_line(const RTPOLY* rtpoly_in, const RTLINE* blade_in)
 	}
 
 #if PARANOIA_LEVEL > 0
-	if ( GEOSGeometryTypeId(polygons) != COLLECTIONTYPE )
+	if ( GEOSGeometryTypeId(polygons) != RTCOLLECTIONTYPE )
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
@@ -398,7 +398,7 @@ rtpoly_split_by_line(const RTPOLY* rtpoly_in, const RTLINE* blade_in)
 	 * geometries and return the rest in a collection
 	 */
 	n = GEOSGetNumGeometries(polygons);
-	out = rtcollection_construct_empty(COLLECTIONTYPE, rtpoly_in->srid,
+	out = rtcollection_construct_empty(RTCOLLECTIONTYPE, rtpoly_in->srid,
 				     hasZ, 0);
 	/* Allocate space for all polys */
 	out->geoms = rtrealloc(out->geoms, sizeof(RTGEOM*)*n);
@@ -508,7 +508,7 @@ rtcollection_split(const RTCOLLECTION* rtcoll_in, const RTGEOM* blade_in)
 	}
 
 	/* Now split_vector has split_vector_size geometries */
-	out = rtcollection_construct(COLLECTIONTYPE, rtcoll_in->srid,
+	out = rtcollection_construct(RTCOLLECTIONTYPE, rtcoll_in->srid,
 	                             NULL, split_vector_size, split_vector);
 
 	return (RTGEOM*)out;
@@ -519,7 +519,7 @@ rtpoly_split(const RTPOLY* rtpoly_in, const RTGEOM* blade_in)
 {
 	switch (blade_in->type)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtpoly_split_by_line(rtpoly_in, (RTLINE*)blade_in);
 	default:
 		rterror("Splitting a Polygon by a %s is unsupported",
@@ -535,15 +535,15 @@ rtgeom_split(const RTGEOM* rtgeom_in, const RTGEOM* blade_in)
 {
 	switch (rtgeom_in->type)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_split((const RTLINE*)rtgeom_in, blade_in);
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_split((const RTPOLY*)rtgeom_in, blade_in);
 
-	case MULTIPOLYGONTYPE:
-	case MULTILINETYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTMULTILINETYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_split((const RTCOLLECTION*)rtgeom_in, blade_in);
 
 	default:

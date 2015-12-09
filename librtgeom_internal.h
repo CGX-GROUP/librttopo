@@ -92,23 +92,23 @@
 /**
 * Well-Known Binary (WKB) Geometry Types 
 */
-#define WKB_POINT_TYPE 1
-#define WKB_LINESTRING_TYPE 2
-#define WKB_POLYGON_TYPE 3
-#define WKB_MULTIPOINT_TYPE 4
-#define WKB_MULTILINESTRING_TYPE 5
-#define WKB_MULTIPOLYGON_TYPE 6
-#define WKB_GEOMETRYCOLLECTION_TYPE 7
-#define WKB_CIRCULARSTRING_TYPE 8
-#define WKB_COMPOUNDCURVE_TYPE 9
-#define WKB_CURVEPOLYGON_TYPE 10
-#define WKB_MULTICURVE_TYPE 11
-#define WKB_MULTISURFACE_TYPE 12
-#define WKB_CURVE_TYPE 13 /* from ISO draft, not sure is real */
-#define WKB_SURFACE_TYPE 14 /* from ISO draft, not sure is real */
-#define WKB_POLYHEDRALSURFACE_TYPE 15
-#define WKB_TIN_TYPE 16
-#define WKB_TRIANGLE_TYPE 17
+#define RTWKB_POINT_TYPE 1
+#define RTWKB_LINESTRING_TYPE 2
+#define RTWKB_POLYGON_TYPE 3
+#define RTWKB_MULTIPOINT_TYPE 4
+#define RTWKB_MULTILINESTRING_TYPE 5
+#define RTWKB_MULTIPOLYGON_TYPE 6
+#define RTWKB_GEOMETRYCOLLECTION_TYPE 7
+#define RTWKB_CIRCULARSTRING_TYPE 8
+#define RTWKB_COMPOUNDCURVE_TYPE 9
+#define RTWKB_CURVEPOLYGON_TYPE 10
+#define RTWKB_MULTICURVE_TYPE 11
+#define RTWKB_MULTISURFACE_TYPE 12
+#define RTWKB_CURVE_TYPE 13 /* from ISO draft, not sure is real */
+#define RTWKB_SURFACE_TYPE 14 /* from ISO draft, not sure is real */
+#define RTWKB_POLYHEDRALSURFACE_TYPE 15
+#define RTWKB_TIN_TYPE 16
+#define RTWKB_TRIANGLE_TYPE 17
 
 /**
 * Macro for reading the size from the GSERIALIZED size attribute.
@@ -209,7 +209,7 @@ int signum(double n);
 /*
 * The possible ways a pair of segments can interact. Returned by rt_segment_intersects 
 */
-enum CG_SEGMENT_INTERSECTION_TYPE {
+enum RTCG_SEGMENT_INTERSECTION_TYPE {
     SEG_ERROR = -1,
     SEG_NO_INTERSECTION = 0,
     SEG_COLINEAR = 1,
@@ -446,7 +446,7 @@ int gbox_centroid(const GBOX* gbox, POINT2D* out);
 /* Utilities */
 extern void trim_trailing_zeros(char *num);
 
-extern uint8_t MULTITYPE[NUMTYPES];
+extern uint8_t RTMULTITYPE[NUMTYPES];
 
 extern rtinterrupt_callback *_rtgeom_interrupt_callback;
 extern int _rtgeom_interrupt_requested;

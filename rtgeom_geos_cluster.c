@@ -340,7 +340,7 @@ combine_geometries(UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clus
 			{
 				RTGEOM** components = rtalloc(num_geoms * sizeof(RTGEOM*));
 				memcpy(components, geoms_in_cluster, num_geoms * sizeof(RTGEOM*));
-				(*clusterGeoms)[k++] = rtcollection_construct(COLLECTIONTYPE, components[0]->srid, NULL, j, (RTGEOM**) components);
+				(*clusterGeoms)[k++] = rtcollection_construct(RTCOLLECTIONTYPE, components[0]->srid, NULL, j, (RTGEOM**) components);
 			}
 			else
 			{

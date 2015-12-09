@@ -86,14 +86,14 @@ rt_dist2d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 	{
 		/*should never get here. all cases ought to be error handled earlier*/
 		rterror("Some unspecified error.");
-		result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 
 	/*if thedl.distance is unchanged there where only empty geometries input*/
 	if (thedl.distance == initdistance)
 	{
 		RTDEBUG(3, "didn't find geometries to measure between, returning null");
-		result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 	else
 	{
@@ -131,12 +131,12 @@ rt_dist2d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2,int srid,int mode)
 	{
 		/*should never get here. all cases ought to be error handled earlier*/
 		rterror("Some unspecified error.");
-		result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 	if (thedl.distance == initdistance)
 	{
 		RTDEBUG(3, "didn't find geometries to measure between, returning null");
-		result = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 	else
 	{
@@ -241,14 +241,14 @@ rt_dist2d_is_collection(const RTGEOM *g)
 
 	switch (g->type)
 	{
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case COMPOUNDTYPE:
-	case POLYHEDRALSURFACETYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTCOMPOUNDTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 		return RT_TRUE;
 		break;
 
@@ -336,8 +336,8 @@ int rt_dist2d_recursive(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS *dl)
 
 			if ( (dl->mode != DIST_MAX) && 
 				 (! rt_dist2d_check_overlap(g1, g2)) && 
-			     (g1->type == LINETYPE || g1->type == POLYGONTYPE) && 
-			     (g2->type == LINETYPE || g2->type == POLYGONTYPE) )	
+			     (g1->type == RTLINETYPE || g1->type == RTPOLYGONTYPE) && 
+			     (g2->type == RTLINETYPE || g2->type == RTPOLYGONTYPE) )	
 			{
 				if (!rt_dist2d_distribute_fast(g1, g2, dl)) return RT_FALSE;
 			}
@@ -361,101 +361,101 @@ rt_dist2d_distribute_bruteforce(const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS *
 
 	switch ( t1 )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 		{
 			dl->twisted = 1;
 			switch ( t2 )
 			{
-				case POINTTYPE:
+				case RTPOINTTYPE:
 					return rt_dist2d_point_point((RTPOINT *)rtg1, (RTPOINT *)rtg2, dl);
-				case LINETYPE:
+				case RTLINETYPE:
 					return rt_dist2d_point_line((RTPOINT *)rtg1, (RTLINE *)rtg2, dl);
-				case POLYGONTYPE:
+				case RTPOLYGONTYPE:
 					return rt_dist2d_point_poly((RTPOINT *)rtg1, (RTPOLY *)rtg2, dl);
-				case CIRCSTRINGTYPE:
+				case RTCIRCSTRINGTYPE:
 					return rt_dist2d_point_circstring((RTPOINT *)rtg1, (RTCIRCSTRING *)rtg2, dl);
-				case CURVEPOLYTYPE:
+				case RTCURVEPOLYTYPE:
 					return rt_dist2d_point_curvepoly((RTPOINT *)rtg1, (RTCURVEPOLY *)rtg2, dl);
 				default:
 					rterror("Unsupported geometry type: %s", rttype_name(t2));
 			}
 		}
-		case LINETYPE:
+		case RTLINETYPE:
 		{
 			dl->twisted = 1;
 			switch ( t2 )
 			{
-				case POINTTYPE:
+				case RTPOINTTYPE:
 					dl->twisted=(-1);
 					return rt_dist2d_point_line((RTPOINT *)rtg2, (RTLINE *)rtg1, dl);
-				case LINETYPE:
+				case RTLINETYPE:
 					return rt_dist2d_line_line((RTLINE *)rtg1, (RTLINE *)rtg2, dl);
-				case POLYGONTYPE:
+				case RTPOLYGONTYPE:
 					return rt_dist2d_line_poly((RTLINE *)rtg1, (RTPOLY *)rtg2, dl);
-				case CIRCSTRINGTYPE:
+				case RTCIRCSTRINGTYPE:
 					return rt_dist2d_line_circstring((RTLINE *)rtg1, (RTCIRCSTRING *)rtg2, dl);
-				case CURVEPOLYTYPE:
+				case RTCURVEPOLYTYPE:
 					return rt_dist2d_line_curvepoly((RTLINE *)rtg1, (RTCURVEPOLY *)rtg2, dl);
 				default:
 					rterror("Unsupported geometry type: %s", rttype_name(t2));
 			}
 		}
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 		{
 			dl->twisted = 1;
 			switch ( t2 )
 			{
-				case POINTTYPE:
+				case RTPOINTTYPE:
 					dl->twisted = -1;
 					return rt_dist2d_point_circstring((RTPOINT *)rtg2, (RTCIRCSTRING *)rtg1, dl);
-				case LINETYPE:
+				case RTLINETYPE:
 					dl->twisted = -1;
 					return rt_dist2d_line_circstring((RTLINE *)rtg2, (RTCIRCSTRING *)rtg1, dl);
-				case POLYGONTYPE:
+				case RTPOLYGONTYPE:
 					return rt_dist2d_circstring_poly((RTCIRCSTRING *)rtg1, (RTPOLY *)rtg2, dl);
-				case CIRCSTRINGTYPE:
+				case RTCIRCSTRINGTYPE:
 					return rt_dist2d_circstring_circstring((RTCIRCSTRING *)rtg1, (RTCIRCSTRING *)rtg2, dl);
-				case CURVEPOLYTYPE:
+				case RTCURVEPOLYTYPE:
 					return rt_dist2d_circstring_curvepoly((RTCIRCSTRING *)rtg1, (RTCURVEPOLY *)rtg2, dl);
 				default:
 					rterror("Unsupported geometry type: %s", rttype_name(t2));
 			}			
 		}
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 		{
 			dl->twisted = -1;
 			switch ( t2 )
 			{
-				case POINTTYPE:
+				case RTPOINTTYPE:
 					return rt_dist2d_point_poly((RTPOINT *)rtg2, (RTPOLY *)rtg1, dl);
-				case LINETYPE:
+				case RTLINETYPE:
 					return rt_dist2d_line_poly((RTLINE *)rtg2, (RTPOLY *)rtg1, dl);
-				case CIRCSTRINGTYPE:
+				case RTCIRCSTRINGTYPE:
 					return rt_dist2d_circstring_poly((RTCIRCSTRING *)rtg2, (RTPOLY *)rtg1, dl);
-				case POLYGONTYPE:
+				case RTPOLYGONTYPE:
 					dl->twisted = 1;
 					return rt_dist2d_poly_poly((RTPOLY *)rtg1, (RTPOLY *)rtg2, dl);
-				case CURVEPOLYTYPE:
+				case RTCURVEPOLYTYPE:
 					dl->twisted = 1;
 					return rt_dist2d_poly_curvepoly((RTPOLY *)rtg1, (RTCURVEPOLY *)rtg2, dl);
 				default:
 					rterror("Unsupported geometry type: %s", rttype_name(t2));
 			}
 		}
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 		{
 			dl->twisted = (-1);
 			switch ( t2 )
 			{
-				case POINTTYPE:
+				case RTPOINTTYPE:
 					return rt_dist2d_point_curvepoly((RTPOINT *)rtg2, (RTCURVEPOLY *)rtg1, dl);
-				case LINETYPE:
+				case RTLINETYPE:
 					return rt_dist2d_line_curvepoly((RTLINE *)rtg2, (RTCURVEPOLY *)rtg1, dl);
-				case POLYGONTYPE:
+				case RTPOLYGONTYPE:
 					return rt_dist2d_poly_curvepoly((RTPOLY *)rtg2, (RTCURVEPOLY *)rtg1, dl);
-				case CIRCSTRINGTYPE:
+				case RTCIRCSTRINGTYPE:
 					return rt_dist2d_circstring_curvepoly((RTCIRCSTRING *)rtg2, (RTCURVEPOLY *)rtg1, dl);
-				case CURVEPOLYTYPE:
+				case RTCURVEPOLYTYPE:
 					dl->twisted = 1;
 					return rt_dist2d_curvepoly_curvepoly((RTCURVEPOLY *)rtg1, (RTCURVEPOLY *)rtg2, dl);
 				default:
@@ -515,10 +515,10 @@ rt_dist2d_distribute_fast(RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS *dl)
 
 	switch (type1)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		pa1 = ((RTLINE *)rtg1)->points;
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		pa1 = ((RTPOLY *)rtg1)->rings[0];
 		break;
 	default:
@@ -527,10 +527,10 @@ rt_dist2d_distribute_fast(RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS *dl)
 	}
 	switch (type2)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		pa2 = ((RTLINE *)rtg2)->points;
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		pa2 = ((RTPOLY *)rtg2)->rings[0];
 		break;
 	default:
@@ -936,11 +936,11 @@ rt_curvering_getfirstpoint2d_cp(RTGEOM *geom)
 {
 	switch( geom->type )
 	{
-		case LINETYPE:
+		case RTLINETYPE:
 			return getPoint2d_cp(((RTLINE*)geom)->points, 0);
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			return getPoint2d_cp(((RTCIRCSTRING*)geom)->points, 0);
-		case COMPOUNDTYPE:
+		case RTCOMPOUNDTYPE:
 		{
 			RTCOMPOUND *comp = (RTCOMPOUND*)geom;
 			RTLINE *line = (RTLINE*)(comp->geoms[0]);

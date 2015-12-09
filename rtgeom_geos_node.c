@@ -45,7 +45,7 @@ rtgeom_collect_endpoints(const RTGEOM* rtg, RTMPOINT* col)
 
 	switch (rtg->type)
 	{
-		case MULTILINETYPE:
+		case RTMULTILINETYPE:
 			for ( i = 0,
 			        n = rtgeom_ngeoms(rtg);
 			      i < n; ++i )
@@ -55,7 +55,7 @@ rtgeom_collect_endpoints(const RTGEOM* rtg, RTMPOINT* col)
 					col);
 			}
 			break;
-		case LINETYPE:
+		case RTLINETYPE:
 			l = (RTLINE*)rtg;
 			col = rtmpoint_add_rtpoint(col,
 				rtline_get_rtpoint(l, 0));
@@ -194,7 +194,7 @@ rtgeom_node(const RTGEOM* rtgeom_in)
 	 * We can use the above 2 assertions to early exit the loop.
 	 */
 
-	col = rtcollection_construct_empty(MULTILINETYPE, rtgeom_in->srid,
+	col = rtcollection_construct_empty(RTMULTILINETYPE, rtgeom_in->srid,
 	                              FLAGS_GET_Z(rtgeom_in->flags),
 	                              FLAGS_GET_M(rtgeom_in->flags));
 

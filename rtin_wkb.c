@@ -160,61 +160,61 @@ static void rttype_from_wkb_state(wkb_parse_state *s, uint32_t wkb_type)
 
 	switch (wkb_simple_type)
 	{
-		case WKB_POINT_TYPE: 
-			s->rttype = POINTTYPE;
+		case RTWKB_POINT_TYPE: 
+			s->rttype = RTPOINTTYPE;
 			break;
-		case WKB_LINESTRING_TYPE: 
-			s->rttype = LINETYPE;
+		case RTWKB_LINESTRING_TYPE: 
+			s->rttype = RTLINETYPE;
 			break;
-		case WKB_POLYGON_TYPE:
-			s->rttype = POLYGONTYPE;
+		case RTWKB_POLYGON_TYPE:
+			s->rttype = RTPOLYGONTYPE;
 			break;
-		case WKB_MULTIPOINT_TYPE:
-			s->rttype = MULTIPOINTTYPE;
+		case RTWKB_MULTIPOINT_TYPE:
+			s->rttype = RTMULTIPOINTTYPE;
 			break;
-		case WKB_MULTILINESTRING_TYPE:
-			s->rttype = MULTILINETYPE;
+		case RTWKB_MULTILINESTRING_TYPE:
+			s->rttype = RTMULTILINETYPE;
 			break;
-		case WKB_MULTIPOLYGON_TYPE:
-			s->rttype = MULTIPOLYGONTYPE;
+		case RTWKB_MULTIPOLYGON_TYPE:
+			s->rttype = RTMULTIPOLYGONTYPE;
 			break;
-		case WKB_GEOMETRYCOLLECTION_TYPE: 
-			s->rttype = COLLECTIONTYPE;
+		case RTWKB_GEOMETRYCOLLECTION_TYPE: 
+			s->rttype = RTCOLLECTIONTYPE;
 			break;
-		case WKB_CIRCULARSTRING_TYPE:
-			s->rttype = CIRCSTRINGTYPE;
+		case RTWKB_CIRCULARSTRING_TYPE:
+			s->rttype = RTCIRCSTRINGTYPE;
 			break;
-		case WKB_COMPOUNDCURVE_TYPE:
-			s->rttype = COMPOUNDTYPE;
+		case RTWKB_COMPOUNDCURVE_TYPE:
+			s->rttype = RTCOMPOUNDTYPE;
 			break;
-		case WKB_CURVEPOLYGON_TYPE:
-			s->rttype = CURVEPOLYTYPE;
+		case RTWKB_CURVEPOLYGON_TYPE:
+			s->rttype = RTCURVEPOLYTYPE;
 			break;
-		case WKB_MULTICURVE_TYPE:
-			s->rttype = MULTICURVETYPE;
+		case RTWKB_MULTICURVE_TYPE:
+			s->rttype = RTMULTICURVETYPE;
 			break;
-		case WKB_MULTISURFACE_TYPE: 
-			s->rttype = MULTISURFACETYPE;
+		case RTWKB_MULTISURFACE_TYPE: 
+			s->rttype = RTMULTISURFACETYPE;
 			break;
-		case WKB_POLYHEDRALSURFACE_TYPE:
-			s->rttype = POLYHEDRALSURFACETYPE;
+		case RTWKB_POLYHEDRALSURFACE_TYPE:
+			s->rttype = RTPOLYHEDRALSURFACETYPE;
 			break;
-		case WKB_TIN_TYPE:
-			s->rttype = TINTYPE;
+		case RTWKB_TIN_TYPE:
+			s->rttype = RTTINTYPE;
 			break;
-		case WKB_TRIANGLE_TYPE:
-			s->rttype = TRIANGLETYPE;
+		case RTWKB_TRIANGLE_TYPE:
+			s->rttype = RTTRIANGLETYPE;
 			break;
 		
 		/* PostGIS 1.5 emits 13, 14 for CurvePolygon, MultiCurve */
 		/* These numbers aren't SQL/MM (numbers currently only */
 		/* go up to 12. We can handle the old data here (for now??) */
 		/* converting them into the rttypes that are intended. */
-		case WKB_CURVE_TYPE:
-			s->rttype = CURVEPOLYTYPE;
+		case RTWKB_CURVE_TYPE:
+			s->rttype = RTCURVEPOLYTYPE;
 			break;
-		case WKB_SURFACE_TYPE:
-			s->rttype = MULTICURVETYPE;
+		case RTWKB_SURFACE_TYPE:
+			s->rttype = RTMULTICURVETYPE;
 			break;
 		
 		default: /* Error! */
@@ -580,7 +580,7 @@ static RTTRIANGLE* rttriangle_from_wkb_state(wkb_parse_state *s)
 }
 
 /**
-* CURVEPOLYTYPE
+* RTCURVEPOLYTYPE
 */
 static RTCURVEPOLY* rtcurvepoly_from_wkb_state(wkb_parse_state *s)
 {
@@ -604,13 +604,13 @@ static RTCURVEPOLY* rtcurvepoly_from_wkb_state(wkb_parse_state *s)
 }
 
 /**
-* POLYHEDRALSURFACETYPE
+* RTPOLYHEDRALSURFACETYPE
 */
 
 /**
-* COLLECTION, MULTIPOINTTYPE, MULTILINETYPE, MULTIPOLYGONTYPE, COMPOUNDTYPE,
-* MULTICURVETYPE, MULTISURFACETYPE, 
-* TINTYPE
+* COLLECTION, RTMULTIPOINTTYPE, RTMULTILINETYPE, RTMULTIPOLYGONTYPE, RTCOMPOUNDTYPE,
+* RTMULTICURVETYPE, RTMULTISURFACETYPE, 
+* RTTINTYPE
 */
 static RTCOLLECTION* rtcollection_from_wkb_state(wkb_parse_state *s)
 {
@@ -626,7 +626,7 @@ static RTCOLLECTION* rtcollection_from_wkb_state(wkb_parse_state *s)
 		return col;
 
 	/* Be strict in polyhedral surface closures */
-	if ( s->rttype == POLYHEDRALSURFACETYPE )
+	if ( s->rttype == RTPOLYHEDRALSURFACETYPE )
 		s->check |= RT_PARSER_CHECK_ZCLOSURE;
 
 	for ( i = 0; i < ngeoms; i++ )
@@ -695,33 +695,33 @@ RTGEOM* rtgeom_from_wkb_state(wkb_parse_state *s)
 	/* Do the right thing */
 	switch( s->rttype )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return (RTGEOM*)rtpoint_from_wkb_state(s);
 			break;
-		case LINETYPE:
+		case RTLINETYPE:
 			return (RTGEOM*)rtline_from_wkb_state(s);
 			break;
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			return (RTGEOM*)rtcircstring_from_wkb_state(s);
 			break;
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return (RTGEOM*)rtpoly_from_wkb_state(s);
 			break;
-		case TRIANGLETYPE:
+		case RTTRIANGLETYPE:
 			return (RTGEOM*)rttriangle_from_wkb_state(s);
 			break;
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 			return (RTGEOM*)rtcurvepoly_from_wkb_state(s);
 			break;
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COMPOUNDTYPE:
-		case MULTICURVETYPE:
-		case MULTISURFACETYPE:
-		case POLYHEDRALSURFACETYPE:
-		case TINTYPE:
-		case COLLECTIONTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTMULTICURVETYPE:
+		case RTMULTISURFACETYPE:
+		case RTPOLYHEDRALSURFACETYPE:
+		case RTTINTYPE:
+		case RTCOLLECTIONTYPE:
 			return (RTGEOM*)rtcollection_from_wkb_state(s);
 			break;
 

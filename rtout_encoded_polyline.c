@@ -25,9 +25,9 @@ rtgeom_to_encoded_polyline(const RTGEOM *geom, int precision)
 	int type = geom->type;
 	switch (type)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_to_encoded_polyline((RTLINE*)geom, precision);
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return rtmmpoint_to_encoded_polyline((RTMPOINT*)geom, precision);
 	default:
 		rterror("rtgeom_to_encoded_polyline: '%s' geometry type not supported", rttype_name(type));

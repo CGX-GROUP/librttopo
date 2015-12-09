@@ -54,25 +54,25 @@ rtgeom_to_svg(const RTGEOM *geom, int precision, int relative)
 	
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		ret = assvg_point((RTPOINT*)geom, relative, precision);
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		ret = assvg_line((RTLINE*)geom, relative, precision);
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		ret = assvg_polygon((RTPOLY*)geom, relative, precision);
 		break;
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		ret = assvg_multipoint((RTMPOINT*)geom, relative, precision);
 		break;
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		ret = assvg_multiline((RTMLINE*)geom, relative, precision);
 		break;
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		ret = assvg_multipolygon((RTMPOLY*)geom, relative, precision);
 		break;
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		ret = assvg_collection((RTCOLLECTION*)geom, relative, precision);
 		break;
 
@@ -468,27 +468,27 @@ assvg_geom_buf(const RTGEOM *geom, char *output, int relative, int precision)
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		ptr += assvg_point_buf((RTPOINT*)geom, ptr, relative, precision);
 		break;
 
-	case LINETYPE:
+	case RTLINETYPE:
 		ptr += assvg_line_buf((RTLINE*)geom, ptr, relative, precision);
 		break;
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		ptr += assvg_polygon_buf((RTPOLY*)geom, ptr, relative, precision);
 		break;
 
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		ptr += assvg_multipoint_buf((RTMPOINT*)geom, ptr, relative, precision);
 		break;
 
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		ptr += assvg_multiline_buf((RTMLINE*)geom, ptr, relative, precision);
 		break;
 
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		ptr += assvg_multipolygon_buf((RTMPOLY*)geom, ptr, relative, precision);
 		break;
 
@@ -509,27 +509,27 @@ assvg_geom_size(const RTGEOM *geom, int relative, int precision)
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		size = assvg_point_size((RTPOINT*)geom, relative, precision);
 		break;
 
-	case LINETYPE:
+	case RTLINETYPE:
 		size = assvg_line_size((RTLINE*)geom, relative, precision);
 		break;
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		size = assvg_polygon_size((RTPOLY*)geom, relative, precision);
 		break;
 
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		size = assvg_multipoint_size((RTMPOINT*)geom, relative, precision);
 		break;
 
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		size = assvg_multiline_size((RTMLINE*)geom, relative, precision);
 		break;
 
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		size = assvg_multipolygon_size((RTMPOLY*)geom, relative, precision);
 		break;
 

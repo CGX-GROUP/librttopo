@@ -51,7 +51,7 @@ rtcircstring_construct(int srid, GBOX *bbox, POINTARRAY *points)
 
 	result = (RTCIRCSTRING*) rtalloc(sizeof(RTCIRCSTRING));
 
-	result->type = CIRCSTRINGTYPE;
+	result->type = RTCIRCSTRINGTYPE;
 	
 	result->flags = points->flags;
 	FLAGS_SET_BBOX(result->flags, bbox?1:0);
@@ -67,7 +67,7 @@ RTCIRCSTRING *
 rtcircstring_construct_empty(int srid, char hasz, char hasm)
 {
 	RTCIRCSTRING *result = rtalloc(sizeof(RTCIRCSTRING));
-	result->type = CIRCSTRINGTYPE;
+	result->type = RTCIRCSTRINGTYPE;
 	result->flags = gflags(hasz,hasm,0);
 	result->srid = srid;
 	result->points = ptarray_construct_empty(hasz, hasm, 1);
@@ -145,7 +145,7 @@ rtcircstring_from_rtpointarray(int srid, uint32_t npoints, RTPOINT **points)
 	 */
 	for (i = 0; i < npoints; i++)
 	{
-		if (points[i]->type != POINTTYPE)
+		if (points[i]->type != RTPOINTTYPE)
 		{
 			rterror("rtcurve_from_rtpointarray: invalid input type: %s",
 			        rttype_name(points[i]->type));

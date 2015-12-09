@@ -2758,7 +2758,7 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
             rtpoly_construct_empty(topo->srid, topo->hasZ, 0)
            );
   }
-  bounds = rtcollection_construct(MULTILINETYPE,
+  bounds = rtcollection_construct(RTMULTILINETYPE,
                                   topo->srid,
                                   NULL, /* gbox */
                                   validedges,
@@ -5395,7 +5395,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   {{
     RTGEOM *tmp2;
 
-    col = rtcollection_extract(col, LINETYPE);
+    col = rtcollection_extract(col, RTLINETYPE);
 
     /* Check if the so-snapped edge collapsed (see #1650) */
     if ( col->ngeoms == 0 )
@@ -5414,7 +5414,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
     if ( ! edge )
     {
       /* should never happen */
-      rterror("rtcollection_extract(LINETYPE) returned a non-line?");
+      rterror("rtcollection_extract(RTLINETYPE) returned a non-line?");
       return -1;
     }
   }}
@@ -5547,7 +5547,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
       RTDEBUGF(1, "Line intersects %d edges", nn);
 
-      col = rtcollection_construct(COLLECTIONTYPE, topo->srid,
+      col = rtcollection_construct(RTCOLLECTIONTYPE, topo->srid,
                                    NULL, nn, nearby);
       iedges = rtcollection_as_rtgeom(col);
       RTDEBUGG(1, iedges, "Collected edges");
@@ -5619,7 +5619,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
       RTDEBUGF(1, "Line intersects %d nodes", nn);
 
-      col = rtcollection_construct(MULTIPOINTTYPE, topo->srid,
+      col = rtcollection_construct(RTMULTIPOINTTYPE, topo->srid,
                                    NULL, nn, nearby);
       inodes = rtcollection_as_rtgeom(col);
 

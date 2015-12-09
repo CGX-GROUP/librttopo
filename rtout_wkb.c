@@ -71,50 +71,50 @@ static uint32_t rtgeom_wkb_type(const RTGEOM *geom, uint8_t variant)
 
 	switch ( geom->type )
 	{
-	case POINTTYPE:
-		wkb_type = WKB_POINT_TYPE;
+	case RTPOINTTYPE:
+		wkb_type = RTWKB_POINT_TYPE;
 		break;
-	case LINETYPE:
-		wkb_type = WKB_LINESTRING_TYPE;
+	case RTLINETYPE:
+		wkb_type = RTWKB_LINESTRING_TYPE;
 		break;
-	case POLYGONTYPE:
-		wkb_type = WKB_POLYGON_TYPE;
+	case RTPOLYGONTYPE:
+		wkb_type = RTWKB_POLYGON_TYPE;
 		break;
-	case MULTIPOINTTYPE:
-		wkb_type = WKB_MULTIPOINT_TYPE;
+	case RTMULTIPOINTTYPE:
+		wkb_type = RTWKB_MULTIPOINT_TYPE;
 		break;
-	case MULTILINETYPE:
-		wkb_type = WKB_MULTILINESTRING_TYPE;
+	case RTMULTILINETYPE:
+		wkb_type = RTWKB_MULTILINESTRING_TYPE;
 		break;
-	case MULTIPOLYGONTYPE:
-		wkb_type = WKB_MULTIPOLYGON_TYPE;
+	case RTMULTIPOLYGONTYPE:
+		wkb_type = RTWKB_MULTIPOLYGON_TYPE;
 		break;
-	case COLLECTIONTYPE:
-		wkb_type = WKB_GEOMETRYCOLLECTION_TYPE;
+	case RTCOLLECTIONTYPE:
+		wkb_type = RTWKB_GEOMETRYCOLLECTION_TYPE;
 		break;
-	case CIRCSTRINGTYPE:
-		wkb_type = WKB_CIRCULARSTRING_TYPE;
+	case RTCIRCSTRINGTYPE:
+		wkb_type = RTWKB_CIRCULARSTRING_TYPE;
 		break;
-	case COMPOUNDTYPE:
-		wkb_type = WKB_COMPOUNDCURVE_TYPE;
+	case RTCOMPOUNDTYPE:
+		wkb_type = RTWKB_COMPOUNDCURVE_TYPE;
 		break;
-	case CURVEPOLYTYPE:
-		wkb_type = WKB_CURVEPOLYGON_TYPE;
+	case RTCURVEPOLYTYPE:
+		wkb_type = RTWKB_CURVEPOLYGON_TYPE;
 		break;
-	case MULTICURVETYPE:
-		wkb_type = WKB_MULTICURVE_TYPE;
+	case RTMULTICURVETYPE:
+		wkb_type = RTWKB_MULTICURVE_TYPE;
 		break;
-	case MULTISURFACETYPE:
-		wkb_type = WKB_MULTISURFACE_TYPE;
+	case RTMULTISURFACETYPE:
+		wkb_type = RTWKB_MULTISURFACE_TYPE;
 		break;
-	case POLYHEDRALSURFACETYPE:
-		wkb_type = WKB_POLYHEDRALSURFACE_TYPE;
+	case RTPOLYHEDRALSURFACETYPE:
+		wkb_type = RTWKB_POLYHEDRALSURFACE_TYPE;
 		break;
-	case TINTYPE:
-		wkb_type = WKB_TIN_TYPE;
+	case RTTINTYPE:
+		wkb_type = RTWKB_TIN_TYPE;
 		break;
-	case TRIANGLETYPE:
-		wkb_type = WKB_TRIANGLE_TYPE;
+	case RTTRIANGLETYPE:
+		wkb_type = RTWKB_TRIANGLE_TYPE;
 		break;
 	default:
 		rterror("Unsupported geometry type: %s [%d]",
@@ -284,7 +284,7 @@ static size_t empty_to_wkb_size(const RTGEOM *geom, uint8_t variant)
 		size += WKB_INT_SIZE;
 
 	/* Represent POINT EMPTY as POINT(NaN NaN) */
-	if ( geom->type == POINTTYPE )
+	if ( geom->type == RTPOINTTYPE )
 	{
 		const RTPOINT *pt = (RTPOINT*)geom;
 		size += WKB_DOUBLE_SIZE * FLAGS_NDIMS(pt->point->flags);		
@@ -313,7 +313,7 @@ static uint8_t* empty_to_wkb_buf(const RTGEOM *geom, uint8_t *buf, uint8_t varia
 		buf = integer_to_wkb_buf(geom->srid, buf, variant);
 
 	/* Represent POINT EMPTY as POINT(NaN NaN) */
-	if ( geom->type == POINTTYPE )
+	if ( geom->type == RTPOINTTYPE )
 	{
 		const RTPOINT *pt = (RTPOINT*)geom;
 		static double nn = NAN;
@@ -646,37 +646,37 @@ static size_t rtgeom_to_wkb_size(const RTGEOM *geom, uint8_t variant)
 
 	switch ( geom->type )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			size += rtpoint_to_wkb_size((RTPOINT*)geom, variant);
 			break;
 
 		/* LineString and CircularString both have points elements */
-		case CIRCSTRINGTYPE:
-		case LINETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTLINETYPE:
 			size += rtline_to_wkb_size((RTLINE*)geom, variant);
 			break;
 
 		/* Polygon has nrings and rings elements */
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			size += rtpoly_to_wkb_size((RTPOLY*)geom, variant);
 			break;
 
 		/* Triangle has one ring of three points */
-		case TRIANGLETYPE:
+		case RTTRIANGLETYPE:
 			size += rttriangle_to_wkb_size((RTTRIANGLE*)geom, variant);
 			break;
 
 		/* All these Collection types have ngeoms and geoms elements */
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COMPOUNDTYPE:
-		case CURVEPOLYTYPE:
-		case MULTICURVETYPE:
-		case MULTISURFACETYPE:
-		case COLLECTIONTYPE:
-		case POLYHEDRALSURFACETYPE:
-		case TINTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTCURVEPOLYTYPE:
+		case RTMULTICURVETYPE:
+		case RTMULTISURFACETYPE:
+		case RTCOLLECTIONTYPE:
+		case RTPOLYHEDRALSURFACETYPE:
+		case RTTINTYPE:
 			size += rtcollection_to_wkb_size((RTCOLLECTION*)geom, variant);
 			break;
 
@@ -699,33 +699,33 @@ static uint8_t* rtgeom_to_wkb_buf(const RTGEOM *geom, uint8_t *buf, uint8_t vari
 
 	switch ( geom->type )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return rtpoint_to_wkb_buf((RTPOINT*)geom, buf, variant);
 
 		/* LineString and CircularString both have 'points' elements */
-		case CIRCSTRINGTYPE:
-		case LINETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTLINETYPE:
 			return rtline_to_wkb_buf((RTLINE*)geom, buf, variant);
 
 		/* Polygon has 'nrings' and 'rings' elements */
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return rtpoly_to_wkb_buf((RTPOLY*)geom, buf, variant);
 
 		/* Triangle has one ring of three points */
-		case TRIANGLETYPE:
+		case RTTRIANGLETYPE:
 			return rttriangle_to_wkb_buf((RTTRIANGLE*)geom, buf, variant);
 
 		/* All these Collection types have 'ngeoms' and 'geoms' elements */
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COMPOUNDTYPE:
-		case CURVEPOLYTYPE:
-		case MULTICURVETYPE:
-		case MULTISURFACETYPE:
-		case COLLECTIONTYPE:
-		case POLYHEDRALSURFACETYPE:
-		case TINTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTCURVEPOLYTYPE:
+		case RTMULTICURVETYPE:
+		case RTMULTISURFACETYPE:
+		case RTCOLLECTIONTYPE:
+		case RTPOLYHEDRALSURFACETYPE:
+		case RTTINTYPE:
 			return rtcollection_to_wkb_buf((RTCOLLECTION*)geom, buf, variant);
 
 		/* Unknown type! */

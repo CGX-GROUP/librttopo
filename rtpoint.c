@@ -104,7 +104,7 @@ rtpoint_construct(int srid, GBOX *bbox, POINTARRAY *point)
 		return NULL; /* error */
 
 	result = rtalloc(sizeof(RTPOINT));
-	result->type = POINTTYPE;
+	result->type = RTPOINTTYPE;
 	FLAGS_SET_Z(flags, FLAGS_GET_Z(point->flags));
 	FLAGS_SET_M(flags, FLAGS_GET_M(point->flags));
 	FLAGS_SET_BBOX(flags, bbox?1:0);
@@ -120,7 +120,7 @@ RTPOINT *
 rtpoint_construct_empty(int srid, char hasz, char hasm)
 {
 	RTPOINT *result = rtalloc(sizeof(RTPOINT));
-	result->type = POINTTYPE;
+	result->type = RTPOINTTYPE;
 	result->flags = gflags(hasz, hasm, 0);
 	result->srid = srid;
 	result->point = ptarray_construct(hasz, hasm, 0);

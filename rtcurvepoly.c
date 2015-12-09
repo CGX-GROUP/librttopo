@@ -25,7 +25,7 @@ rtcurvepoly_construct_empty(int srid, char hasz, char hasm)
 	RTCURVEPOLY *ret;
 
 	ret = rtalloc(sizeof(RTCURVEPOLY));
-	ret->type = CURVEPOLYTYPE;
+	ret->type = RTCURVEPOLYTYPE;
 	ret->flags = gflags(hasz, hasm, 0);
 	ret->srid = srid;
 	ret->nrings = 0;
@@ -42,7 +42,7 @@ rtcurvepoly_construct_from_rtpoly(RTPOLY *rtpoly)
 	RTCURVEPOLY *ret;
 	int i;
 	ret = rtalloc(sizeof(RTCURVEPOLY));
-	ret->type = CURVEPOLYTYPE;
+	ret->type = RTCURVEPOLYTYPE;
 	ret->flags = rtpoly->flags;
 	ret->srid = rtpoly->srid;
 	ret->nrings = rtpoly->nrings;
@@ -75,7 +75,7 @@ int rtcurvepoly_add_ring(RTCURVEPOLY *poly, RTGEOM *ring)
 	}
 
 	/* Check that we're adding an allowed ring type */
-	if ( ! ( ring->type == LINETYPE || ring->type == CIRCSTRINGTYPE || ring->type == COMPOUNDTYPE ) )
+	if ( ! ( ring->type == RTLINETYPE || ring->type == RTCIRCSTRINGTYPE || ring->type == RTCOMPOUNDTYPE ) )
 	{
 		RTDEBUGF(4,"got incorrect ring type: %s",rttype_name(ring->type));
 		return RT_FAILURE;

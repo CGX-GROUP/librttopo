@@ -25,7 +25,7 @@ rtmpoint_release(RTMPOINT *rtmpoint)
 RTMPOINT *
 rtmpoint_construct_empty(int srid, char hasz, char hasm)
 {
-	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(MULTIPOINTTYPE, srid, hasz, hasm);
+	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(RTMULTIPOINTTYPE, srid, hasz, hasm);
 	return ret;
 }
 
@@ -41,7 +41,7 @@ rtmpoint_construct(int srid, const POINTARRAY *pa)
 	int i;
 	int hasz = ptarray_has_z(pa);
 	int hasm = ptarray_has_m(pa);
-	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(MULTIPOINTTYPE, srid, hasz, hasm);
+	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(RTMULTIPOINTTYPE, srid, hasz, hasm);
 	
 	for ( i = 0; i < pa->npoints; i++ )
 	{

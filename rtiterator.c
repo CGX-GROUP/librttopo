@@ -72,15 +72,15 @@ extract_pointarrays_from_rtgeom(RTGEOM* g)
 {
 	switch(rtgeom_get_type(g))
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return prepend_node(rtgeom_as_rtpoint(g)->point, NULL);
-	case LINETYPE:
+	case RTLINETYPE:
 		return prepend_node(rtgeom_as_rtline(g)->points, NULL);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return prepend_node(rtgeom_as_rttriangle(g)->points, NULL);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return prepend_node(rtgeom_as_rtcircstring(g)->points, NULL);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 	{
 		LISTNODE* n = NULL;
 

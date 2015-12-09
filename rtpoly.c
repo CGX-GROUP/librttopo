@@ -50,7 +50,7 @@ rtpoly_construct(int srid, GBOX *bbox, uint32_t nrings, POINTARRAY **points)
 #endif
 
 	result = (RTPOLY*) rtalloc(sizeof(RTPOLY));
-	result->type = POLYGONTYPE;
+	result->type = RTPOLYGONTYPE;
 	result->flags = gflags(hasz, hasm, 0);
 	FLAGS_SET_BBOX(result->flags, bbox?1:0);
 	result->srid = srid;
@@ -66,7 +66,7 @@ RTPOLY*
 rtpoly_construct_empty(int srid, char hasz, char hasm)
 {
 	RTPOLY *result = rtalloc(sizeof(RTPOLY));
-	result->type = POLYGONTYPE;
+	result->type = RTPOLYGONTYPE;
 	result->flags = gflags(hasz,hasm,0);
 	result->srid = srid;
 	result->nrings = 0;

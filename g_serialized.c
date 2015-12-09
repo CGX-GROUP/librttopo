@@ -213,7 +213,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, GBOX *gbox)
 	}
 	
 	/* Boxes of points are easy peasy */
-	if ( type == POINTTYPE )
+	if ( type == RTPOINTTYPE )
 	{
 		int i = 1; /* Start past <pointtype><padding> */
 		double *dptr = (double*)(g->data);
@@ -239,7 +239,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, GBOX *gbox)
 		return RT_SUCCESS;
 	}
 	/* We can calculate the box of a two-point cartesian line trivially */
-	else if ( type == LINETYPE )
+	else if ( type == RTLINETYPE )
 	{
 		int ndims = FLAGS_NDIMS(g->flags);
 		int i = 0; /* Start at <linetype><npoints> */
@@ -280,7 +280,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, GBOX *gbox)
 		return RT_SUCCESS;
 	}
 	/* We can also do single-entry multi-points */
-	else if ( type == MULTIPOINTTYPE )
+	else if ( type == RTMULTIPOINTTYPE )
 	{
 		int i = 0; /* Start at <multipointtype><ngeoms> */
 		double *dptr = (double*)(g->data);
@@ -311,7 +311,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, GBOX *gbox)
 		return RT_SUCCESS;
 	}
 	/* And we can do single-entry multi-lines with two vertices (!!!) */
-	else if ( type == MULTILINETYPE )
+	else if ( type == RTMULTILINETYPE )
 	{
 		int ndims = FLAGS_NDIMS(g->flags);
 		int i = 0; /* Start at <multilinetype><ngeoms> */
@@ -507,26 +507,26 @@ static size_t gserialized_from_any_size(const RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return gserialized_from_rtpoint_size((RTPOINT *)geom);
-	case LINETYPE:
+	case RTLINETYPE:
 		return gserialized_from_rtline_size((RTLINE *)geom);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return gserialized_from_rtpoly_size((RTPOLY *)geom);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return gserialized_from_rttriangle_size((RTTRIANGLE *)geom);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return gserialized_from_rtcircstring_size((RTCIRCSTRING *)geom);
-	case CURVEPOLYTYPE:
-	case COMPOUNDTYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTICURVETYPE:
-	case MULTIPOLYGONTYPE:
-	case MULTISURFACETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTMULTISURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return gserialized_from_rtcollection_size((RTCOLLECTION *)geom);
 	default:
 		rterror("Unknown geometry type: %d - %s", geom->type, rttype_name(geom->type));
@@ -562,7 +562,7 @@ static size_t gserialized_from_rtpoint(const RTPOINT *point, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize = ptarray_point_size(point->point);
-	int type = POINTTYPE;
+	int type = RTPOINTTYPE;
 
 	assert(point);
 	assert(buf);
@@ -596,7 +596,7 @@ static size_t gserialized_from_rtline(const RTLINE *line, uint8_t *buf)
 	uint8_t *loc;
 	int ptsize;
 	size_t size;
-	int type = LINETYPE;
+	int type = RTLINETYPE;
 
 	assert(line);
 	assert(buf);
@@ -637,7 +637,7 @@ static size_t gserialized_from_rtpoly(const RTPOLY *poly, uint8_t *buf)
 	int i;
 	uint8_t *loc;
 	int ptsize;
-	int type = POLYGONTYPE;
+	int type = RTPOLYGONTYPE;
 
 	assert(poly);
 	assert(buf);
@@ -690,7 +690,7 @@ static size_t gserialized_from_rttriangle(const RTTRIANGLE *triangle, uint8_t *b
 	uint8_t *loc;
 	int ptsize;
 	size_t size;
-	int type = TRIANGLETYPE;
+	int type = RTTRIANGLETYPE;
 
 	assert(triangle);
 	assert(buf);
@@ -731,7 +731,7 @@ static size_t gserialized_from_rtcircstring(const RTCIRCSTRING *curve, uint8_t *
 	uint8_t *loc;
 	int ptsize;
 	size_t size;
-	int type = CIRCSTRINGTYPE;
+	int type = RTCIRCSTRINGTYPE;
 
 	assert(curve);
 	assert(buf);
@@ -807,26 +807,26 @@ static size_t gserialized_from_rtgeom_any(const RTGEOM *geom, uint8_t *buf)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return gserialized_from_rtpoint((RTPOINT *)geom, buf);
-	case LINETYPE:
+	case RTLINETYPE:
 		return gserialized_from_rtline((RTLINE *)geom, buf);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return gserialized_from_rtpoly((RTPOLY *)geom, buf);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return gserialized_from_rttriangle((RTTRIANGLE *)geom, buf);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return gserialized_from_rtcircstring((RTCIRCSTRING *)geom, buf);
-	case CURVEPOLYTYPE:
-	case COMPOUNDTYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTICURVETYPE:
-	case MULTIPOLYGONTYPE:
-	case MULTISURFACETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTMULTISURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return gserialized_from_rtcollection((RTCOLLECTION *)geom, buf);
 	default:
 		rterror("Unknown geometry type: %d - %s", geom->type, rttype_name(geom->type));
@@ -986,7 +986,7 @@ static RTPOINT* rtpoint_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_fla
 	point = (RTPOINT*)rtalloc(sizeof(RTPOINT));
 	point->srid = SRID_UNKNOWN; /* Default */
 	point->bbox = NULL;
-	point->type = POINTTYPE;
+	point->type = RTPOINTTYPE;
 	point->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the type. */
@@ -1017,7 +1017,7 @@ static RTLINE* rtline_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 	line = (RTLINE*)rtalloc(sizeof(RTLINE));
 	line->srid = SRID_UNKNOWN; /* Default */
 	line->bbox = NULL;
-	line->type = LINETYPE;
+	line->type = RTLINETYPE;
 	line->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the type. */
@@ -1051,7 +1051,7 @@ static RTPOLY* rtpoly_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 	poly = (RTPOLY*)rtalloc(sizeof(RTPOLY));
 	poly->srid = SRID_UNKNOWN; /* Default */
 	poly->bbox = NULL;
-	poly->type = POLYGONTYPE;
+	poly->type = RTPOLYGONTYPE;
 	poly->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the polygontype. */
@@ -1104,7 +1104,7 @@ static RTTRIANGLE* rttriangle_from_gserialized_buffer(uint8_t *data_ptr, uint8_t
 	triangle = (RTTRIANGLE*)rtalloc(sizeof(RTTRIANGLE));
 	triangle->srid = SRID_UNKNOWN; /* Default */
 	triangle->bbox = NULL;
-	triangle->type = TRIANGLETYPE;
+	triangle->type = RTTRIANGLETYPE;
 	triangle->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the type. */
@@ -1135,7 +1135,7 @@ static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(uint8_t *data_ptr, uin
 	circstring = (RTCIRCSTRING*)rtalloc(sizeof(RTCIRCSTRING));
 	circstring->srid = SRID_UNKNOWN; /* Default */
 	circstring->bbox = NULL;
-	circstring->type = CIRCSTRINGTYPE;
+	circstring->type = RTCIRCSTRINGTYPE;
 	circstring->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the circstringtype. */
@@ -1220,26 +1220,26 @@ RTGEOM* rtgeom_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return (RTGEOM *)rtpoint_from_gserialized_buffer(data_ptr, g_flags, g_size);
-	case LINETYPE:
+	case RTLINETYPE:
 		return (RTGEOM *)rtline_from_gserialized_buffer(data_ptr, g_flags, g_size);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return (RTGEOM *)rtcircstring_from_gserialized_buffer(data_ptr, g_flags, g_size);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return (RTGEOM *)rtpoly_from_gserialized_buffer(data_ptr, g_flags, g_size);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return (RTGEOM *)rttriangle_from_gserialized_buffer(data_ptr, g_flags, g_size);
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return (RTGEOM *)rtcollection_from_gserialized_buffer(data_ptr, g_flags, g_size);
 	default:
 		rterror("Unknown geometry type: %d - %s", type, rttype_name(type));

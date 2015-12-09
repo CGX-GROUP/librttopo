@@ -99,7 +99,7 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 	
 	switch( geom->type )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 		{
 			RTPOINT *pt = (RTPOINT*)geom;
 			if ( pt->point )
@@ -109,9 +109,9 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 			}
 			break;
 		}
-		case TRIANGLETYPE:
-		case CIRCSTRINGTYPE:
-		case LINETYPE:
+		case RTTRIANGLETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTLINETYPE:
 		{
 			RTLINE *ln = (RTLINE*)geom;
 			if ( ln->points )
@@ -121,7 +121,7 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 			}
 			break;
 		}
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 		{
 			RTPOLY *poly = (RTPOLY*)geom;
 			for ( i = 0; i < poly->nrings; i++ )
@@ -134,7 +134,7 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 			}
 			break;
 		}
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 		{
 			RTCURVEPOLY *poly = (RTCURVEPOLY*)geom;
 			for ( i = 0; i < poly->nrings; i++ )
@@ -595,7 +595,7 @@ RTGEOM* wkt_parser_curvepolygon_add_ring(RTGEOM *poly, RTGEOM *ring)
 	{
 		int vertices_needed = 3;
 
-		if ( ring->type == LINETYPE )
+		if ( ring->type == RTLINETYPE )
 			vertices_needed = 4;
 					
 		if (rtgeom_count_vertices(ring) < vertices_needed)
@@ -615,15 +615,15 @@ RTGEOM* wkt_parser_curvepolygon_add_ring(RTGEOM *poly, RTGEOM *ring)
 		RTDEBUG(4,"checking ring closure");
 		switch ( ring->type )
 		{
-			case LINETYPE:
+			case RTLINETYPE:
 			is_closed = rtline_is_closed(rtgeom_as_rtline(ring));
 			break;
 			
-			case CIRCSTRINGTYPE:
+			case RTCIRCSTRINGTYPE:
 			is_closed = rtcircstring_is_closed(rtgeom_as_rtcircstring(ring));
 			break;
 			
-			case COMPOUNDTYPE:
+			case RTCOMPOUNDTYPE:
 			is_closed = rtcompound_is_closed(rtgeom_as_rtcompound(ring));
 			break;
 		}
@@ -700,7 +700,7 @@ RTGEOM* wkt_parser_collection_new(RTGEOM *geom)
 	geoms[0] = geom;
 	
 	/* Make a new collection */
-	col = rtcollection_construct(COLLECTIONTYPE, SRID_UNKNOWN, NULL, ngeoms, geoms);
+	col = rtcollection_construct(RTCOLLECTIONTYPE, SRID_UNKNOWN, NULL, ngeoms, geoms);
 
 	/* Return the result. */
 	return rtcollection_as_rtgeom(col);
@@ -735,7 +735,7 @@ RTGEOM* wkt_parser_compound_new(RTGEOM *geom)
 	geoms[0] = geom;
 	
 	/* Make a new collection */
-	col = rtcollection_construct(COLLECTIONTYPE, SRID_UNKNOWN, NULL, ngeoms, geoms);
+	col = rtcollection_construct(RTCOLLECTIONTYPE, SRID_UNKNOWN, NULL, ngeoms, geoms);
 
 	/* Return the result. */
 	return rtcollection_as_rtgeom(col);
@@ -816,7 +816,7 @@ RTGEOM* wkt_parser_collection_finalize(int rttype, RTGEOM *geom, char *dimension
 				return NULL;
 			}
 			
-			if ( rttype == COLLECTIONTYPE &&
+			if ( rttype == RTCOLLECTIONTYPE &&
 			   ( (FLAGS_GET_Z(flags) != FLAGS_GET_Z(subgeom->flags)) ||
 			     (FLAGS_GET_M(flags) != FLAGS_GET_M(subgeom->flags)) ) &&
 				! rtgeom_is_empty(subgeom) )

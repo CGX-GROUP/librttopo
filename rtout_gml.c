@@ -225,26 +225,26 @@ rtgeom_to_gml2(const RTGEOM *geom, const char *srs, int precision, const char* p
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return asgml2_point((RTPOINT*)geom, srs, precision, prefix);
 
-	case LINETYPE:
+	case RTLINETYPE:
 		return asgml2_line((RTLINE*)geom, srs, precision, prefix);
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return asgml2_poly((RTPOLY*)geom, srs, precision, prefix);
 
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
 		return asgml2_multi((RTCOLLECTION*)geom, srs, precision, prefix);
 
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		return asgml2_collection((RTCOLLECTION*)geom, srs, precision, prefix);
 
-	case TRIANGLETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
+	case RTTRIANGLETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
 		rterror("Cannot convert %s to GML2. Try ST_AsGML(3, <geometry>) to generate GML3.", rttype_name(type));
 		return NULL;
 
@@ -430,17 +430,17 @@ asgml2_multi_size(const RTCOLLECTION *col, const char *srs, int precision,
 	for (i=0; i<col->ngeoms; i++)
 	{
 		subgeom = col->geoms[i];
-		if (subgeom->type == POINTTYPE)
+		if (subgeom->type == RTPOINTTYPE)
 		{
 			size += ( sizeof("<pointMember>/") + prefixlen ) * 2;
 			size += asgml2_point_size((RTPOINT*)subgeom, 0, precision, prefix);
 		}
-		else if (subgeom->type == LINETYPE)
+		else if (subgeom->type == RTLINETYPE)
 		{
 			size += ( sizeof("<lineStringMember>/") + prefixlen ) * 2;
 			size += asgml2_line_size((RTLINE*)subgeom, 0, precision, prefix);
 		}
-		else if (subgeom->type == POLYGONTYPE)
+		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			size += ( sizeof("<polygonMember>/") + prefixlen ) * 2;
 			size += asgml2_poly_size((RTPOLY*)subgeom, 0, precision, prefix);
@@ -465,9 +465,9 @@ asgml2_multi_buf(const RTCOLLECTION *col, const char *srs, char *output,
 	ptr = output;
 	gmltype="";
 
-	if 	(type == MULTIPOINTTYPE)   gmltype = "MultiPoint";
-	else if (type == MULTILINETYPE)	   gmltype = "MultiLineString";
-	else if (type == MULTIPOLYGONTYPE) gmltype = "MultiPolygon";
+	if 	(type == RTMULTIPOINTTYPE)   gmltype = "MultiPoint";
+	else if (type == RTMULTILINETYPE)	   gmltype = "MultiLineString";
+	else if (type == RTMULTIPOLYGONTYPE) gmltype = "MultiPolygon";
 
 	/* Open outmost tag */
 	ptr += sprintf(ptr, "<%s%s", prefix, gmltype);
@@ -483,19 +483,19 @@ asgml2_multi_buf(const RTCOLLECTION *col, const char *srs, char *output,
 	for (i=0; i<col->ngeoms; i++)
 	{
 		subgeom = col->geoms[i];
-		if (subgeom->type == POINTTYPE)
+		if (subgeom->type == RTPOINTTYPE)
 		{
 			ptr += sprintf(ptr, "<%spointMember>", prefix);
 			ptr += asgml2_point_buf((RTPOINT*)subgeom, 0, ptr, precision, prefix);
 			ptr += sprintf(ptr, "</%spointMember>", prefix);
 		}
-		else if (subgeom->type == LINETYPE)
+		else if (subgeom->type == RTLINETYPE)
 		{
 			ptr += sprintf(ptr, "<%slineStringMember>", prefix);
 			ptr += asgml2_line_buf((RTLINE*)subgeom, 0, ptr, precision, prefix);
 			ptr += sprintf(ptr, "</%slineStringMember>", prefix);
 		}
-		else if (subgeom->type == POLYGONTYPE)
+		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			ptr += sprintf(ptr, "<%spolygonMember>", prefix);
 			ptr += asgml2_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, prefix);
@@ -548,15 +548,15 @@ asgml2_collection_size(const RTCOLLECTION *col, const char *srs, int precision,
 		subgeom = col->geoms[i];
 
 		size += ( sizeof("<geometryMember>/") + prefixlen ) * 2;
-		if ( subgeom->type == POINTTYPE)
+		if ( subgeom->type == RTPOINTTYPE)
 		{
 			size += asgml2_point_size((RTPOINT*)subgeom, 0, precision, prefix);
 		}
-		else if ( subgeom->type == LINETYPE)
+		else if ( subgeom->type == RTLINETYPE)
 		{
 			size += asgml2_line_size((RTLINE*)subgeom, 0, precision, prefix);
 		}
-		else if ( subgeom->type == POLYGONTYPE)
+		else if ( subgeom->type == RTPOLYGONTYPE)
 		{
 			size += asgml2_poly_size((RTPOLY*)subgeom, 0, precision, prefix);
 		}
@@ -600,21 +600,21 @@ asgml2_collection_buf(const RTCOLLECTION *col, const char *srs, char *output, in
 		subgeom = col->geoms[i];
 
 		ptr += sprintf(ptr, "<%sgeometryMember>", prefix);
-		if (subgeom->type == POINTTYPE)
+		if (subgeom->type == RTPOINTTYPE)
 		{
 			ptr += asgml2_point_buf((RTPOINT*)subgeom, 0, ptr, precision, prefix);
 		}
-		else if (subgeom->type == LINETYPE)
+		else if (subgeom->type == RTLINETYPE)
 		{
 			ptr += asgml2_line_buf((RTLINE*)subgeom, 0, ptr, precision, prefix);
 		}
-		else if (subgeom->type == POLYGONTYPE)
+		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			ptr += asgml2_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, prefix);
 		}
 		else if (rtgeom_is_collection(subgeom))
 		{
-			if (subgeom->type == COLLECTIONTYPE)
+			if (subgeom->type == RTCOLLECTIONTYPE)
 				ptr += asgml2_collection_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, prefix);
 			else
 				ptr += asgml2_multi_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, prefix);
@@ -730,45 +730,45 @@ rtgeom_to_gml3(const RTGEOM *geom, const char *srs, int precision, int opts, con
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return asgml3_point((RTPOINT*)geom, srs, precision, opts, prefix, id);
 
-	case LINETYPE:
+	case RTLINETYPE:
 		return asgml3_line((RTLINE*)geom, srs, precision, opts, prefix, id);
 
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return asgml3_circstring((RTCIRCSTRING*)geom, srs, precision, opts, prefix, id );
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return asgml3_poly((RTPOLY*)geom, srs, precision, opts, 0, prefix, id);
 
-	case CURVEPOLYTYPE:
+	case RTCURVEPOLYTYPE:
 		return asgml3_curvepoly((RTCURVEPOLY*)geom, srs, precision, opts, prefix, id);
 
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return asgml3_triangle((RTTRIANGLE*)geom, srs, precision, opts, prefix, id);
 
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
 		return asgml3_multi((RTCOLLECTION*)geom, srs, precision, opts, prefix, id);
 
-	case POLYHEDRALSURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 		return asgml3_psurface((RTPSURFACE*)geom, srs, precision, opts, prefix, id);
 
-	case TINTYPE:
+	case RTTINTYPE:
 		return asgml3_tin((RTTIN*)geom, srs, precision, opts, prefix, id);
 
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		return asgml3_collection((RTCOLLECTION*)geom, srs, precision, opts, prefix, id);
 
-	case COMPOUNDTYPE:
+	case RTCOMPOUNDTYPE:
 		return asgml3_compound( (RTCOMPOUND*)geom, srs, precision, opts, prefix, id );
 
-	case MULTICURVETYPE:
+	case RTMULTICURVETYPE:
 		return asgml3_multicurve( (RTMCURVE*)geom, srs, precision, opts, prefix, id );
 
-	case MULTISURFACETYPE:
+	case RTMULTISURFACETYPE:
 		return asgml3_multisurface( (RTMSURFACE*)geom, srs, precision, opts, prefix, id );
 
 	default:
@@ -1097,14 +1097,14 @@ asgml3_compound_size(const RTCOMPOUND *col, const char *srs, int precision, int 
 	for(i= 0; i < col->ngeoms; ++i )
 	{
 		subgeom = col->geoms[i];
-		if ( subgeom->type == LINETYPE )
+		if ( subgeom->type == RTLINETYPE )
 		{
 
 			size += sizeof( "<LineStringSegment></LineStringSegment" ) + 2 * prefixlen;
 			size += sizeof( "<posList></posList" ) + 2 * prefixlen;
 			size += pointArray_GMLsize( ((RTLINE*)subgeom)->points, precision );
 		}
-		else if( subgeom->type == CIRCSTRINGTYPE )
+		else if( subgeom->type == RTCIRCSTRINGTYPE )
 		{
 			size += sizeof( "<ArcString><posList></ArcString></posList>") + 4 * prefixlen;
 			size += pointArray_GMLsize( ((RTCIRCSTRING*)subgeom)->points, precision );
@@ -1149,12 +1149,12 @@ asgml3_compound_buf(const RTCOMPOUND *col, const char *srs, char *output, int pr
 	for( i = 0; i < col->ngeoms; ++i )
 	{
 		subgeom = col->geoms[i];
-		if( subgeom->type != LINETYPE && subgeom->type != CIRCSTRINGTYPE )
+		if( subgeom->type != RTLINETYPE && subgeom->type != RTCIRCSTRINGTYPE )
 		{
 			continue;
 		}
 
-		if ( subgeom->type == LINETYPE )
+		if ( subgeom->type == RTLINETYPE )
 		{
 			ptr += sprintf( ptr, "<%sLineStringSegment><%sposList", prefix, prefix );
 			if (IS_DIMS(opts))
@@ -1165,7 +1165,7 @@ asgml3_compound_buf(const RTCOMPOUND *col, const char *srs, char *output, int pr
 			ptr += pointArray_toGML3(((RTCIRCSTRING*)subgeom)->points, ptr, precision, opts);
 			ptr += sprintf( ptr, "</%sposList></%sLineStringSegment>", prefix, prefix );
 		}
-		else if( subgeom->type == CIRCSTRINGTYPE )
+		else if( subgeom->type == RTCIRCSTRINGTYPE )
 		{
 			ptr += sprintf( ptr, "<%sArcString><%sposList" , prefix, prefix );
 			if (IS_DIMS(opts))
@@ -1216,7 +1216,7 @@ static size_t asgml3_curvepoly_size(const RTCURVEPOLY* poly, const char *srs, in
 		}
 		subgeom = poly->rings[i];
 
-		if ( subgeom->type == LINETYPE )
+		if ( subgeom->type == RTLINETYPE )
 		{
 			size += sizeof("<LinearRing></LinearRing>") + 2 * prefixlen;
 			size += sizeof("<posList></posList") + 2 * prefixlen;
@@ -1226,13 +1226,13 @@ static size_t asgml3_curvepoly_size(const RTCURVEPOLY* poly, const char *srs, in
 			}
 			size += pointArray_GMLsize( ((RTLINE*)subgeom)->points, precision );
 		}
-		else if( subgeom->type == CIRCSTRINGTYPE )
+		else if( subgeom->type == RTCIRCSTRINGTYPE )
 		{
 			size += sizeof("<Ring></Ring>") + 2 * prefixlen;
 			size += sizeof("<CurveMember></CurveMember>") + 2 * prefixlen;
 			size += asgml3_circstring_size((RTCIRCSTRING*)subgeom, srs, precision, opts, prefix, id);
 		}
-		else if( subgeom->type == COMPOUNDTYPE )
+		else if( subgeom->type == RTCOMPOUNDTYPE )
 		{
 			size += sizeof("<Ring></Ring>") + 2 * prefixlen;
 			size += sizeof("<curveMember></curveMember>") + 2 * prefixlen;
@@ -1277,7 +1277,7 @@ static size_t asgml3_curvepoly_buf(const RTCURVEPOLY* poly, const char *srs, cha
 		}
 
 		subgeom = poly->rings[i];
-		if ( subgeom->type == LINETYPE )
+		if ( subgeom->type == RTLINETYPE )
 		{
 			ptr += sprintf( ptr, "<%sLinearRing>", prefix );
 			ptr += sprintf( ptr, "<%sposList", prefix );
@@ -1290,7 +1290,7 @@ static size_t asgml3_curvepoly_buf(const RTCURVEPOLY* poly, const char *srs, cha
 			ptr += sprintf( ptr, "</%sposList>", prefix );
 			ptr += sprintf( ptr, "</%sLinearRing>", prefix );
 		}
-		else if( subgeom->type == CIRCSTRINGTYPE )
+		else if( subgeom->type == RTCIRCSTRINGTYPE )
 		{
 			ptr += sprintf( ptr, "<%sRing>", prefix );
 			ptr += sprintf( ptr, "<%scurveMember>", prefix );
@@ -1298,7 +1298,7 @@ static size_t asgml3_curvepoly_buf(const RTCURVEPOLY* poly, const char *srs, cha
 			ptr += sprintf( ptr, "</%scurveMember>", prefix );
 			ptr += sprintf( ptr, "</%sRing>", prefix );
 		}
-		else if( subgeom->type == COMPOUNDTYPE )
+		else if( subgeom->type == RTCOMPOUNDTYPE )
 		{
 			ptr += sprintf( ptr, "<%sRing>", prefix );
 			ptr += sprintf( ptr, "<%scurveMember>", prefix );
@@ -1410,17 +1410,17 @@ asgml3_multi_size(const RTCOLLECTION *col, const char *srs, int precision, int o
 	for (i=0; i<col->ngeoms; i++)
 	{
 		subgeom = col->geoms[i];
-		if (subgeom->type == POINTTYPE)
+		if (subgeom->type == RTPOINTTYPE)
 		{
 			size += ( sizeof("<pointMember>/") + prefixlen ) * 2;
 			size += asgml3_point_size((RTPOINT*)subgeom, 0, precision, opts, prefix, id);
 		}
-		else if (subgeom->type == LINETYPE)
+		else if (subgeom->type == RTLINETYPE)
 		{
 			size += ( sizeof("<curveMember>/") + prefixlen ) * 2;
 			size += asgml3_line_size((RTLINE*)subgeom, 0, precision, opts, prefix, id);
 		}
-		else if (subgeom->type == POLYGONTYPE)
+		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			size += ( sizeof("<surfaceMember>/") + prefixlen ) * 2;
 			size += asgml3_poly_size((RTPOLY*)subgeom, 0, precision, opts, prefix, id);
@@ -1444,9 +1444,9 @@ asgml3_multi_buf(const RTCOLLECTION *col, const char *srs, char *output, int pre
 	ptr = output;
 	gmltype="";
 
-	if 	(type == MULTIPOINTTYPE)   gmltype = "MultiPoint";
-	else if (type == MULTILINETYPE)    gmltype = "MultiCurve";
-	else if (type == MULTIPOLYGONTYPE) gmltype = "MultiSurface";
+	if 	(type == RTMULTIPOINTTYPE)   gmltype = "MultiPoint";
+	else if (type == RTMULTILINETYPE)    gmltype = "MultiCurve";
+	else if (type == RTMULTIPOLYGONTYPE) gmltype = "MultiSurface";
 
 	/* Open outmost tag */
 	ptr += sprintf(ptr, "<%s%s", prefix, gmltype);
@@ -1463,19 +1463,19 @@ asgml3_multi_buf(const RTCOLLECTION *col, const char *srs, char *output, int pre
 	for (i=0; i<col->ngeoms; i++)
 	{
 		subgeom = col->geoms[i];
-		if (subgeom->type == POINTTYPE)
+		if (subgeom->type == RTPOINTTYPE)
 		{
 			ptr += sprintf(ptr, "<%spointMember>", prefix);
 			ptr += asgml3_point_buf((RTPOINT*)subgeom, 0, ptr, precision, opts, prefix, id);
 			ptr += sprintf(ptr, "</%spointMember>", prefix);
 		}
-		else if (subgeom->type == LINETYPE)
+		else if (subgeom->type == RTLINETYPE)
 		{
 			ptr += sprintf(ptr, "<%scurveMember>", prefix);
 			ptr += asgml3_line_buf((RTLINE*)subgeom, 0, ptr, precision, opts, prefix, id);
 			ptr += sprintf(ptr, "</%scurveMember>", prefix);
 		}
-		else if (subgeom->type == POLYGONTYPE)
+		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			ptr += sprintf(ptr, "<%ssurfaceMember>", prefix);
 			ptr += asgml3_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, opts, 0, prefix, id);
@@ -1651,15 +1651,15 @@ asgml3_collection_size(const RTCOLLECTION *col, const char *srs, int precision, 
 	{
 		subgeom = col->geoms[i];
 		size += ( sizeof("<geometryMember>/") + prefixlen ) * 2;
-		if ( subgeom->type == POINTTYPE )
+		if ( subgeom->type == RTPOINTTYPE )
 		{
 			size += asgml3_point_size((RTPOINT*)subgeom, 0, precision, opts, prefix, id);
 		}
-		else if ( subgeom->type == LINETYPE )
+		else if ( subgeom->type == RTLINETYPE )
 		{
 			size += asgml3_line_size((RTLINE*)subgeom, 0, precision, opts, prefix, id);
 		}
-		else if ( subgeom->type == POLYGONTYPE )
+		else if ( subgeom->type == RTPOLYGONTYPE )
 		{
 			size += asgml3_poly_size((RTPOLY*)subgeom, 0, precision, opts, prefix, id);
 		}
@@ -1699,21 +1699,21 @@ asgml3_collection_buf(const RTCOLLECTION *col, const char *srs, char *output, in
 	{
 		subgeom = col->geoms[i];
 		ptr += sprintf(ptr, "<%sgeometryMember>", prefix);
-		if ( subgeom->type == POINTTYPE )
+		if ( subgeom->type == RTPOINTTYPE )
 		{
 			ptr += asgml3_point_buf((RTPOINT*)subgeom, 0, ptr, precision, opts, prefix, id);
 		}
-		else if ( subgeom->type == LINETYPE )
+		else if ( subgeom->type == RTLINETYPE )
 		{
 			ptr += asgml3_line_buf((RTLINE*)subgeom, 0, ptr, precision, opts, prefix, id);
 		}
-		else if ( subgeom->type == POLYGONTYPE )
+		else if ( subgeom->type == RTPOLYGONTYPE )
 		{
 			ptr += asgml3_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, opts, 0, prefix, id);
 		}
 		else if ( rtgeom_is_collection(subgeom) )
 		{
-			if ( subgeom->type == COLLECTIONTYPE )
+			if ( subgeom->type == RTCOLLECTIONTYPE )
 				ptr += asgml3_collection_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, opts, prefix, id);
 			else
 				ptr += asgml3_multi_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, opts, prefix, id);
@@ -1758,15 +1758,15 @@ static size_t asgml3_multicurve_size( const RTMCURVE* cur, const char *srs, int 
 	{
 		size += sizeof( "<curveMember></curveMember>" ) + 2 * prefixlen;
 		subgeom = cur->geoms[i];
-		if ( subgeom->type == LINETYPE )
+		if ( subgeom->type == RTLINETYPE )
 		{
 			size += asgml3_line_size( (RTLINE*)subgeom, srs, precision, opts, prefix, id );
 		}
-		else if( subgeom->type == CIRCSTRINGTYPE )
+		else if( subgeom->type == RTCIRCSTRINGTYPE )
 		{
 			size += asgml3_circstring_size( (RTCIRCSTRING*)subgeom, srs, precision, opts, prefix, id );
 		}
-		else if( subgeom->type == COMPOUNDTYPE )
+		else if( subgeom->type == RTCOMPOUNDTYPE )
 		{
 			size += asgml3_compound_size( (RTCOMPOUND*)subgeom, srs, precision, opts, prefix, id );
 		}
@@ -1795,15 +1795,15 @@ static size_t asgml3_multicurve_buf( const RTMCURVE* cur, const char *srs, char 
 	{
 		ptr += sprintf(ptr, "<%scurveMember>", prefix );
 		subgeom = cur->geoms[i];
-		if ( subgeom->type == LINETYPE )
+		if ( subgeom->type == RTLINETYPE )
 		{
 			ptr += asgml3_line_buf( (RTLINE*)subgeom, srs, ptr, precision, opts, prefix, id );
 		}
-		else if( subgeom->type == CIRCSTRINGTYPE )
+		else if( subgeom->type == RTCIRCSTRINGTYPE )
 		{
 			ptr += asgml3_circstring_buf( (RTCIRCSTRING*)subgeom, srs, ptr, precision, opts, prefix, id );
 		}
-		else if( subgeom->type == COMPOUNDTYPE )
+		else if( subgeom->type == RTCOMPOUNDTYPE )
 		{
 			ptr += asgml3_compound_buf( (RTCOMPOUND*)subgeom, srs, ptr, precision, opts, prefix, id );
 		}
@@ -1834,11 +1834,11 @@ static size_t asgml3_multisurface_size(const RTMSURFACE *sur, const char *srs, i
 	for( i = 0; i < sur->ngeoms; ++i )
 	{
 		subgeom = sur->geoms[i];
-		if( subgeom->type == POLYGONTYPE )
+		if( subgeom->type == RTPOLYGONTYPE )
 		{
 			size += asgml3_poly_size( (RTPOLY*)sur->geoms[i], srs, precision, opts, prefix, id );
 		}
-		else if( subgeom->type == CURVEPOLYTYPE )
+		else if( subgeom->type == RTCURVEPOLYTYPE )
 		{
 			size += asgml3_curvepoly_size( (RTCURVEPOLY*)sur->geoms[i], srs, precision, opts, prefix, id );
 		}
@@ -1866,11 +1866,11 @@ static size_t asgml3_multisurface_buf(const RTMSURFACE *sur, const char *srs, ch
 	for( i = 0; i < sur->ngeoms; ++i )
 	{
 		subgeom = sur->geoms[i];
-		if( subgeom->type == POLYGONTYPE )
+		if( subgeom->type == RTPOLYGONTYPE )
 		{
 			ptr += asgml3_poly_buf( (RTPOLY*)sur->geoms[i], srs, ptr, precision, opts, 0, prefix, id );
 		}
-		else if( subgeom->type == CURVEPOLYTYPE )
+		else if( subgeom->type == RTCURVEPOLYTYPE )
 		{
 			ptr += asgml3_curvepoly_buf( (RTCURVEPOLY*)sur->geoms[i], srs, ptr, precision, opts, prefix, id );
 		}

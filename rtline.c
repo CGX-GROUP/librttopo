@@ -33,7 +33,7 @@ rtline_construct(int srid, GBOX *bbox, POINTARRAY *points)
 
 	RTDEBUG(2, "rtline_construct called.");
 
-	result->type = LINETYPE;
+	result->type = RTLINETYPE;
 	
 	result->flags = points->flags;
 	FLAGS_SET_BBOX(result->flags, bbox?1:0);
@@ -51,7 +51,7 @@ RTLINE *
 rtline_construct_empty(int srid, char hasz, char hasm)
 {
 	RTLINE *result = rtalloc(sizeof(RTLINE));
-	result->type = LINETYPE;
+	result->type = RTLINETYPE;
 	result->flags = gflags(hasz,hasm,0);
 	result->srid = srid;
 	result->points = ptarray_construct_empty(hasz, hasm, 1);
@@ -178,12 +178,12 @@ rtline_from_rtgeom_array(int srid, uint32_t ngeoms, RTGEOM **geoms)
 
 		if ( rtgeom_is_empty(g) ) continue;
 
-		if ( g->type == POINTTYPE )
+		if ( g->type == RTPOINTTYPE )
 		{
 			rtpoint_getPoint4d_p((RTPOINT*)g, &pt);
 			ptarray_append_point(pa, &pt, RT_TRUE);
 		}
-		else if ( g->type == LINETYPE )
+		else if ( g->type == RTLINETYPE )
 		{
 			ptarray_append_ptarray(pa, ((RTLINE*)g)->points, -1);
 		}
@@ -225,7 +225,7 @@ rtline_from_ptarray(int srid, uint32_t npoints, RTPOINT **points)
 	 */
 	for (i=0; i<npoints; i++)
 	{
-		if ( points[i]->type != POINTTYPE )
+		if ( points[i]->type != RTPOINTTYPE )
 		{
 			rterror("rtline_from_ptarray: invalid input type: %s", rttype_name(points[i]->type));
 			return NULL;
@@ -376,7 +376,7 @@ rtline_measured_from_rtline(const RTLINE *rtline, double m_start, double m_end)
 	POINTARRAY *pa = NULL;
 	POINT3DZ p1, p2;
 
-	if ( rtline->type != LINETYPE )
+	if ( rtline->type != RTLINETYPE )
 	{
 		rterror("rtline_construct_from_rtline: only line types supported");
 		return NULL;

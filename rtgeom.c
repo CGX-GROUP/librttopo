@@ -27,18 +27,18 @@ rtgeom_force_clockwise(RTGEOM *rtgeom)
 
 	switch (rtgeom->type)
 	{
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		rtpoly_force_clockwise((RTPOLY *)rtgeom);
 		return;
 
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		rttriangle_force_clockwise((RTTRIANGLE *)rtgeom);
 		return;
 
 		/* Not handle POLYHEDRALSURFACE and TIN
 		   as they are supposed to be well oriented */
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
 		coll = (RTCOLLECTION *)rtgeom;
 		for (i=0; i<coll->ngeoms; i++)
 			rtgeom_force_clockwise(coll->geoms[i]);
@@ -55,20 +55,20 @@ rtgeom_reverse(RTGEOM *rtgeom)
 
 	switch (rtgeom->type)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		rtline_reverse((RTLINE *)rtgeom);
 		return;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		rtpoly_reverse((RTPOLY *)rtgeom);
 		return;
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		rttriangle_reverse((RTTRIANGLE *)rtgeom);
 		return;
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		col = (RTCOLLECTION *)rtgeom;
 		for (i=0; i<col->ngeoms; i++)
 			rtgeom_reverse(col->geoms[i]);
@@ -80,7 +80,7 @@ RTPOINT *
 rtgeom_as_rtpoint(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == POINTTYPE )
+	if ( rtgeom->type == RTPOINTTYPE )
 		return (RTPOINT *)rtgeom;
 	else return NULL;
 }
@@ -89,7 +89,7 @@ RTLINE *
 rtgeom_as_rtline(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == LINETYPE )
+	if ( rtgeom->type == RTLINETYPE )
 		return (RTLINE *)rtgeom;
 	else return NULL;
 }
@@ -98,7 +98,7 @@ RTCIRCSTRING *
 rtgeom_as_rtcircstring(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == CIRCSTRINGTYPE )
+	if ( rtgeom->type == RTCIRCSTRINGTYPE )
 		return (RTCIRCSTRING *)rtgeom;
 	else return NULL;
 }
@@ -107,7 +107,7 @@ RTCOMPOUND *
 rtgeom_as_rtcompound(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == COMPOUNDTYPE )
+	if ( rtgeom->type == RTCOMPOUNDTYPE )
 		return (RTCOMPOUND *)rtgeom;
 	else return NULL;
 }
@@ -116,7 +116,7 @@ RTCURVEPOLY *
 rtgeom_as_rtcurvepoly(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == CURVEPOLYTYPE )
+	if ( rtgeom->type == RTCURVEPOLYTYPE )
 		return (RTCURVEPOLY *)rtgeom;
 	else return NULL;
 }
@@ -125,7 +125,7 @@ RTPOLY *
 rtgeom_as_rtpoly(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == POLYGONTYPE )
+	if ( rtgeom->type == RTPOLYGONTYPE )
 		return (RTPOLY *)rtgeom;
 	else return NULL;
 }
@@ -134,7 +134,7 @@ RTTRIANGLE *
 rtgeom_as_rttriangle(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == TRIANGLETYPE )
+	if ( rtgeom->type == RTTRIANGLETYPE )
 		return (RTTRIANGLE *)rtgeom;
 	else return NULL;
 }
@@ -152,7 +152,7 @@ RTMPOINT *
 rtgeom_as_rtmpoint(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == MULTIPOINTTYPE )
+	if ( rtgeom->type == RTMULTIPOINTTYPE )
 		return (RTMPOINT *)rtgeom;
 	else return NULL;
 }
@@ -161,7 +161,7 @@ RTMLINE *
 rtgeom_as_rtmline(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == MULTILINETYPE )
+	if ( rtgeom->type == RTMULTILINETYPE )
 		return (RTMLINE *)rtgeom;
 	else return NULL;
 }
@@ -170,7 +170,7 @@ RTMPOLY *
 rtgeom_as_rtmpoly(const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
-	if ( rtgeom->type == MULTIPOLYGONTYPE )
+	if ( rtgeom->type == RTMULTIPOLYGONTYPE )
 		return (RTMPOLY *)rtgeom;
 	else return NULL;
 }
@@ -178,7 +178,7 @@ rtgeom_as_rtmpoly(const RTGEOM *rtgeom)
 RTPSURFACE *
 rtgeom_as_rtpsurface(const RTGEOM *rtgeom)
 {
-	if ( rtgeom->type == POLYHEDRALSURFACETYPE )
+	if ( rtgeom->type == RTPOLYHEDRALSURFACETYPE )
 		return (RTPSURFACE *)rtgeom;
 	else return NULL;
 }
@@ -186,7 +186,7 @@ rtgeom_as_rtpsurface(const RTGEOM *rtgeom)
 RTTIN *
 rtgeom_as_rttin(const RTGEOM *rtgeom)
 {
-	if ( rtgeom->type == TINTYPE )
+	if ( rtgeom->type == RTTINTYPE )
 		return (RTTIN *)rtgeom;
 	else return NULL;
 }
@@ -261,19 +261,19 @@ RTGEOM *rtpoint_as_rtgeom(const RTPOINT *obj)
 /**
 ** Look-up for the correct MULTI* type promotion for singleton types.
 */
-uint8_t MULTITYPE[NUMTYPES] =
+uint8_t RTMULTITYPE[NUMTYPES] =
 {
 	0,
-	MULTIPOINTTYPE,        /*  1 */
-	MULTILINETYPE,         /*  2 */
-	MULTIPOLYGONTYPE,      /*  3 */
+	RTMULTIPOINTTYPE,        /*  1 */
+	RTMULTILINETYPE,         /*  2 */
+	RTMULTIPOLYGONTYPE,      /*  3 */
 	0,0,0,0,
-	MULTICURVETYPE,        /*  8 */
-	MULTICURVETYPE,        /*  9 */
-	MULTISURFACETYPE,      /* 10 */
-	POLYHEDRALSURFACETYPE, /* 11 */
+	RTMULTICURVETYPE,        /*  8 */
+	RTMULTICURVETYPE,        /*  9 */
+	RTMULTISURFACETYPE,      /* 10 */
+	RTPOLYHEDRALSURFACETYPE, /* 11 */
 	0, 0,
-	TINTYPE,               /* 14 */
+	RTTINTYPE,               /* 14 */
 	0
 };
 
@@ -290,12 +290,12 @@ rtgeom_as_multi(const RTGEOM *rtgeom)
 
 	type = rtgeom->type;
 
-	if ( ! MULTITYPE[type] ) return rtgeom_clone(rtgeom);
+	if ( ! RTMULTITYPE[type] ) return rtgeom_clone(rtgeom);
 
 	if( rtgeom_is_empty(rtgeom) )
 	{
 		ogeom = (RTGEOM *)rtcollection_construct_empty(
-			MULTITYPE[type],
+			RTMULTITYPE[type],
 			rtgeom->srid,
 			FLAGS_GET_Z(rtgeom->flags),
 			FLAGS_GET_M(rtgeom->flags)
@@ -311,7 +311,7 @@ rtgeom_as_multi(const RTGEOM *rtgeom)
 		ogeoms[0]->bbox = NULL;
 		ogeoms[0]->srid = SRID_UNKNOWN;
 
-		ogeom = (RTGEOM *)rtcollection_construct(MULTITYPE[type], rtgeom->srid, box, 1, ogeoms);
+		ogeom = (RTGEOM *)rtcollection_construct(RTMULTITYPE[type], rtgeom->srid, box, 1, ogeoms);
 	}
 
 	return ogeom;
@@ -333,24 +333,24 @@ rtgeom_as_curve(const RTGEOM *rtgeom)
 
 	switch(type)
 	{
-		case LINETYPE:
+		case RTLINETYPE:
 			/* turn to COMPOUNDCURVE */
 			ogeom = (RTGEOM*)rtcompound_construct_from_rtline((RTLINE*)rtgeom);
 			break;
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			ogeom = (RTGEOM*)rtcurvepoly_construct_from_rtpoly(rtgeom_as_rtpoly(rtgeom));
 			break;
-		case MULTILINETYPE:
+		case RTMULTILINETYPE:
 			/* turn to MULTICURVE */
 			ogeom = rtgeom_clone(rtgeom);
-			ogeom->type = MULTICURVETYPE;
+			ogeom->type = RTMULTICURVETYPE;
 			break;
-		case MULTIPOLYGONTYPE:
+		case RTMULTIPOLYGONTYPE:
 			/* turn to MULTISURFACE */
 			ogeom = rtgeom_clone(rtgeom);
-			ogeom->type = MULTISURFACETYPE;
+			ogeom->type = RTMULTISURFACETYPE;
 			break;
-		case COLLECTIONTYPE:
+		case RTCOLLECTIONTYPE:
 		default:
 			ogeom = rtgeom_clone(rtgeom);
 			break;
@@ -399,26 +399,26 @@ rtgeom_clone(const RTGEOM *rtgeom)
 
 	switch (rtgeom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return (RTGEOM *)rtpoint_clone((RTPOINT *)rtgeom);
-	case LINETYPE:
+	case RTLINETYPE:
 		return (RTGEOM *)rtline_clone((RTLINE *)rtgeom);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return (RTGEOM *)rtcircstring_clone((RTCIRCSTRING *)rtgeom);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return (RTGEOM *)rtpoly_clone((RTPOLY *)rtgeom);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return (RTGEOM *)rttriangle_clone((RTTRIANGLE *)rtgeom);
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return (RTGEOM *)rtcollection_clone((RTCOLLECTION *)rtgeom);
 	default:
 		rterror("rtgeom_clone: Unknown geometry type: %s", rttype_name(rtgeom->type));
@@ -437,23 +437,23 @@ rtgeom_clone_deep(const RTGEOM *rtgeom)
 
 	switch (rtgeom->type)
 	{
-	case POINTTYPE:
-	case LINETYPE:
-	case CIRCSTRINGTYPE:
-	case TRIANGLETYPE:
+	case RTPOINTTYPE:
+	case RTLINETYPE:
+	case RTCIRCSTRINGTYPE:
+	case RTTRIANGLETYPE:
 		return (RTGEOM *)rtline_clone_deep((RTLINE *)rtgeom);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return (RTGEOM *)rtpoly_clone_deep((RTPOLY *)rtgeom);
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return (RTGEOM *)rtcollection_clone_deep((RTCOLLECTION *)rtgeom);
 	default:
 		rterror("rtgeom_clone_deep: Unknown geometry type: %s", rttype_name(rtgeom->type));
@@ -527,31 +527,31 @@ rtgeom_same(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 	/* geoms have same type, invoke type-specific function */
 	switch (rtgeom1->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return rtpoint_same((RTPOINT *)rtgeom1,
 		                    (RTPOINT *)rtgeom2);
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_same((RTLINE *)rtgeom1,
 		                   (RTLINE *)rtgeom2);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_same((RTPOLY *)rtgeom1,
 		                   (RTPOLY *)rtgeom2);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return rttriangle_same((RTTRIANGLE *)rtgeom1,
 		                       (RTTRIANGLE *)rtgeom2);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return rtcircstring_same((RTCIRCSTRING *)rtgeom1,
 					 (RTCIRCSTRING *)rtgeom2);
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_same((RTCOLLECTION *)rtgeom1,
 		                         (RTCOLLECTION *)rtgeom2);
 	default:
@@ -669,15 +669,15 @@ rtgeom_segmentize2d(RTGEOM *rtgeom, double dist)
 {
 	switch (rtgeom->type)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		return (RTGEOM *)rtline_segmentize2d((RTLINE *)rtgeom,
 		                                     dist);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return (RTGEOM *)rtpoly_segmentize2d((RTPOLY *)rtgeom,
 		                                     dist);
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
 		return (RTGEOM *)rtcollection_segmentize2d(
 		           (RTCOLLECTION *)rtgeom, dist);
 
@@ -715,24 +715,24 @@ rtgeom_force_dims(const RTGEOM *geom, int hasz, int hasm)
 {	
 	switch(geom->type)
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return rtpoint_as_rtgeom(rtpoint_force_dims((RTPOINT*)geom, hasz, hasm));
-		case CIRCSTRINGTYPE:
-		case LINETYPE:
-		case TRIANGLETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTLINETYPE:
+		case RTTRIANGLETYPE:
 			return rtline_as_rtgeom(rtline_force_dims((RTLINE*)geom, hasz, hasm));
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return rtpoly_as_rtgeom(rtpoly_force_dims((RTPOLY*)geom, hasz, hasm));
-		case COMPOUNDTYPE:
-		case CURVEPOLYTYPE:
-		case MULTICURVETYPE:
-		case MULTISURFACETYPE:
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case POLYHEDRALSURFACETYPE:
-		case TINTYPE:
-		case COLLECTIONTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTCURVEPOLYTYPE:
+		case RTMULTICURVETYPE:
+		case RTMULTISURFACETYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTPOLYHEDRALSURFACETYPE:
+		case RTTINTYPE:
+		case RTCOLLECTIONTYPE:
 			return rtcollection_as_rtgeom(rtcollection_force_dims((RTCOLLECTION*)geom, hasz, hasm));
 		default:
 			rterror("rtgeom_force_2d: unsupported geom type: %s", rttype_name(geom->type));
@@ -753,14 +753,14 @@ rtgeom_force_sfs(RTGEOM *geom, int version)
 		switch(geom->type)
 		{
 			/* SQL/MM types */
-			case CIRCSTRINGTYPE:
-			case COMPOUNDTYPE:
-			case CURVEPOLYTYPE:
-			case MULTICURVETYPE:
-			case MULTISURFACETYPE:
+			case RTCIRCSTRINGTYPE:
+			case RTCOMPOUNDTYPE:
+			case RTCURVEPOLYTYPE:
+			case RTMULTICURVETYPE:
+			case RTMULTISURFACETYPE:
 				return rtgeom_stroke(geom, 32);
 
-			case COLLECTIONTYPE:
+			case RTCOLLECTIONTYPE:
 				col = (RTCOLLECTION*)geom;
 				for ( i = 0; i < col->ngeoms; i++ ) 
 					col->geoms[i] = rtgeom_force_sfs((RTGEOM*)col->geoms[i], version);
@@ -777,20 +777,20 @@ rtgeom_force_sfs(RTGEOM *geom, int version)
 	switch(geom->type)
 	{
 		/* SQL/MM types */
-		case CIRCSTRINGTYPE:
-		case COMPOUNDTYPE:
-		case CURVEPOLYTYPE:
-		case MULTICURVETYPE:
-		case MULTISURFACETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTCURVEPOLYTYPE:
+		case RTMULTICURVETYPE:
+		case RTMULTISURFACETYPE:
 			return rtgeom_stroke(geom, 32);
 
 		/* SFS 1.2 types */
-		case TRIANGLETYPE:
+		case RTTRIANGLETYPE:
 			g = rtpoly_as_rtgeom(rtpoly_from_rtlines((RTLINE*)geom, 0, NULL));
 			rtgeom_free(geom);
 			return g;
 
-		case TINTYPE:
+		case RTTINTYPE:
 			col = (RTCOLLECTION*) geom;
 			for ( i = 0; i < col->ngeoms; i++ )
 			{
@@ -798,15 +798,15 @@ rtgeom_force_sfs(RTGEOM *geom, int version)
 				rtgeom_free(col->geoms[i]);
 				col->geoms[i] = g;
 			}
-			col->type = COLLECTIONTYPE;
+			col->type = RTCOLLECTIONTYPE;
 			return rtmpoly_as_rtgeom((RTMPOLY*)geom);
 		
-		case POLYHEDRALSURFACETYPE:
-			geom->type = COLLECTIONTYPE;
+		case RTPOLYHEDRALSURFACETYPE:
+			geom->type = RTCOLLECTIONTYPE;
 			return (RTGEOM *)geom;
 
 		/* Collection */
-		case COLLECTIONTYPE:
+		case RTCOLLECTIONTYPE:
 			col = (RTCOLLECTION*)geom;
 			for ( i = 0; i < col->ngeoms; i++ ) 
 				col->geoms[i] = rtgeom_force_sfs((RTGEOM*)col->geoms[i], version);
@@ -869,25 +869,25 @@ rtgeom_set_geodetic(RTGEOM *geom, int value)
 	
 	switch(geom->type)
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			pt = (RTPOINT*)geom;
 			if ( pt->point )
 				FLAGS_SET_GEODETIC(pt->point->flags, value);
 			break;
-		case LINETYPE:
+		case RTLINETYPE:
 			ln = (RTLINE*)geom;
 			if ( ln->points )
 				FLAGS_SET_GEODETIC(ln->points->flags, value);
 			break;
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			ply = (RTPOLY*)geom;
 			for ( i = 0; i < ply->nrings; i++ )
 				FLAGS_SET_GEODETIC(ply->rings[i]->flags, value);
 			break;
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COLLECTIONTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOLLECTIONTYPE:
 			col = (RTCOLLECTION*)geom;
 			for ( i = 0; i < col->ngeoms; i++ )
 				rtgeom_set_geodetic(col->geoms[i], value);
@@ -910,29 +910,29 @@ rtgeom_longitude_shift(RTGEOM *rtgeom)
 		RTTRIANGLE *triangle;
 		RTCOLLECTION *coll;
 
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		point = (RTPOINT *)rtgeom;
 		ptarray_longitude_shift(point->point);
 		return;
-	case LINETYPE:
+	case RTLINETYPE:
 		line = (RTLINE *)rtgeom;
 		ptarray_longitude_shift(line->points);
 		return;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		poly = (RTPOLY *)rtgeom;
 		for (i=0; i<poly->nrings; i++)
 			ptarray_longitude_shift(poly->rings[i]);
 		return;
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		triangle = (RTTRIANGLE *)rtgeom;
 		ptarray_longitude_shift(triangle->points);
 		return;
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		coll = (RTCOLLECTION *)rtgeom;
 		for (i=0; i<coll->ngeoms; i++)
 			rtgeom_longitude_shift(coll->geoms[i]);
@@ -954,17 +954,17 @@ rtgeom_is_closed(const RTGEOM *geom)
 	/* Test linear types for closure */
 	switch (type)
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_is_closed((RTLINE*)geom);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_is_closed((RTPOLY*)geom);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return rtcircstring_is_closed((RTCIRCSTRING*)geom);
-	case COMPOUNDTYPE:
+	case RTCOMPOUNDTYPE:
 		return rtcompound_is_closed((RTCOMPOUND*)geom);
-	case TINTYPE:
+	case RTTINTYPE:
 		return rttin_is_closed((RTTIN*)geom);
-	case POLYHEDRALSURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 		return rtpsurface_is_closed((RTPSURFACE*)geom);
 	}
 	
@@ -1001,16 +1001,16 @@ rttype_is_collection(uint8_t type)
 
 	switch (type)
 	{
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
-	case CURVEPOLYTYPE:
-	case COMPOUNDTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
 		return RT_TRUE;
 		break;
 
@@ -1027,22 +1027,22 @@ rttype_get_collectiontype(uint8_t type)
 {
 	switch (type)
 	{
-		case POINTTYPE:
-			return MULTIPOINTTYPE;
-		case LINETYPE:
-			return MULTILINETYPE;
-		case POLYGONTYPE:
-			return MULTIPOLYGONTYPE;
-		case CIRCSTRINGTYPE:
-			return MULTICURVETYPE;
-		case COMPOUNDTYPE:
-			return MULTICURVETYPE;
-		case CURVEPOLYTYPE:
-			return MULTISURFACETYPE;
-		case TRIANGLETYPE:
-			return TINTYPE;
+		case RTPOINTTYPE:
+			return RTMULTIPOINTTYPE;
+		case RTLINETYPE:
+			return RTMULTILINETYPE;
+		case RTPOLYGONTYPE:
+			return RTMULTIPOLYGONTYPE;
+		case RTCIRCSTRINGTYPE:
+			return RTMULTICURVETYPE;
+		case RTCOMPOUNDTYPE:
+			return RTMULTICURVETYPE;
+		case RTCURVEPOLYTYPE:
+			return RTMULTISURFACETYPE;
+		case RTTRIANGLETYPE:
+			return RTTINTYPE;
 		default:
-			return COLLECTIONTYPE;
+			return RTCOLLECTIONTYPE;
 	}
 }
 
@@ -1057,41 +1057,41 @@ void rtgeom_free(RTGEOM *rtgeom)
 	
 	switch (rtgeom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		rtpoint_free((RTPOINT *)rtgeom);
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		rtline_free((RTLINE *)rtgeom);
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		rtpoly_free((RTPOLY *)rtgeom);
 		break;
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		rtcircstring_free((RTCIRCSTRING *)rtgeom);
 		break;
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		rttriangle_free((RTTRIANGLE *)rtgeom);
 		break;
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		rtmpoint_free((RTMPOINT *)rtgeom);
 		break;
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		rtmline_free((RTMLINE *)rtgeom);
 		break;
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		rtmpoly_free((RTMPOLY *)rtgeom);
 		break;
-	case POLYHEDRALSURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 		rtpsurface_free((RTPSURFACE *)rtgeom);
 		break;
-	case TINTYPE:
+	case RTTINTYPE:
 		rttin_free((RTTIN *)rtgeom);
 		break;
-	case CURVEPOLYTYPE:
-	case COMPOUNDTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case COLLECTIONTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTCOLLECTIONTYPE:
 		rtcollection_free((RTCOLLECTION *)rtgeom);
 		break;
 	default:
@@ -1103,25 +1103,25 @@ void rtgeom_free(RTGEOM *rtgeom)
 int rtgeom_needs_bbox(const RTGEOM *geom)
 {
 	assert(geom);
-	if ( geom->type == POINTTYPE )
+	if ( geom->type == RTPOINTTYPE )
 	{
 		return RT_FALSE;
 	}
-	else if ( geom->type == LINETYPE )
+	else if ( geom->type == RTLINETYPE )
 	{
 		if ( rtgeom_count_vertices(geom) <= 2 )
 			return RT_FALSE;
 		else
 			return RT_TRUE;
 	}
-	else if ( geom->type == MULTIPOINTTYPE )
+	else if ( geom->type == RTMULTIPOINTTYPE )
 	{
 		if ( ((RTCOLLECTION*)geom)->ngeoms == 1 )
 			return RT_FALSE;
 		else
 			return RT_TRUE;
 	}
-	else if ( geom->type == MULTILINETYPE )
+	else if ( geom->type == RTMULTILINETYPE )
 	{
 		if ( ((RTCOLLECTION*)geom)->ngeoms == 1 && rtgeom_count_vertices(geom) <= 2 )
 			return RT_FALSE;
@@ -1152,27 +1152,27 @@ int rtgeom_count_vertices(const RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		result = 1;
 		break;
-	case TRIANGLETYPE:
-	case CIRCSTRINGTYPE: 
-	case LINETYPE:
+	case RTTRIANGLETYPE:
+	case RTCIRCSTRINGTYPE: 
+	case RTLINETYPE:
 		result = rtline_count_vertices((RTLINE *)geom);
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		result = rtpoly_count_vertices((RTPOLY *)geom);
 		break;
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		result = rtcollection_count_vertices((RTCOLLECTION *)geom);
 		break;
 	default:
@@ -1203,29 +1203,29 @@ int rtgeom_dimension(const RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
-	case MULTIPOINTTYPE:
+	case RTPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return 0;
-	case CIRCSTRINGTYPE: 
-	case LINETYPE:
-	case COMPOUNDTYPE:
-	case MULTICURVETYPE:
-	case MULTILINETYPE:
+	case RTCIRCSTRINGTYPE: 
+	case RTLINETYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTILINETYPE:
 		return 1;
-	case TRIANGLETYPE:
-	case POLYGONTYPE:
-	case CURVEPOLYTYPE:
-	case MULTISURFACETYPE:
-	case MULTIPOLYGONTYPE:
-	case TINTYPE:
+	case RTTRIANGLETYPE:
+	case RTPOLYGONTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTTINTYPE:
 		return 2;
-	case POLYHEDRALSURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 	{
 		/* A closed polyhedral surface contains a volume. */
 		int closed = rtpsurface_is_closed((RTPSURFACE*)geom);
 		return ( closed ? 3 : 2 );
 	}
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 	{
 		int maxdim = 0, i;
 		RTCOLLECTION *col = (RTCOLLECTION*)geom;
@@ -1256,29 +1256,29 @@ int rtgeom_count_rings(const RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
-	case CIRCSTRINGTYPE: 
-	case COMPOUNDTYPE:
-	case MULTICURVETYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case LINETYPE:
+	case RTPOINTTYPE:
+	case RTCIRCSTRINGTYPE: 
+	case RTCOMPOUNDTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTLINETYPE:
 		result = 0;
 		break;
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		result = 1;
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		result = ((RTPOLY *)geom)->nrings;
 		break;
-	case CURVEPOLYTYPE:
+	case RTCURVEPOLYTYPE:
 		result = ((RTCURVEPOLY *)geom)->nrings;
 		break;
-	case MULTISURFACETYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 	{
 		RTCOLLECTION *col = (RTCOLLECTION*)geom;
 		int i = 0;
@@ -1302,31 +1302,31 @@ int rtgeom_is_empty(const RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return rtpoint_is_empty((RTPOINT*)geom);
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_is_empty((RTLINE*)geom);
 		break;
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return rtcircstring_is_empty((RTCIRCSTRING*)geom);
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_is_empty((RTPOLY*)geom);
 		break;
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return rttriangle_is_empty((RTTRIANGLE*)geom);
 		break;
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTICURVETYPE:
-	case MULTISURFACETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTISURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_is_empty((RTCOLLECTION *)geom);
 		break;
 	default:
@@ -1368,32 +1368,32 @@ extern int rtgeom_dimensionality(RTGEOM *geom)
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
-	case MULTIPOINTTYPE:
+	case RTPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return 0;
 		break;
-	case LINETYPE:
-	case CIRCSTRINGTYPE:
-	case MULTILINETYPE:
-	case COMPOUNDTYPE:
-	case MULTICURVETYPE:
+	case RTLINETYPE:
+	case RTCIRCSTRINGTYPE:
+	case RTMULTILINETYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTICURVETYPE:
 		return 1;
 		break;
-	case POLYGONTYPE:
-	case TRIANGLETYPE:
-	case CURVEPOLYTYPE:
-	case MULTIPOLYGONTYPE:
-	case MULTISURFACETYPE:
+	case RTPOLYGONTYPE:
+	case RTTRIANGLETYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTMULTISURFACETYPE:
 		return 2;
 		break;
 
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
 		dim = rtgeom_is_closed(geom)?3:2;
 		return dim;
 		break;
 
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_dimensionality((RTCOLLECTION *)geom);
 		break;
 	default:
@@ -1416,33 +1416,33 @@ extern RTGEOM* rtgeom_remove_repeated_points(const RTGEOM *in, double tolerance)
 
 	switch (in->type)
 	{
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return rtmpoint_remove_repeated_points((RTMPOINT*)in, tolerance);
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_remove_repeated_points((RTLINE*)in, tolerance);
 
-	case MULTILINETYPE:
-	case COLLECTIONTYPE:
-	case MULTIPOLYGONTYPE:
-	case POLYHEDRALSURFACETYPE:
+	case RTMULTILINETYPE:
+	case RTCOLLECTIONTYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 		return rtcollection_remove_repeated_points((RTCOLLECTION *)in, tolerance);
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_remove_repeated_points((RTPOLY *)in, tolerance);
 		break;
 
-	case POINTTYPE:
-	case TRIANGLETYPE:
-	case TINTYPE:
+	case RTPOINTTYPE:
+	case RTTRIANGLETYPE:
+	case RTTINTYPE:
 		/* No point is repeated for a single point, or for Triangle or TIN */
 		return rtgeom_clone_deep(in);
 
-	case CIRCSTRINGTYPE:
-	case COMPOUNDTYPE:
-	case MULTICURVETYPE:
-	case CURVEPOLYTYPE:
-	case MULTISURFACETYPE:
+	case RTCIRCSTRINGTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTICURVETYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTISURFACETYPE:
 		/* Dunno how to handle these, will return untouched */
 		return rtgeom_clone_deep(in);
 
@@ -1481,19 +1481,19 @@ void rtgeom_swap_ordinates(RTGEOM *in, RTORD o1, RTORD o2)
 
 	switch (in->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		ptarray_swap_ordinates(rtgeom_as_rtpoint(in)->point, o1, o2);
 		break;
 
-	case LINETYPE:
+	case RTLINETYPE:
 		ptarray_swap_ordinates(rtgeom_as_rtline(in)->points, o1, o2);
 		break;
 
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		ptarray_swap_ordinates(rtgeom_as_rtcircstring(in)->points, o1, o2);
 		break;
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		poly = (RTPOLY *) in;
 		for (i=0; i<poly->nrings; i++)
 		{
@@ -1501,20 +1501,20 @@ void rtgeom_swap_ordinates(RTGEOM *in, RTORD o1, RTORD o2)
 		}
 		break;
 
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		ptarray_swap_ordinates(rtgeom_as_rttriangle(in)->points, o1, o2);
 		break;
 
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTISURFACETYPE:
-	case MULTICURVETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTICURVETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
 		col = (RTCOLLECTION *) in;
 		for (i=0; i<col->ngeoms; i++)
 		{
@@ -1559,16 +1559,16 @@ RTGEOM* rtgeom_simplify(const RTGEOM *igeom, double dist, int preserve_collapsed
 {
 	switch (igeom->type)
 	{
-	case POINTTYPE:
-	case MULTIPOINTTYPE:
+	case RTPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return rtgeom_clone(igeom);
-	case LINETYPE:
+	case RTLINETYPE:
 		return (RTGEOM*)rtline_simplify((RTLINE*)igeom, dist, preserve_collapsed);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return (RTGEOM*)rtpoly_simplify((RTPOLY*)igeom, dist, preserve_collapsed);
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
 		return (RTGEOM*)rtcollection_simplify((RTCOLLECTION *)igeom, dist, preserve_collapsed);
 	default:
 		rterror("%s: unsupported geometry type: %s", __func__, rttype_name(igeom->type));
@@ -1580,11 +1580,11 @@ double rtgeom_area(const RTGEOM *geom)
 {
 	int type = geom->type;
 	
-	if ( type == POLYGONTYPE )
+	if ( type == RTPOLYGONTYPE )
 		return rtpoly_area((RTPOLY*)geom);
-	else if ( type == CURVEPOLYTYPE )
+	else if ( type == RTCURVEPOLYTYPE )
 		return rtcurvepoly_area((RTCURVEPOLY*)geom);
-	else if (type ==  TRIANGLETYPE )
+	else if (type ==  RTTRIANGLETYPE )
 		return rttriangle_area((RTTRIANGLE*)geom);
 	else if ( rtgeom_is_collection(geom) )
 	{
@@ -1602,11 +1602,11 @@ double rtgeom_area(const RTGEOM *geom)
 double rtgeom_perimeter(const RTGEOM *geom)
 {
 	int type = geom->type;
-	if ( type == POLYGONTYPE )
+	if ( type == RTPOLYGONTYPE )
 		return rtpoly_perimeter((RTPOLY*)geom);
-	else if ( type == CURVEPOLYTYPE )
+	else if ( type == RTCURVEPOLYTYPE )
 		return rtcurvepoly_perimeter((RTCURVEPOLY*)geom);
-	else if ( type == TRIANGLETYPE )
+	else if ( type == RTTRIANGLETYPE )
 		return rttriangle_perimeter((RTTRIANGLE*)geom);
 	else if ( rtgeom_is_collection(geom) )
 	{
@@ -1624,11 +1624,11 @@ double rtgeom_perimeter(const RTGEOM *geom)
 double rtgeom_perimeter_2d(const RTGEOM *geom)
 {
 	int type = geom->type;
-	if ( type == POLYGONTYPE )
+	if ( type == RTPOLYGONTYPE )
 		return rtpoly_perimeter_2d((RTPOLY*)geom);
-	else if ( type == CURVEPOLYTYPE )
+	else if ( type == RTCURVEPOLYTYPE )
 		return rtcurvepoly_perimeter_2d((RTCURVEPOLY*)geom);
-	else if ( type == TRIANGLETYPE )
+	else if ( type == RTTRIANGLETYPE )
 		return rttriangle_perimeter_2d((RTTRIANGLE*)geom);
 	else if ( rtgeom_is_collection(geom) )
 	{
@@ -1646,11 +1646,11 @@ double rtgeom_perimeter_2d(const RTGEOM *geom)
 double rtgeom_length(const RTGEOM *geom)
 {
 	int type = geom->type;
-	if ( type == LINETYPE )
+	if ( type == RTLINETYPE )
 		return rtline_length((RTLINE*)geom);
-	else if ( type == CIRCSTRINGTYPE )
+	else if ( type == RTCIRCSTRINGTYPE )
 		return rtcircstring_length((RTCIRCSTRING*)geom);
-	else if ( type == COMPOUNDTYPE )
+	else if ( type == RTCOMPOUNDTYPE )
 		return rtcompound_length((RTCOMPOUND*)geom);
 	else if ( rtgeom_is_collection(geom) )
 	{
@@ -1668,11 +1668,11 @@ double rtgeom_length(const RTGEOM *geom)
 double rtgeom_length_2d(const RTGEOM *geom)
 {
 	int type = geom->type;
-	if ( type == LINETYPE )
+	if ( type == RTLINETYPE )
 		return rtline_length_2d((RTLINE*)geom);
-	else if ( type == CIRCSTRINGTYPE )
+	else if ( type == RTCIRCSTRINGTYPE )
 		return rtcircstring_length_2d((RTCIRCSTRING*)geom);
-	else if ( type == COMPOUNDTYPE )
+	else if ( type == RTCOMPOUNDTYPE )
 		return rtcompound_length_2d((RTCOMPOUND*)geom);
 	else if ( rtgeom_is_collection(geom) )
 	{
@@ -1696,23 +1696,23 @@ rtgeom_affine(RTGEOM *geom, const AFFINE *affine)
 	switch(type) 
 	{
 		/* Take advantage of fact tht pt/ln/circ/tri have same memory structure */
-		case POINTTYPE:
-		case LINETYPE:
-		case CIRCSTRINGTYPE:
-		case TRIANGLETYPE:
+		case RTPOINTTYPE:
+		case RTLINETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTTRIANGLETYPE:
 		{
 			RTLINE *l = (RTLINE*)geom;
 			ptarray_affine(l->points, affine);
 			break;
 		}
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 		{
 			RTPOLY *p = (RTPOLY*)geom;
 			for( i = 0; i < p->nrings; i++ )
 				ptarray_affine(p->rings[i], affine);
 			break;
 		}
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 		{
 			RTCURVEPOLY *c = (RTCURVEPOLY*)geom;
 			for( i = 0; i < c->nrings; i++ )
@@ -1747,23 +1747,23 @@ rtgeom_scale(RTGEOM *geom, const POINT4D *factor)
 	switch(type) 
 	{
 		/* Take advantage of fact tht pt/ln/circ/tri have same memory structure */
-		case POINTTYPE:
-		case LINETYPE:
-		case CIRCSTRINGTYPE:
-		case TRIANGLETYPE:
+		case RTPOINTTYPE:
+		case RTLINETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTTRIANGLETYPE:
 		{
 			RTLINE *l = (RTLINE*)geom;
 			ptarray_scale(l->points, factor);
 			break;
 		}
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 		{
 			RTPOLY *p = (RTPOLY*)geom;
 			for( i = 0; i < p->nrings; i++ )
 				ptarray_scale(p->rings[i], factor);
 			break;
 		}
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 		{
 			RTCURVEPOLY *c = (RTCURVEPOLY*)geom;
 			for( i = 0; i < c->nrings; i++ )
@@ -1808,23 +1808,23 @@ rtgeom_construct_empty(uint8_t type, int srid, char hasz, char hasm)
 {
 	switch(type) 
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return rtpoint_as_rtgeom(rtpoint_construct_empty(srid, hasz, hasm));
-		case LINETYPE:
+		case RTLINETYPE:
 			return rtline_as_rtgeom(rtline_construct_empty(srid, hasz, hasm));
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return rtpoly_as_rtgeom(rtpoly_construct_empty(srid, hasz, hasm));
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 			return rtcurvepoly_as_rtgeom(rtcurvepoly_construct_empty(srid, hasz, hasm));
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			return rtcircstring_as_rtgeom(rtcircstring_construct_empty(srid, hasz, hasm));
-		case TRIANGLETYPE:
+		case RTTRIANGLETYPE:
 			return rttriangle_as_rtgeom(rttriangle_construct_empty(srid, hasz, hasm));
-		case COMPOUNDTYPE:
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COLLECTIONTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOLLECTIONTYPE:
 			return rtcollection_as_rtgeom(rtcollection_construct_empty(type, srid, hasz, hasm));
 		default:
 			rterror("rtgeom_construct_empty: unsupported geometry type: %s",
@@ -1841,20 +1841,20 @@ rtgeom_startpoint(const RTGEOM* rtgeom, POINT4D* pt)
 		
 	switch( rtgeom->type ) 
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return ptarray_startpoint(((RTPOINT*)rtgeom)->point, pt);
-		case TRIANGLETYPE:
-		case CIRCSTRINGTYPE:
-		case LINETYPE:
+		case RTTRIANGLETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTLINETYPE:
 			return ptarray_startpoint(((RTLINE*)rtgeom)->points, pt);
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return rtpoly_startpoint((RTPOLY*)rtgeom, pt);
-		case CURVEPOLYTYPE:
-		case COMPOUNDTYPE:
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COLLECTIONTYPE:
+		case RTCURVEPOLYTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOLLECTIONTYPE:
 			return rtcollection_startpoint((RTCOLLECTION*)rtgeom, pt);
 		default:
 			rterror("int: unsupported geometry type: %s",
@@ -1869,19 +1869,19 @@ rtgeom_grid(const RTGEOM *rtgeom, const gridspec *grid)
 {
 	switch ( rtgeom->type )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return (RTGEOM *)rtpoint_grid((RTPOINT *)rtgeom, grid);
-		case LINETYPE:
+		case RTLINETYPE:
 			return (RTGEOM *)rtline_grid((RTLINE *)rtgeom, grid);
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return (RTGEOM *)rtpoly_grid((RTPOLY *)rtgeom, grid);
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COLLECTIONTYPE:
-		case COMPOUNDTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOLLECTIONTYPE:
+		case RTCOMPOUNDTYPE:
 			return (RTGEOM *)rtcollection_grid((RTCOLLECTION *)rtgeom, grid);
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			return (RTGEOM *)rtcircstring_grid((RTCIRCSTRING *)rtgeom, grid);
 		default:
 			rterror("rtgeom_grid: Unsupported geometry type: %s",
@@ -1906,7 +1906,7 @@ rtgeom_subdivide_recursive(const RTGEOM *geom, int maxvertices, int depth, RTCOL
 	GBOX subbox1, subbox2;
 	RTGEOM *clipped1, *clipped2;
 	
-	if ( geom->type == POLYHEDRALSURFACETYPE || geom->type == TINTYPE )
+	if ( geom->type == RTPOLYHEDRALSURFACETYPE || geom->type == RTTINTYPE )
 	{
 		rterror("%s: unsupported geometry type '%s'", __func__, rttype_name(geom->type));
 	}
@@ -2002,7 +2002,7 @@ rtgeom_subdivide(const RTGEOM *geom, int maxvertices)
 	RTCOLLECTION *col;
 	GBOX clip;
 	
-	col = rtcollection_construct_empty(COLLECTIONTYPE, geom->srid, rtgeom_has_z(geom), rtgeom_has_m(geom));
+	col = rtcollection_construct_empty(RTCOLLECTIONTYPE, geom->srid, rtgeom_has_z(geom), rtgeom_has_m(geom));
 
 	if ( rtgeom_is_empty(geom) )
 		return col;
@@ -2025,7 +2025,7 @@ rtgeom_is_trajectory(const RTGEOM *geom)
 {
 	int type = geom->type;
 
-	if( type != LINETYPE ) 
+	if( type != RTLINETYPE ) 
 	{
 		rtnotice("Geometry is not a LINESTRING");
 		return RT_FALSE;

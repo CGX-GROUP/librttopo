@@ -58,18 +58,18 @@ rtgeom_to_kml2_sb(const RTGEOM *geom, int precision, const char *prefix, stringb
 {
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return rtpoint_to_kml2_sb((RTPOINT*)geom, precision, prefix, sb);
 
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_to_kml2_sb((RTLINE*)geom, precision, prefix, sb);
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_to_kml2_sb((RTPOLY*)geom, precision, prefix, sb);
 
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
 		return rtcollection_to_kml2_sb((RTCOLLECTION*)geom, precision, prefix, sb);
 
 	default:

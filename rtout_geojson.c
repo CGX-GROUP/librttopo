@@ -49,19 +49,19 @@ rtgeom_to_geojson(const RTGEOM *geom, char *srs, int precision, int has_bbox)
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return asgeojson_point((RTPOINT*)geom, srs, bbox, precision);
-	case LINETYPE:
+	case RTLINETYPE:
 		return asgeojson_line((RTLINE*)geom, srs, bbox, precision);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return asgeojson_poly((RTPOLY*)geom, srs, bbox, precision);
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return asgeojson_multipoint((RTMPOINT*)geom, srs, bbox, precision);
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		return asgeojson_multiline((RTMLINE*)geom, srs, bbox, precision);
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		return asgeojson_multipolygon((RTMPOLY*)geom, srs, bbox, precision);
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		return asgeojson_collection((RTCOLLECTION*)geom, srs, bbox, precision);
 	default:
 		rterror("rtgeom_to_geojson: '%s' geometry type not supported",
@@ -590,27 +590,27 @@ asgeojson_geom_size(const RTGEOM *geom, GBOX *bbox, int precision)
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		size = asgeojson_point_size((RTPOINT*)geom, NULL, bbox, precision);
 		break;
 
-	case LINETYPE:
+	case RTLINETYPE:
 		size = asgeojson_line_size((RTLINE*)geom, NULL, bbox, precision);
 		break;
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		size = asgeojson_poly_size((RTPOLY*)geom, NULL, bbox, precision);
 		break;
 
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		size = asgeojson_multipoint_size((RTMPOINT*)geom, NULL, bbox, precision);
 		break;
 
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		size = asgeojson_multiline_size((RTMLINE*)geom, NULL, bbox, precision);
 		break;
 
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		size = asgeojson_multipolygon_size((RTMPOLY*)geom, NULL, bbox, precision);
 		break;
 
@@ -630,27 +630,27 @@ asgeojson_geom_buf(const RTGEOM *geom, char *output, GBOX *bbox, int precision)
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		ptr += asgeojson_point_buf((RTPOINT*)geom, NULL, ptr, bbox, precision);
 		break;
 
-	case LINETYPE:
+	case RTLINETYPE:
 		ptr += asgeojson_line_buf((RTLINE*)geom, NULL, ptr, bbox, precision);
 		break;
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		ptr += asgeojson_poly_buf((RTPOLY*)geom, NULL, ptr, bbox, precision);
 		break;
 
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		ptr += asgeojson_multipoint_buf((RTMPOINT*)geom, NULL, ptr, bbox, precision);
 		break;
 
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		ptr += asgeojson_multiline_buf((RTMLINE*)geom, NULL, ptr, bbox, precision);
 		break;
 
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		ptr += asgeojson_multipolygon_buf((RTMPOLY*)geom, NULL, ptr, bbox, precision);
 		break;
 

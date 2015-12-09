@@ -312,12 +312,12 @@ static void rtcompound_to_wkt_sb(const RTCOMPOUND *comp, stringbuffer_t *sb, int
 		if ( i > 0 )
 			stringbuffer_append(sb, ",");
 		/* Linestring subgeoms don't get type identifiers */
-		if ( type == LINETYPE )
+		if ( type == RTLINETYPE )
 		{
 			rtline_to_wkt_sb((RTLINE*)comp->geoms[i], sb, precision, variant | WKT_NO_TYPE );
 		}
 		/* But circstring subgeoms *do* get type identifiers */
-		else if ( type == CIRCSTRINGTYPE )
+		else if ( type == RTCIRCSTRINGTYPE )
 		{
 			rtcircstring_to_wkt_sb((RTCIRCSTRING*)comp->geoms[i], sb, precision, variant );
 		}
@@ -357,15 +357,15 @@ static void rtcurvepoly_to_wkt_sb(const RTCURVEPOLY *cpoly, stringbuffer_t *sb, 
 			stringbuffer_append(sb, ",");
 		switch (type)
 		{
-		case LINETYPE:
+		case RTLINETYPE:
 			/* Linestring subgeoms don't get type identifiers */
 			rtline_to_wkt_sb((RTLINE*)cpoly->rings[i], sb, precision, variant | WKT_NO_TYPE );
 			break;
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			/* But circstring subgeoms *do* get type identifiers */
 			rtcircstring_to_wkt_sb((RTCIRCSTRING*)cpoly->rings[i], sb, precision, variant );
 			break;
-		case COMPOUNDTYPE:
+		case RTCOMPOUNDTYPE:
 			/* And compoundcurve subgeoms *do* get type identifiers */
 			rtcompound_to_wkt_sb((RTCOMPOUND*)cpoly->rings[i], sb, precision, variant );
 			break;
@@ -405,15 +405,15 @@ static void rtmcurve_to_wkt_sb(const RTMCURVE *mcurv, stringbuffer_t *sb, int pr
 			stringbuffer_append(sb, ",");
 		switch (type)
 		{
-		case LINETYPE:
+		case RTLINETYPE:
 			/* Linestring subgeoms don't get type identifiers */
 			rtline_to_wkt_sb((RTLINE*)mcurv->geoms[i], sb, precision, variant | WKT_NO_TYPE );
 			break;
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			/* But circstring subgeoms *do* get type identifiers */
 			rtcircstring_to_wkt_sb((RTCIRCSTRING*)mcurv->geoms[i], sb, precision, variant );
 			break;
-		case COMPOUNDTYPE:
+		case RTCOMPOUNDTYPE:
 			/* And compoundcurve subgeoms *do* get type identifiers */
 			rtcompound_to_wkt_sb((RTCOMPOUND*)mcurv->geoms[i], sb, precision, variant );
 			break;
@@ -453,11 +453,11 @@ static void rtmsurface_to_wkt_sb(const RTMSURFACE *msurf, stringbuffer_t *sb, in
 			stringbuffer_append(sb, ",");
 		switch (type)
 		{
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			/* Linestring subgeoms don't get type identifiers */
 			rtpoly_to_wkt_sb((RTPOLY*)msurf->geoms[i], sb, precision, variant | WKT_NO_TYPE );
 			break;
-		case CURVEPOLYTYPE:
+		case RTCURVEPOLYTYPE:
 			/* But circstring subgeoms *do* get type identifiers */
 			rtcurvepoly_to_wkt_sb((RTCURVEPOLY*)msurf->geoms[i], sb, precision, variant);
 			break;
@@ -591,49 +591,49 @@ static void rtgeom_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *sb, int precisi
 
 	switch (geom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		rtpoint_to_wkt_sb((RTPOINT*)geom, sb, precision, variant);
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		rtline_to_wkt_sb((RTLINE*)geom, sb, precision, variant);
 		break;
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		rtpoly_to_wkt_sb((RTPOLY*)geom, sb, precision, variant);
 		break;
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		rtmpoint_to_wkt_sb((RTMPOINT*)geom, sb, precision, variant);
 		break;
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		rtmline_to_wkt_sb((RTMLINE*)geom, sb, precision, variant);
 		break;
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOLYGONTYPE:
 		rtmpoly_to_wkt_sb((RTMPOLY*)geom, sb, precision, variant);
 		break;
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		rtcollection_to_wkt_sb((RTCOLLECTION*)geom, sb, precision, variant);
 		break;
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		rtcircstring_to_wkt_sb((RTCIRCSTRING*)geom, sb, precision, variant);
 		break;
-	case COMPOUNDTYPE:
+	case RTCOMPOUNDTYPE:
 		rtcompound_to_wkt_sb((RTCOMPOUND*)geom, sb, precision, variant);
 		break;
-	case CURVEPOLYTYPE:
+	case RTCURVEPOLYTYPE:
 		rtcurvepoly_to_wkt_sb((RTCURVEPOLY*)geom, sb, precision, variant);
 		break;
-	case MULTICURVETYPE:
+	case RTMULTICURVETYPE:
 		rtmcurve_to_wkt_sb((RTMCURVE*)geom, sb, precision, variant);
 		break;
-	case MULTISURFACETYPE:
+	case RTMULTISURFACETYPE:
 		rtmsurface_to_wkt_sb((RTMSURFACE*)geom, sb, precision, variant);
 		break;
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		rttriangle_to_wkt_sb((RTTRIANGLE*)geom, sb, precision, variant);
 		break;
-	case TINTYPE:
+	case RTTINTYPE:
 		rttin_to_wkt_sb((RTTIN*)geom, sb, precision, variant);
 		break;
-	case POLYHEDRALSURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 		rtpsurface_to_wkt_sb((RTPSURFACE*)geom, sb, precision, variant);
 		break;
 	default:

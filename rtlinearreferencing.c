@@ -210,13 +210,13 @@ rtgeom_locate_along(const RTGEOM *rtin, double m, double offset)
 
 	switch (rtin->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return (RTGEOM*)rtpoint_locate_along((RTPOINT*)rtin, m, offset);
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return (RTGEOM*)rtmpoint_locate_along((RTMPOINT*)rtin, m, offset);
-	case LINETYPE:
+	case RTLINETYPE:
 		return (RTGEOM*)rtline_locate_along((RTLINE*)rtin, m, offset);
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		return (RTGEOM*)rtmline_locate_along((RTMLINE*)rtin, m, offset);
 	/* Only line types supported right now */
 	/* TO DO: CurveString, CompoundCurve, MultiCurve */
@@ -372,7 +372,7 @@ rtpoint_clip_to_ordinate_range(const RTPOINT *point, char ordinate, double from,
 	hasm = rtgeom_has_m(rtpoint_as_rtgeom(point));
 
 	/* Prepare return object */
-	rtgeom_out = rtcollection_construct_empty(MULTIPOINTTYPE, point->srid, hasz, hasm);
+	rtgeom_out = rtcollection_construct_empty(RTMULTIPOINTTYPE, point->srid, hasz, hasm);
 
 	/* Test if ordinate is in range */
 	rtpoint_getPoint4d_p(point, &p4d);
@@ -422,7 +422,7 @@ rtmpoint_clip_to_ordinate_range(const RTMPOINT *mpoint, char ordinate, double fr
 	hasm = rtgeom_has_m(rtmpoint_as_rtgeom(mpoint));
 
 	/* Prepare return object */
-	rtgeom_out = rtcollection_construct_empty(MULTIPOINTTYPE, mpoint->srid, hasz, hasm);
+	rtgeom_out = rtcollection_construct_empty(RTMULTIPOINTTYPE, mpoint->srid, hasz, hasm);
 
 	/* For each point, is its ordinate value between from and to? */
 	for ( i = 0; i < mpoint->ngeoms; i ++ )
@@ -476,7 +476,7 @@ rtmline_clip_to_ordinate_range(const RTMLINE *mline, char ordinate, double from,
 		int i, j;
 		char homogeneous = 1;
 		size_t geoms_size = 0;
-		rtgeom_out = rtcollection_construct_empty(MULTILINETYPE, mline->srid, hasz, hasm);
+		rtgeom_out = rtcollection_construct_empty(RTMULTILINETYPE, mline->srid, hasz, hasm);
 		FLAGS_SET_Z(rtgeom_out->flags, hasz);
 		FLAGS_SET_M(rtgeom_out->flags, hasm);
 		for ( i = 0; i < mline->ngeoms; i ++ )
@@ -520,7 +520,7 @@ rtmline_clip_to_ordinate_range(const RTMLINE *mline, char ordinate, double from,
 
 		if ( ! homogeneous )
 		{
-			rtgeom_out->type = COLLECTIONTYPE;
+			rtgeom_out->type = RTCOLLECTIONTYPE;
 		}
 	}
 
@@ -584,7 +584,7 @@ rtline_clip_to_ordinate_range(const RTLINE *line, char ordinate, double from, do
 	r = rtalloc(sizeof(POINT4D));
 
 	/* Construct a collection to hold our outputs. */
-	rtgeom_out = rtcollection_construct_empty(MULTILINETYPE, line->srid, hasz, hasm);
+	rtgeom_out = rtcollection_construct_empty(RTMULTILINETYPE, line->srid, hasz, hasm);
 
 	/* Get our input point array */
 	pa_in = line->points;
@@ -706,7 +706,7 @@ rtline_clip_to_ordinate_range(const RTLINE *line, char ordinate, double from, do
 				if ( dp->npoints == 1 )
 				{
 					RTPOINT *opoint = rtpoint_construct(line->srid, NULL, dp);
-					rtgeom_out->type = COLLECTIONTYPE;
+					rtgeom_out->type = RTCOLLECTIONTYPE;
 					rtgeom_out = rtcollection_add_rtgeom(rtgeom_out, rtpoint_as_rtgeom(opoint));
 
 				}
@@ -734,7 +734,7 @@ rtline_clip_to_ordinate_range(const RTLINE *line, char ordinate, double from, do
 		if ( dp->npoints == 1 )
 		{
 			RTPOINT *opoint = rtpoint_construct(line->srid, NULL, dp);
-			rtgeom_out->type = COLLECTIONTYPE;
+			rtgeom_out->type = RTCOLLECTIONTYPE;
 			rtgeom_out = rtcollection_add_rtgeom(rtgeom_out, rtpoint_as_rtgeom(opoint));
 		}
 		else
@@ -773,16 +773,16 @@ rtgeom_clip_to_ordinate_range(const RTGEOM *rtin, char ordinate, double from, do
 
 	switch ( rtin->type )
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 		out_col = rtline_clip_to_ordinate_range((RTLINE*)rtin, ordinate, from, to);
 		break;
-	case MULTILINETYPE:
+	case RTMULTILINETYPE:
 		out_col = rtmline_clip_to_ordinate_range((RTMLINE*)rtin, ordinate, from, to);
 		break;
-	case MULTIPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		out_col = rtmpoint_clip_to_ordinate_range((RTMPOINT*)rtin, ordinate, from, to);
 		break;
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		out_col = rtpoint_clip_to_ordinate_range((RTPOINT*)rtin, ordinate, from, to);
 		break;
 	default:
@@ -800,18 +800,18 @@ rtgeom_clip_to_ordinate_range(const RTGEOM *rtin, char ordinate, double from, do
 
 	/* Construct a collection to hold our outputs. */
 	/* Things get ugly: GEOS offset drops Z's and M's so we have to drop ours */
-	out_offset = rtcollection_construct_empty(MULTILINETYPE, rtin->srid, 0, 0);
+	out_offset = rtcollection_construct_empty(RTMULTILINETYPE, rtin->srid, 0, 0);
 
 	/* Try and offset the linear portions of the return value */
 	for ( i = 0; i < out_col->ngeoms; i++ )
 	{
 		int type = out_col->geoms[i]->type;
-		if ( type == POINTTYPE )
+		if ( type == RTPOINTTYPE )
 		{
 			rtnotice("rtgeom_clip_to_ordinate_range cannot offset a clipped point");
 			continue;
 		}
-		else if ( type == LINETYPE )
+		else if ( type == RTLINETYPE )
 		{
 			/* rtgeom_offsetcurve(line, offset, quadsegs, joinstyle (round), mitrelimit) */
 			RTGEOM *rtoff = rtgeom_offsetcurve(rtgeom_as_rtline(out_col->geoms[i]), offset, 8, 1, 5.0);
@@ -856,7 +856,7 @@ rtgeom_interpolate_point(const RTGEOM *rtin, const RTPOINT *rtpt)
 
 	switch ( rtin->type )
 	{
-	case LINETYPE:
+	case RTLINETYPE:
 	{
 		RTLINE *rtline = rtgeom_as_rtline(rtin);
 		rtpoint_getPoint4d_p(rtpt, &p);

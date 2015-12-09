@@ -22,26 +22,26 @@ static uint8_t rtgeom_twkb_type(const RTGEOM *geom)
 
 	switch ( geom->type )
 	{
-		case POINTTYPE:
-			twkb_type = WKB_POINT_TYPE;
+		case RTPOINTTYPE:
+			twkb_type = RTWKB_POINT_TYPE;
 			break;
-		case LINETYPE:
-			twkb_type = WKB_LINESTRING_TYPE;
+		case RTLINETYPE:
+			twkb_type = RTWKB_LINESTRING_TYPE;
 			break;
-		case POLYGONTYPE:
-			twkb_type = WKB_POLYGON_TYPE;
+		case RTPOLYGONTYPE:
+			twkb_type = RTWKB_POLYGON_TYPE;
 			break;
-		case MULTIPOINTTYPE:
-			twkb_type = WKB_MULTIPOINT_TYPE;
+		case RTMULTIPOINTTYPE:
+			twkb_type = RTWKB_MULTIPOINT_TYPE;
 			break;
-		case MULTILINETYPE:
-			twkb_type = WKB_MULTILINESTRING_TYPE;
+		case RTMULTILINETYPE:
+			twkb_type = RTWKB_MULTILINESTRING_TYPE;
 			break;
-		case MULTIPOLYGONTYPE:
-			twkb_type = WKB_MULTIPOLYGON_TYPE;
+		case RTMULTIPOLYGONTYPE:
+			twkb_type = RTWKB_MULTIPOLYGON_TYPE;
 			break;
-		case COLLECTIONTYPE:
-			twkb_type = WKB_GEOMETRYCOLLECTION_TYPE;
+		case RTCOLLECTIONTYPE:
+			twkb_type = RTWKB_GEOMETRYCOLLECTION_TYPE;
 			break;
 		default:
 			rterror("Unsupported geometry type: %s [%d]",
@@ -271,7 +271,7 @@ static int rtmulti_to_twkb_buf(const RTCOLLECTION *col, TWKB_GLOBALS *globals, T
 	RTDEBUGF(4, "Number of geometries in multi is %d", col->ngeoms);
 
 	/* Deal with special case for MULTIPOINT: skip any empty points */
-	if ( col->type == MULTIPOINTTYPE )
+	if ( col->type == RTMULTIPOINTTYPE )
 	{
 		for ( i = 0; i < col->ngeoms; i++ )
 			if ( rtgeom_is_empty(col->geoms[i]) )
@@ -287,7 +287,7 @@ static int rtmulti_to_twkb_buf(const RTCOLLECTION *col, TWKB_GLOBALS *globals, T
 		for ( i = 0; i < col->ngeoms; i++ )
 		{
 			/* Skip empty points in multipoints, we can't represent them */
-			if ( col->type == MULTIPOINTTYPE && rtgeom_is_empty(col->geoms[i]) )
+			if ( col->type == RTMULTIPOINTTYPE && rtgeom_is_empty(col->geoms[i]) )
 				continue;
 			
 			bytebuffer_append_varint(ts->geom_buf, ts->idlist[i]);
@@ -300,7 +300,7 @@ static int rtmulti_to_twkb_buf(const RTCOLLECTION *col, TWKB_GLOBALS *globals, T
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
 		/* Skip empty points in multipoints, we can't represent them */
-		if ( col->type == MULTIPOINTTYPE && rtgeom_is_empty(col->geoms[i]) )
+		if ( col->type == RTMULTIPOINTTYPE && rtgeom_is_empty(col->geoms[i]) )
 			continue;
 
 		rtgeom_to_twkb_buf(col->geoms[i], globals, ts);
@@ -351,32 +351,32 @@ static int rtgeom_to_twkb_buf(const RTGEOM *geom, TWKB_GLOBALS *globals, TWKB_ST
 
 	switch ( geom->type )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 		{
 			RTDEBUGF(4,"Type found is Point, %d", geom->type);
 			return rtpoint_to_twkb_buf((RTPOINT*) geom, globals, ts);
 		}
-		case LINETYPE:
+		case RTLINETYPE:
 		{
 			RTDEBUGF(4,"Type found is Linestring, %d", geom->type);
 			return rtline_to_twkb_buf((RTLINE*) geom, globals, ts);
 		}
 		/* Polygon has 'nrings' and 'rings' elements */
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 		{
 			RTDEBUGF(4,"Type found is Polygon, %d", geom->type);
 			return rtpoly_to_twkb_buf((RTPOLY*)geom, globals, ts);
 		}
 
 		/* All these Collection types have 'ngeoms' and 'geoms' elements */
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
 		{
 			RTDEBUGF(4,"Type found is Multi, %d", geom->type);
 			return rtmulti_to_twkb_buf((RTCOLLECTION*)geom, globals, ts);
 		}
-		case COLLECTIONTYPE:
+		case RTCOLLECTIONTYPE:
 		{
 			RTDEBUGF(4,"Type found is collection, %d", geom->type);
 			return rtcollection_to_twkb_buf((RTCOLLECTION*) geom, globals, ts);
@@ -431,12 +431,12 @@ static int rtgeom_write_to_buffer(const RTGEOM *geom, TWKB_GLOBALS *globals, TWK
 		child_state.accum_rels[i] = 0;
 	}
 
-	/* TYPE/PRECISION BYTE */
+	/* RTTYPE/PRECISION BYTE */
 	if ( abs(globals->prec_xy) > 7 )
 		rterror("%s: X/Z precision cannot be greater than 7 or less than -7", __func__);
 	
 	/* Read the TWKB type number from the geometry */
-	TYPE_PREC_SET_TYPE(type_prec, rtgeom_twkb_type(geom));
+	RTTYPE_PREC_SET_TYPE(type_prec, rtgeom_twkb_type(geom));
 	/* Zig-zag the precision value before encoding it since it is a signed value */
 	TYPE_PREC_SET_PREC(type_prec, zigzag8(globals->prec_xy));
 	/* Write the type and precision byte */

@@ -233,13 +233,13 @@ geometry_no_srid :
 	
 geometrycollection :
 	COLLECTION_TOK LBRACKET_TOK geometry_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(COLLECTIONTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, $3, NULL); WKT_ERROR(); } |
 	COLLECTION_TOK DIMENSIONALITY_TOK LBRACKET_TOK geometry_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(COLLECTIONTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, $4, $2); WKT_ERROR(); } |
 	COLLECTION_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(COLLECTIONTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, NULL, $2); WKT_ERROR(); } |
 	COLLECTION_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(COLLECTIONTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, NULL, NULL); WKT_ERROR(); } ;
 	
 geometry_list :
 	geometry_list COMMA_TOK geometry_no_srid 
@@ -249,13 +249,13 @@ geometry_list :
 
 multisurface :
 	MSURFACE_TOK LBRACKET_TOK surface_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTISURFACETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, $3, NULL); WKT_ERROR(); } |
 	MSURFACE_TOK DIMENSIONALITY_TOK LBRACKET_TOK surface_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTISURFACETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, $4, $2); WKT_ERROR(); } |
 	MSURFACE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTISURFACETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, NULL, $2); WKT_ERROR(); } |
 	MSURFACE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTISURFACETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, NULL, NULL); WKT_ERROR(); } ;
 	
 surface_list :
 	surface_list COMMA_TOK polygon
@@ -273,33 +273,33 @@ surface_list :
 
 tin :
 	TIN_TOK LBRACKET_TOK triangle_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(TINTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, $3, NULL); WKT_ERROR(); } |
 	TIN_TOK DIMENSIONALITY_TOK LBRACKET_TOK triangle_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(TINTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, $4, $2); WKT_ERROR(); } |
 	TIN_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(TINTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, NULL, $2); WKT_ERROR(); } |
 	TIN_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(TINTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, NULL, NULL); WKT_ERROR(); } ;
 
 polyhedralsurface :
 	POLYHEDRALSURFACE_TOK LBRACKET_TOK patch_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(POLYHEDRALSURFACETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, $3, NULL); WKT_ERROR(); } |
 	POLYHEDRALSURFACE_TOK DIMENSIONALITY_TOK LBRACKET_TOK patch_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(POLYHEDRALSURFACETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, $4, $2); WKT_ERROR(); } |
 	POLYHEDRALSURFACE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(POLYHEDRALSURFACETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, NULL, $2); WKT_ERROR(); } |
 	POLYHEDRALSURFACE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(POLYHEDRALSURFACETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, NULL, NULL); WKT_ERROR(); } ;
 
 multipolygon :
 	MPOLYGON_TOK LBRACKET_TOK polygon_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTIPOLYGONTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, $3, NULL); WKT_ERROR(); } |
 	MPOLYGON_TOK DIMENSIONALITY_TOK LBRACKET_TOK polygon_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTIPOLYGONTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, $4, $2); WKT_ERROR(); } |
 	MPOLYGON_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTIPOLYGONTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, NULL, $2); WKT_ERROR(); } |
 	MPOLYGON_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTIPOLYGONTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, NULL, NULL); WKT_ERROR(); } ;
 
 polygon_list :
 	polygon_list COMMA_TOK polygon_untagged 
@@ -374,13 +374,13 @@ ring :
 
 compoundcurve :
 	COMPOUNDCURVE_TOK LBRACKET_TOK compound_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(COMPOUNDTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, $3, NULL); WKT_ERROR(); } |
 	COMPOUNDCURVE_TOK DIMENSIONALITY_TOK LBRACKET_TOK compound_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(COMPOUNDTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, $4, $2); WKT_ERROR(); } |
 	COMPOUNDCURVE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(COMPOUNDTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, NULL, $2); WKT_ERROR(); } |
 	COMPOUNDCURVE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(COMPOUNDTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, NULL, NULL); WKT_ERROR(); } ;
 
 compound_list :
 	compound_list COMMA_TOK circularstring
@@ -398,13 +398,13 @@ compound_list :
 
 multicurve :
 	MCURVE_TOK LBRACKET_TOK curve_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTICURVETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, $3, NULL); WKT_ERROR(); } |
 	MCURVE_TOK DIMENSIONALITY_TOK LBRACKET_TOK curve_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTICURVETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, $4, $2); WKT_ERROR(); } |
 	MCURVE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTICURVETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, NULL, $2); WKT_ERROR(); } |
 	MCURVE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(MULTICURVETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, NULL, NULL); WKT_ERROR(); } ;
 
 curve_list :
 	curve_list COMMA_TOK circularstring
@@ -426,13 +426,13 @@ curve_list :
 
 multilinestring :
 	MLINESTRING_TOK LBRACKET_TOK linestring_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTILINETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, $3, NULL); WKT_ERROR(); } |
 	MLINESTRING_TOK DIMENSIONALITY_TOK LBRACKET_TOK linestring_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTILINETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, $4, $2); WKT_ERROR(); } |
 	MLINESTRING_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTILINETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, NULL, $2); WKT_ERROR(); } |
 	MLINESTRING_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTILINETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, NULL, NULL); WKT_ERROR(); } ;
 
 linestring_list :
 	linestring_list COMMA_TOK linestring_untagged 
@@ -488,13 +488,13 @@ triangle_untagged :
 
 multipoint :
 	MPOINT_TOK LBRACKET_TOK point_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTIPOINTTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, $3, NULL); WKT_ERROR(); } |
 	MPOINT_TOK DIMENSIONALITY_TOK LBRACKET_TOK point_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTIPOINTTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, $4, $2); WKT_ERROR(); } |
 	MPOINT_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTIPOINTTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, NULL, $2); WKT_ERROR(); } |
 	MPOINT_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(MULTIPOINTTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, NULL, NULL); WKT_ERROR(); } ;
 
 point_list :
 	point_list COMMA_TOK point_untagged 

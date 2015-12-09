@@ -33,11 +33,11 @@ rtcompound_is_closed(const RTCOMPOUND *compound)
 		size = sizeof(POINT2D);
 	}
 
-	if ( compound->geoms[compound->ngeoms - 1]->type == CIRCSTRINGTYPE )
+	if ( compound->geoms[compound->ngeoms - 1]->type == RTCIRCSTRINGTYPE )
 	{
 		npoints = ((RTCIRCSTRING *)compound->geoms[compound->ngeoms - 1])->points->npoints;
 	}
-	else if (compound->geoms[compound->ngeoms - 1]->type == LINETYPE)
+	else if (compound->geoms[compound->ngeoms - 1]->type == RTLINETYPE)
 	{
 		npoints = ((RTLINE *)compound->geoms[compound->ngeoms - 1])->points->npoints;
 	}
@@ -114,7 +114,7 @@ int rtcompound_add_rtgeom(RTCOMPOUND *comp, RTGEOM *geom)
 RTCOMPOUND *
 rtcompound_construct_empty(int srid, char hasz, char hasm)
 {
-	RTCOMPOUND *ret = (RTCOMPOUND*)rtcollection_construct_empty(COMPOUNDTYPE, srid, hasz, hasm);
+	RTCOMPOUND *ret = (RTCOMPOUND*)rtcollection_construct_empty(RTCOMPOUNDTYPE, srid, hasz, hasm);
 	return ret;
 }
 
@@ -122,11 +122,11 @@ int rtgeom_contains_point(const RTGEOM *geom, const POINT2D *pt)
 {
 	switch( geom->type )
 	{
-		case LINETYPE:
+		case RTLINETYPE:
 			return ptarray_contains_point(((RTLINE*)geom)->points, pt);
-		case CIRCSTRINGTYPE:
+		case RTCIRCSTRINGTYPE:
 			return ptarrayarc_contains_point(((RTCIRCSTRING*)geom)->points, pt);
-		case COMPOUNDTYPE:
+		case RTCOMPOUNDTYPE:
 			return rtcompound_contains_point((RTCOMPOUND*)geom, pt);
 	}
 	rterror("rtgeom_contains_point failed");
@@ -146,7 +146,7 @@ rtcompound_contains_point(const RTCOMPOUND *comp, const POINT2D *pt)
 	for ( i = 0; i < comp->ngeoms; i++ )
 	{
 		RTGEOM *rtgeom = comp->geoms[i];
-		if ( rtgeom->type == LINETYPE )
+		if ( rtgeom->type == RTLINETYPE )
 		{
 			rtline = rtgeom_as_rtline(rtgeom);
 			if ( comp->ngeoms == 1 )

@@ -26,7 +26,7 @@ rtmpoly_release(RTMPOLY *rtmpoly)
 RTMPOLY *
 rtmpoly_construct_empty(int srid, char hasz, char hasm)
 {
-	RTMPOLY *ret = (RTMPOLY*)rtcollection_construct_empty(MULTIPOLYGONTYPE, srid, hasz, hasm);
+	RTMPOLY *ret = (RTMPOLY*)rtcollection_construct_empty(RTMULTIPOLYGONTYPE, srid, hasz, hasm);
 	return ret;
 }
 

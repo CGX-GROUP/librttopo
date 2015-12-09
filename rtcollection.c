@@ -302,19 +302,19 @@ int rtcollection_ngeoms(const RTCOLLECTION *col)
 		{
 			switch (col->geoms[i]->type)
 			{
-			case POINTTYPE:
-			case LINETYPE:
-			case CIRCSTRINGTYPE:
-			case POLYGONTYPE:
+			case RTPOINTTYPE:
+			case RTLINETYPE:
+			case RTCIRCSTRINGTYPE:
+			case RTPOLYGONTYPE:
 				ngeoms += 1;
 				break;
-			case MULTIPOINTTYPE:
-			case MULTILINETYPE:
-			case MULTICURVETYPE:
-			case MULTIPOLYGONTYPE:
+			case RTMULTIPOINTTYPE:
+			case RTMULTILINETYPE:
+			case RTMULTICURVETYPE:
+			case RTMULTIPOLYGONTYPE:
 				ngeoms += col->ngeoms;
 				break;
-			case COLLECTIONTYPE:
+			case RTCOLLECTIONTYPE:
 				ngeoms += rtcollection_ngeoms((RTCOLLECTION*)col->geoms[i]);
 				break;
 			}
@@ -363,14 +363,14 @@ RTCOLLECTION* rtcollection_extract(RTCOLLECTION *col, int type)
 
 	switch (type)
 	{
-	case POINTTYPE:
-		outtype = MULTIPOINTTYPE;
+	case RTPOINTTYPE:
+		outtype = RTMULTIPOINTTYPE;
 		break;
-	case LINETYPE:
-		outtype = MULTILINETYPE;
+	case RTLINETYPE:
+		outtype = RTMULTILINETYPE;
 		break;
-	case POLYGONTYPE:
-		outtype = MULTIPOLYGONTYPE;
+	case RTPOLYGONTYPE:
+		outtype = RTMULTIPOLYGONTYPE;
 		break;
 	default:
 		rterror("Only POLYGON, LINESTRING and POINT are supported by rtcollection_extract. %s requested.", rttype_name(type));
@@ -522,34 +522,34 @@ RTCOLLECTION* rtcollection_simplify(const RTCOLLECTION *igeom, double dist, int 
 
 int rtcollection_allows_subtype(int collectiontype, int subtype)
 {
-	if ( collectiontype == COLLECTIONTYPE )
+	if ( collectiontype == RTCOLLECTIONTYPE )
 		return RT_TRUE;
-	if ( collectiontype == MULTIPOINTTYPE &&
-	        subtype == POINTTYPE )
+	if ( collectiontype == RTMULTIPOINTTYPE &&
+	        subtype == RTPOINTTYPE )
 		return RT_TRUE;
-	if ( collectiontype == MULTILINETYPE &&
-	        subtype == LINETYPE )
+	if ( collectiontype == RTMULTILINETYPE &&
+	        subtype == RTLINETYPE )
 		return RT_TRUE;
-	if ( collectiontype == MULTIPOLYGONTYPE &&
-	        subtype == POLYGONTYPE )
+	if ( collectiontype == RTMULTIPOLYGONTYPE &&
+	        subtype == RTPOLYGONTYPE )
 		return RT_TRUE;
-	if ( collectiontype == COMPOUNDTYPE &&
-	        (subtype == LINETYPE || subtype == CIRCSTRINGTYPE) )
+	if ( collectiontype == RTCOMPOUNDTYPE &&
+	        (subtype == RTLINETYPE || subtype == RTCIRCSTRINGTYPE) )
 		return RT_TRUE;
-	if ( collectiontype == CURVEPOLYTYPE &&
-	        (subtype == CIRCSTRINGTYPE || subtype == LINETYPE || subtype == COMPOUNDTYPE) )
+	if ( collectiontype == RTCURVEPOLYTYPE &&
+	        (subtype == RTCIRCSTRINGTYPE || subtype == RTLINETYPE || subtype == RTCOMPOUNDTYPE) )
 		return RT_TRUE;
-	if ( collectiontype == MULTICURVETYPE &&
-	        (subtype == CIRCSTRINGTYPE || subtype == LINETYPE || subtype == COMPOUNDTYPE) )
+	if ( collectiontype == RTMULTICURVETYPE &&
+	        (subtype == RTCIRCSTRINGTYPE || subtype == RTLINETYPE || subtype == RTCOMPOUNDTYPE) )
 		return RT_TRUE;
-	if ( collectiontype == MULTISURFACETYPE &&
-	        (subtype == POLYGONTYPE || subtype == CURVEPOLYTYPE) )
+	if ( collectiontype == RTMULTISURFACETYPE &&
+	        (subtype == RTPOLYGONTYPE || subtype == RTCURVEPOLYTYPE) )
 		return RT_TRUE;
-	if ( collectiontype == POLYHEDRALSURFACETYPE &&
-	        subtype == POLYGONTYPE )
+	if ( collectiontype == RTPOLYHEDRALSURFACETYPE &&
+	        subtype == RTPOLYGONTYPE )
 		return RT_TRUE;
-	if ( collectiontype == TINTYPE &&
-	        subtype == TRIANGLETYPE )
+	if ( collectiontype == RTTINTYPE &&
+	        subtype == RTTRIANGLETYPE )
 		return RT_TRUE;
 
 	/* Must be a bad combination! */

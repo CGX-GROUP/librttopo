@@ -102,7 +102,7 @@ circ_node_leaf_point_new(const POINTARRAY* pa)
 	tree->nodes = NULL;
 	tree->num_nodes = 0;
 	tree->edge_num = 0;
-	tree->geom_type = POINTTYPE;
+	tree->geom_type = RTPOINTTYPE;
 	tree->pt_outside.x = 0.0;
 	tree->pt_outside.y = 0.0;
 	return tree;
@@ -241,7 +241,7 @@ circ_node_internal_new(CIRC_NODE** c, int num_nodes)
 			/* Anonymous collection if types differ */
 			if ( new_geom_type != c[i]->geom_type )
 			{
-				new_geom_type = COLLECTIONTYPE;
+				new_geom_type = RTCOLLECTIONTYPE;
 			}
 			else
 			{
@@ -251,7 +251,7 @@ circ_node_internal_new(CIRC_NODE** c, int num_nodes)
 		/* If we can't add next feature to this collection cleanly, promote again to anonymous collection */
 		else if ( new_geom_type != rttype_get_collectiontype(c[i]->geom_type) )
 		{
-			new_geom_type = COLLECTIONTYPE;
+			new_geom_type = RTCOLLECTIONTYPE;
 		}
 
 
@@ -606,7 +606,7 @@ circ_tree_distance_tree_internal(const CIRC_NODE* n1, const CIRC_NODE* n2, doubl
 
 	/* Polygon on one side, primitive type on the other. Check for point-in-polygon */
 	/* short circuit. */
-	if ( n1->geom_type == POLYGONTYPE && n2->geom_type && ! rttype_is_collection(n2->geom_type) )
+	if ( n1->geom_type == RTPOLYGONTYPE && n2->geom_type && ! rttype_is_collection(n2->geom_type) )
 	{
 		POINT2D pt;
 		circ_tree_get_point(n2, &pt);
@@ -622,7 +622,7 @@ circ_tree_distance_tree_internal(const CIRC_NODE* n1, const CIRC_NODE* n2, doubl
 	}
 	/* Polygon on one side, primitive type on the other. Check for point-in-polygon */
 	/* short circuit. */
-	if ( n2->geom_type == POLYGONTYPE && n1->geom_type && ! rttype_is_collection(n1->geom_type) )
+	if ( n2->geom_type == RTPOLYGONTYPE && n1->geom_type && ! rttype_is_collection(n1->geom_type) )
 	{
 		POINT2D pt;
 		circ_tree_get_point(n1, &pt);
@@ -779,7 +779,7 @@ void circ_tree_print(const CIRC_NODE* node, int depth)
   		{
   			printf(" %s", rttype_name(node->geom_type));
   		}		
-  		if ( node->geom_type == POLYGONTYPE )
+  		if ( node->geom_type == RTPOLYGONTYPE )
   		{
   			printf(" O(%.5g %.5g)", node->pt_outside.x, node->pt_outside.y);
   		}				
@@ -797,7 +797,7 @@ void circ_tree_print(const CIRC_NODE* node, int depth)
 		{
 			printf(" %s", rttype_name(node->geom_type));
 		}
-  		if ( node->geom_type == POLYGONTYPE )
+  		if ( node->geom_type == RTPOLYGONTYPE )
   		{
   			printf(" O(%.5g %.5g)", node->pt_outside.x, node->pt_outside.y);
   		}		
@@ -904,16 +904,16 @@ rtgeom_calculate_circ_tree(const RTGEOM* rtgeom)
 		
 	switch ( rtgeom->type )
 	{
-		case POINTTYPE:
+		case RTPOINTTYPE:
 			return rtpoint_calculate_circ_tree((RTPOINT*)rtgeom);
-		case LINETYPE:
+		case RTLINETYPE:
 			return rtline_calculate_circ_tree((RTLINE*)rtgeom);
-		case POLYGONTYPE:
+		case RTPOLYGONTYPE:
 			return rtpoly_calculate_circ_tree((RTPOLY*)rtgeom);
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case COLLECTIONTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTCOLLECTIONTYPE:
 			return rtcollection_calculate_circ_tree((RTCOLLECTION*)rtgeom);
 		default:
 			rterror("Unable to calculate spherical index tree for type %s", rttype_name(rtgeom->type));

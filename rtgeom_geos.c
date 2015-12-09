@@ -116,7 +116,7 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 /*
 	if ( GEOSisEmpty(geom) )
 	{
-		return (RTGEOM*)rtcollection_construct_empty(COLLECTIONTYPE, SRID, want3d, 0);
+		return (RTGEOM*)rtcollection_construct_empty(RTCOLLECTIONTYPE, SRID, want3d, 0);
 	}
 */
 
@@ -353,7 +353,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		POINTARRAY *pa = NULL;
 #endif
 		
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		rtp = (RTPOINT *)rtgeom;
 		
 		if ( rtgeom_is_empty(rtgeom) )
@@ -378,7 +378,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 			return NULL;
 		}
 		break;
-	case LINETYPE:
+	case RTLINETYPE:
 		rtl = (RTLINE *)rtgeom;
 		/* TODO: if (autofix) */
 		if ( rtl->points->npoints == 1 ) {
@@ -397,7 +397,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		}
 		break;
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		rtpoly = (RTPOLY *)rtgeom;
 		if ( rtgeom_is_empty(rtgeom) )
 		{
@@ -437,15 +437,15 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		}
 		if ( ! g ) return NULL;
 		break;
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
-		if ( rtgeom->type == MULTIPOINTTYPE )
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
+		if ( rtgeom->type == RTMULTIPOINTTYPE )
 			geostype = GEOS_MULTIPOINT;
-		else if ( rtgeom->type == MULTILINETYPE )
+		else if ( rtgeom->type == RTMULTILINETYPE )
 			geostype = GEOS_MULTILINESTRING;
-		else if ( rtgeom->type == MULTIPOLYGONTYPE )
+		else if ( rtgeom->type == RTMULTIPOLYGONTYPE )
 			geostype = GEOS_MULTIPOLYGON;
 		else
 			geostype = GEOS_GEOMETRYCOLLECTION;
@@ -628,7 +628,7 @@ rtgeom_linemerge(const RTGEOM *geom1)
 
 	/* Empty.Linemerge() == Empty */
 	if ( rtgeom_is_empty(geom1) )
-		return (RTGEOM*)rtcollection_construct_empty( COLLECTIONTYPE, srid, is3d,
+		return (RTGEOM*)rtcollection_construct_empty( RTCOLLECTIONTYPE, srid, is3d,
                                          rtgeom_has_m(geom1) );
 
 	initGEOS(rtnotice, rtgeom_geos_error);
@@ -1158,7 +1158,7 @@ RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in)
    * We should now have a collection
    */
 #if PARANOIA_LEVEL > 0
-  if ( GEOSGeometryTypeId(geos_result) != COLLECTIONTYPE )
+  if ( GEOSGeometryTypeId(geos_result) != RTCOLLECTIONTYPE )
   {
     GEOSGeom_destroy(geos_result);
     rterror("Unexpected return from GEOSpolygonize");
@@ -1631,7 +1631,7 @@ RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d) {
 				geoms[i] = rttriangle_construct(SRID, NULL, pa);
 			}
 		}
-		return (RTTIN *)rtcollection_construct(TINTYPE, SRID, NULL, ngeoms, (RTGEOM **)geoms);
+		return (RTTIN *)rtcollection_construct(RTTINTYPE, SRID, NULL, ngeoms, (RTGEOM **)geoms);
 	case GEOS_POLYGON:
 	case GEOS_MULTIPOINT:
 	case GEOS_MULTILINESTRING:

@@ -48,23 +48,23 @@ const char* rtgeom_version(void);
 #define RT_SUCCESS 1
 
 /**
-* RTTYPE numbers
+* RTRTTYPE numbers
 */
-#define	POINTTYPE                1
-#define	LINETYPE                 2
-#define	POLYGONTYPE              3
-#define	MULTIPOINTTYPE           4
-#define	MULTILINETYPE            5
-#define	MULTIPOLYGONTYPE         6
-#define	COLLECTIONTYPE           7
-#define CIRCSTRINGTYPE           8
-#define COMPOUNDTYPE             9
-#define CURVEPOLYTYPE           10
-#define MULTICURVETYPE          11
-#define MULTISURFACETYPE        12
-#define POLYHEDRALSURFACETYPE   13
-#define TRIANGLETYPE            14
-#define TINTYPE                 15
+#define	RTPOINTTYPE                1
+#define	RTLINETYPE                 2
+#define	RTPOLYGONTYPE              3
+#define	RTMULTIPOINTTYPE           4
+#define	RTMULTILINETYPE            5
+#define	RTMULTIPOLYGONTYPE         6
+#define	RTCOLLECTIONTYPE           7
+#define RTCIRCSTRINGTYPE           8
+#define RTCOMPOUNDTYPE             9
+#define RTCURVEPOLYTYPE           10
+#define RTMULTICURVETYPE          11
+#define RTMULTISURFACETYPE        12
+#define RTPOLYHEDRALSURFACETYPE   13
+#define RTTRIANGLETYPE            14
+#define RTTINTYPE                 15
 
 #define NUMTYPES                16
 
@@ -125,14 +125,14 @@ typedef enum RTORD_T {
 * Plus/minus = Top bit.
 * Spare bits = Next 2 bits.
 * SRID = Next 21 bits.
-* TYPE = Next 6 bits.
+* RTTYPE = Next 6 bits.
 * ZM Flags = Bottom 2 bits.
 */
 
 #define TYPMOD_GET_SRID(typmod) ((((typmod) & 0x1FFFFF00)<<3)>>11)
 #define TYPMOD_SET_SRID(typmod, srid) ((typmod) = (((typmod) & 0xE00000FF) | ((srid & 0x001FFFFF)<<8)))
-#define TYPMOD_GET_TYPE(typmod) ((typmod & 0x000000FC)>>2)
-#define TYPMOD_SET_TYPE(typmod, type) ((typmod) = (typmod & 0xFFFFFF03) | ((type & 0x0000003F)<<2))
+#define RTTYPMOD_GET_TYPE(typmod) ((typmod & 0x000000FC)>>2)
+#define RTTYPMOD_SET_TYPE(typmod, type) ((typmod) = (typmod & 0xFFFFFF03) | ((type & 0x0000003F)<<2))
 #define TYPMOD_GET_Z(typmod) ((typmod & 0x00000002)>>1)
 #define TYPMOD_SET_Z(typmod) ((typmod) = typmod | 0x00000002)
 #define TYPMOD_GET_M(typmod) (typmod & 0x00000001)
@@ -368,10 +368,10 @@ typedef struct
 }
 RTGEOM;
 
-/* POINTYPE */
+/* RTPOINTYPE */
 typedef struct
 {
-	uint8_t type; /* POINTTYPE */
+	uint8_t type; /* RTPOINTTYPE */
 	uint8_t flags;
 	GBOX *bbox;
 	int32_t srid;
@@ -379,10 +379,10 @@ typedef struct
 }
 RTPOINT; /* "light-weight point" */
 
-/* LINETYPE */
+/* RTLINETYPE */
 typedef struct
 {
-	uint8_t type; /* LINETYPE */
+	uint8_t type; /* RTLINETYPE */
 	uint8_t flags;
 	GBOX *bbox;
 	int32_t srid;
@@ -401,10 +401,10 @@ typedef struct
 }
 RTTRIANGLE;
 
-/* CIRCSTRINGTYPE */
+/* RTCIRCSTRINGTYPE */
 typedef struct
 {
-	uint8_t type; /* CIRCSTRINGTYPE */
+	uint8_t type; /* RTCIRCSTRINGTYPE */
 	uint8_t flags;
 	GBOX *bbox;
 	int32_t srid;
@@ -412,10 +412,10 @@ typedef struct
 }
 RTCIRCSTRING; /* "light-weight circularstring" */
 
-/* POLYGONTYPE */
+/* RTPOLYGONTYPE */
 typedef struct
 {
-	uint8_t type; /* POLYGONTYPE */
+	uint8_t type; /* RTPOLYGONTYPE */
 	uint8_t flags;
 	GBOX *bbox;
 	int32_t srid;
@@ -425,7 +425,7 @@ typedef struct
 }
 RTPOLY; /* "light-weight polygon" */
 
-/* MULTIPOINTTYPE */
+/* RTMULTIPOINTTYPE */
 typedef struct
 {
 	uint8_t type;
@@ -438,7 +438,7 @@ typedef struct
 }
 RTMPOINT;
 
-/* MULTILINETYPE */
+/* RTMULTILINETYPE */
 typedef struct
 {
 	uint8_t type;
@@ -451,7 +451,7 @@ typedef struct
 }
 RTMLINE;
 
-/* MULTIPOLYGONTYPE */
+/* RTMULTIPOLYGONTYPE */
 typedef struct
 {
 	uint8_t type;
@@ -464,7 +464,7 @@ typedef struct
 }
 RTMPOLY;
 
-/* COLLECTIONTYPE */
+/* RTCOLLECTIONTYPE */
 typedef struct
 {
 	uint8_t type;
@@ -477,10 +477,10 @@ typedef struct
 }
 RTCOLLECTION;
 
-/* COMPOUNDTYPE */
+/* RTCOMPOUNDTYPE */
 typedef struct
 {
-	uint8_t type; /* COMPOUNDTYPE */
+	uint8_t type; /* RTCOMPOUNDTYPE */
 	uint8_t flags;
 	GBOX *bbox;
 	int32_t srid;
@@ -490,10 +490,10 @@ typedef struct
 }
 RTCOMPOUND; /* "light-weight compound line" */
 
-/* CURVEPOLYTYPE */
+/* RTCURVEPOLYTYPE */
 typedef struct
 {
-	uint8_t type; /* CURVEPOLYTYPE */
+	uint8_t type; /* RTCURVEPOLYTYPE */
 	uint8_t flags;
 	GBOX *bbox;
 	int32_t srid;
@@ -516,7 +516,7 @@ typedef struct
 }
 RTMCURVE;
 
-/* MULTISURFACETYPE */
+/* RTMULTISURFACETYPE */
 typedef struct
 {
 	uint8_t type;
@@ -529,7 +529,7 @@ typedef struct
 }
 RTMSURFACE;
 
-/* POLYHEDRALSURFACETYPE */
+/* RTPOLYHEDRALSURFACETYPE */
 typedef struct
 {
 	uint8_t type;
@@ -542,7 +542,7 @@ typedef struct
 }
 RTPSURFACE;
 
-/* TINTYPE */
+/* RTTINTYPE */
 typedef struct
 {
 	uint8_t type;
@@ -1320,7 +1320,7 @@ extern double rtpoint_get_m(const RTPOINT *point);
 extern int32_t rtgeom_get_srid(const RTGEOM *geom);
 
 /**
-* Return RTTYPE number
+* Return RTRTTYPE number
 */
 extern uint32_t rtgeom_get_type(const RTGEOM *geom);
 
@@ -1419,7 +1419,7 @@ unsigned int geohash_point_as_int(POINT2D *pt);
 /**
 * The return values of rtline_crossing_direction()
 */
-enum CG_LINE_CROSS_TYPE {
+enum RTCG_LINE_CROSS_TYPE {
     LINE_NO_CROSS = 0,
     LINE_CROSS_LEFT = -1,
     LINE_CROSS_RIGHT = 1,
@@ -1918,7 +1918,7 @@ RTGEOM_PARSER_RESULT;
 #define PARSER_ERROR_UNCLOSED       3
 #define PARSER_ERROR_MIXDIMS        4
 #define PARSER_ERROR_INVALIDGEOM    5
-#define PARSER_ERROR_INVALIDWKBTYPE 6
+#define RTPARSER_ERROR_INVALIDWKBTYPE 6
 #define PARSER_ERROR_INCONTINUOUS   7
 #define PARSER_ERROR_TRIANGLEPOINTS 8
 #define PARSER_ERROR_LESSPOINTS     9
@@ -1971,7 +1971,7 @@ RTGEOM_UNPARSER_RESULT;
 #define TWKB_BBOX 0x01 /* User wants bboxes */
 #define TWKB_SIZE 0x02 /* User wants sizes */
 #define TWKB_ID 0x04 /* User wants id */
-#define TWKB_NO_TYPE 0x10 /* No type because it is a sub geoemtry */
+#define RTTWKB_NO_TYPE 0x10 /* No type because it is a sub geoemtry */
 #define TWKB_NO_ID 0x20 /* No ID because it is a subgeoemtry */
 #define TWKB_DEFAULT_PRECISION 0 /* Aim for 1m (or ft) rounding by default */
 

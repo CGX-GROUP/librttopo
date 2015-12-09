@@ -51,13 +51,13 @@ rtgeom_to_x3d3(const RTGEOM *geom, char *srs, int precision, int opts, const cha
 
 	switch (type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return asx3d3_point((RTPOINT*)geom, srs, precision, opts, defid);
 
-	case LINETYPE:
+	case RTLINETYPE:
 		return asx3d3_line((RTLINE*)geom, srs, precision, opts, defid);
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 	{
 		/** We might change this later, but putting a polygon in an indexed face set
 		* seems like the simplest way to go so treat just like a mulitpolygon
@@ -68,21 +68,21 @@ rtgeom_to_x3d3(const RTGEOM *geom, char *srs, int precision, int opts, const cha
 		return ret;
 	}
 
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return asx3d3_triangle((RTTRIANGLE*)geom, srs, precision, opts, defid);
 
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
 		return asx3d3_multi((RTCOLLECTION*)geom, srs, precision, opts, defid);
 
-	case POLYHEDRALSURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
 		return asx3d3_psurface((RTPSURFACE*)geom, srs, precision, opts, defid);
 
-	case TINTYPE:
+	case RTTINTYPE:
 		return asx3d3_tin((RTTIN*)geom, srs, precision, opts, defid);
 
-	case COLLECTIONTYPE:
+	case RTCOLLECTIONTYPE:
 		return asx3d3_collection((RTCOLLECTION*)geom, srs, precision, opts, defid);
 
 	default:
@@ -389,17 +389,17 @@ asx3d3_multi_size(const RTCOLLECTION *col, char *srs, int precision, int opts, c
 	for (i=0; i<col->ngeoms; i++)
 	{
 		subgeom = col->geoms[i];
-		if (subgeom->type == POINTTYPE)
+		if (subgeom->type == RTPOINTTYPE)
 		{
 			/* size += ( sizeof("point=''") + defidlen ) * 2; */
 			size += asx3d3_point_size((RTPOINT*)subgeom, 0, precision, opts, defid);
 		}
-		else if (subgeom->type == LINETYPE)
+		else if (subgeom->type == RTLINETYPE)
 		{
 			/* size += ( sizeof("<curveMember>/") + defidlen ) * 2; */
 			size += asx3d3_line_size((RTLINE*)subgeom, 0, precision, opts, defid);
 		}
-		else if (subgeom->type == POLYGONTYPE)
+		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			/* size += ( sizeof("<surfaceMember>/") + defidlen ) * 2; */
 			size += asx3d3_poly_size((RTPOLY*)subgeom, 0, precision, opts, defid);
@@ -427,7 +427,7 @@ asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision
 
 	switch (col->type)
 	{
-        case MULTIPOINTTYPE:
+        case RTMULTIPOINTTYPE:
             x3dtype = "PointSet";
             if ( dimension == 2 ){ /** Use Polypoint2D instead **/
                 x3dtype = "Polypoint2D";   
@@ -437,13 +437,13 @@ asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision
                 ptr += sprintf(ptr, "<%s %s>", x3dtype, defid);
             }
             break;
-        case MULTILINETYPE:
+        case RTMULTILINETYPE:
             x3dtype = "IndexedLineSet";
             ptr += sprintf(ptr, "<%s %s coordIndex='", x3dtype, defid);
             ptr += asx3d3_mline_coordindex((const RTMLINE *)col, ptr);
             ptr += sprintf(ptr, "'>");
             break;
-        case MULTIPOLYGONTYPE:
+        case RTMULTIPOLYGONTYPE:
             x3dtype = "IndexedFaceSet";
             ptr += sprintf(ptr, "<%s %s coordIndex='", x3dtype, defid);
             ptr += asx3d3_mpoly_coordindex((const RTMPOLY *)col, ptr);
@@ -463,17 +463,17 @@ asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision
 	for (i=0; i<col->ngeoms; i++)
 	{
 		subgeom = col->geoms[i];
-		if (subgeom->type == POINTTYPE)
+		if (subgeom->type == RTPOINTTYPE)
 		{
 			ptr += asx3d3_point_buf((RTPOINT*)subgeom, 0, ptr, precision, opts, defid);
 			ptr += sprintf(ptr, " ");
 		}
-		else if (subgeom->type == LINETYPE)
+		else if (subgeom->type == RTLINETYPE)
 		{
 			ptr += asx3d3_line_coords((RTLINE*)subgeom, ptr, precision, opts);
 			ptr += sprintf(ptr, " ");
 		}
-		else if (subgeom->type == POLYGONTYPE)
+		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			ptr += asx3d3_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, opts, 0, defid);
 			ptr += sprintf(ptr, " ");
@@ -697,23 +697,23 @@ asx3d3_collection_size(const RTCOLLECTION *col, char *srs, int precision, int op
 	{
 		subgeom = col->geoms[i];
 		size += ( sizeof("<Shape />") + defidlen ) * 2; /** for collections we need to wrap each in a shape tag to make valid **/
-		if ( subgeom->type == POINTTYPE )
+		if ( subgeom->type == RTPOINTTYPE )
 		{
 			size += asx3d3_point_size((RTPOINT*)subgeom, 0, precision, opts, defid);
 		}
-		else if ( subgeom->type == LINETYPE )
+		else if ( subgeom->type == RTLINETYPE )
 		{
 			size += asx3d3_line_size((RTLINE*)subgeom, 0, precision, opts, defid);
 		}
-		else if ( subgeom->type == POLYGONTYPE )
+		else if ( subgeom->type == RTPOLYGONTYPE )
 		{
 			size += asx3d3_poly_size((RTPOLY*)subgeom, 0, precision, opts, defid);
 		}
-		else if ( subgeom->type == TINTYPE )
+		else if ( subgeom->type == RTTINTYPE )
 		{
 			size += asx3d3_tin_size((RTTIN*)subgeom, 0, precision, opts, defid);
 		}
-		else if ( subgeom->type == POLYHEDRALSURFACETYPE )
+		else if ( subgeom->type == RTPOLYHEDRALSURFACETYPE )
 		{
 			size += asx3d3_psurface_size((RTPSURFACE*)subgeom, 0, precision, opts, defid);
 		}
@@ -754,31 +754,31 @@ asx3d3_collection_buf(const RTCOLLECTION *col, char *srs, char *output, int prec
 	{
 		subgeom = col->geoms[i];
 		ptr += sprintf(ptr, "<Shape%s>", defid);
-		if ( subgeom->type == POINTTYPE )
+		if ( subgeom->type == RTPOINTTYPE )
 		{
 			ptr += asx3d3_point_buf((RTPOINT*)subgeom, 0, ptr, precision, opts, defid);
 		}
-		else if ( subgeom->type == LINETYPE )
+		else if ( subgeom->type == RTLINETYPE )
 		{
 			ptr += asx3d3_line_buf((RTLINE*)subgeom, 0, ptr, precision, opts, defid);
 		}
-		else if ( subgeom->type == POLYGONTYPE )
+		else if ( subgeom->type == RTPOLYGONTYPE )
 		{
 			ptr += asx3d3_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, opts, 0, defid);
 		}
-		else if ( subgeom->type == TINTYPE )
+		else if ( subgeom->type == RTTINTYPE )
 		{
 			ptr += asx3d3_tin_buf((RTTIN*)subgeom, srs, ptr, precision, opts,  defid);
 			
 		}
-		else if ( subgeom->type == POLYHEDRALSURFACETYPE )
+		else if ( subgeom->type == RTPOLYHEDRALSURFACETYPE )
 		{
 			ptr += asx3d3_psurface_buf((RTPSURFACE*)subgeom, srs, ptr, precision, opts,  defid);
 			
 		}
 		else if ( rtgeom_is_collection(subgeom) )
 		{
-			if ( subgeom->type == COLLECTIONTYPE )
+			if ( subgeom->type == RTCOLLECTIONTYPE )
 				ptr += asx3d3_collection_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, opts, defid);
 			else
 				ptr += asx3d3_multi_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, opts, defid);

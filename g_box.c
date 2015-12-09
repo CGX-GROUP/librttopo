@@ -652,26 +652,26 @@ int rtgeom_calculate_gbox_cartesian(const RTGEOM *rtgeom, GBOX *gbox)
 
 	switch (rtgeom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return rtpoint_calculate_gbox_cartesian((RTPOINT *)rtgeom, gbox);
-	case LINETYPE:
+	case RTLINETYPE:
 		return rtline_calculate_gbox_cartesian((RTLINE *)rtgeom, gbox);
-	case CIRCSTRINGTYPE:
+	case RTCIRCSTRINGTYPE:
 		return rtcircstring_calculate_gbox_cartesian((RTCIRCSTRING *)rtgeom, gbox);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_calculate_gbox_cartesian((RTPOLY *)rtgeom, gbox);
-	case TRIANGLETYPE:
+	case RTTRIANGLETYPE:
 		return rttriangle_calculate_gbox_cartesian((RTTRIANGLE *)rtgeom, gbox);
-	case COMPOUNDTYPE:
-	case CURVEPOLYTYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTICURVETYPE:
-	case MULTIPOLYGONTYPE:
-	case MULTISURFACETYPE:
-	case POLYHEDRALSURFACETYPE:
-	case TINTYPE:
-	case COLLECTIONTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTCURVEPOLYTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTICURVETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTMULTISURFACETYPE:
+	case RTPOLYHEDRALSURFACETYPE:
+	case RTTINTYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_calculate_gbox_cartesian((RTCOLLECTION *)rtgeom, gbox);
 	}
 	/* Never get here, please. */

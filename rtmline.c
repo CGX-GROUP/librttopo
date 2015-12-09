@@ -23,7 +23,7 @@ rtmline_release(RTMLINE *rtmline)
 RTMLINE *
 rtmline_construct_empty(int srid, char hasz, char hasm)
 {
-	RTMLINE *ret = (RTMLINE*)rtcollection_construct_empty(MULTILINETYPE, srid, hasz, hasm);
+	RTMLINE *ret = (RTMLINE*)rtcollection_construct_empty(RTMULTILINETYPE, srid, hasz, hasm);
 	return ret;
 }
 
@@ -47,7 +47,7 @@ rtmline_measured_from_rtmline(const RTMLINE *rtmline, double m_start, double m_e
 	double m_range = m_end - m_start;
 	RTGEOM **geoms = NULL;
 
-	if ( rtmline->type != MULTILINETYPE )
+	if ( rtmline->type != RTMULTILINETYPE )
 	{
 		rterror("rtmline_measured_from_lmwline: only multiline types supported");
 		return NULL;
@@ -68,7 +68,7 @@ rtmline_measured_from_rtmline(const RTMLINE *rtmline, double m_start, double m_e
 
 	if ( rtgeom_is_empty((RTGEOM*)rtmline) )
 	{
-		return (RTMLINE*)rtcollection_construct_empty(MULTILINETYPE, rtmline->srid, hasz, hasm);
+		return (RTMLINE*)rtcollection_construct_empty(RTMULTILINETYPE, rtmline->srid, hasz, hasm);
 	}
 
 	geoms = rtalloc(sizeof(RTGEOM*) * rtmline->ngeoms);

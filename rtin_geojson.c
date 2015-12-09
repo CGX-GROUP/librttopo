@@ -273,11 +273,11 @@ parse_geojson_multipoint(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(MULTIPOINTTYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOINTTYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(MULTIPOINTTYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOINTTYPE, -1, 1, 0);
 	}
 
 	poObjPoints = findMemberByName( geojson, "coordinates" );
@@ -316,11 +316,11 @@ parse_geojson_multilinestring(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(MULTILINETYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTILINETYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(MULTILINETYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTILINETYPE, -1, 1, 0);
 	}
 
 	poObjLines = findMemberByName( geojson, "coordinates" );
@@ -368,11 +368,11 @@ parse_geojson_multipolygon(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(MULTIPOLYGONTYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOLYGONTYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(MULTIPOLYGONTYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOLYGONTYPE, -1, 1, 0);
 	}
 
 	poObjPolys = findMemberByName( geojson, "coordinates" );
@@ -431,11 +431,11 @@ parse_geojson_geometrycollection(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(COLLECTIONTYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, -1, 1, 0);
 	}
 
 	poObjGeoms = findMemberByName( geojson, "geometries" );

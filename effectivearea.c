@@ -528,16 +528,16 @@ RTGEOM* rtgeom_set_effective_area(const RTGEOM *igeom,int set_area, double trshl
 	RTDEBUG(2, "Entered  rtgeom_set_effective_area");
 	switch (igeom->type)
 	{
-	case POINTTYPE:
-	case MULTIPOINTTYPE:
+	case RTPOINTTYPE:
+	case RTMULTIPOINTTYPE:
 		return rtgeom_clone(igeom);
-	case LINETYPE:
+	case RTLINETYPE:
 		return (RTGEOM*)rtline_set_effective_area((RTLINE*)igeom,set_area, trshld);
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return (RTGEOM*)rtpoly_set_effective_area((RTPOLY*)igeom,set_area, trshld);
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
 		return (RTGEOM*)rtcollection_set_effective_area((RTCOLLECTION *)igeom,set_area, trshld);
 	default:
 		rterror("rtgeom_simplify: unsupported geometry type: %s",rttype_name(igeom->type));

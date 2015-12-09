@@ -46,7 +46,7 @@ void printRTTIN(RTTIN *tin)
 	int i;
 	RTTRIANGLE *triangle;
 
-	if (tin->type != TINTYPE)
+	if (tin->type != RTTINTYPE)
 		rterror("printRTTIN called with something else than a TIN");
 
 	rtnotice("RTTIN {");

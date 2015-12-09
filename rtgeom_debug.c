@@ -148,26 +148,26 @@ rtgeom_summary(const RTGEOM *rtgeom, int offset)
 
 	switch (rtgeom->type)
 	{
-	case POINTTYPE:
+	case RTPOINTTYPE:
 		return rtpoint_summary((RTPOINT *)rtgeom, offset);
 
-	case CIRCSTRINGTYPE:
-	case TRIANGLETYPE:
-	case LINETYPE:
+	case RTCIRCSTRINGTYPE:
+	case RTTRIANGLETYPE:
+	case RTLINETYPE:
 		return rtline_summary((RTLINE *)rtgeom, offset);
 
-	case POLYGONTYPE:
+	case RTPOLYGONTYPE:
 		return rtpoly_summary((RTPOLY *)rtgeom, offset);
 
-	case TINTYPE:
-	case MULTISURFACETYPE:
-	case MULTICURVETYPE:
-	case CURVEPOLYTYPE:
-	case COMPOUNDTYPE:
-	case MULTIPOINTTYPE:
-	case MULTILINETYPE:
-	case MULTIPOLYGONTYPE:
-	case COLLECTIONTYPE:
+	case RTTINTYPE:
+	case RTMULTISURFACETYPE:
+	case RTMULTICURVETYPE:
+	case RTCURVEPOLYTYPE:
+	case RTCOMPOUNDTYPE:
+	case RTMULTIPOINTTYPE:
+	case RTMULTILINETYPE:
+	case RTMULTIPOLYGONTYPE:
+	case RTCOLLECTIONTYPE:
 		return rtcollection_summary((RTCOLLECTION *)rtgeom, offset);
 	default:
 		result = (char *)rtalloc(256);

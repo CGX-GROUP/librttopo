@@ -46,7 +46,7 @@ void printRTPSURFACE(RTPSURFACE *psurf)
 	int i, j;
 	RTPOLY *patch;
 
-	if (psurf->type != POLYHEDRALSURFACETYPE)
+	if (psurf->type != RTPOLYHEDRALSURFACETYPE)
 		rterror("printRTPSURFACE called with something else than a POLYHEDRALSURFACE");
 
 	rtnotice("RTPSURFACE {");

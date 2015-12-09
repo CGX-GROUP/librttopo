@@ -70,18 +70,18 @@ rtcollection_build_buffer(const RTCOLLECTION *col, HomogenizeBuffer *buffer)
 		RTGEOM *geom = col->geoms[i];
 		switch(geom->type)
 		{
-			case POINTTYPE:
-			case LINETYPE:
-			case CIRCSTRINGTYPE:
-			case COMPOUNDTYPE:
-			case TRIANGLETYPE:
-			case CURVEPOLYTYPE:
-			case POLYGONTYPE:
+			case RTPOINTTYPE:
+			case RTLINETYPE:
+			case RTCIRCSTRINGTYPE:
+			case RTCOMPOUNDTYPE:
+			case RTTRIANGLETYPE:
+			case RTCURVEPOLYTYPE:
+			case RTPOLYGONTYPE:
 			{
 				/* Init if necessary */
 				if ( ! buffer->buf[geom->type] )
 				{
-					RTCOLLECTION *bufcol = rtcollection_construct_empty(COLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
+					RTCOLLECTION *bufcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
 					bufcol->type = rttype_get_collectiontype(geom->type);
 					buffer->buf[geom->type] = bufcol;
 				}
@@ -127,7 +127,7 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	if ( ntypes == 0 )
 	{
 		RTCOLLECTION *outcol;
-		outcol = rtcollection_construct_empty(COLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
+		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
 		outgeom = rtcollection_as_rtgeom(outcol);
 	}
 	/* One type, return homogeneous collection */
@@ -151,7 +151,7 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	{
 		int j;
 		RTCOLLECTION *outcol;
-		outcol = rtcollection_construct_empty(COLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
+		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
 		for ( j = 0; j < NUMTYPES; j++ )
 		{
 			if ( buffer.buf[j] )
@@ -211,23 +211,23 @@ rtgeom_homogenize(const RTGEOM *geom)
 	{
 
 		/* Return simple geometries untouched */
-		case POINTTYPE:
-		case LINETYPE:
-		case CIRCSTRINGTYPE:
-		case COMPOUNDTYPE:
-		case TRIANGLETYPE:
-		case CURVEPOLYTYPE:
-		case POLYGONTYPE:
+		case RTPOINTTYPE:
+		case RTLINETYPE:
+		case RTCIRCSTRINGTYPE:
+		case RTCOMPOUNDTYPE:
+		case RTTRIANGLETYPE:
+		case RTCURVEPOLYTYPE:
+		case RTPOLYGONTYPE:
 			return rtgeom_clone(geom);
 
 		/* Process homogeneous geometries lightly */
-		case MULTIPOINTTYPE:
-		case MULTILINETYPE:
-		case MULTIPOLYGONTYPE:
-		case MULTICURVETYPE:
-		case MULTISURFACETYPE:
-		case POLYHEDRALSURFACETYPE:
-		case TINTYPE:
+		case RTMULTIPOINTTYPE:
+		case RTMULTILINETYPE:
+		case RTMULTIPOLYGONTYPE:
+		case RTMULTICURVETYPE:
+		case RTMULTISURFACETYPE:
+		case RTPOLYHEDRALSURFACETYPE:
+		case RTTINTYPE:
 		{
 			RTCOLLECTION *col = (RTCOLLECTION*)geom;
 
@@ -246,7 +246,7 @@ rtgeom_homogenize(const RTGEOM *geom)
 		}
 	
 		/* Work on anonymous collections separately */
-		case COLLECTIONTYPE: 
+		case RTCOLLECTIONTYPE: 
 			return rtcollection_homogenize((RTCOLLECTION *) geom);
 	}
 

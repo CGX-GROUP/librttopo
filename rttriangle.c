@@ -29,7 +29,7 @@ rttriangle_construct(int srid, GBOX *bbox, POINTARRAY *points)
 	RTTRIANGLE *result;
 
 	result = (RTTRIANGLE*) rtalloc(sizeof(RTTRIANGLE));
-	result->type = TRIANGLETYPE;
+	result->type = RTTRIANGLETYPE;
 
 	result->flags = points->flags;
 	FLAGS_SET_BBOX(result->flags, bbox?1:0);
@@ -45,7 +45,7 @@ RTTRIANGLE*
 rttriangle_construct_empty(int srid, char hasz, char hasm)
 {
 	RTTRIANGLE *result = rtalloc(sizeof(RTTRIANGLE));
-	result->type = TRIANGLETYPE;
+	result->type = RTTRIANGLETYPE;
 	result->flags = gflags(hasz,hasm,0);
 	result->srid = srid;
 	result->points = ptarray_construct_empty(hasz, hasm, 1);
@@ -68,7 +68,7 @@ void rttriangle_free(RTTRIANGLE  *triangle)
 
 void printRTTRIANGLE(RTTRIANGLE *triangle)
 {
-	if (triangle->type != TRIANGLETYPE)
+	if (triangle->type != RTTRIANGLETYPE)
                 rterror("printRTTRIANGLE called with something else than a Triangle");
 
 	rtnotice("RTTRIANGLE {");

@@ -639,11 +639,11 @@ double rtgeom_area_spheroid(const RTGEOM *rtgeom, const SPHEROID *spheroid)
 	type = rtgeom->type;
 
 	/* Anything but polygons and collections returns zero */
-	if ( ! ( type == POLYGONTYPE || type == MULTIPOLYGONTYPE || type == COLLECTIONTYPE ) )
+	if ( ! ( type == RTPOLYGONTYPE || type == RTMULTIPOLYGONTYPE || type == RTCOLLECTIONTYPE ) )
 		return 0.0;
 
 	/* Actually calculate area */
-	if ( type == POLYGONTYPE )
+	if ( type == RTPOLYGONTYPE )
 	{
 		RTPOLY *poly = (RTPOLY*)rtgeom;
 		int i;
@@ -665,7 +665,7 @@ double rtgeom_area_spheroid(const RTGEOM *rtgeom, const SPHEROID *spheroid)
 	}
 
 	/* Recurse into sub-geometries to get area */
-	if ( type == MULTIPOLYGONTYPE || type == COLLECTIONTYPE )
+	if ( type == RTMULTIPOLYGONTYPE || type == RTCOLLECTIONTYPE )
 	{
 		RTCOLLECTION *col = (RTCOLLECTION*)rtgeom;
 		int i;
