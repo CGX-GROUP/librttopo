@@ -8,7 +8,7 @@ between alignment and overall compactness.
 
 * It is understood that GSERIALIZED is be used primarily (only)
   by PostGIS. Other users of the geometry library (for example, the
-  loaders and dumpers) will serialize to WKB or EWKB or various text
+  loaders and dumpers) will serialize to RTWKB or EWKB or various text
   representations. Therefore, GSERIALIZED includes the uint32 "size"
   field at the top used by PostgreSQL for varlena types.
 * Like SERIALIZED_RTGEOM, GSERIALIZED is built to be read and written

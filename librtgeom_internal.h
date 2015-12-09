@@ -75,22 +75,22 @@
 
 
 /**
-* Well-Known Text (WKT) Output Variant Types
+* Well-Known Text (RTWKT) Output Variant Types
 */
-#define WKT_NO_TYPE 0x08 /* Internal use only */
-#define WKT_NO_PARENS 0x10 /* Internal use only */
-#define WKT_IS_CHILD 0x20 /* Internal use only */
+#define RTWKT_NO_TYPE 0x08 /* Internal use only */
+#define RTWKT_NO_PARENS 0x10 /* Internal use only */
+#define RTWKT_IS_CHILD 0x20 /* Internal use only */
 
 /**
-* Well-Known Binary (WKB) Output Variant Types
+* Well-Known Binary (RTWKB) Output Variant Types
 */
 
-#define WKB_DOUBLE_SIZE 8 /* Internal use only */
-#define WKB_INT_SIZE 4 /* Internal use only */
-#define WKB_BYTE_SIZE 1 /* Internal use only */
+#define RTWKB_DOUBLE_SIZE 8 /* Internal use only */
+#define RTWKB_INT_SIZE 4 /* Internal use only */
+#define RTWKB_BYTE_SIZE 1 /* Internal use only */
 
 /**
-* Well-Known Binary (WKB) Geometry Types 
+* Well-Known Binary (RTWKB) Geometry Types 
 */
 #define RTWKB_POINT_TYPE 1
 #define RTWKB_LINESTRING_TYPE 2

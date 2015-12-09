@@ -20,8 +20,8 @@
 */
 typedef struct 
 {
-	const uint8_t *wkb; /* Points to start of WKB */
-	size_t wkb_size; /* Expected size of WKB */
+	const uint8_t *wkb; /* Points to start of RTWKB */
+	size_t wkb_size; /* Expected size of RTWKB */
 	int swap_bytes; /* Do an endian flip? */
 	int check; /* Simple validity checks on geometries */
 	uint32_t rttype; /* Current type we are handling */
@@ -105,18 +105,18 @@ uint8_t* bytes_from_hexbytes(const char *hexbuf, size_t hexsize)
 
 
 /**
-* Check that we are not about to read off the end of the WKB 
+* Check that we are not about to read off the end of the RTWKB 
 * array.
 */
 static inline void wkb_parse_state_check(wkb_parse_state *s, size_t next)
 {
 	if( (s->pos + next) > (s->wkb + s->wkb_size) )
-		rterror("WKB structure does not match expected size!");
+		rterror("RTWKB structure does not match expected size!");
 } 
 
 /**
 * Take in an unknown kind of wkb type number and ensure it comes out
-* as an extended WKB type number (with Z/M/SRID flags masked onto the 
+* as an extended RTWKB type number (with Z/M/SRID flags masked onto the 
 * high bits).
 */
 static void rttype_from_wkb_state(wkb_parse_state *s, uint32_t wkb_type)
@@ -132,9 +132,9 @@ static void rttype_from_wkb_state(wkb_parse_state *s, uint32_t wkb_type)
 	/* If any of the higher bits are set, this is probably an extended type. */
 	if( wkb_type & 0xF0000000 )
 	{
-		if( wkb_type & WKBZOFFSET ) s->has_z = RT_TRUE;
-		if( wkb_type & WKBMOFFSET ) s->has_m = RT_TRUE;
-		if( wkb_type & WKBSRIDFLAG ) s->has_srid = RT_TRUE;
+		if( wkb_type & RTWKBZOFFSET ) s->has_z = RT_TRUE;
+		if( wkb_type & RTWKBMOFFSET ) s->has_m = RT_TRUE;
+		if( wkb_type & RTWKBSRIDFLAG ) s->has_srid = RT_TRUE;
 		RTDEBUGF(4, "Extended type: has_z=%d has_m=%d has_srid=%d", s->has_z, s->has_m, s->has_srid);
 	}
 	
@@ -218,7 +218,7 @@ static void rttype_from_wkb_state(wkb_parse_state *s, uint32_t wkb_type)
 			break;
 		
 		default: /* Error! */
-			rterror("Unknown WKB type (%d)! Full WKB type number was (%d).", wkb_simple_type, wkb_type);
+			rterror("Unknown RTWKB type (%d)! Full RTWKB type number was (%d).", wkb_simple_type, wkb_type);
 			break;	
 	}
 
@@ -236,12 +236,12 @@ static char byte_from_wkb_state(wkb_parse_state *s)
 	char char_value = 0;
 	RTDEBUG(4, "Entered function");
 
-	wkb_parse_state_check(s, WKB_BYTE_SIZE);
+	wkb_parse_state_check(s, RTWKB_BYTE_SIZE);
 	RTDEBUG(4, "Passed state check");
 	
 	char_value = s->pos[0];
 	RTDEBUGF(4, "Read byte value: %x", char_value);
-	s->pos += WKB_BYTE_SIZE;
+	s->pos += RTWKB_BYTE_SIZE;
 	
 	return char_value;
 }
@@ -254,9 +254,9 @@ static uint32_t integer_from_wkb_state(wkb_parse_state *s)
 {
 	uint32_t i = 0;
 
-	wkb_parse_state_check(s, WKB_INT_SIZE);
+	wkb_parse_state_check(s, RTWKB_INT_SIZE);
 	
-	memcpy(&i, s->pos, WKB_INT_SIZE);
+	memcpy(&i, s->pos, RTWKB_INT_SIZE);
 	
 	/* Swap? Copy into a stack-allocated integer. */
 	if( s->swap_bytes )
@@ -264,15 +264,15 @@ static uint32_t integer_from_wkb_state(wkb_parse_state *s)
 		int j = 0;
 		uint8_t tmp;
 		
-		for( j = 0; j < WKB_INT_SIZE/2; j++ )
+		for( j = 0; j < RTWKB_INT_SIZE/2; j++ )
 		{
 			tmp = ((uint8_t*)(&i))[j];
-			((uint8_t*)(&i))[j] = ((uint8_t*)(&i))[WKB_INT_SIZE - j - 1];
-			((uint8_t*)(&i))[WKB_INT_SIZE - j - 1] = tmp;
+			((uint8_t*)(&i))[j] = ((uint8_t*)(&i))[RTWKB_INT_SIZE - j - 1];
+			((uint8_t*)(&i))[RTWKB_INT_SIZE - j - 1] = tmp;
 		}
 	}
 
-	s->pos += WKB_INT_SIZE;
+	s->pos += RTWKB_INT_SIZE;
 	return i;
 }
 
@@ -284,9 +284,9 @@ static double double_from_wkb_state(wkb_parse_state *s)
 {
 	double d = 0;
 
-	wkb_parse_state_check(s, WKB_DOUBLE_SIZE);
+	wkb_parse_state_check(s, RTWKB_DOUBLE_SIZE);
 
-	memcpy(&d, s->pos, WKB_DOUBLE_SIZE);
+	memcpy(&d, s->pos, RTWKB_DOUBLE_SIZE);
 
 	/* Swap? Copy into a stack-allocated integer. */
 	if( s->swap_bytes )
@@ -294,16 +294,16 @@ static double double_from_wkb_state(wkb_parse_state *s)
 		int i = 0;
 		uint8_t tmp;
 		
-		for( i = 0; i < WKB_DOUBLE_SIZE/2; i++ )
+		for( i = 0; i < RTWKB_DOUBLE_SIZE/2; i++ )
 		{
 			tmp = ((uint8_t*)(&d))[i];
-			((uint8_t*)(&d))[i] = ((uint8_t*)(&d))[WKB_DOUBLE_SIZE - i - 1];
-			((uint8_t*)(&d))[WKB_DOUBLE_SIZE - i - 1] = tmp;
+			((uint8_t*)(&d))[i] = ((uint8_t*)(&d))[RTWKB_DOUBLE_SIZE - i - 1];
+			((uint8_t*)(&d))[RTWKB_DOUBLE_SIZE - i - 1] = tmp;
 		}
 
 	}
 
-	s->pos += WKB_DOUBLE_SIZE;
+	s->pos += RTWKB_DOUBLE_SIZE;
 	return d;
 }
 
@@ -326,7 +326,7 @@ static POINTARRAY* ptarray_from_wkb_state(wkb_parse_state *s)
 
 	if( s->has_z ) ndims++;
 	if( s->has_m ) ndims++;
-	pa_size = npoints * ndims * WKB_DOUBLE_SIZE;
+	pa_size = npoints * ndims * RTWKB_DOUBLE_SIZE;
 
 	/* Empty! */
 	if( npoints == 0 )
@@ -359,10 +359,10 @@ static POINTARRAY* ptarray_from_wkb_state(wkb_parse_state *s)
 
 /**
 * POINT
-* Read a WKB point, starting just after the endian byte, 
+* Read a RTWKB point, starting just after the endian byte, 
 * type number and optional srid number.
 * Advance the parse state forward appropriately.
-* WKB point has just a set of doubles, with the quantity depending on the 
+* RTWKB point has just a set of doubles, with the quantity depending on the 
 * dimension of the point, so this looks like a special case of the above
 * with only one point.
 */
@@ -377,7 +377,7 @@ static RTPOINT* rtpoint_from_wkb_state(wkb_parse_state *s)
 	/* Count the dimensions. */
 	if( s->has_z ) ndims++;
 	if( s->has_m ) ndims++;
-	pa_size = ndims * WKB_DOUBLE_SIZE;
+	pa_size = ndims * RTWKB_DOUBLE_SIZE;
 
 	/* Does the data we want to read exist? */
 	wkb_parse_state_check(s, pa_size);
@@ -416,7 +416,7 @@ static RTPOINT* rtpoint_from_wkb_state(wkb_parse_state *s)
 
 /**
 * LINESTRING
-* Read a WKB linestring, starting just after the endian byte, 
+* Read a RTWKB linestring, starting just after the endian byte, 
 * type number and optional srid number. Advance the parse state 
 * forward appropriately. 
 * There is only one pointarray in a linestring. Optionally
@@ -440,7 +440,7 @@ static RTLINE* rtline_from_wkb_state(wkb_parse_state *s)
 
 /**
 * CIRCULARSTRING
-* Read a WKB circularstring, starting just after the endian byte, 
+* Read a RTWKB circularstring, starting just after the endian byte, 
 * type number and optional srid number. Advance the parse state 
 * forward appropriately. 
 * There is only one pointarray in a linestring. Optionally
@@ -471,7 +471,7 @@ static RTCIRCSTRING* rtcircstring_from_wkb_state(wkb_parse_state *s)
 
 /**
 * POLYGON
-* Read a WKB polygon, starting just after the endian byte, 
+* Read a RTWKB polygon, starting just after the endian byte, 
 * type number and optional srid number. Advance the parse state 
 * forward appropriately. 
 * First read the number of rings, then read each ring
@@ -524,10 +524,10 @@ static RTPOLY* rtpoly_from_wkb_state(wkb_parse_state *s)
 
 /**
 * TRIANGLE
-* Read a WKB triangle, starting just after the endian byte, 
+* Read a RTWKB triangle, starting just after the endian byte, 
 * type number and optional srid number. Advance the parse state 
 * forward appropriately. 
-* Triangles are encoded like polygons in WKB, but more like linestrings
+* Triangles are encoded like polygons in RTWKB, but more like linestrings
 * as rtgeometries.
 */
 static RTTRIANGLE* rttriangle_from_wkb_state(wkb_parse_state *s)
@@ -645,7 +645,7 @@ static RTCOLLECTION* rtcollection_from_wkb_state(wkb_parse_state *s)
 
 /**
 * GEOMETRY
-* Generic handling for WKB geometries. The front of every WKB geometry
+* Generic handling for RTWKB geometries. The front of every RTWKB geometry
 * (including those embedded in collections) is an endian byte, a type
 * number and an optional srid number. We handle all those here, then pass
 * to the appropriate handler for the specific type.
@@ -681,7 +681,7 @@ RTGEOM* rtgeom_from_wkb_state(wkb_parse_state *s)
 
 	/* Read the type number */
 	wkb_type = integer_from_wkb_state(s);
-	RTDEBUGF(4,"Got WKB type number: 0x%X", wkb_type);
+	RTDEBUGF(4,"Got RTWKB type number: 0x%X", wkb_type);
 	rttype_from_wkb_state(s, wkb_type);
 	
 	/* Read the SRID, if necessary */
@@ -738,9 +738,9 @@ RTGEOM* rtgeom_from_wkb_state(wkb_parse_state *s)
 /* TODO add check for SRID consistency */
 
 /**
-* WKB inputs *must* have a declared size, to prevent malformed WKB from reading
+* RTWKB inputs *must* have a declared size, to prevent malformed RTWKB from reading
 * off the end of the memory segment (this stops a malevolent user from declaring
-* a one-ring polygon to have 10 rings, causing the WKB reader to walk off the 
+* a one-ring polygon to have 10 rings, causing the RTWKB reader to walk off the 
 * end of the memory).
 *
 * Check is a bitmask of: RT_PARSER_CHECK_MINPOINTS, RT_PARSER_CHECK_ODD, 

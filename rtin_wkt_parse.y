@@ -24,7 +24,7 @@ int wkt_yydebug = 0;
 /* 
 * Error handler called by the bison parser. Mostly we will be 
 * catching our own errors and filling out the message and errlocation
-* from WKT_ERROR in the grammar, but we keep this one 
+* from RTWKT_ERROR in the grammar, but we keep this one 
 * around just in case.
 */
 void wkt_yyerror(const char *str)
@@ -96,7 +96,7 @@ int rtgeom_parse_wkt(RTGEOM_PARSER_RESULT *parser_result, char *wktstr, int pars
 	return RT_SUCCESS;
 }
 
-#define WKT_ERROR() { if ( global_parser_result.errcode != 0 ) { YYERROR; } }
+#define RTWKT_ERROR() { if ( global_parser_result.errcode != 0 ) { YYERROR; } }
 
 
 %}
@@ -210,9 +210,9 @@ int rtgeom_parse_wkt(RTGEOM_PARSER_RESULT *parser_result, char *wktstr, int pars
 
 geometry:
 	geometry_no_srid 
-		{ wkt_parser_geometry_new($1, SRID_UNKNOWN); WKT_ERROR(); } |
+		{ wkt_parser_geometry_new($1, SRID_UNKNOWN); RTWKT_ERROR(); } |
 	SRID_TOK SEMICOLON_TOK geometry_no_srid 
-		{ wkt_parser_geometry_new($3, $1); WKT_ERROR(); } ;
+		{ wkt_parser_geometry_new($3, $1); RTWKT_ERROR(); } ;
 
 geometry_no_srid : 
 	point { $$ = $1; } | 
@@ -233,120 +233,120 @@ geometry_no_srid :
 	
 geometrycollection :
 	COLLECTION_TOK LBRACKET_TOK geometry_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, $3, NULL); RTWKT_ERROR(); } |
 	COLLECTION_TOK DIMENSIONALITY_TOK LBRACKET_TOK geometry_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, $4, $2); RTWKT_ERROR(); } |
 	COLLECTION_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, NULL, $2); RTWKT_ERROR(); } |
 	COLLECTION_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTCOLLECTIONTYPE, NULL, NULL); RTWKT_ERROR(); } ;
 	
 geometry_list :
 	geometry_list COMMA_TOK geometry_no_srid 
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	geometry_no_srid 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 multisurface :
 	MSURFACE_TOK LBRACKET_TOK surface_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, $3, NULL); RTWKT_ERROR(); } |
 	MSURFACE_TOK DIMENSIONALITY_TOK LBRACKET_TOK surface_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, $4, $2); RTWKT_ERROR(); } |
 	MSURFACE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, NULL, $2); RTWKT_ERROR(); } |
 	MSURFACE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTISURFACETYPE, NULL, NULL); RTWKT_ERROR(); } ;
 	
 surface_list :
 	surface_list COMMA_TOK polygon
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	surface_list COMMA_TOK curvepolygon
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	surface_list COMMA_TOK polygon_untagged
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	polygon 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } |
 	curvepolygon 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } |
 	polygon_untagged 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 tin :
 	TIN_TOK LBRACKET_TOK triangle_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, $3, NULL); RTWKT_ERROR(); } |
 	TIN_TOK DIMENSIONALITY_TOK LBRACKET_TOK triangle_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, $4, $2); RTWKT_ERROR(); } |
 	TIN_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, NULL, $2); RTWKT_ERROR(); } |
 	TIN_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTTINTYPE, NULL, NULL); RTWKT_ERROR(); } ;
 
 polyhedralsurface :
 	POLYHEDRALSURFACE_TOK LBRACKET_TOK patch_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, $3, NULL); RTWKT_ERROR(); } |
 	POLYHEDRALSURFACE_TOK DIMENSIONALITY_TOK LBRACKET_TOK patch_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, $4, $2); RTWKT_ERROR(); } |
 	POLYHEDRALSURFACE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, NULL, $2); RTWKT_ERROR(); } |
 	POLYHEDRALSURFACE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTPOLYHEDRALSURFACETYPE, NULL, NULL); RTWKT_ERROR(); } ;
 
 multipolygon :
 	MPOLYGON_TOK LBRACKET_TOK polygon_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, $3, NULL); RTWKT_ERROR(); } |
 	MPOLYGON_TOK DIMENSIONALITY_TOK LBRACKET_TOK polygon_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, $4, $2); RTWKT_ERROR(); } |
 	MPOLYGON_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, NULL, $2); RTWKT_ERROR(); } |
 	MPOLYGON_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOLYGONTYPE, NULL, NULL); RTWKT_ERROR(); } ;
 
 polygon_list :
 	polygon_list COMMA_TOK polygon_untagged 
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	polygon_untagged 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 patch_list :
 	patch_list COMMA_TOK patch 
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	patch 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 polygon : 
 	POLYGON_TOK LBRACKET_TOK ring_list RBRACKET_TOK 
-		{ $$ = wkt_parser_polygon_finalize($3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_polygon_finalize($3, NULL); RTWKT_ERROR(); } |
 	POLYGON_TOK DIMENSIONALITY_TOK LBRACKET_TOK ring_list RBRACKET_TOK 
-		{ $$ = wkt_parser_polygon_finalize($4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_polygon_finalize($4, $2); RTWKT_ERROR(); } |
 	POLYGON_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_polygon_finalize(NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_polygon_finalize(NULL, $2); RTWKT_ERROR(); } |
 	POLYGON_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_polygon_finalize(NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_polygon_finalize(NULL, NULL); RTWKT_ERROR(); } ;
 
 polygon_untagged : 
 	LBRACKET_TOK ring_list RBRACKET_TOK 
 		{ $$ = $2; } |
 	EMPTY_TOK
-		{ $$ = wkt_parser_polygon_finalize(NULL, NULL); WKT_ERROR(); };
+		{ $$ = wkt_parser_polygon_finalize(NULL, NULL); RTWKT_ERROR(); };
 
 patch : 
 	LBRACKET_TOK patchring_list RBRACKET_TOK { $$ = $2; } ;
 
 curvepolygon :
 	CURVEPOLYGON_TOK LBRACKET_TOK curvering_list RBRACKET_TOK
-		{ $$ = wkt_parser_curvepolygon_finalize($3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_curvepolygon_finalize($3, NULL); RTWKT_ERROR(); } |
 	CURVEPOLYGON_TOK DIMENSIONALITY_TOK LBRACKET_TOK curvering_list RBRACKET_TOK
-		{ $$ = wkt_parser_curvepolygon_finalize($4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_curvepolygon_finalize($4, $2); RTWKT_ERROR(); } |
 	CURVEPOLYGON_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_curvepolygon_finalize(NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_curvepolygon_finalize(NULL, $2); RTWKT_ERROR(); } |
 	CURVEPOLYGON_TOK EMPTY_TOK
-		{ $$ = wkt_parser_curvepolygon_finalize(NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_curvepolygon_finalize(NULL, NULL); RTWKT_ERROR(); } ;
 
 curvering_list :
 	curvering_list COMMA_TOK curvering 
-		{ $$ = wkt_parser_curvepolygon_add_ring($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_curvepolygon_add_ring($1,$3); RTWKT_ERROR(); } |
 	curvering 
-		{ $$ = wkt_parser_curvepolygon_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_curvepolygon_new($1); RTWKT_ERROR(); } ;
 
 curvering :
 	linestring_untagged { $$ = $1; } |
@@ -356,15 +356,15 @@ curvering :
 
 patchring_list :
 	patchring_list COMMA_TOK patchring 
-		{ $$ = wkt_parser_polygon_add_ring($1,$3,'Z'); WKT_ERROR(); } |
+		{ $$ = wkt_parser_polygon_add_ring($1,$3,'Z'); RTWKT_ERROR(); } |
 	patchring 
-		{ $$ = wkt_parser_polygon_new($1,'Z'); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_polygon_new($1,'Z'); RTWKT_ERROR(); } ;
 
 ring_list :
 	ring_list COMMA_TOK ring 
-		{ $$ = wkt_parser_polygon_add_ring($1,$3,'2'); WKT_ERROR(); } |
+		{ $$ = wkt_parser_polygon_add_ring($1,$3,'2'); RTWKT_ERROR(); } |
 	ring 
-		{ $$ = wkt_parser_polygon_new($1,'2'); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_polygon_new($1,'2'); RTWKT_ERROR(); } ;
 
 patchring :
 	LBRACKET_TOK ptarray RBRACKET_TOK { $$ = $2; } ;
@@ -374,165 +374,165 @@ ring :
 
 compoundcurve :
 	COMPOUNDCURVE_TOK LBRACKET_TOK compound_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, $3, NULL); RTWKT_ERROR(); } |
 	COMPOUNDCURVE_TOK DIMENSIONALITY_TOK LBRACKET_TOK compound_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, $4, $2); RTWKT_ERROR(); } |
 	COMPOUNDCURVE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, NULL, $2); RTWKT_ERROR(); } |
 	COMPOUNDCURVE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTCOMPOUNDTYPE, NULL, NULL); RTWKT_ERROR(); } ;
 
 compound_list :
 	compound_list COMMA_TOK circularstring
-		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_compound_add_geom($1,$3); RTWKT_ERROR(); } |
 	compound_list COMMA_TOK linestring
-		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_compound_add_geom($1,$3); RTWKT_ERROR(); } |
 	compound_list COMMA_TOK linestring_untagged
-		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_compound_add_geom($1,$3); RTWKT_ERROR(); } |
 	circularstring
-		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
+		{ $$ = wkt_parser_compound_new($1); RTWKT_ERROR(); } |
 	linestring
-		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
+		{ $$ = wkt_parser_compound_new($1); RTWKT_ERROR(); } |
 	linestring_untagged
-		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_compound_new($1); RTWKT_ERROR(); } ;
 
 multicurve :
 	MCURVE_TOK LBRACKET_TOK curve_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, $3, NULL); RTWKT_ERROR(); } |
 	MCURVE_TOK DIMENSIONALITY_TOK LBRACKET_TOK curve_list RBRACKET_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, $4, $2); RTWKT_ERROR(); } |
 	MCURVE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, NULL, $2); RTWKT_ERROR(); } |
 	MCURVE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTICURVETYPE, NULL, NULL); RTWKT_ERROR(); } ;
 
 curve_list :
 	curve_list COMMA_TOK circularstring
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	curve_list COMMA_TOK compoundcurve
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	curve_list COMMA_TOK linestring
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	curve_list COMMA_TOK linestring_untagged
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	circularstring
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } |
 	compoundcurve
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } |
 	linestring
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } |
 	linestring_untagged
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 multilinestring :
 	MLINESTRING_TOK LBRACKET_TOK linestring_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, $3, NULL); RTWKT_ERROR(); } |
 	MLINESTRING_TOK DIMENSIONALITY_TOK LBRACKET_TOK linestring_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, $4, $2); RTWKT_ERROR(); } |
 	MLINESTRING_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, NULL, $2); RTWKT_ERROR(); } |
 	MLINESTRING_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTILINETYPE, NULL, NULL); RTWKT_ERROR(); } ;
 
 linestring_list :
 	linestring_list COMMA_TOK linestring_untagged 
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	linestring_untagged 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 circularstring : 
 	CIRCULARSTRING_TOK LBRACKET_TOK ptarray RBRACKET_TOK 
-		{ $$ = wkt_parser_circularstring_new($3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_circularstring_new($3, NULL); RTWKT_ERROR(); } |
 	CIRCULARSTRING_TOK DIMENSIONALITY_TOK LBRACKET_TOK ptarray RBRACKET_TOK 
-		{ $$ = wkt_parser_circularstring_new($4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_circularstring_new($4, $2); RTWKT_ERROR(); } |
 	CIRCULARSTRING_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_circularstring_new(NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_circularstring_new(NULL, $2); RTWKT_ERROR(); } |
 	CIRCULARSTRING_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_circularstring_new(NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_circularstring_new(NULL, NULL); RTWKT_ERROR(); } ;
 
 linestring : 
 	LINESTRING_TOK LBRACKET_TOK ptarray RBRACKET_TOK 
-		{ $$ = wkt_parser_linestring_new($3, NULL); WKT_ERROR(); } | 
+		{ $$ = wkt_parser_linestring_new($3, NULL); RTWKT_ERROR(); } | 
 	LINESTRING_TOK DIMENSIONALITY_TOK LBRACKET_TOK ptarray RBRACKET_TOK 
-		{ $$ = wkt_parser_linestring_new($4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_linestring_new($4, $2); RTWKT_ERROR(); } |
 	LINESTRING_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_linestring_new(NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_linestring_new(NULL, $2); RTWKT_ERROR(); } |
 	LINESTRING_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_linestring_new(NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_linestring_new(NULL, NULL); RTWKT_ERROR(); } ;
 
 linestring_untagged :
 	LBRACKET_TOK ptarray RBRACKET_TOK 
-		{ $$ = wkt_parser_linestring_new($2, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_linestring_new($2, NULL); RTWKT_ERROR(); } |
 	EMPTY_TOK
-		{ $$ = wkt_parser_linestring_new(NULL, NULL); WKT_ERROR(); };
+		{ $$ = wkt_parser_linestring_new(NULL, NULL); RTWKT_ERROR(); };
 
 triangle_list :
 	triangle_list COMMA_TOK triangle_untagged 
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	triangle_untagged 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 triangle :
 	TRIANGLE_TOK LBRACKET_TOK LBRACKET_TOK ptarray RBRACKET_TOK RBRACKET_TOK 
-		{ $$ = wkt_parser_triangle_new($4, NULL); WKT_ERROR(); } | 
+		{ $$ = wkt_parser_triangle_new($4, NULL); RTWKT_ERROR(); } | 
 	TRIANGLE_TOK DIMENSIONALITY_TOK LBRACKET_TOK LBRACKET_TOK ptarray RBRACKET_TOK RBRACKET_TOK 
-		{ $$ = wkt_parser_triangle_new($5, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_triangle_new($5, $2); RTWKT_ERROR(); } |
 	TRIANGLE_TOK DIMENSIONALITY_TOK EMPTY_TOK
-		{ $$ = wkt_parser_triangle_new(NULL, $2); WKT_ERROR(); } | 
+		{ $$ = wkt_parser_triangle_new(NULL, $2); RTWKT_ERROR(); } | 
 	TRIANGLE_TOK EMPTY_TOK
-		{ $$ = wkt_parser_triangle_new(NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_triangle_new(NULL, NULL); RTWKT_ERROR(); } ;
 
 triangle_untagged :
 	LBRACKET_TOK LBRACKET_TOK ptarray RBRACKET_TOK RBRACKET_TOK
-		{ $$ = wkt_parser_triangle_new($3, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_triangle_new($3, NULL); RTWKT_ERROR(); } ;
 
 multipoint :
 	MPOINT_TOK LBRACKET_TOK point_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, $3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, $3, NULL); RTWKT_ERROR(); } |
 	MPOINT_TOK DIMENSIONALITY_TOK LBRACKET_TOK point_list RBRACKET_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, $4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, $4, $2); RTWKT_ERROR(); } |
 	MPOINT_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, NULL, $2); RTWKT_ERROR(); } |
 	MPOINT_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, NULL, NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_finalize(RTMULTIPOINTTYPE, NULL, NULL); RTWKT_ERROR(); } ;
 
 point_list :
 	point_list COMMA_TOK point_untagged 
-		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_collection_add_geom($1,$3); RTWKT_ERROR(); } |
 	point_untagged 
-		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_collection_new($1); RTWKT_ERROR(); } ;
 
 point_untagged :
 	coordinate 
-		{ $$ = wkt_parser_point_new(wkt_parser_ptarray_new($1),NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_point_new(wkt_parser_ptarray_new($1),NULL); RTWKT_ERROR(); } |
 	LBRACKET_TOK coordinate RBRACKET_TOK
-		{ $$ = wkt_parser_point_new(wkt_parser_ptarray_new($2),NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_point_new(wkt_parser_ptarray_new($2),NULL); RTWKT_ERROR(); } |
 	EMPTY_TOK
-		{ $$ = wkt_parser_point_new(NULL, NULL); WKT_ERROR(); };
+		{ $$ = wkt_parser_point_new(NULL, NULL); RTWKT_ERROR(); };
 
 point : 
 	POINT_TOK LBRACKET_TOK ptarray RBRACKET_TOK 
-		{ $$ = wkt_parser_point_new($3, NULL); WKT_ERROR(); } |
+		{ $$ = wkt_parser_point_new($3, NULL); RTWKT_ERROR(); } |
 	POINT_TOK DIMENSIONALITY_TOK LBRACKET_TOK ptarray RBRACKET_TOK 
-		{ $$ = wkt_parser_point_new($4, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_point_new($4, $2); RTWKT_ERROR(); } |
 	POINT_TOK DIMENSIONALITY_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_point_new(NULL, $2); WKT_ERROR(); } |
+		{ $$ = wkt_parser_point_new(NULL, $2); RTWKT_ERROR(); } |
 	POINT_TOK EMPTY_TOK 
-		{ $$ = wkt_parser_point_new(NULL,NULL); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_point_new(NULL,NULL); RTWKT_ERROR(); } ;
 
 ptarray : 
 	ptarray COMMA_TOK coordinate 
-		{ $$ = wkt_parser_ptarray_add_coord($1, $3); WKT_ERROR(); } |
+		{ $$ = wkt_parser_ptarray_add_coord($1, $3); RTWKT_ERROR(); } |
 	coordinate 
-		{ $$ = wkt_parser_ptarray_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_ptarray_new($1); RTWKT_ERROR(); } ;
 
 coordinate : 
 	DOUBLE_TOK DOUBLE_TOK 
-		{ $$ = wkt_parser_coord_2($1, $2); WKT_ERROR(); } | 
+		{ $$ = wkt_parser_coord_2($1, $2); RTWKT_ERROR(); } | 
 	DOUBLE_TOK DOUBLE_TOK DOUBLE_TOK 
-		{ $$ = wkt_parser_coord_3($1, $2, $3); WKT_ERROR(); } | 
+		{ $$ = wkt_parser_coord_3($1, $2, $3); RTWKT_ERROR(); } | 
 	DOUBLE_TOK DOUBLE_TOK DOUBLE_TOK DOUBLE_TOK 
-		{ $$ = wkt_parser_coord_4($1, $2, $3, $4); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_coord_4($1, $2, $3, $4); RTWKT_ERROR(); } ;
 
 %%
 

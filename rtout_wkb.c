@@ -49,13 +49,13 @@ char* hexbytes_from_bytes(uint8_t *bytes, size_t size)
 static int rtgeom_wkb_needs_srid(const RTGEOM *geom, uint8_t variant)
 {
 	/* Sub-components of collections inherit their SRID from the parent.
-	   We force that behavior with the WKB_NO_SRID flag */
-	if ( variant & WKB_NO_SRID )
+	   We force that behavior with the RTWKB_NO_SRID flag */
+	if ( variant & RTWKB_NO_SRID )
 		return RT_FALSE;
 		
 	/* We can only add an SRID if the geometry has one, and the 
-	   WKB form is extended */	
-	if ( (variant & WKB_EXTENDED) && rtgeom_has_srid(geom) )
+	   RTWKB form is extended */	
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_has_srid(geom) )
 		return RT_TRUE;
 		
 	/* Everything else doesn't get an SRID */
@@ -121,17 +121,17 @@ static uint32_t rtgeom_wkb_type(const RTGEOM *geom, uint8_t variant)
 			rttype_name(geom->type), geom->type);
 	}
 
-	if ( variant & WKB_EXTENDED )
+	if ( variant & RTWKB_EXTENDED )
 	{
 		if ( FLAGS_GET_Z(geom->flags) )
-			wkb_type |= WKBZOFFSET;
+			wkb_type |= RTWKBZOFFSET;
 		if ( FLAGS_GET_M(geom->flags) )
-			wkb_type |= WKBMOFFSET;
-/*		if ( geom->srid != SRID_UNKNOWN && ! (variant & WKB_NO_SRID) ) */
+			wkb_type |= RTWKBMOFFSET;
+/*		if ( geom->srid != SRID_UNKNOWN && ! (variant & RTWKB_NO_SRID) ) */
 		if ( rtgeom_wkb_needs_srid(geom, variant) )
-			wkb_type |= WKBSRIDFLAG;
+			wkb_type |= RTWKBSRIDFLAG;
 	}
-	else if ( variant & WKB_ISO )
+	else if ( variant & RTWKB_ISO )
 	{
 		/* Z types are in the 1000 range */
 		if ( FLAGS_GET_Z(geom->flags) )
@@ -149,15 +149,15 @@ static uint32_t rtgeom_wkb_type(const RTGEOM *geom, uint8_t variant)
 */
 static uint8_t* endian_to_wkb_buf(uint8_t *buf, uint8_t variant)
 {
-	if ( variant & WKB_HEX )
+	if ( variant & RTWKB_HEX )
 	{
 		buf[0] = '0';
-		buf[1] = ((variant & WKB_NDR) ? '1' : '0');
+		buf[1] = ((variant & RTWKB_NDR) ? '1' : '0');
 		return buf + 2;
 	}
 	else
 	{
-		buf[0] = ((variant & WKB_NDR) ? 1 : 0);
+		buf[0] = ((variant & RTWKB_NDR) ? 1 : 0);
 		return buf + 1;
 	}
 }
@@ -168,8 +168,8 @@ static uint8_t* endian_to_wkb_buf(uint8_t *buf, uint8_t variant)
 static inline int wkb_swap_bytes(uint8_t variant)
 {
 	/* If requested variant matches machine arch, we don't have to swap! */
-	if ( ((variant & WKB_NDR) && (getMachineEndian() == NDR)) ||
-	     ((! (variant & WKB_NDR)) && (getMachineEndian() == XDR)) )
+	if ( ((variant & RTWKB_NDR) && (getMachineEndian() == NDR)) ||
+	     ((! (variant & RTWKB_NDR)) && (getMachineEndian() == XDR)) )
 	{
 		return RT_FALSE;
 	}
@@ -184,42 +184,42 @@ static uint8_t* integer_to_wkb_buf(const int ival, uint8_t *buf, uint8_t variant
 	char *iptr = (char*)(&ival);
 	int i = 0;
 
-	if ( sizeof(int) != WKB_INT_SIZE )
+	if ( sizeof(int) != RTWKB_INT_SIZE )
 	{
-		rterror("Machine int size is not %d bytes!", WKB_INT_SIZE);
+		rterror("Machine int size is not %d bytes!", RTWKB_INT_SIZE);
 	}
 	RTDEBUGF(4, "Writing value '%u'", ival);
-	if ( variant & WKB_HEX )
+	if ( variant & RTWKB_HEX )
 	{
 		int swap = wkb_swap_bytes(variant);
 		/* Machine/request arch mismatch, so flip byte order */
-		for ( i = 0; i < WKB_INT_SIZE; i++ )
+		for ( i = 0; i < RTWKB_INT_SIZE; i++ )
 		{
-			int j = (swap ? WKB_INT_SIZE - 1 - i : i);
+			int j = (swap ? RTWKB_INT_SIZE - 1 - i : i);
 			uint8_t b = iptr[j];
 			/* Top four bits to 0-F */
 			buf[2*i] = hexchr[b >> 4];
 			/* Bottom four bits to 0-F */
 			buf[2*i+1] = hexchr[b & 0x0F];
 		}
-		return buf + (2 * WKB_INT_SIZE);
+		return buf + (2 * RTWKB_INT_SIZE);
 	}
 	else
 	{
 		/* Machine/request arch mismatch, so flip byte order */
 		if ( wkb_swap_bytes(variant) )
 		{
-			for ( i = 0; i < WKB_INT_SIZE; i++ )
+			for ( i = 0; i < RTWKB_INT_SIZE; i++ )
 			{
-				buf[i] = iptr[WKB_INT_SIZE - 1 - i];
+				buf[i] = iptr[RTWKB_INT_SIZE - 1 - i];
 			}
 		}
 		/* If machine arch and requested arch match, don't flip byte order */
 		else
 		{
-			memcpy(buf, iptr, WKB_INT_SIZE);
+			memcpy(buf, iptr, RTWKB_INT_SIZE);
 		}
-		return buf + WKB_INT_SIZE;
+		return buf + RTWKB_INT_SIZE;
 	}
 }
 
@@ -231,42 +231,42 @@ static uint8_t* double_to_wkb_buf(const double d, uint8_t *buf, uint8_t variant)
 	char *dptr = (char*)(&d);
 	int i = 0;
 
-	if ( sizeof(double) != WKB_DOUBLE_SIZE )
+	if ( sizeof(double) != RTWKB_DOUBLE_SIZE )
 	{
-		rterror("Machine double size is not %d bytes!", WKB_DOUBLE_SIZE);
+		rterror("Machine double size is not %d bytes!", RTWKB_DOUBLE_SIZE);
 	}
 
-	if ( variant & WKB_HEX )
+	if ( variant & RTWKB_HEX )
 	{
 		int swap =  wkb_swap_bytes(variant);
 		/* Machine/request arch mismatch, so flip byte order */
-		for ( i = 0; i < WKB_DOUBLE_SIZE; i++ )
+		for ( i = 0; i < RTWKB_DOUBLE_SIZE; i++ )
 		{
-			int j = (swap ? WKB_DOUBLE_SIZE - 1 - i : i);
+			int j = (swap ? RTWKB_DOUBLE_SIZE - 1 - i : i);
 			uint8_t b = dptr[j];
 			/* Top four bits to 0-F */
 			buf[2*i] = hexchr[b >> 4];
 			/* Bottom four bits to 0-F */
 			buf[2*i+1] = hexchr[b & 0x0F];
 		}
-		return buf + (2 * WKB_DOUBLE_SIZE);
+		return buf + (2 * RTWKB_DOUBLE_SIZE);
 	}
 	else
 	{
 		/* Machine/request arch mismatch, so flip byte order */
 		if ( wkb_swap_bytes(variant) )
 		{
-			for ( i = 0; i < WKB_DOUBLE_SIZE; i++ )
+			for ( i = 0; i < RTWKB_DOUBLE_SIZE; i++ )
 			{
-				buf[i] = dptr[WKB_DOUBLE_SIZE - 1 - i];
+				buf[i] = dptr[RTWKB_DOUBLE_SIZE - 1 - i];
 			}
 		}
 		/* If machine arch and requested arch match, don't flip byte order */
 		else
 		{
-			memcpy(buf, dptr, WKB_DOUBLE_SIZE);
+			memcpy(buf, dptr, RTWKB_DOUBLE_SIZE);
 		}
-		return buf + WKB_DOUBLE_SIZE;
+		return buf + RTWKB_DOUBLE_SIZE;
 	}
 }
 
@@ -277,22 +277,22 @@ static uint8_t* double_to_wkb_buf(const double d, uint8_t *buf, uint8_t variant)
 static size_t empty_to_wkb_size(const RTGEOM *geom, uint8_t variant)
 {
 	/* endian byte + type integer */
-	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE;
+	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE;
 
 	/* optional srid integer */
 	if ( rtgeom_wkb_needs_srid(geom, variant) )
-		size += WKB_INT_SIZE;
+		size += RTWKB_INT_SIZE;
 
 	/* Represent POINT EMPTY as POINT(NaN NaN) */
 	if ( geom->type == RTPOINTTYPE )
 	{
 		const RTPOINT *pt = (RTPOINT*)geom;
-		size += WKB_DOUBLE_SIZE * FLAGS_NDIMS(pt->point->flags);		
+		size += RTWKB_DOUBLE_SIZE * FLAGS_NDIMS(pt->point->flags);		
 	}
 	/* num-elements */
 	else
 	{
-		size += WKB_INT_SIZE;
+		size += RTWKB_INT_SIZE;
 	}
 
 	return size;
@@ -341,15 +341,15 @@ static size_t ptarray_to_wkb_size(const POINTARRAY *pa, uint8_t variant)
 	int dims = 2;
 	size_t size = 0;
 
-	if ( variant & (WKB_ISO | WKB_EXTENDED) )
+	if ( variant & (RTWKB_ISO | RTWKB_EXTENDED) )
 		dims = FLAGS_NDIMS(pa->flags);
 
 	/* Include the npoints if it's not a POINT type) */
-	if ( ! ( variant & WKB_NO_NPOINTS ) )
-		size += WKB_INT_SIZE;
+	if ( ! ( variant & RTWKB_NO_NPOINTS ) )
+		size += RTWKB_INT_SIZE;
 
 	/* size of the double list */
-	size += pa->npoints * dims * WKB_DOUBLE_SIZE;
+	size += pa->npoints * dims * RTWKB_DOUBLE_SIZE;
 
 	return size;
 }
@@ -362,18 +362,18 @@ static uint8_t* ptarray_to_wkb_buf(const POINTARRAY *pa, uint8_t *buf, uint8_t v
 	double *dbl_ptr;
 
 	/* SFSQL is artays 2-d. Extended and ISO use all available dimensions */
-	if ( (variant & WKB_ISO) || (variant & WKB_EXTENDED) )
+	if ( (variant & RTWKB_ISO) || (variant & RTWKB_EXTENDED) )
 		dims = pa_dims;
 
 	/* Set the number of points (if it's not a POINT type) */
-	if ( ! ( variant & WKB_NO_NPOINTS ) )
+	if ( ! ( variant & RTWKB_NO_NPOINTS ) )
 		buf = integer_to_wkb_buf(pa->npoints, buf, variant);
 
 	/* Bulk copy the coordinates when: dimensionality matches, output format */
 	/* is not hex, and output endian matches internal endian. */
-	if ( pa->npoints && (dims == pa_dims) && ! wkb_swap_bytes(variant) && ! (variant & WKB_HEX)  )
+	if ( pa->npoints && (dims == pa_dims) && ! wkb_swap_bytes(variant) && ! (variant & RTWKB_HEX)  )
 	{
-		size_t size = pa->npoints * dims * WKB_DOUBLE_SIZE;
+		size_t size = pa->npoints * dims * RTWKB_DOUBLE_SIZE;
 		memcpy(buf, getPoint_internal(pa, 0), size);
 		buf += size;
 	}
@@ -401,25 +401,25 @@ static uint8_t* ptarray_to_wkb_buf(const POINTARRAY *pa, uint8_t *buf, uint8_t v
 static size_t rtpoint_to_wkb_size(const RTPOINT *pt, uint8_t variant)
 {
 	/* Endian flag + type number */
-	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE;
+	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE;
 
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)pt) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)pt) )
 		return empty_to_wkb_size((RTGEOM*)pt, variant);
 
-	/* Extended WKB needs space for optional SRID integer */
+	/* Extended RTWKB needs space for optional SRID integer */
 	if ( rtgeom_wkb_needs_srid((RTGEOM*)pt, variant) )
-		size += WKB_INT_SIZE;
+		size += RTWKB_INT_SIZE;
 
 	/* Points */
-	size += ptarray_to_wkb_size(pt->point, variant | WKB_NO_NPOINTS);
+	size += ptarray_to_wkb_size(pt->point, variant | RTWKB_NO_NPOINTS);
 	return size;
 }
 
 static uint8_t* rtpoint_to_wkb_buf(const RTPOINT *pt, uint8_t *buf, uint8_t variant)
 {
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)pt) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)pt) )
 		return empty_to_wkb_buf((RTGEOM*)pt, buf, variant);
 
 	/* Set the endian flag */
@@ -436,7 +436,7 @@ static uint8_t* rtpoint_to_wkb_buf(const RTPOINT *pt, uint8_t *buf, uint8_t vari
 		RTDEBUGF(4, "SRID set, buf = %p", buf);
 	}
 	/* Set the coordinates */
-	buf = ptarray_to_wkb_buf(pt->point, buf, variant | WKB_NO_NPOINTS);
+	buf = ptarray_to_wkb_buf(pt->point, buf, variant | RTWKB_NO_NPOINTS);
 	RTDEBUGF(4, "Pointarray set, buf = %p", buf);
 	return buf;
 }
@@ -447,15 +447,15 @@ static uint8_t* rtpoint_to_wkb_buf(const RTPOINT *pt, uint8_t *buf, uint8_t vari
 static size_t rtline_to_wkb_size(const RTLINE *line, uint8_t variant)
 {
 	/* Endian flag + type number */
-	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE;
+	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE;
 
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)line) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)line) )
 		return empty_to_wkb_size((RTGEOM*)line, variant);
 
-	/* Extended WKB needs space for optional SRID integer */
+	/* Extended RTWKB needs space for optional SRID integer */
 	if ( rtgeom_wkb_needs_srid((RTGEOM*)line, variant) )
-		size += WKB_INT_SIZE;
+		size += RTWKB_INT_SIZE;
 
 	/* Size of point array */
 	size += ptarray_to_wkb_size(line->points, variant);
@@ -465,7 +465,7 @@ static size_t rtline_to_wkb_size(const RTLINE *line, uint8_t variant)
 static uint8_t* rtline_to_wkb_buf(const RTLINE *line, uint8_t *buf, uint8_t variant)
 {
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)line) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)line) )
 		return empty_to_wkb_buf((RTGEOM*)line, buf, variant);
 
 	/* Set the endian flag */
@@ -486,15 +486,15 @@ static uint8_t* rtline_to_wkb_buf(const RTLINE *line, uint8_t *buf, uint8_t vari
 static size_t rttriangle_to_wkb_size(const RTTRIANGLE *tri, uint8_t variant)
 {
 	/* endian flag + type number + number of rings */
-	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE + WKB_INT_SIZE;
+	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE + RTWKB_INT_SIZE;
 
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)tri) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)tri) )
 		return empty_to_wkb_size((RTGEOM*)tri, variant);
 
-	/* Extended WKB needs space for optional SRID integer */
+	/* Extended RTWKB needs space for optional SRID integer */
 	if ( rtgeom_wkb_needs_srid((RTGEOM*)tri, variant) )
-		size += WKB_INT_SIZE;
+		size += RTWKB_INT_SIZE;
 
 	/* How big is this point array? */
 	size += ptarray_to_wkb_size(tri->points, variant);
@@ -505,7 +505,7 @@ static size_t rttriangle_to_wkb_size(const RTTRIANGLE *tri, uint8_t variant)
 static uint8_t* rttriangle_to_wkb_buf(const RTTRIANGLE *tri, uint8_t *buf, uint8_t variant)
 {
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)tri) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)tri) )
 		return empty_to_wkb_buf((RTGEOM*)tri, buf, variant);
 
 	/* Set the endian flag */
@@ -533,16 +533,16 @@ static uint8_t* rttriangle_to_wkb_buf(const RTTRIANGLE *tri, uint8_t *buf, uint8
 static size_t rtpoly_to_wkb_size(const RTPOLY *poly, uint8_t variant)
 {
 	/* endian flag + type number + number of rings */
-	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE + WKB_INT_SIZE;
+	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE + RTWKB_INT_SIZE;
 	int i = 0;
 	
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)poly) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)poly) )
 		return empty_to_wkb_size((RTGEOM*)poly, variant);
 
-	/* Extended WKB needs space for optional SRID integer */
+	/* Extended RTWKB needs space for optional SRID integer */
 	if ( rtgeom_wkb_needs_srid((RTGEOM*)poly, variant) )
-		size += WKB_INT_SIZE;
+		size += RTWKB_INT_SIZE;
 
 	for ( i = 0; i < poly->nrings; i++ )
 	{
@@ -558,7 +558,7 @@ static uint8_t* rtpoly_to_wkb_buf(const RTPOLY *poly, uint8_t *buf, uint8_t vari
 	int i;
 
 	/* Only process empty at this level in the EXTENDED case */
-	if ( (variant & WKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)poly) )
+	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty((RTGEOM*)poly) )
 		return empty_to_wkb_buf((RTGEOM*)poly, buf, variant);
 
 	/* Set the endian flag */
@@ -588,17 +588,17 @@ static uint8_t* rtpoly_to_wkb_buf(const RTPOLY *poly, uint8_t *buf, uint8_t vari
 static size_t rtcollection_to_wkb_size(const RTCOLLECTION *col, uint8_t variant)
 {
 	/* Endian flag + type number + number of subgeoms */
-	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE + WKB_INT_SIZE;
+	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE + RTWKB_INT_SIZE;
 	int i = 0;
 
-	/* Extended WKB needs space for optional SRID integer */
+	/* Extended RTWKB needs space for optional SRID integer */
 	if ( rtgeom_wkb_needs_srid((RTGEOM*)col, variant) )
-		size += WKB_INT_SIZE;
+		size += RTWKB_INT_SIZE;
 
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
 		/* size of subgeom */
-		size += rtgeom_to_wkb_size((RTGEOM*)col->geoms[i], variant | WKB_NO_SRID);
+		size += rtgeom_to_wkb_size((RTGEOM*)col->geoms[i], variant | RTWKB_NO_SRID);
 	}
 
 	return size;
@@ -622,7 +622,7 @@ static uint8_t* rtcollection_to_wkb_buf(const RTCOLLECTION *col, uint8_t *buf, u
 	   inherit from their parents. */
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
-		buf = rtgeom_to_wkb_buf(col->geoms[i], buf, variant | WKB_NO_SRID);
+		buf = rtgeom_to_wkb_buf(col->geoms[i], buf, variant | RTWKB_NO_SRID);
 	}
 
 	return buf;
@@ -639,7 +639,7 @@ static size_t rtgeom_to_wkb_size(const RTGEOM *geom, uint8_t variant)
 		return 0;
 
 	/* Short circuit out empty geometries */
-	if ( (!(variant & WKB_EXTENDED)) && rtgeom_is_empty(geom) )
+	if ( (!(variant & RTWKB_EXTENDED)) && rtgeom_is_empty(geom) )
 	{
 		return empty_to_wkb_size(geom, variant);
 	}
@@ -694,7 +694,7 @@ static uint8_t* rtgeom_to_wkb_buf(const RTGEOM *geom, uint8_t *buf, uint8_t vari
 {
 
 	/* Do not simplify empties when outputting to canonical form */
-	if ( rtgeom_is_empty(geom) & ! (variant & WKB_EXTENDED) )
+	if ( rtgeom_is_empty(geom) & ! (variant & RTWKB_EXTENDED) )
 		return empty_to_wkb_buf(geom, buf, variant);
 
 	switch ( geom->type )
@@ -737,13 +737,13 @@ static uint8_t* rtgeom_to_wkb_buf(const RTGEOM *geom, uint8_t *buf, uint8_t vari
 }
 
 /**
-* Convert RTGEOM to a char* in WKB format. Caller is responsible for freeing
+* Convert RTGEOM to a char* in RTWKB format. Caller is responsible for freeing
 * the returned array.
 *
-* @param variant. Unsigned bitmask value. Accepts one of: WKB_ISO, WKB_EXTENDED, WKB_SFSQL.
-* Accepts any of: WKB_NDR, WKB_HEX. For example: Variant = ( WKB_ISO | WKB_NDR ) would
-* return the little-endian ISO form of WKB. For Example: Variant = ( WKB_EXTENDED | WKB_HEX )
-* would return the big-endian extended form of WKB, as hex-encoded ASCII (the "canonical form").
+* @param variant. Unsigned bitmask value. Accepts one of: RTWKB_ISO, RTWKB_EXTENDED, RTWKB_SFSQL.
+* Accepts any of: RTWKB_NDR, RTWKB_HEX. For example: Variant = ( RTWKB_ISO | RTWKB_NDR ) would
+* return the little-endian ISO form of RTWKB. For Example: Variant = ( RTWKB_EXTENDED | RTWKB_HEX )
+* would return the big-endian extended form of RTWKB, as hex-encoded ASCII (the "canonical form").
 * @param size_out If supplied, will return the size of the returned memory segment,
 * including the null terminator in the case of ASCII.
 */
@@ -758,37 +758,37 @@ uint8_t* rtgeom_to_wkb(const RTGEOM *geom, uint8_t variant, size_t *size_out)
 
 	if ( geom == NULL )
 	{
-		RTDEBUG(4,"Cannot convert NULL into WKB.");
-		rterror("Cannot convert NULL into WKB.");
+		RTDEBUG(4,"Cannot convert NULL into RTWKB.");
+		rterror("Cannot convert NULL into RTWKB.");
 		return NULL;
 	}
 
 	/* Calculate the required size of the output buffer */
 	buf_size = rtgeom_to_wkb_size(geom, variant);
-	RTDEBUGF(4, "WKB output size: %d", buf_size);
+	RTDEBUGF(4, "RTWKB output size: %d", buf_size);
 
 	if ( buf_size == 0 )
 	{
-		RTDEBUG(4,"Error calculating output WKB buffer size.");
-		rterror("Error calculating output WKB buffer size.");
+		RTDEBUG(4,"Error calculating output RTWKB buffer size.");
+		rterror("Error calculating output RTWKB buffer size.");
 		return NULL;
 	}
 
 	/* Hex string takes twice as much space as binary + a null character */
-	if ( variant & WKB_HEX )
+	if ( variant & RTWKB_HEX )
 	{
 		buf_size = 2 * buf_size + 1;
-		RTDEBUGF(4, "Hex WKB output size: %d", buf_size);
+		RTDEBUGF(4, "Hex RTWKB output size: %d", buf_size);
 	}
 
 	/* If neither or both variants are specified, choose the native order */
-	if ( ! (variant & WKB_NDR || variant & WKB_XDR) ||
-	       (variant & WKB_NDR && variant & WKB_XDR) )
+	if ( ! (variant & RTWKB_NDR || variant & RTWKB_XDR) ||
+	       (variant & RTWKB_NDR && variant & RTWKB_XDR) )
 	{
 		if ( getMachineEndian() == NDR ) 
-			variant = variant | WKB_NDR;
+			variant = variant | RTWKB_NDR;
 		else
-			variant = variant | WKB_XDR;
+			variant = variant | RTWKB_XDR;
 	}
 
 	/* Allocate the buffer */
@@ -796,19 +796,19 @@ uint8_t* rtgeom_to_wkb(const RTGEOM *geom, uint8_t variant, size_t *size_out)
 
 	if ( buf == NULL )
 	{
-		RTDEBUGF(4,"Unable to allocate %d bytes for WKB output buffer.", buf_size);
-		rterror("Unable to allocate %d bytes for WKB output buffer.", buf_size);
+		RTDEBUGF(4,"Unable to allocate %d bytes for RTWKB output buffer.", buf_size);
+		rterror("Unable to allocate %d bytes for RTWKB output buffer.", buf_size);
 		return NULL;
 	}
 
 	/* Retain a pointer to the front of the buffer for later */
 	wkb_out = buf;
 
-	/* Write the WKB into the output buffer */
+	/* Write the RTWKB into the output buffer */
 	buf = rtgeom_to_wkb_buf(geom, buf, variant);
 
 	/* Null the last byte if this is a hex output */
-	if ( variant & WKB_HEX )
+	if ( variant & RTWKB_HEX )
 	{
 		*buf = '\0';
 		buf++;
@@ -819,8 +819,8 @@ uint8_t* rtgeom_to_wkb(const RTGEOM *geom, uint8_t variant, size_t *size_out)
 	/* The buffer pointer should now land at the end of the allocated buffer space. Let's check. */
 	if ( buf_size != (buf - wkb_out) )
 	{
-		RTDEBUG(4,"Output WKB is not the same size as the allocated buffer.");
-		rterror("Output WKB is not the same size as the allocated buffer.");
+		RTDEBUG(4,"Output RTWKB is not the same size as the allocated buffer.");
+		rterror("Output RTWKB is not the same size as the allocated buffer.");
 		rtfree(wkb_out);
 		return NULL;
 	}
@@ -833,6 +833,6 @@ uint8_t* rtgeom_to_wkb(const RTGEOM *geom, uint8_t variant, size_t *size_out)
 
 char* rtgeom_to_hexwkb(const RTGEOM *geom, uint8_t variant, size_t *size_out)
 {
-	return (char*)rtgeom_to_wkb(geom, variant | WKB_HEX, size_out);
+	return (char*)rtgeom_to_wkb(geom, variant | RTWKB_HEX, size_out);
 }
 

@@ -72,10 +72,10 @@ const char* rtgeom_version(void);
 * Flags applied in EWKB to indicate Z/M dimensions and
 * presence/absence of SRID and bounding boxes
 */
-#define WKBZOFFSET  0x80000000
-#define WKBMOFFSET  0x40000000
-#define WKBSRIDFLAG 0x20000000
-#define WKBBBOXFLAG 0x10000000
+#define RTWKBZOFFSET  0x80000000
+#define RTWKBMOFFSET  0x40000000
+#define RTWKBSRIDFLAG 0x20000000
+#define RTWKBBBOXFLAG 0x10000000
 
 /** Ordinate names */
 typedef enum RTORD_T {
@@ -1658,7 +1658,7 @@ extern GBOX* gserialized_calculate_gbox_geocentric(const GSERIALIZED *g);
 int gserialized_calculate_gbox_geocentric_p(const GSERIALIZED *g, GBOX *g_box);
 
 /**
-* Return a WKT representation of the gserialized geometry. 
+* Return a RTWKT representation of the gserialized geometry. 
 * Caller is responsible for disposing of the char*.
 */
 extern char* gserialized_to_string(const GSERIALIZED *g);
@@ -1895,11 +1895,11 @@ extern int gserialized_get_gbox_p(const GSERIALIZED *g, GBOX *gbox);
 
 /**
  * Parser result structure: returns the result of attempting to convert
- * (E)WKT/(E)WKB to RTGEOM
+ * (E)RTWKT/(E)RTWKB to RTGEOM
  */
 typedef struct struct_rtgeom_parser_result
 {
-	const char *wkinput;        /* Copy of pointer to input WKT/WKB */
+	const char *wkinput;        /* Copy of pointer to input RTWKT/RTWKB */
 	uint8_t *serialized_rtgeom;   /* Pointer to serialized RTGEOM */
 	int size;                   /* Size of serialized RTGEOM in bytes */
 	RTGEOM *geom;               /* Pointer to RTGEOM struct */
@@ -1927,12 +1927,12 @@ RTGEOM_PARSER_RESULT;
 
 
 /*
- * Unparser result structure: returns the result of attempting to convert RTGEOM to (E)WKT/(E)WKB
+ * Unparser result structure: returns the result of attempting to convert RTGEOM to (E)RTWKT/(E)RTWKB
  */
 typedef struct struct_rtgeom_unparser_result
 {
 	uint8_t *serialized_rtgeom;	/* Copy of pointer to input serialized RTGEOM */
-	char *wkoutput;			/* Pointer to WKT or WKB output */
+	char *wkoutput;			/* Pointer to RTWKT or RTWKB output */
 	int size;			/* Size of serialized RTGEOM in bytes */
 	const char *message;		/* Error/warning message */
 	int errlocation;		/* Location of error */
@@ -1948,21 +1948,21 @@ RTGEOM_UNPARSER_RESULT;
 
 
 /*
-** Variants available for WKB and WKT output types
+** Variants available for RTWKB and RTWKT output types
 */
 
-#define WKB_ISO 0x01
-#define WKB_SFSQL 0x02
-#define WKB_EXTENDED 0x04
-#define WKB_NDR 0x08
-#define WKB_XDR 0x10
-#define WKB_HEX 0x20
-#define WKB_NO_NPOINTS 0x40 /* Internal use only */
-#define WKB_NO_SRID 0x80 /* Internal use only */
+#define RTWKB_ISO 0x01
+#define RTWKB_SFSQL 0x02
+#define RTWKB_EXTENDED 0x04
+#define RTWKB_NDR 0x08
+#define RTWKB_XDR 0x10
+#define RTWKB_HEX 0x20
+#define RTWKB_NO_NPOINTS 0x40 /* Internal use only */
+#define RTWKB_NO_SRID 0x80 /* Internal use only */
 
-#define WKT_ISO 0x01
-#define WKT_SFSQL 0x02
-#define WKT_EXTENDED 0x04
+#define RTWKT_ISO 0x01
+#define RTWKT_SFSQL 0x02
+#define RTWKT_EXTENDED 0x04
 
 
 /*
@@ -1980,22 +1980,22 @@ RTGEOM_UNPARSER_RESULT;
 */
 
 /**
-* @param rtgeom geometry to convert to WKT
-* @param variant output format to use (WKT_ISO, WKT_SFSQL, WKT_EXTENDED)
+* @param rtgeom geometry to convert to RTWKT
+* @param variant output format to use (RTWKT_ISO, RTWKT_SFSQL, RTWKT_EXTENDED)
 */
 extern char*   rtgeom_to_wkt(const RTGEOM *geom, uint8_t variant, int precision, size_t *size_out);
 
 /**
-* @param rtgeom geometry to convert to WKT
+* @param rtgeom geometry to convert to RTWKT
 * @param variant output format to use
-*                (WKB_ISO, WKB_SFSQL, WKB_EXTENDED, WKB_NDR, WKB_XDR)
+*                (RTWKB_ISO, RTWKB_SFSQL, RTWKB_EXTENDED, RTWKB_NDR, RTWKB_XDR)
 */
 extern uint8_t*  rtgeom_to_wkb(const RTGEOM *geom, uint8_t variant, size_t *size_out);
 
 /**
 * @param rtgeom geometry to convert to HEXWKB
 * @param variant output format to use
-*                (WKB_ISO, WKB_SFSQL, WKB_EXTENDED, WKB_NDR, WKB_XDR)
+*                (RTWKB_ISO, RTWKB_SFSQL, RTWKB_EXTENDED, RTWKB_NDR, RTWKB_XDR)
 */
 extern char*   rtgeom_to_hexwkb(const RTGEOM *geom, uint8_t variant, size_t *size_out);
 
@@ -2006,13 +2006,13 @@ extern char *rtgeom_to_ewkt(const RTGEOM *rtgeom);
 
 /**
  * @param check parser check flags, see RT_PARSER_CHECK_* macros
- * @param size length of WKB byte buffer
- * @param wkb WKB byte buffer
+ * @param size length of RTWKB byte buffer
+ * @param wkb RTWKB byte buffer
  */
 extern RTGEOM* rtgeom_from_wkb(const uint8_t *wkb, const size_t wkb_size, const char check);
 
 /**
- * @param wkt WKT string
+ * @param wkt RTWKT string
  * @param check parser check flags, see RT_PARSER_CHECK_* macros
  */
 extern RTGEOM* rtgeom_from_wkt(const char *wkt, const char check);
@@ -2027,7 +2027,7 @@ extern uint8_t*  bytes_from_hexbytes(const char *hexbuf, size_t hexsize);
 extern char*   hexbytes_from_bytes(uint8_t *bytes, size_t size);
 
 /*
-* WKT detailed parsing support
+* RTWKT detailed parsing support
 */
 extern int rtgeom_parse_wkt(RTGEOM_PARSER_RESULT *parser_result, char *wktstr, int parse_flags);
 void rtgeom_parser_result_init(RTGEOM_PARSER_RESULT *parser_result);

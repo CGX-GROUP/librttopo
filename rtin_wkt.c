@@ -28,7 +28,7 @@ const char *parser_error_messages[] =
 	"geometry contains non-closed rings",
 	"can not mix dimensionality in a geometry",
 	"parse error - invalid geometry",
-	"invalid WKB type",
+	"invalid RTWKB type",
 	"incontinuous compound curve",
 	"triangle must have exactly 4 points",
 	"geometry has too many points",
@@ -82,7 +82,7 @@ static uint8_t wkt_dimensionality(char *dimensionality)
 
 /**
 * Force the dimensionality of a geometry to match the dimensionality
-* of a set of flags (usually derived from a ZM WKT tag).
+* of a set of flags (usually derived from a ZM RTWKT tag).
 */
 static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 {
@@ -301,7 +301,7 @@ POINTARRAY* wkt_parser_ptarray_new(POINT p)
 
 /**
 * Create a new point. Null point array implies empty. Null dimensionality
-* implies no specified dimensionality in the WKT.
+* implies no specified dimensionality in the RTWKT.
 */
 RTGEOM* wkt_parser_point_new(POINTARRAY *pa, char *dimensionality)
 {
@@ -334,7 +334,7 @@ RTGEOM* wkt_parser_point_new(POINTARRAY *pa, char *dimensionality)
 
 /**
 * Create a new linestring. Null point array implies empty. Null dimensionality
-* implies no specified dimensionality in the WKT. Check for numpoints >= 2 if
+* implies no specified dimensionality in the RTWKT. Check for numpoints >= 2 if
 * requested.
 */
 RTGEOM* wkt_parser_linestring_new(POINTARRAY *pa, char *dimensionality)
@@ -367,7 +367,7 @@ RTGEOM* wkt_parser_linestring_new(POINTARRAY *pa, char *dimensionality)
 
 /**
 * Create a new circularstring. Null point array implies empty. Null dimensionality
-* implies no specified dimensionality in the WKT. 
+* implies no specified dimensionality in the RTWKT. 
 * Circular strings are just like linestrings, except with slighty different
 * validity rules (minpoint == 3, numpoints % 2 == 1). 
 */

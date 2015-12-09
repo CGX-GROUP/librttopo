@@ -471,11 +471,11 @@ rtgeom_to_ewkt(const RTGEOM *rtgeom)
 	char* wkt = NULL;
 	size_t wkt_size = 0;
 	
-	wkt = rtgeom_to_wkt(rtgeom, WKT_EXTENDED, 12, &wkt_size);
+	wkt = rtgeom_to_wkt(rtgeom, RTWKT_EXTENDED, 12, &wkt_size);
 
 	if ( ! wkt )
 	{
-		rterror("Error writing geom %p to WKT", rtgeom);
+		rterror("Error writing geom %p to RTWKT", rtgeom);
 	}
 
 	return wkt;

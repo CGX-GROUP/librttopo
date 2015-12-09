@@ -231,19 +231,19 @@ bytebuffer_append_int(bytebuffer_t *buf, const int val, int swap)
 	char *iptr = (char*)(&val);
 	int i = 0;
 
-	if ( sizeof(int) != WKB_INT_SIZE )
+	if ( sizeof(int) != RTWKB_INT_SIZE )
 	{
-		rterror("Machine int size is not %d bytes!", WKB_INT_SIZE);
+		rterror("Machine int size is not %d bytes!", RTWKB_INT_SIZE);
 	}
 	
-	bytebuffer_makeroom(buf, WKB_INT_SIZE);
+	bytebuffer_makeroom(buf, RTWKB_INT_SIZE);
 	/* Machine/request arch mismatch, so flip byte order */
 	if ( swap)
 	{
 		RTDEBUG(4,"Ok, let's do the swaping thing");	
-		for ( i = 0; i < WKB_INT_SIZE; i++ )
+		for ( i = 0; i < RTWKB_INT_SIZE; i++ )
 		{
-			*(buf->writecursor) = iptr[WKB_INT_SIZE - 1 - i];
+			*(buf->writecursor) = iptr[RTWKB_INT_SIZE - 1 - i];
 			buf->writecursor += 1;
 		}
 	}
@@ -251,8 +251,8 @@ bytebuffer_append_int(bytebuffer_t *buf, const int val, int swap)
 	else
 	{
 		RTDEBUG(4,"Ok, let's do the memcopying thing");		
-		memcpy(buf->writecursor, iptr, WKB_INT_SIZE);
-		buf->writecursor += WKB_INT_SIZE;
+		memcpy(buf->writecursor, iptr, RTWKB_INT_SIZE);
+		buf->writecursor += RTWKB_INT_SIZE;
 	}
 	
 	RTDEBUGF(4,"buf_start = %p and write_cursor=%p", buf->buf_start,buf->writecursor);
@@ -276,20 +276,20 @@ bytebuffer_append_double(bytebuffer_t *buf, const double val, int swap)
 	char *dptr = (char*)(&val);
 	int i = 0;
 
-	if ( sizeof(double) != WKB_DOUBLE_SIZE )
+	if ( sizeof(double) != RTWKB_DOUBLE_SIZE )
 	{
-		rterror("Machine double size is not %d bytes!", WKB_DOUBLE_SIZE);
+		rterror("Machine double size is not %d bytes!", RTWKB_DOUBLE_SIZE);
 	}
 
-	bytebuffer_makeroom(buf, WKB_DOUBLE_SIZE);
+	bytebuffer_makeroom(buf, RTWKB_DOUBLE_SIZE);
 	
 	/* Machine/request arch mismatch, so flip byte order */
 	if ( swap )
 	{
 		RTDEBUG(4,"Ok, let's do the swapping thing");		
-		for ( i = 0; i < WKB_DOUBLE_SIZE; i++ )
+		for ( i = 0; i < RTWKB_DOUBLE_SIZE; i++ )
 		{
-			*(buf->writecursor) = dptr[WKB_DOUBLE_SIZE - 1 - i];
+			*(buf->writecursor) = dptr[RTWKB_DOUBLE_SIZE - 1 - i];
 			buf->writecursor += 1;
 		}
 	}
@@ -297,8 +297,8 @@ bytebuffer_append_double(bytebuffer_t *buf, const double val, int swap)
 	else
 	{
 		RTDEBUG(4,"Ok, let's do the memcopying thing");			
-		memcpy(buf->writecursor, dptr, WKB_DOUBLE_SIZE);
-		buf->writecursor += WKB_DOUBLE_SIZE;
+		memcpy(buf->writecursor, dptr, RTWKB_DOUBLE_SIZE);
+		buf->writecursor += RTWKB_DOUBLE_SIZE;
 	}
 	
 	RTDEBUG(4,"Return from bytebuffer_append_double");		

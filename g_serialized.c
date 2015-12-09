@@ -152,7 +152,7 @@ int gserialized_is_empty(const GSERIALIZED *g)
 
 char* gserialized_to_string(const GSERIALIZED *g)
 {
-	return rtgeom_to_wkt(rtgeom_from_gserialized(g), WKT_ISO, 12, 0);
+	return rtgeom_to_wkt(rtgeom_from_gserialized(g), RTWKT_ISO, 12, 0);
 }
 
 int gserialized_read_gbox_p(const GSERIALIZED *g, GBOX *gbox)

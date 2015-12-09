@@ -15,7 +15,7 @@ typedef struct
 POINT;
 
 /*
-* Global that holds the final output geometry for the WKT parser.
+* Global that holds the final output geometry for the RTWKT parser.
 */
 extern RTGEOM_PARSER_RESULT global_parser_result;
 extern const char *parser_error_messages[];

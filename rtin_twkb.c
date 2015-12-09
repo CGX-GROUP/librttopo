@@ -62,7 +62,7 @@ RTGEOM* rtgeom_from_twkb_state(twkb_parse_state *s);
 /**********************************************************************/
 
 /**
-* Check that we are not about to read off the end of the WKB
+* Check that we are not about to read off the end of the RTWKB
 * array.
 */
 static inline void twkb_parse_state_advance(twkb_parse_state *s, size_t next)
@@ -133,7 +133,7 @@ static uint32_t rttype_from_twkb_type(uint8_t twkb_type)
 			return RTCOLLECTIONTYPE;
 
 		default: /* Error! */
-			rterror("Unknown WKB type");
+			rterror("Unknown RTWKB type");
 			return 0;
 	}
 	return 0;
@@ -146,7 +146,7 @@ static uint32_t rttype_from_twkb_type(uint8_t twkb_type)
 static uint8_t byte_from_twkb_state(twkb_parse_state *s)
 {
 	uint8_t val = *(s->pos);
-	twkb_parse_state_advance(s, WKB_BYTE_SIZE);
+	twkb_parse_state_advance(s, RTWKB_BYTE_SIZE);
 	return val;
 }
 
@@ -631,9 +631,9 @@ RTGEOM* rtgeom_from_twkb_state(twkb_parse_state *s)
 
 
 /**
-* WKB inputs *must* have a declared size, to prevent malformed WKB from reading
+* RTWKB inputs *must* have a declared size, to prevent malformed RTWKB from reading
 * off the end of the memory segment (this stops a malevolent user from declaring
-* a one-ring polygon to have 10 rings, causing the WKB reader to walk off the
+* a one-ring polygon to have 10 rings, causing the RTWKB reader to walk off the
 * end of the memory).
 *
 * Check is a bitmask of: RT_PARSER_CHECK_MINPOINTS, RT_PARSER_CHECK_ODD,

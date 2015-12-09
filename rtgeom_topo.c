@@ -41,8 +41,8 @@
   if (RTGEOM_DEBUG_LEVEL >= level) \
   do { \
     size_t sz; \
-    char *wkt1 = rtgeom_to_wkt(geom, WKT_EXTENDED, 15, &sz); \
-    /* char *wkt1 = rtgeom_to_hexwkb(geom, WKT_EXTENDED, &sz); */ \
+    char *wkt1 = rtgeom_to_wkt(geom, RTWKT_EXTENDED, 15, &sz); \
+    /* char *wkt1 = rtgeom_to_hexwkb(geom, RTWKT_EXTENDED, &sz); */ \
     RTDEBUGF(level, msg ": %s", wkt1); \
     rtfree(wkt1); \
   } while (0);
@@ -989,7 +989,7 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
 #if 0
   {
   size_t sz;
-  char *wkt = rtgeom_to_wkt((RTGEOM*)split_col, WKT_EXTENDED, 2, &sz);
+  char *wkt = rtgeom_to_wkt((RTGEOM*)split_col, RTWKT_EXTENDED, 2, &sz);
   RTDEBUGF(1, "returning split col: %s", wkt);
   rtfree(wkt);
   }
@@ -2769,7 +2769,7 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
 #if 0
   {
   size_t sz;
-  char *wkt = rtgeom_to_wkt(outg, WKT_EXTENDED, 2, &sz);
+  char *wkt = rtgeom_to_wkt(outg, RTWKT_EXTENDED, 2, &sz);
   RTDEBUGF(1, "_rtt_FaceByEdges returning area: %s", wkt);
   rtfree(wkt);
   }
@@ -2887,7 +2887,7 @@ _rtt_FindNextRingEdge(const POINTARRAY *ring, int from,
     size_t sz;
     RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " is %s",
                 isoe->edge_id,
-                rtgeom_to_wkt(rtline_as_rtgeom(edge), WKT_EXTENDED, 2, &sz));
+                rtgeom_to_wkt(rtline_as_rtgeom(edge), RTWKT_EXTENDED, 2, &sz));
 #endif
 
     /* ptarray_remove_repeated_points ? */
@@ -3050,7 +3050,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
 #if 0
   {
   size_t sz;
-  char *wkt = rtgeom_to_wkt(face, WKT_EXTENDED, 6, &sz);
+  char *wkt = rtgeom_to_wkt(face, RTWKT_EXTENDED, 6, &sz);
   RTDEBUGF(1, "Geometry of face %" RTTFMT_ELEMID " is: %s",
               face_id, wkt);
   rtfree(wkt);
@@ -3106,7 +3106,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
 #if 0
       {
       size_t sz;
-      char *wkt = rtgeom_to_wkt(rtline_as_rtgeom(nextline), WKT_EXTENDED, 6, &sz);
+      char *wkt = rtgeom_to_wkt(rtline_as_rtgeom(nextline), RTWKT_EXTENDED, 6, &sz);
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " is %s",
                   nextedge->edge_id, wkt);
       rtfree(wkt);
@@ -3418,7 +3418,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
         GEOSGeom_destroy(oarea);
         GEOSPreparedGeom_destroy(nareap);
         GEOSGeom_destroy(narea);
-        wkt = rtgeom_to_wkt(rtpoint_as_rtgeom(n->geom), WKT_ISO, 6, &sz);
+        wkt = rtgeom_to_wkt(rtpoint_as_rtgeom(n->geom), RTWKT_ISO, 6, &sz);
         _rtt_release_nodes(nodes, numnodes);
         rterror("Edge motion collision at %s", wkt);
         rtfree(wkt); /* would not necessarely reach this point */
@@ -3535,7 +3535,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 #if 0
     {
     size_t sz;
-    char *wkt = rtgeom_to_wkt(nface1, WKT_EXTENDED, 2, &sz);
+    char *wkt = rtgeom_to_wkt(nface1, RTWKT_EXTENDED, 2, &sz);
     RTDEBUGF(1, "new geometry of face left (%d): %s", (int)oldedge->face_left, wkt);
     rtfree(wkt);
     }
@@ -3553,7 +3553,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 #if 0
     {
     size_t sz;
-    char *wkt = rtgeom_to_wkt(nface2, WKT_EXTENDED, 2, &sz);
+    char *wkt = rtgeom_to_wkt(nface2, RTWKT_EXTENDED, 2, &sz);
     RTDEBUGF(1, "new geometry of face right (%d): %s", (int)oldedge->face_right, wkt);
     rtfree(wkt);
     }
@@ -5146,8 +5146,8 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
 #if RTGEOM_DEBUG_LEVEL > 0
       {
       size_t sz;
-      char *wkt1 = rtgeom_to_wkt(g, WKT_EXTENDED, 15, &sz);
-      char *wkt2 = rtgeom_to_wkt(snapedge, WKT_EXTENDED, 15, &sz);
+      char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
+      char *wkt2 = rtgeom_to_wkt(snapedge, RTWKT_EXTENDED, 15, &sz);
       RTDEBUGF(1, "Edge %s snapped became %s", wkt1, wkt2);
       rtfree(wkt1);
       rtfree(wkt2);
@@ -5178,7 +5178,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
 #if RTGEOM_DEBUG_LEVEL > 0
         {
         size_t sz;
-        char *wkt1 = rtgeom_to_wkt(g, WKT_EXTENDED, 15, &sz);
+        char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
         RTDEBUGF(1, "Tweaked snapline became %s", wkt1);
         rtfree(wkt1);
         }
@@ -5205,8 +5205,8 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     else
     {{
       size_t sz;
-      char *wkt1 = rtgeom_to_wkt(g, WKT_EXTENDED, 15, &sz);
-      char *wkt2 = rtgeom_to_wkt(prj, WKT_EXTENDED, 15, &sz);
+      char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
+      char *wkt2 = rtgeom_to_wkt(prj, RTWKT_EXTENDED, 15, &sz);
       RTDEBUGF(1, "Edge %s contains projected point %s", wkt1, wkt2);
       rtfree(wkt1);
       rtfree(wkt2);
@@ -5691,7 +5691,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 #if RTGEOM_DEBUG_LEVEL > 0
     {
       size_t sz;
-      char *wkt1 = rtgeom_to_wkt(g, WKT_EXTENDED, 15, &sz);
+      char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
       RTDEBUGF(1, "Component %d of split line is: %s", i, wkt1);
       rtfree(wkt1);
     }
