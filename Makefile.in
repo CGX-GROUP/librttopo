@@ -178,4 +178,4 @@ rtin_wkt_lex.c: rtin_wkt_lex.l
 	$(LEX) -i rtin_wkt_lex.l
 
 librtgeom.h: librtgeom.h.in
-	cd .. && ./config.status
+	./config.status
