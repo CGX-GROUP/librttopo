@@ -24,8 +24,8 @@ static char * asgeojson_collection(const RTCOLLECTION *col, char *srs, RTGBOX *b
 static size_t asgeojson_geom_size(const RTGEOM *geom, RTGBOX *bbox, int precision);
 static size_t asgeojson_geom_buf(const RTGEOM *geom, char *output, RTGBOX *bbox, int precision);
 
-static size_t pointArray_to_geojson(POINTARRAY *pa, char *buf, int precision);
-static size_t pointArray_geojson_size(POINTARRAY *pa, int precision);
+static size_t pointArray_to_geojson(RTPOINTARRAY *pa, char *buf, int precision);
+static size_t pointArray_geojson_size(RTPOINTARRAY *pa, int precision);
 
 /**
  * Takes a GEOMETRY and returns a GeoJson representation
@@ -696,7 +696,7 @@ rtprint_double(double d, int maxdd, char *buf, size_t bufsize)
 
 
 static size_t
-pointArray_to_geojson(POINTARRAY *pa, char *output, int precision)
+pointArray_to_geojson(RTPOINTARRAY *pa, char *output, int precision)
 {
 	int i;
 	char *ptr;
@@ -761,7 +761,7 @@ pointArray_to_geojson(POINTARRAY *pa, char *output, int precision)
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_geojson_size(POINTARRAY *pa, int precision)
+pointArray_geojson_size(RTPOINTARRAY *pa, int precision)
 {
 	assert ( precision <= OUT_MAX_DOUBLE_PRECISION );
 	if (FLAGS_NDIMS(pa->flags) == 2)

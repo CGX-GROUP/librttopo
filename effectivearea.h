@@ -49,13 +49,13 @@ Structure to hold pointarray and it's arealist
 */
 typedef struct
 {
-	const POINTARRAY *inpts;
+	const RTPOINTARRAY *inpts;
 	areanode *initial_arealist;
 	double *res_arealist;
 } EFFECTIVE_AREAS;
 
 
-EFFECTIVE_AREAS* initiate_effectivearea(const POINTARRAY *inpts);
+EFFECTIVE_AREAS* initiate_effectivearea(const RTPOINTARRAY *inpts);
 
 void destroy_effectivearea(EFFECTIVE_AREAS *ea);
 

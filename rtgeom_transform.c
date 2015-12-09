@@ -34,11 +34,11 @@ to_dec(RTPOINT4D *pt)
 }
 
 /**
- * Transform given POINTARRAY
+ * Transform given RTPOINTARRAY
  * from inpj projection to outpj projection
  */
 int
-ptarray_transform(POINTARRAY *pa, projPJ inpj, projPJ outpj)
+ptarray_transform(RTPOINTARRAY *pa, projPJ inpj, projPJ outpj)
 {
   int i;
 	RTPOINT4D p;

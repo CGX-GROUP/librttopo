@@ -16,7 +16,7 @@
 
 static char * rtline_to_encoded_polyline(const RTLINE*, int precision);
 static char * rtmmpoint_to_encoded_polyline(const RTMPOINT*, int precision);
-static char * pointarray_to_encoded_polyline(const POINTARRAY*, int precision);
+static char * pointarray_to_encoded_polyline(const RTPOINTARRAY*, int precision);
 
 /* takes a GEOMETRY and returns an Encoded Polyline representation */
 extern char *
@@ -52,7 +52,7 @@ char * rtmmpoint_to_encoded_polyline(const RTMPOINT *mpoint, int precision)
 }
 
 static
-char * pointarray_to_encoded_polyline(const POINTARRAY *pa, int precision)
+char * pointarray_to_encoded_polyline(const RTPOINTARRAY *pa, int precision)
 {
 	int i;
 	const RTPOINT2D *prevPoint;

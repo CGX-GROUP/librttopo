@@ -33,9 +33,9 @@ static char *asx3d3_psurface(const RTPSURFACE *psur, char *srs, int precision, i
 static char *asx3d3_tin(const RTTIN *tin, char *srs, int precision, int opts, const char *defid);
 static size_t asx3d3_collection_size(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
 static char *asx3d3_collection(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
-static size_t pointArray_toX3D3(POINTARRAY *pa, char *buf, int precision, int opts, int is_closed);
+static size_t pointArray_toX3D3(RTPOINTARRAY *pa, char *buf, int precision, int opts, int is_closed);
 
-static size_t pointArray_X3Dsize(POINTARRAY *pa, int precision);
+static size_t pointArray_X3Dsize(RTPOINTARRAY *pa, int precision);
 
 
 /*
@@ -165,7 +165,7 @@ asx3d3_line_buf(const RTLINE *line, char *srs, char *output, int precision, int 
 {
 	char *ptr=output;
 	/* int dimension=2; */
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 
 	/* if (FLAGS_GET_Z(line->flags)) dimension = 3; */
@@ -200,7 +200,7 @@ asx3d3_mline_coordindex(const RTMLINE *mgeom, char *output)
 	char *ptr=output;
 	RTLINE *geom;
 	int i, j, k, si;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	int np;
 
 	j = 0;
@@ -816,7 +816,7 @@ asx3d3_collection(const RTCOLLECTION *col, char *srs, int precision, int opts, c
 /** In X3D3, coordinates are separated by a space separator
  */
 static size_t
-pointArray_toX3D3(POINTARRAY *pa, char *output, int precision, int opts, int is_closed)
+pointArray_toX3D3(RTPOINTARRAY *pa, char *output, int precision, int opts, int is_closed)
 {
 	int i;
 	char *ptr;
@@ -906,7 +906,7 @@ pointArray_toX3D3(POINTARRAY *pa, char *output, int precision, int opts, int is_
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_X3Dsize(POINTARRAY *pa, int precision)
+pointArray_X3Dsize(RTPOINTARRAY *pa, int precision)
 {
 	if (FLAGS_NDIMS(pa->flags) == 2)
 		return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(" "))

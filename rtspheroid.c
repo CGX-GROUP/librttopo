@@ -120,7 +120,7 @@ int spheroid_project(const GEOGRAPHIC_POINT *r, const SPHEROID *spheroid, double
 }
 
 
-static double ptarray_area_spheroid(const POINTARRAY *pa, const SPHEROID *spheroid)
+static double ptarray_area_spheroid(const RTPOINTARRAY *pa, const SPHEROID *spheroid)
 {
 	/* Return zero on non-sensical inputs */
 	if ( ! pa || pa->npoints < 4 )
@@ -477,7 +477,7 @@ static double spheroid_striparea(const GEOGRAPHIC_POINT *a, const GEOGRAPHIC_POI
 	return (baseArea + topArea / ratio) * sign;
 }
 
-static double ptarray_area_spheroid(const POINTARRAY *pa, const SPHEROID *spheroid)
+static double ptarray_area_spheroid(const RTPOINTARRAY *pa, const SPHEROID *spheroid)
 {
 	GEOGRAPHIC_POINT a, b;
 	RTPOINT2D p;

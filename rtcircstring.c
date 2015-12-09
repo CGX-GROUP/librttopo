@@ -35,7 +35,7 @@ void rtcircstring_setPoint4d(RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *new
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTCIRCSTRING *
-rtcircstring_construct(int srid, RTGBOX *bbox, POINTARRAY *points)
+rtcircstring_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 {
 	RTCIRCSTRING *result;
 
@@ -136,7 +136,7 @@ rtcircstring_from_rtpointarray(int srid, uint32_t npoints, RTPOINT **points)
 {
 	int zmflag=0;
 	uint32_t i;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	uint8_t *newpoints, *ptr;
 	size_t ptsize, size;
 
@@ -186,7 +186,7 @@ RTCIRCSTRING *
 rtcircstring_from_rtmpoint(int srid, RTMPOINT *mpoint)
 {
 	uint32_t i;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	char zmflag = FLAGS_GET_ZM(mpoint->flags);
 	size_t ptsize, size;
 	uint8_t *newpoints, *ptr;
@@ -219,7 +219,7 @@ rtcircstring_from_rtmpoint(int srid, RTMPOINT *mpoint)
 RTCIRCSTRING *
 rtcircstring_addpoint(RTCIRCSTRING *curve, RTPOINT *point, uint32_t where)
 {
-	POINTARRAY *newpa;
+	RTPOINTARRAY *newpa;
 	RTCIRCSTRING *ret;
 
 	newpa = ptarray_addPoint(curve->points,
@@ -233,7 +233,7 @@ rtcircstring_addpoint(RTCIRCSTRING *curve, RTPOINT *point, uint32_t where)
 RTCIRCSTRING *
 rtcircstring_removepoint(RTCIRCSTRING *curve, uint32_t index)
 {
-	POINTARRAY *newpa;
+	RTPOINTARRAY *newpa;
 	RTCIRCSTRING *ret;
 
 	newpa = ptarray_removePoint(curve->points, index);
@@ -287,7 +287,7 @@ double rtcircstring_length_2d(const RTCIRCSTRING *circ)
 RTPOINT* rtcircstring_get_rtpoint(const RTCIRCSTRING *circ, int where) {
 	RTPOINT4D pt;
 	RTPOINT *rtpoint;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 	if ( rtcircstring_is_empty(circ) || where < 0 || where >= circ->points->npoints )
 		return NULL;
@@ -305,7 +305,7 @@ RTPOINT* rtcircstring_get_rtpoint(const RTCIRCSTRING *circ, int where) {
 RTCIRCSTRING* rtcircstring_grid(const RTCIRCSTRING *line, const gridspec *grid)
 {
 	RTCIRCSTRING *oline;
-	POINTARRAY *opa;
+	RTPOINTARRAY *opa;
 
 	opa = ptarray_grid(line->points, grid);
 

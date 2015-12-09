@@ -80,7 +80,7 @@ findMemberByName(json_object* poObj, const char* pszName )
 
 
 static int
-parse_geojson_coord(json_object *poObj, int *hasz, POINTARRAY *pa)
+parse_geojson_coord(json_object *poObj, int *hasz, RTPOINTARRAY *pa)
 {
 	RTPOINT4D pt;
 
@@ -146,7 +146,7 @@ static RTGEOM*
 parse_geojson_point(json_object *geojson, int *hasz, int root_srid)
 {
 	RTGEOM *geom;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	json_object* coords = NULL;
 
 	RTDEBUGF(3, "parse_geojson_point called with root_srid = %d.", root_srid );
@@ -170,7 +170,7 @@ static RTGEOM*
 parse_geojson_linestring(json_object *geojson, int *hasz, int root_srid)
 {
 	RTGEOM *geom;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	json_object* points = NULL;
 	int i = 0;
 
@@ -205,7 +205,7 @@ parse_geojson_linestring(json_object *geojson, int *hasz, int root_srid)
 static RTGEOM*
 parse_geojson_polygon(json_object *geojson, int *hasz, int root_srid)
 {
-	POINTARRAY **ppa = NULL;
+	RTPOINTARRAY **ppa = NULL;
 	json_object* rings = NULL;
 	json_object* points = NULL;
 	int i = 0, j = 0;
@@ -246,7 +246,7 @@ parse_geojson_polygon(json_object *geojson, int *hasz, int root_srid)
 		if ( nPoints == 0 ) continue;
 		
 		if ( ! ppa )
-			ppa = (POINTARRAY**)rtalloc(sizeof(POINTARRAY*) * nRings);
+			ppa = (RTPOINTARRAY**)rtalloc(sizeof(RTPOINTARRAY*) * nRings);
 		
 		ppa[i] = ptarray_construct_empty(1, 0, 1);
 		for ( j = 0; j < nPoints; j++ )
@@ -292,7 +292,7 @@ parse_geojson_multipoint(json_object *geojson, int *hasz, int root_srid)
 		const int nPoints = json_object_array_length( poObjPoints );
 		for( i = 0; i < nPoints; ++i)
 		{
-			POINTARRAY *pa;
+			RTPOINTARRAY *pa;
 			json_object* poObjCoords = NULL;
 			poObjCoords = json_object_array_get_idx( poObjPoints, i );
 
@@ -335,7 +335,7 @@ parse_geojson_multilinestring(json_object *geojson, int *hasz, int root_srid)
 		const int nLines = json_object_array_length( poObjLines );
 		for( i = 0; i < nLines; ++i)
 		{
-			POINTARRAY *pa = NULL;
+			RTPOINTARRAY *pa = NULL;
 			json_object* poObjLine = NULL;
 			poObjLine = json_object_array_get_idx( poObjLines, i );
 			pa = ptarray_construct_empty(1, 0, 1);
@@ -402,7 +402,7 @@ parse_geojson_multipolygon(json_object *geojson, int *hasz, int root_srid)
 					if( json_type_array == json_object_get_type( points ) )
 					{
 
-						POINTARRAY *pa = ptarray_construct_empty(1, 0, 1);
+						RTPOINTARRAY *pa = ptarray_construct_empty(1, 0, 1);
 
 						int nPoints = json_object_array_length( points );
 						for ( k=0; k < nPoints; k++ )

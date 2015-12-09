@@ -334,9 +334,9 @@ static uint8_t* empty_to_wkb_buf(const RTGEOM *geom, uint8_t *buf, uint8_t varia
 }
 
 /*
-* POINTARRAY
+* RTPOINTARRAY
 */
-static size_t ptarray_to_wkb_size(const POINTARRAY *pa, uint8_t variant)
+static size_t ptarray_to_wkb_size(const RTPOINTARRAY *pa, uint8_t variant)
 {
 	int dims = 2;
 	size_t size = 0;
@@ -354,7 +354,7 @@ static size_t ptarray_to_wkb_size(const POINTARRAY *pa, uint8_t variant)
 	return size;
 }
 
-static uint8_t* ptarray_to_wkb_buf(const POINTARRAY *pa, uint8_t *buf, uint8_t variant)
+static uint8_t* ptarray_to_wkb_buf(const RTPOINTARRAY *pa, uint8_t *buf, uint8_t variant)
 {
 	int dims = 2;
 	int pa_dims = FLAGS_NDIMS(pa->flags);

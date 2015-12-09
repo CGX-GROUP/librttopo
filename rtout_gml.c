@@ -32,7 +32,7 @@ static size_t asgml2_multi_size(const RTCOLLECTION *col, const char *srs, int pr
 static char *asgml2_multi(const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
 static size_t asgml2_collection_size(const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
 static char *asgml2_collection(const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
-static size_t pointArray_toGML2(POINTARRAY *pa, char *buf, int precision);
+static size_t pointArray_toGML2(RTPOINTARRAY *pa, char *buf, int precision);
 
 static size_t asgml3_point_size(const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
 static char *asgml3_point(const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
@@ -53,17 +53,17 @@ static char *asgml3_collection(const RTCOLLECTION *col, const char *srs, int pre
 static char *asgml3_compound(const RTCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id );
 static char *asgml3_multicurve( const RTMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id );
 static char *asgml3_multisurface(const RTMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static size_t pointArray_toGML3(POINTARRAY *pa, char *buf, int precision, int opts);
+static size_t pointArray_toGML3(RTPOINTARRAY *pa, char *buf, int precision, int opts);
 
 
-static size_t pointArray_GMLsize(POINTARRAY *pa, int precision);
+static size_t pointArray_GMLsize(RTPOINTARRAY *pa, int precision);
 
 static char *
 gbox_to_gml2(const RTGBOX *bbox, const char *srs, int precision, const char *prefix)
 {
 	int size;
 	RTPOINT4D pt;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	char *ptr, *output;
 	size_t prefixlen = strlen(prefix);
 
@@ -118,7 +118,7 @@ gbox_to_gml3(const RTGBOX *bbox, const char *srs, int precision, int opts, const
 {
 	int size;
 	RTPOINT4D pt;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	char *ptr, *output;
 	size_t prefixlen = strlen(prefix);
 	int dimension = 2;
@@ -646,7 +646,7 @@ asgml2_collection(const RTCOLLECTION *col, const char *srs, int precision,
 
 
 static size_t
-pointArray_toGML2(POINTARRAY *pa, char *output, int precision)
+pointArray_toGML2(RTPOINTARRAY *pa, char *output, int precision)
 {
 	int i;
 	char *ptr;
@@ -1893,7 +1893,7 @@ static char *asgml3_multisurface(const RTMSURFACE *sur, const char *srs, int pre
  * In GML3 also, lat/lon are reversed for geocentric data
  */
 static size_t
-pointArray_toGML3(POINTARRAY *pa, char *output, int precision, int opts)
+pointArray_toGML3(RTPOINTARRAY *pa, char *output, int precision, int opts)
 {
 	int i;
 	char *ptr;
@@ -1971,7 +1971,7 @@ pointArray_toGML3(POINTARRAY *pa, char *output, int precision, int opts)
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_GMLsize(POINTARRAY *pa, int precision)
+pointArray_GMLsize(RTPOINTARRAY *pa, int precision)
 {
 	if (FLAGS_NDIMS(pa->flags) == 2)
 		return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(", ")) * 2 * pa->npoints;

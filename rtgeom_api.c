@@ -198,7 +198,7 @@ next_double_up(float d)
 
 
 /************************************************************************
- * POINTARRAY support functions
+ * RTPOINTARRAY support functions
  *
  * TODO: should be moved to ptarray.c probably
  *
@@ -212,7 +212,7 @@ next_double_up(float d)
  * NOTE: point is a real POINT3D *not* a pointer
  */
 RTPOINT4D
-getPoint4d(const POINTARRAY *pa, int n)
+getPoint4d(const RTPOINTARRAY *pa, int n)
 {
 	RTPOINT4D result;
 	getPoint4d_p(pa, n, &result);
@@ -227,7 +227,7 @@ getPoint4d(const POINTARRAY *pa, int n)
  * NOTE: this will modify the point4d pointed to by 'point'.
  */
 int
-getPoint4d_p(const POINTARRAY *pa, int n, RTPOINT4D *op)
+getPoint4d_p(const RTPOINTARRAY *pa, int n, RTPOINT4D *op)
 {
 	uint8_t *ptr;
 	int zmflag;
@@ -287,7 +287,7 @@ getPoint4d_p(const POINTARRAY *pa, int n, RTPOINT4D *op)
  * NOTE: point is a real RTPOINT3DZ *not* a pointer
  */
 RTPOINT3DZ
-getPoint3dz(const POINTARRAY *pa, int n)
+getPoint3dz(const RTPOINTARRAY *pa, int n)
 {
 	RTPOINT3DZ result;
 	getPoint3dz_p(pa, n, &result);
@@ -301,7 +301,7 @@ getPoint3dz(const POINTARRAY *pa, int n)
  * NOTE: point is a real RTPOINT3DZ *not* a pointer
  */
 RTPOINT3DM
-getPoint3dm(const POINTARRAY *pa, int n)
+getPoint3dm(const RTPOINTARRAY *pa, int n)
 {
 	RTPOINT3DM result;
 	getPoint3dm_p(pa, n, &result);
@@ -315,7 +315,7 @@ getPoint3dm(const POINTARRAY *pa, int n)
  * NOTE: this will modify the point3dz pointed to by 'point'.
  */
 int
-getPoint3dz_p(const POINTARRAY *pa, int n, RTPOINT3DZ *op)
+getPoint3dz_p(const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op)
 {
 	uint8_t *ptr;
 
@@ -336,7 +336,7 @@ getPoint3dz_p(const POINTARRAY *pa, int n, RTPOINT3DZ *op)
 	ptr=getPoint_internal(pa, n);
 
 	/*
-	 * if input POINTARRAY has the Z, it is artays
+	 * if input RTPOINTARRAY has the Z, it is artays
 	 * at third position so make a single copy
 	 */
 	if ( FLAGS_GET_Z(pa->flags) )
@@ -365,7 +365,7 @@ getPoint3dz_p(const POINTARRAY *pa, int n, RTPOINT3DZ *op)
  * NOTE: this will modify the point3dm pointed to by 'point'.
  */
 int
-getPoint3dm_p(const POINTARRAY *pa, int n, RTPOINT3DM *op)
+getPoint3dm_p(const RTPOINTARRAY *pa, int n, RTPOINT3DM *op)
 {
 	uint8_t *ptr;
 	int zmflag;
@@ -389,7 +389,7 @@ getPoint3dm_p(const POINTARRAY *pa, int n, RTPOINT3DM *op)
 	zmflag=FLAGS_GET_ZM(pa->flags);
 
 	/*
-	 * if input POINTARRAY has the M and NO Z,
+	 * if input RTPOINTARRAY has the M and NO Z,
 	 * we can issue a single memcpy
 	 */
 	if ( zmflag == 1 )
@@ -430,7 +430,7 @@ getPoint3dm_p(const POINTARRAY *pa, int n, RTPOINT3DM *op)
  * NOTE: point is a real RTPOINT2D *not* a pointer
  */
 RTPOINT2D
-getPoint2d(const POINTARRAY *pa, int n)
+getPoint2d(const RTPOINTARRAY *pa, int n)
 {
 	const RTPOINT2D *result;
 	result = getPoint2d_cp(pa, n);
@@ -444,7 +444,7 @@ getPoint2d(const POINTARRAY *pa, int n)
  * NOTE: this will modify the point2d pointed to by 'point'.
  */
 int
-getPoint2d_p(const POINTARRAY *pa, int n, RTPOINT2D *point)
+getPoint2d_p(const RTPOINTARRAY *pa, int n, RTPOINT2D *point)
 {
 #if PARANOIA_LEVEL > 0
 	if ( ! pa ) return 0;
@@ -462,13 +462,13 @@ getPoint2d_p(const POINTARRAY *pa, int n, RTPOINT2D *point)
 }
 
 /**
-* Returns a pointer into the POINTARRAY serialized_ptlist, 
+* Returns a pointer into the RTPOINTARRAY serialized_ptlist, 
 * suitable for reading from. This is very high performance
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
 const RTPOINT2D*
-getPoint2d_cp(const POINTARRAY *pa, int n)
+getPoint2d_cp(const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 
@@ -482,7 +482,7 @@ getPoint2d_cp(const POINTARRAY *pa, int n)
 }
 
 const RTPOINT3DZ*
-getPoint3dz_cp(const POINTARRAY *pa, int n)
+getPoint3dz_cp(const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 	
@@ -503,7 +503,7 @@ getPoint3dz_cp(const POINTARRAY *pa, int n)
 
 
 const RTPOINT4D*
-getPoint4d_cp(const POINTARRAY *pa, int n)
+getPoint4d_cp(const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 	
@@ -532,7 +532,7 @@ getPoint4d_cp(const POINTARRAY *pa, int n)
  *
  */
 void
-ptarray_set_point4d(POINTARRAY *pa, int n, const RTPOINT4D *p4d)
+ptarray_set_point4d(RTPOINTARRAY *pa, int n, const RTPOINT4D *p4d)
 {
 	uint8_t *ptr;
 	assert(n >= 0 && n < pa->npoints);
@@ -594,7 +594,7 @@ void printBOX3D(BOX3D *box)
 	         box->xmax, box->ymax);
 }
 
-void printPA(POINTARRAY *pa)
+void printPA(RTPOINTARRAY *pa)
 {
 	int t;
 	RTPOINT4D pt;
@@ -604,7 +604,7 @@ void printPA(POINTARRAY *pa)
 	if ( FLAGS_GET_M(pa->flags) ) mflag = "M";
 	else mflag = "";
 
-	rtnotice("      POINTARRAY%s{", mflag);
+	rtnotice("      RTPOINTARRAY%s{", mflag);
 	rtnotice("                 ndims=%i,   ptsize=%i",
 	         FLAGS_NDIMS(pa->flags), ptarray_point_size(pa));
 	rtnotice("                 npoints = %i", pa->npoints);

@@ -166,7 +166,7 @@ static int wkt_parser_set_dims(RTGEOM *geom, uint8_t flags)
 * dimensionality matches that of the pointarray. If the dimension counts
 * match, ensure the pointarray is using the right "Z" or "M".
 */
-static int wkt_pointarray_dimensionality(POINTARRAY *pa, uint8_t flags)
+static int wkt_pointarray_dimensionality(RTPOINTARRAY *pa, uint8_t flags)
 {	
 	int hasz = FLAGS_GET_Z(flags);
 	int hasm = FLAGS_GET_M(flags);
@@ -248,7 +248,7 @@ POINT wkt_parser_coord_4(double c1, double c2, double c3, double c4)
 	return p;
 }
 
-POINTARRAY* wkt_parser_ptarray_add_coord(POINTARRAY *pa, POINT p)
+RTPOINTARRAY* wkt_parser_ptarray_add_coord(RTPOINTARRAY *pa, POINT p)
 {
 	RTPOINT4D pt;
 	RTDEBUG(4,"entered");
@@ -286,10 +286,10 @@ POINTARRAY* wkt_parser_ptarray_add_coord(POINTARRAY *pa, POINT p)
 /**
 * Start a point array from the first coordinate.
 */
-POINTARRAY* wkt_parser_ptarray_new(POINT p)
+RTPOINTARRAY* wkt_parser_ptarray_new(POINT p)
 {
 	int ndims = FLAGS_NDIMS(p.flags);
-	POINTARRAY *pa = ptarray_construct_empty((ndims>2), (ndims>3), 4);
+	RTPOINTARRAY *pa = ptarray_construct_empty((ndims>2), (ndims>3), 4);
 	RTDEBUG(4,"entered");
 	if ( ! pa )
 	{
@@ -303,7 +303,7 @@ POINTARRAY* wkt_parser_ptarray_new(POINT p)
 * Create a new point. Null point array implies empty. Null dimensionality
 * implies no specified dimensionality in the RTWKT.
 */
-RTGEOM* wkt_parser_point_new(POINTARRAY *pa, char *dimensionality)
+RTGEOM* wkt_parser_point_new(RTPOINTARRAY *pa, char *dimensionality)
 {
 	uint8_t flags = wkt_dimensionality(dimensionality);
 	RTDEBUG(4,"entered");
@@ -337,7 +337,7 @@ RTGEOM* wkt_parser_point_new(POINTARRAY *pa, char *dimensionality)
 * implies no specified dimensionality in the RTWKT. Check for numpoints >= 2 if
 * requested.
 */
-RTGEOM* wkt_parser_linestring_new(POINTARRAY *pa, char *dimensionality)
+RTGEOM* wkt_parser_linestring_new(RTPOINTARRAY *pa, char *dimensionality)
 {
 	uint8_t flags = wkt_dimensionality(dimensionality);
 	RTDEBUG(4,"entered");
@@ -371,7 +371,7 @@ RTGEOM* wkt_parser_linestring_new(POINTARRAY *pa, char *dimensionality)
 * Circular strings are just like linestrings, except with slighty different
 * validity rules (minpoint == 3, numpoints % 2 == 1). 
 */
-RTGEOM* wkt_parser_circularstring_new(POINTARRAY *pa, char *dimensionality)
+RTGEOM* wkt_parser_circularstring_new(RTPOINTARRAY *pa, char *dimensionality)
 {
 	uint8_t flags = wkt_dimensionality(dimensionality);
 	RTDEBUG(4,"entered");
@@ -407,7 +407,7 @@ RTGEOM* wkt_parser_circularstring_new(POINTARRAY *pa, char *dimensionality)
 	return rtcircstring_as_rtgeom(rtcircstring_construct(SRID_UNKNOWN, NULL, pa));	
 }
 
-RTGEOM* wkt_parser_triangle_new(POINTARRAY *pa, char *dimensionality)
+RTGEOM* wkt_parser_triangle_new(RTPOINTARRAY *pa, char *dimensionality)
 {
 	uint8_t flags = wkt_dimensionality(dimensionality);
 	RTDEBUG(4,"entered");
@@ -443,7 +443,7 @@ RTGEOM* wkt_parser_triangle_new(POINTARRAY *pa, char *dimensionality)
 	return rttriangle_as_rtgeom(rttriangle_construct(SRID_UNKNOWN, NULL, pa));
 }
 
-RTGEOM* wkt_parser_polygon_new(POINTARRAY *pa, char dimcheck)
+RTGEOM* wkt_parser_polygon_new(RTPOINTARRAY *pa, char dimcheck)
 {
 	RTPOLY *poly = NULL;
 	RTDEBUG(4,"entered");
@@ -468,7 +468,7 @@ RTGEOM* wkt_parser_polygon_new(POINTARRAY *pa, char dimcheck)
 	return rtpoly_as_rtgeom(poly);
 }
 
-RTGEOM* wkt_parser_polygon_add_ring(RTGEOM *poly, POINTARRAY *pa, char dimcheck)
+RTGEOM* wkt_parser_polygon_add_ring(RTGEOM *poly, RTPOINTARRAY *pa, char dimcheck)
 {
 	RTDEBUG(4,"entered");
 

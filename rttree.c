@@ -101,7 +101,7 @@ int rect_tree_intersects_tree(const RECT_NODE *n1, const RECT_NODE *n2)
 * Create a new leaf node, calculating a measure value for each point on the
 * edge and storing pointers back to the end points for later.
 */
-RECT_NODE* rect_node_leaf_new(const POINTARRAY *pa, int i)
+RECT_NODE* rect_node_leaf_new(const RTPOINTARRAY *pa, int i)
 {
 	RTPOINT2D *p1, *p2;
 	RECT_NODE *node;
@@ -148,7 +148,7 @@ RECT_NODE* rect_node_internal_new(RECT_NODE *left_node, RECT_NODE *right_node)
 * with an associated measure range along a one-dimensional space. We
 * can then search that space as a range tree.
 */
-RECT_NODE* rect_tree_new(const POINTARRAY *pa)
+RECT_NODE* rect_tree_new(const RTPOINTARRAY *pa)
 {
 	int num_edges, num_children, num_parents;
 	int i, j;

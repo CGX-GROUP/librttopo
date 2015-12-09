@@ -48,12 +48,12 @@ int rt_dist2d_distribute_fast(RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS *dl);
 /*
 * Brute force functions
 */
-int rt_dist2d_pt_ptarray(const RTPOINT2D *p, POINTARRAY *pa, DISTPTS *dl);
-int rt_dist2d_pt_ptarrayarc(const RTPOINT2D *p, const POINTARRAY *pa, DISTPTS *dl);
-int rt_dist2d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2, DISTPTS *dl);
-int rt_dist2d_ptarray_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl);
-int rt_dist2d_ptarrayarc_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl);
-int rt_dist2d_ptarray_poly(POINTARRAY *pa, RTPOLY *poly, DISTPTS *dl);
+int rt_dist2d_pt_ptarray(const RTPOINT2D *p, RTPOINTARRAY *pa, DISTPTS *dl);
+int rt_dist2d_pt_ptarrayarc(const RTPOINT2D *p, const RTPOINTARRAY *pa, DISTPTS *dl);
+int rt_dist2d_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2, DISTPTS *dl);
+int rt_dist2d_ptarray_ptarrayarc(const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl);
+int rt_dist2d_ptarrayarc_ptarrayarc(const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl);
+int rt_dist2d_ptarray_poly(RTPOINTARRAY *pa, RTPOLY *poly, DISTPTS *dl);
 int rt_dist2d_point_point(RTPOINT *point1, RTPOINT *point2, DISTPTS *dl);
 int rt_dist2d_point_line(RTPOINT *point, RTLINE *line, DISTPTS *dl);
 int rt_dist2d_point_circstring(RTPOINT *point, RTCIRCSTRING *circ, DISTPTS *dl);
@@ -73,10 +73,10 @@ int rt_dist2d_curvepoly_curvepoly(RTCURVEPOLY *poly1, RTCURVEPOLY *poly2, DISTPT
 /*
 * New faster distance calculations
 */
-int rt_dist2d_pre_seg_seg(POINTARRAY *l1, POINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl);
+int rt_dist2d_pre_seg_seg(RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl);
 int rt_dist2d_selected_seg_seg(const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl);
 int struct_cmp_by_measure(const void *a, const void *b);
-int rt_dist2d_fast_ptarray_ptarray(POINTARRAY *l1,POINTARRAY *l2, DISTPTS *dl,  RTGBOX *box1, RTGBOX *box2);
+int rt_dist2d_fast_ptarray_ptarray(RTPOINTARRAY *l1,RTPOINTARRAY *l2, DISTPTS *dl,  RTGBOX *box1, RTGBOX *box2);
 
 /*
 * Distance calculation primitives. 

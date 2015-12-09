@@ -672,7 +672,7 @@ static size_t gserialized_from_rtpoly(const RTPOLY *poly, uint8_t *buf)
 	/* Copy in the ordinates. */
 	for ( i = 0; i < poly->nrings; i++ )
 	{
-		POINTARRAY *pa = poly->rings[i];
+		RTPOINTARRAY *pa = poly->rings[i];
 		size_t pasize;
 
 		if ( FLAGS_GET_ZM(poly->flags) != FLAGS_GET_ZM(pa->flags) )
@@ -1063,7 +1063,7 @@ static RTPOLY* rtpoly_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 	ordinate_ptr = data_ptr; /* Start the ordinate pointer. */
 	if ( nrings > 0)
 	{
-		poly->rings = (POINTARRAY**)rtalloc( sizeof(POINTARRAY*) * nrings );
+		poly->rings = (RTPOINTARRAY**)rtalloc( sizeof(RTPOINTARRAY*) * nrings );
 		ordinate_ptr += nrings * 4; /* Move past all the npoints values. */
 		if ( nrings % 2 ) /* If there is padding, move past that too. */
 			ordinate_ptr += 4;

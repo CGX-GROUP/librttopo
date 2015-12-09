@@ -1,5 +1,5 @@
 /**
-* Note that p1 and p2 are pointers into an independent POINTARRAY, do not free them.
+* Note that p1 and p2 are pointers into an independent RTPOINTARRAY, do not free them.
 */
 typedef struct rect_node
 {
@@ -16,6 +16,6 @@ typedef struct rect_node
 int rect_tree_contains_point(const RECT_NODE *tree, const RTPOINT2D *pt, int *on_boundary);
 int rect_tree_intersects_tree(const RECT_NODE *tree1, const RECT_NODE *tree2);
 void rect_tree_free(RECT_NODE *node);
-RECT_NODE* rect_node_leaf_new(const POINTARRAY *pa, int i);
+RECT_NODE* rect_node_leaf_new(const RTPOINTARRAY *pa, int i);
 RECT_NODE* rect_node_internal_new(RECT_NODE *left_node, RECT_NODE *right_node);
-RECT_NODE* rect_tree_new(const POINTARRAY *pa);
+RECT_NODE* rect_tree_new(const RTPOINTARRAY *pa);

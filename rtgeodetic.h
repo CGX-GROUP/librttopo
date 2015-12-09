@@ -102,14 +102,14 @@ int edge_intersects(const POINT3D *A1, const POINT3D *A2, const POINT3D *B1, con
 double edge_distance_to_point(const GEOGRAPHIC_EDGE *e, const GEOGRAPHIC_POINT *gp, GEOGRAPHIC_POINT *closest);
 double edge_distance_to_edge(const GEOGRAPHIC_EDGE *e1, const GEOGRAPHIC_EDGE *e2, GEOGRAPHIC_POINT *closest1, GEOGRAPHIC_POINT *closest2);
 void geographic_point_init(double lon, double lat, GEOGRAPHIC_POINT *g);
-int ptarray_contains_point_sphere(const POINTARRAY *pa, const RTPOINT2D *pt_outside, const RTPOINT2D *pt_to_test);
+int ptarray_contains_point_sphere(const RTPOINTARRAY *pa, const RTPOINT2D *pt_outside, const RTPOINT2D *pt_to_test);
 int rtpoly_covers_point2d(const RTPOLY *poly, const RTPOINT2D *pt_to_test);
 void rtpoly_pt_outside(const RTPOLY *poly, RTPOINT2D *pt_outside);
-int ptarray_point_in_ring(const POINTARRAY *pa, const RTPOINT2D *pt_outside, const RTPOINT2D *pt_to_test);
-double ptarray_area_sphere(const POINTARRAY *pa);
+int ptarray_point_in_ring(const RTPOINTARRAY *pa, const RTPOINT2D *pt_outside, const RTPOINT2D *pt_to_test);
+double ptarray_area_sphere(const RTPOINTARRAY *pa);
 double latitude_degrees_normalize(double lat);
 double longitude_degrees_normalize(double lon);
-double ptarray_length_spheroid(const POINTARRAY *pa, const SPHEROID *s);
+double ptarray_length_spheroid(const RTPOINTARRAY *pa, const SPHEROID *s);
 int geographic_point_equals(const GEOGRAPHIC_POINT *g1, const GEOGRAPHIC_POINT *g2);
 int crosses_dateline(const GEOGRAPHIC_POINT *s, const GEOGRAPHIC_POINT *e);
 void point_shift(GEOGRAPHIC_POINT *p, double shift);

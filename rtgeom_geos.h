@@ -31,7 +31,7 @@ GEOSGeometry * RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in);
 int cluster_intersecting(GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** clusterGeoms, uint32_t* num_clusters);
 int cluster_within_distance(RTGEOM** geoms, uint32_t num_geoms, double tolerance, RTGEOM*** clusterGeoms, uint32_t* num_clusters);
 
-POINTARRAY *ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d);
+RTPOINTARRAY *ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d);
 
 
 extern char rtgeom_geos_errmsg[];

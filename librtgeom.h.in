@@ -307,7 +307,7 @@ typedef struct
 RTPOINT4D;
 
 /******************************************************************
-*  POINTARRAY
+*  RTPOINTARRAY
 *  Point array abstracts a lot of the complexity of points and point lists.
 *  It handles 2d/3d translation
 *    (2d points converted to 3d will have z=0 or NaN)
@@ -324,7 +324,7 @@ typedef struct
 	int npoints;   /* how many points we are currently storing */
 	int maxpoints; /* how many points we have space for in serialized_pointlist */
 }
-POINTARRAY;
+RTPOINTARRAY;
 
 /******************************************************************
 * GSERIALIZED
@@ -361,7 +361,7 @@ typedef struct
 	uint8_t flags;
 	RTGBOX *bbox;
 	int32_t srid;
-	POINTARRAY *point;  /* hide 2d/3d (this will be an array of 1 point) */
+	RTPOINTARRAY *point;  /* hide 2d/3d (this will be an array of 1 point) */
 }
 RTPOINT; /* "light-weight point" */
 
@@ -372,7 +372,7 @@ typedef struct
 	uint8_t flags;
 	RTGBOX *bbox;
 	int32_t srid;
-	POINTARRAY *points; /* array of POINT3D */
+	RTPOINTARRAY *points; /* array of POINT3D */
 }
 RTLINE; /* "light-weight line" */
 
@@ -383,7 +383,7 @@ typedef struct
 	uint8_t flags;
 	RTGBOX *bbox;
 	int32_t srid;
-	POINTARRAY *points;
+	RTPOINTARRAY *points;
 }
 RTTRIANGLE;
 
@@ -394,7 +394,7 @@ typedef struct
 	uint8_t flags;
 	RTGBOX *bbox;
 	int32_t srid;
-	POINTARRAY *points; /* array of POINT(3D/3DM) */
+	RTPOINTARRAY *points; /* array of POINT(3D/3DM) */
 }
 RTCIRCSTRING; /* "light-weight circularstring" */
 
@@ -407,7 +407,7 @@ typedef struct
 	int32_t srid;
 	int nrings;   /* how many rings we are currently storing */
 	int maxrings; /* how many rings we have space for in **rings */
-	POINTARRAY **rings; /* list of rings (list of points) */
+	RTPOINTARRAY **rings; /* list of rings (list of points) */
 }
 RTPOLY; /* "light-weight polygon" */
 
@@ -719,7 +719,7 @@ extern const char *rttype_name(uint8_t type);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT4D getPoint4d(const POINTARRAY *pa, int n);
+extern RTPOINT4D getPoint4d(const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
@@ -727,23 +727,23 @@ extern RTPOINT4D getPoint4d(const POINTARRAY *pa, int n);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: this will modify the point4d pointed to by 'point'.
  */
-extern int getPoint4d_p(const POINTARRAY *pa, int n, RTPOINT4D *point);
+extern int getPoint4d_p(const RTPOINTARRAY *pa, int n, RTPOINT4D *point);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT3DZ getPoint3dz(const POINTARRAY *pa, int n);
-extern RTPOINT3DM getPoint3dm(const POINTARRAY *pa, int n);
+extern RTPOINT3DZ getPoint3dz(const RTPOINTARRAY *pa, int n);
+extern RTPOINT3DM getPoint3dm(const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: this will modify the point3d pointed to by 'point'.
  */
-extern int getPoint3dz_p(const POINTARRAY *pa, int n, RTPOINT3DZ *point);
-extern int getPoint3dm_p(const POINTARRAY *pa, int n, RTPOINT3DM *point);
+extern int getPoint3dz_p(const RTPOINTARRAY *pa, int n, RTPOINT3DZ *point);
+extern int getPoint3dm_p(const RTPOINTARRAY *pa, int n, RTPOINT3DM *point);
 
 
 /*
@@ -751,38 +751,38 @@ extern int getPoint3dm_p(const POINTARRAY *pa, int n, RTPOINT3DM *point);
  * z value (if present is not returned)
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT2D getPoint2d(const POINTARRAY *pa, int n);
+extern RTPOINT2D getPoint2d(const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * z value (if present is not returned)
  * NOTE: this will modify the point2d pointed to by 'point'.
  */
-extern int getPoint2d_p(const POINTARRAY *pa, int n, RTPOINT2D *point);
+extern int getPoint2d_p(const RTPOINTARRAY *pa, int n, RTPOINT2D *point);
 
 /**
-* Returns a RTPOINT2D pointer into the POINTARRAY serialized_ptlist, 
+* Returns a RTPOINT2D pointer into the RTPOINTARRAY serialized_ptlist, 
 * suitable for reading from. This is very high performance
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT2D* getPoint2d_cp(const POINTARRAY *pa, int n);
+extern const RTPOINT2D* getPoint2d_cp(const RTPOINTARRAY *pa, int n);
 
 /**
-* Returns a RTPOINT3DZ pointer into the POINTARRAY serialized_ptlist, 
+* Returns a RTPOINT3DZ pointer into the RTPOINTARRAY serialized_ptlist, 
 * suitable for reading from. This is very high performance
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT3DZ* getPoint3dz_cp(const POINTARRAY *pa, int n);
+extern const RTPOINT3DZ* getPoint3dz_cp(const RTPOINTARRAY *pa, int n);
 
 /**
-* Returns a RTPOINT4D pointer into the POINTARRAY serialized_ptlist, 
+* Returns a RTPOINT4D pointer into the RTPOINTARRAY serialized_ptlist, 
 * suitable for reading from. This is very high performance
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT4D* getPoint4d_cp(const POINTARRAY *pa, int n);
+extern const RTPOINT4D* getPoint4d_cp(const RTPOINTARRAY *pa, int n);
 
 /*
  * set point N to the given value
@@ -792,24 +792,24 @@ extern const RTPOINT4D* getPoint4d_cp(const POINTARRAY *pa, int n);
  *
  * N must be a valid point index 
  */
-extern void ptarray_set_point4d(POINTARRAY *pa, int n, const RTPOINT4D *p4d);
+extern void ptarray_set_point4d(RTPOINTARRAY *pa, int n, const RTPOINT4D *p4d);
 
 /*
- * get a pointer to nth point of a POINTARRAY
+ * get a pointer to nth point of a RTPOINTARRAY
  * You'll need to cast it to appropriate dimensioned point.
  * Note that if you cast to a higher dimensional point you'll
- * possibly corrupt the POINTARRAY.
+ * possibly corrupt the RTPOINTARRAY.
  *
  * WARNING: Don't cast this to a POINT !
  * it would not be reliable due to memory alignment constraints
  */
-extern uint8_t *getPoint_internal(const POINTARRAY *pa, int n);
+extern uint8_t *getPoint_internal(const RTPOINTARRAY *pa, int n);
 
 /*
- * size of point represeneted in the POINTARRAY
+ * size of point represeneted in the RTPOINTARRAY
  * 16 for 2d, 24 for 3d, 32 for 4d
  */
-extern int ptarray_point_size(const POINTARRAY *pa);
+extern int ptarray_point_size(const RTPOINTARRAY *pa);
 
 
 /** 
@@ -817,34 +817,34 @@ extern int ptarray_point_size(const POINTARRAY *pa);
 * the npoints, but not filling in any information. Should be used in conjunction
 * with ptarray_set_point4d to fill in the information in the array.
 */
-extern POINTARRAY* ptarray_construct(char hasz, char hasm, uint32_t npoints);
+extern RTPOINTARRAY* ptarray_construct(char hasz, char hasm, uint32_t npoints);
 
 /**
-* Construct a new #POINTARRAY, <em>copying</em> in the data from ptlist 
+* Construct a new #RTPOINTARRAY, <em>copying</em> in the data from ptlist 
 */
-extern POINTARRAY* ptarray_construct_copy_data(char hasz, char hasm, uint32_t npoints, const uint8_t *ptlist);
+extern RTPOINTARRAY* ptarray_construct_copy_data(char hasz, char hasm, uint32_t npoints, const uint8_t *ptlist);
 
 /**
-* Construct a new #POINTARRAY, <em>referencing</em> to the data from ptlist 
+* Construct a new #RTPOINTARRAY, <em>referencing</em> to the data from ptlist 
 */
-extern POINTARRAY* ptarray_construct_reference_data(char hasz, char hasm, uint32_t npoints, uint8_t *ptlist);
+extern RTPOINTARRAY* ptarray_construct_reference_data(char hasz, char hasm, uint32_t npoints, uint8_t *ptlist);
 
 /**
-* Create a new #POINTARRAY with no points. Allocate enough storage
+* Create a new #RTPOINTARRAY with no points. Allocate enough storage
 * to hold maxpoints vertices before having to reallocate the storage
 * area.
 */
-extern POINTARRAY* ptarray_construct_empty(char hasz, char hasm, uint32_t maxpoints);
+extern RTPOINTARRAY* ptarray_construct_empty(char hasz, char hasm, uint32_t maxpoints);
 
 /**
-* Append a point to the end of an existing #POINTARRAY 
+* Append a point to the end of an existing #RTPOINTARRAY 
 * If allow_duplicate is RT_TRUE, then a duplicate point will
 * not be added.
 */
-extern int ptarray_append_point(POINTARRAY *pa, const RTPOINT4D *pt, int allow_duplicates);
+extern int ptarray_append_point(RTPOINTARRAY *pa, const RTPOINT4D *pt, int allow_duplicates);
 
 /**
- * Append a #POINTARRAY, pa2 to the end of an existing #POINTARRAY, pa1.
+ * Append a #RTPOINTARRAY, pa2 to the end of an existing #RTPOINTARRAY, pa1.
  *
  * If gap_tolerance is >= 0 then the end point of pa1 will be checked for
  * being within gap_tolerance 2d distance from start point of pa2 or an
@@ -854,63 +854,63 @@ extern int ptarray_append_point(POINTARRAY *pa, const RTPOINT4D *pt, int allow_d
  * If end point of pa1 and start point of pa2 are 2d-equal, then pa2 first
  * point will not be appended.
  */
-extern int ptarray_append_ptarray(POINTARRAY *pa1, POINTARRAY *pa2, double gap_tolerance);
+extern int ptarray_append_ptarray(RTPOINTARRAY *pa1, RTPOINTARRAY *pa2, double gap_tolerance);
 
 /**
-* Insert a point into an existing #POINTARRAY. Zero
+* Insert a point into an existing #RTPOINTARRAY. Zero
 * is the index of the start of the array.
 */
-extern int ptarray_insert_point(POINTARRAY *pa, const RTPOINT4D *p, int where);
+extern int ptarray_insert_point(RTPOINTARRAY *pa, const RTPOINT4D *p, int where);
 
 /**
-* Remove a point from an existing #POINTARRAY. Zero
+* Remove a point from an existing #RTPOINTARRAY. Zero
 * is the index of the start of the array.
 */
-extern int ptarray_remove_point(POINTARRAY *pa, int where);
+extern int ptarray_remove_point(RTPOINTARRAY *pa, int where);
 
 /**
  * @brief Add a point in a pointarray.
  *
- * @param pa the source POINTARRAY
+ * @param pa the source RTPOINTARRAY
  * @param p the point to add
  * @param pdims number of ordinates in p (2..4)
  * @param where to insert the point. 0 prepends, pa->npoints appends
  *
- * @returns a newly constructed POINTARRAY using a newly allocated buffer
+ * @returns a newly constructed RTPOINTARRAY using a newly allocated buffer
  *          for the actual points, or NULL on error.
  */
-extern POINTARRAY *ptarray_addPoint(const POINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t where);
+extern RTPOINTARRAY *ptarray_addPoint(const RTPOINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t where);
 
 /**
  * @brief Remove a point from a pointarray.
  * 	@param which -  is the offset (starting at 0)
- * @return #POINTARRAY is newly allocated
+ * @return #RTPOINTARRAY is newly allocated
  */
-extern POINTARRAY *ptarray_removePoint(POINTARRAY *pa, uint32_t where);
+extern RTPOINTARRAY *ptarray_removePoint(RTPOINTARRAY *pa, uint32_t where);
 
 /**
- * @brief Merge two given POINTARRAY and returns a pointer
+ * @brief Merge two given RTPOINTARRAY and returns a pointer
  * on the new aggregate one.
- * Warning: this function free the two inputs POINTARRAY
- * @return #POINTARRAY is newly allocated
+ * Warning: this function free the two inputs RTPOINTARRAY
+ * @return #RTPOINTARRAY is newly allocated
  */
-extern POINTARRAY *ptarray_merge(POINTARRAY *pa1, POINTARRAY *pa2);
+extern RTPOINTARRAY *ptarray_merge(RTPOINTARRAY *pa1, RTPOINTARRAY *pa2);
 
-extern int ptarray_is_closed(const POINTARRAY *pa);
-extern int ptarray_is_closed_2d(const POINTARRAY *pa);
-extern int ptarray_is_closed_3d(const POINTARRAY *pa);
-extern int ptarray_is_closed_z(const POINTARRAY *pa);
-extern void ptarray_longitude_shift(POINTARRAY *pa);
-extern int ptarray_isccw(const POINTARRAY *pa);
-extern void ptarray_reverse(POINTARRAY *pa);
-extern POINTARRAY* ptarray_flip_coordinates(POINTARRAY *pa);
+extern int ptarray_is_closed(const RTPOINTARRAY *pa);
+extern int ptarray_is_closed_2d(const RTPOINTARRAY *pa);
+extern int ptarray_is_closed_3d(const RTPOINTARRAY *pa);
+extern int ptarray_is_closed_z(const RTPOINTARRAY *pa);
+extern void ptarray_longitude_shift(RTPOINTARRAY *pa);
+extern int ptarray_isccw(const RTPOINTARRAY *pa);
+extern void ptarray_reverse(RTPOINTARRAY *pa);
+extern RTPOINTARRAY* ptarray_flip_coordinates(RTPOINTARRAY *pa);
 
 /**
  * @d1 start location (distance from start / total distance)
  * @d2   end location (distance from start / total distance)
  * @param tolerance snap to vertices at locations < tolerance away from given ones
  */
-extern POINTARRAY *ptarray_substring(POINTARRAY *pa, double d1, double d2,
+extern RTPOINTARRAY *ptarray_substring(RTPOINTARRAY *pa, double d1, double d2,
                                                           double tolerance);
 
 
@@ -939,7 +939,7 @@ extern RTGEOM* rtgeom_force_sfs(RTGEOM *geom, int version);
  *--------------------------------------------------------*/
 
 /*
- * convenience functions to hide the POINTARRAY
+ * convenience functions to hide the RTPOINTARRAY
  */
 extern int rtpoint_getPoint2d_p(const RTPOINT *point, RTPOINT2D *out);
 extern int rtpoint_getPoint3dz_p(const RTPOINT *point, RTPOINT3DZ *out);
@@ -963,7 +963,7 @@ extern int rtline_add_rtpoint(RTLINE *line, RTPOINT *point, int where);
 * Add a ring, allocating extra space if necessary. The polygon takes
 * ownership of the passed point array.
 */
-extern int rtpoly_add_ring(RTPOLY *poly, POINTARRAY *pa);
+extern int rtpoly_add_ring(RTPOLY *poly, RTPOINTARRAY *pa);
 
 /**
 * Add a ring, allocating extra space if necessary. The curvepolygon takes
@@ -1040,12 +1040,12 @@ void expand_box3d(BOX3D *box, double d);
 /*
 * The *_free family of functions frees *all* memory associated
 * with the pointer. When the recursion gets to the level of the 
-* POINTARRAY, the POINTARRAY is only freed if it is not flagged
+* RTPOINTARRAY, the RTPOINTARRAY is only freed if it is not flagged
 * as "read only". RTGEOMs constructed on top of GSERIALIZED
 * from PgSQL use read only point arrays.
 */
 
-extern void ptarray_free(POINTARRAY *pa);
+extern void ptarray_free(RTPOINTARRAY *pa);
 extern void rtpoint_free(RTPOINT *pt);
 extern void rtline_free(RTLINE *line);
 extern void rtpoly_free(RTPOLY *poly);
@@ -1061,7 +1061,7 @@ extern void rtgeom_free(RTGEOM *geom);
 
 /*
 * The *_release family of functions frees the RTGEOM structures
-* surrounding the POINTARRAYs but leaves the POINTARRAYs
+* surrounding the RTPOINTARRAYs but leaves the RTPOINTARRAYs
 * intact. Useful when re-shaping geometries between types,
 * or splicing geometries together.
 */
@@ -1085,7 +1085,7 @@ extern void rtgeom_release(RTGEOM *rtgeom);
 ****************************************************************/
 
 extern void printBOX3D(BOX3D *b);
-extern void printPA(POINTARRAY *pa);
+extern void printPA(RTPOINTARRAY *pa);
 extern void printRTPOINT(RTPOINT *point);
 extern void printRTLINE(RTLINE *line);
 extern void printRTPOLY(RTPOLY *poly);
@@ -1143,12 +1143,12 @@ extern RTPOINT* rtcompound_get_endpoint(const RTCOMPOUND *rtcmp);
 extern RTPOINT* rtcompound_get_rtpoint(const RTCOMPOUND *rtcmp, int where);
 
 
-extern double ptarray_length_2d(const POINTARRAY *pts);
-extern double ptarray_length(const POINTARRAY *pts);
-extern double ptarray_arc_length_2d(const POINTARRAY *pts);
+extern double ptarray_length_2d(const RTPOINTARRAY *pts);
+extern double ptarray_length(const RTPOINTARRAY *pts);
+extern double ptarray_arc_length_2d(const RTPOINTARRAY *pts);
 
 
-extern int pt_in_ring_2d(const RTPOINT2D *p, const POINTARRAY *ring);
+extern int pt_in_ring_2d(const RTPOINT2D *p, const RTPOINTARRAY *ring);
 extern int azimuth_pt_pt(const RTPOINT2D *p1, const RTPOINT2D *p2, double *ret);
 extern int rtpoint_inside_circle(const RTPOINT *p, double cx, double cy, double rad);
 extern void rtgeom_reverse(RTGEOM *rtgeom);
@@ -1220,7 +1220,7 @@ extern int rtgeom_dimensionality(RTGEOM *geom);
 
 /* Is rtgeom1 geometrically equal to rtgeom2 ? */
 char rtgeom_same(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2);
-char ptarray_same(const POINTARRAY *pa1, const POINTARRAY *pa2);
+char ptarray_same(const RTPOINTARRAY *pa1, const RTPOINTARRAY *pa2);
 char rtpoint_same(const RTPOINT *p1, const RTPOINT *p2);
 char rtline_same(const RTLINE *p1, const RTLINE *p2);
 char rtpoly_same(const RTPOLY *p1, const RTPOLY *p2);
@@ -1245,7 +1245,7 @@ extern RTGEOM *rtgeom_clone_deep(const RTGEOM *rtgeom);
 
 /* TODO Move to Internal */
 RTPOINT *rtpoint_clone(const RTPOINT *rtgeom);
-POINTARRAY *ptarray_clone_deep(const POINTARRAY *ptarray);
+RTPOINTARRAY *ptarray_clone_deep(const RTPOINTARRAY *ptarray);
 
 
 /*
@@ -1253,13 +1253,13 @@ POINTARRAY *ptarray_clone_deep(const POINTARRAY *ptarray);
 * passed to them, they just take references, so do not free them out
 * from underneath the geometries.
 */
-extern RTPOINT* rtpoint_construct(int srid, RTGBOX *bbox, POINTARRAY *point);
-extern RTMPOINT *rtmpoint_construct(int srid, const POINTARRAY *pa);
-extern RTLINE* rtline_construct(int srid, RTGBOX *bbox, POINTARRAY *points);
-extern RTCIRCSTRING* rtcircstring_construct(int srid, RTGBOX *bbox, POINTARRAY *points);
-extern RTPOLY* rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, POINTARRAY **points);
+extern RTPOINT* rtpoint_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *point);
+extern RTMPOINT *rtmpoint_construct(int srid, const RTPOINTARRAY *pa);
+extern RTLINE* rtline_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points);
+extern RTCIRCSTRING* rtcircstring_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points);
+extern RTPOLY* rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points);
 extern RTCURVEPOLY* rtcurvepoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, RTGEOM **geoms);
-extern RTTRIANGLE* rttriangle_construct(int srid, RTGBOX *bbox, POINTARRAY *points);
+extern RTTRIANGLE* rttriangle_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points);
 extern RTCOLLECTION* rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox, uint32_t ngeoms, RTGEOM **geoms); 
 /*
 * Empty geometry constructors.
@@ -1332,7 +1332,7 @@ extern int rtgeom_ndims(const RTGEOM *geom);
  * If not-null, the third argument will be set to the actual distance
  * of the point from the pointarray.
  */
-extern double ptarray_locate_point(const POINTARRAY *pa, const RTPOINT4D *pt, double *dist, RTPOINT4D *p_located);
+extern double ptarray_locate_point(const RTPOINTARRAY *pa, const RTPOINT4D *pt, double *dist, RTPOINT4D *p_located);
 
 /**
 * Add a measure dimension to a line, interpolating linearly from the start 
@@ -1390,7 +1390,7 @@ extern int rtline_is_trajectory(const RTLINE *geom);
  * Returned RTGEOM might is unchanged if a POINT.
  */
 extern RTGEOM *rtgeom_segmentize2d(RTGEOM *line, double dist);
-extern POINTARRAY *ptarray_segmentize2d(const POINTARRAY *ipa, double dist);
+extern RTPOINTARRAY *ptarray_segmentize2d(const RTPOINTARRAY *ipa, double dist);
 extern RTLINE *rtline_segmentize2d(RTLINE *line, double dist);
 extern RTPOLY *rtpoly_segmentize2d(RTPOLY *line, double dist);
 extern RTCOLLECTION *rtcollection_segmentize2d(RTCOLLECTION *coll, double dist);
@@ -1697,19 +1697,19 @@ extern int rtgeom_calculate_gbox(const RTGEOM *rtgeom, RTGBOX *gbox);
 
 /**
 * New function to read doubles directly from the double* coordinate array
-* of an aligned rtgeom #POINTARRAY (built by de-serializing a #GSERIALIZED).
+* of an aligned rtgeom #RTPOINTARRAY (built by de-serializing a #GSERIALIZED).
 */
-extern int getPoint2d_p_ro(const POINTARRAY *pa, int n, RTPOINT2D **point);
+extern int getPoint2d_p_ro(const RTPOINTARRAY *pa, int n, RTPOINT2D **point);
 
 /**
 * Calculate geodetic (x/y/z) box and add values to gbox. Return #RT_SUCCESS on success.
 */
-extern int ptarray_calculate_gbox_geodetic(const POINTARRAY *pa, RTGBOX *gbox);
+extern int ptarray_calculate_gbox_geodetic(const RTPOINTARRAY *pa, RTGBOX *gbox);
 
 /**
 * Calculate box (x/y) and add values to gbox. Return #RT_SUCCESS on success.
 */
-extern int ptarray_calculate_gbox_cartesian(const POINTARRAY *pa, RTGBOX *gbox );
+extern int ptarray_calculate_gbox_cartesian(const RTPOINTARRAY *pa, RTGBOX *gbox );
 
 /**
 * Calculate a spherical point that falls outside the geocentric gbox

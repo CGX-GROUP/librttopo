@@ -507,7 +507,7 @@ Here the geometries are distributed for the new faster distance-calculations
 int
 rt_dist2d_distribute_fast(RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS *dl)
 {
-	POINTARRAY *pa1, *pa2;
+	RTPOINTARRAY *pa1, *pa2;
 	int	type1 = rtg1->type;
 	int	type2 = rtg2->type;
 
@@ -692,8 +692,8 @@ line to line calculation
 int
 rt_dist2d_line_line(RTLINE *line1, RTLINE *line2, DISTPTS *dl)
 {
-	POINTARRAY *pa1 = line1->points;
-	POINTARRAY *pa2 = line2->points;
+	RTPOINTARRAY *pa1 = line1->points;
+	RTPOINTARRAY *pa2 = line2->points;
 	RTDEBUG(2, "rt_dist2d_line_line is called");
 	return rt_dist2d_ptarray_ptarray(pa1, pa2, dl);
 }
@@ -1032,7 +1032,7 @@ rt_dist2d_curvepoly_curvepoly(RTCURVEPOLY *poly1, RTCURVEPOLY *poly2, DISTPTS *d
  * Returns minimum distance between point and pointarray
  */
 int
-rt_dist2d_pt_ptarray(const RTPOINT2D *p, POINTARRAY *pa,DISTPTS *dl)
+rt_dist2d_pt_ptarray(const RTPOINT2D *p, RTPOINTARRAY *pa,DISTPTS *dl)
 {
 	int t;
 	const RTPOINT2D *start, *end;
@@ -1062,7 +1062,7 @@ rt_dist2d_pt_ptarray(const RTPOINT2D *p, POINTARRAY *pa,DISTPTS *dl)
 * Returns minimum distance between point and arc pointarray.
 */
 int
-rt_dist2d_pt_ptarrayarc(const RTPOINT2D *p, const POINTARRAY *pa, DISTPTS *dl)
+rt_dist2d_pt_ptarrayarc(const RTPOINT2D *p, const RTPOINTARRAY *pa, DISTPTS *dl)
 {
 	int t;
 	const RTPOINT2D *A1;
@@ -1114,7 +1114,7 @@ rt_dist2d_pt_ptarrayarc(const RTPOINT2D *p, const POINTARRAY *pa, DISTPTS *dl)
 * test each segment of l1 against each segment of l2.
 */
 int
-rt_dist2d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS *dl)
+rt_dist2d_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS *dl)
 {
 	int t,u;
 	const RTPOINT2D	*start, *end;
@@ -1166,7 +1166,7 @@ rt_dist2d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS *dl)
 * Test each segment of pa against each arc of pb for distance.
 */
 int
-rt_dist2d_ptarray_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl)
+rt_dist2d_ptarray_ptarrayarc(const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl)
 {
 	int t, u;
 	const RTPOINT2D *A1;
@@ -1220,7 +1220,7 @@ rt_dist2d_ptarray_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS
 * Test each arc of pa against each arc of pb for distance.
 */
 int
-rt_dist2d_ptarrayarc_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl)
+rt_dist2d_ptarrayarc_ptarrayarc(const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl)
 {
 	int t, u;
 	const RTPOINT2D *A1;
@@ -1773,7 +1773,7 @@ The naming is not good but comes from that it compares a
 chosen selection of the points not all of them
 */
 int
-rt_dist2d_fast_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS *dl, RTGBOX *box1, RTGBOX *box2)
+rt_dist2d_fast_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS *dl, RTGBOX *box1, RTGBOX *box2)
 {
 	/*here we define two lists to hold our calculated "z"-values and the order number in the geometry*/
 
@@ -1901,7 +1901,7 @@ struct_cmp_by_measure(const void *a, const void *b)
 	preparation before rt_dist2d_seg_seg.
 */
 int
-rt_dist2d_pre_seg_seg(POINTARRAY *l1, POINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl)
+rt_dist2d_pre_seg_seg(RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl)
 {
 	const RTPOINT2D *p1, *p2, *p3, *p4, *p01, *p02;
 	int pnr1,pnr2,pnr3,pnr4, n1, n2, i, u, r, twist;

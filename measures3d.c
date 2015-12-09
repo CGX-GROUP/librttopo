@@ -576,7 +576,7 @@ int
 rt_dist3d_point_line(RTPOINT *point, RTLINE *line, DISTPTS3D *dl)
 {
 	RTPOINT3DZ p;
-	POINTARRAY *pa = line->points;
+	RTPOINTARRAY *pa = line->points;
 	RTDEBUG(2, "rt_dist3d_point_line is called");
 
 	getPoint3dz_p(point->point, 0, &p);
@@ -627,8 +627,8 @@ line to line calculation
 int
 rt_dist3d_line_line(RTLINE *line1, RTLINE *line2, DISTPTS3D *dl)
 {
-	POINTARRAY *pa1 = line1->points;
-	POINTARRAY *pa2 = line2->points;
+	RTPOINTARRAY *pa1 = line1->points;
+	RTPOINTARRAY *pa2 = line2->points;
 	RTDEBUG(2, "rt_dist3d_line_line is called");
 
 	return rt_dist3d_ptarray_ptarray(pa1, pa2, dl);
@@ -690,7 +690,7 @@ int rt_dist3d_poly_poly(RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
  * Returns distance between point and pointarray
  */
 int
-rt_dist3d_pt_ptarray(RTPOINT3DZ *p, POINTARRAY *pa,DISTPTS3D *dl)
+rt_dist3d_pt_ptarray(RTPOINT3DZ *p, RTPOINTARRAY *pa,DISTPTS3D *dl)
 {
 	int t;
 	RTPOINT3DZ	start, end;
@@ -817,7 +817,7 @@ rt_dist3d_pt_pt(RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
 Finds all combinationes of segments between two pointarrays
 */
 int
-rt_dist3d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS3D *dl)
+rt_dist3d_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
 {
 	int t,u;
 	RTPOINT3DZ	start, end;
@@ -1027,7 +1027,7 @@ rt_dist3d_pt_poly(RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp,
 
 Computes pointarray to polygon distance
 */
-int rt_dist3d_ptarray_poly(POINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPTS3D *dl)
+int rt_dist3d_ptarray_poly(RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPTS3D *dl)
 {
 	
 
@@ -1110,7 +1110,7 @@ Here we define the plane of a polygon (boundary pointarray of a polygon)
 the plane is stored as a pont in plane (plane.pop) and a normal vector (plane.pv)
 */
 int
-define_plane(POINTARRAY *pa, PLANE3D *pl)
+define_plane(RTPOINTARRAY *pa, PLANE3D *pl)
 {
 	int i,j, numberofvectors, pointsinslice;
 	RTPOINT3DZ p, p1, p2;
@@ -1214,7 +1214,7 @@ So, we already have a direction from p to find p0, but we don't know the distanc
 *	That is the dimension with the highest number in pv
  */
 int
-pt_in_ring_3d(const RTPOINT3DZ *p, const POINTARRAY *ring,PLANE3D *plane)
+pt_in_ring_3d(const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
 {
 	
 	int cn = 0;    /* the crossing number counter */

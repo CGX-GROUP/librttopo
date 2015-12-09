@@ -25,7 +25,7 @@ RTMLINE* rtmcurve_stroke(const RTMCURVE *mcurve, uint32_t perQuad);
 RTMPOLY* rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad);
 RTCOLLECTION* rtcollection_stroke(const RTCOLLECTION *collection, uint32_t perQuad);
 
-RTGEOM* pta_unstroke(const POINTARRAY *points, int type, int srid);
+RTGEOM* pta_unstroke(const RTPOINTARRAY *points, int type, int srid);
 RTGEOM* rtline_unstroke(const RTLINE *line);
 RTGEOM* rtpolygon_unstroke(const RTPOLY *poly);
 RTGEOM* rtmline_unstroke(const RTMLINE *mline);
@@ -98,7 +98,7 @@ static double interpolate_arc(double angle, double a1, double a2, double a3, dou
 	}
 }
 
-static POINTARRAY *
+static RTPOINTARRAY *
 rtcircle_stroke(const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, uint32_t perQuad)
 {
 	RTPOINT2D center;
@@ -111,7 +111,7 @@ rtcircle_stroke(const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, u
 	double radius; /* Arc radius */
 	double increment; /* Angle per segment */
 	double a1, a2, a3, angle;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	int is_circle = RT_FALSE;
 
 	RTDEBUG(2, "rtcircle_calculate_gbox called.");
@@ -190,8 +190,8 @@ RTLINE *
 rtcircstring_stroke(const RTCIRCSTRING *icurve, uint32_t perQuad)
 {
 	RTLINE *oline;
-	POINTARRAY *ptarray;
-	POINTARRAY *tmp;
+	RTPOINTARRAY *ptarray;
+	RTPOINTARRAY *tmp;
 	uint32_t i, j;
 	RTPOINT4D p1, p2, p3, p4;
 
@@ -242,7 +242,7 @@ RTLINE *
 rtcompound_stroke(const RTCOMPOUND *icompound, uint32_t perQuad)
 {
 	RTGEOM *geom;
-	POINTARRAY *ptarray = NULL, *ptarray_out = NULL;
+	RTPOINTARRAY *ptarray = NULL, *ptarray_out = NULL;
 	RTLINE *tmp = NULL;
 	uint32_t i, j;
 	RTPOINT4D p;
@@ -291,12 +291,12 @@ rtcurvepoly_stroke(const RTCURVEPOLY *curvepoly, uint32_t perQuad)
 	RTPOLY *ogeom;
 	RTGEOM *tmp;
 	RTLINE *line;
-	POINTARRAY **ptarray;
+	RTPOINTARRAY **ptarray;
 	int i;
 
 	RTDEBUG(2, "rtcurvepoly_stroke called.");
 
-	ptarray = rtalloc(sizeof(POINTARRAY *)*curvepoly->nrings);
+	ptarray = rtalloc(sizeof(RTPOINTARRAY *)*curvepoly->nrings);
 
 	for (i = 0; i < curvepoly->nrings; i++)
 	{
@@ -373,7 +373,7 @@ rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad)
 	RTGEOM *tmp;
 	RTPOLY *poly;
 	RTGEOM **polys;
-	POINTARRAY **ptarray;
+	RTPOINTARRAY **ptarray;
 	int i, j;
 
 	RTDEBUG(2, "rtmsurface_stroke called.");
@@ -390,7 +390,7 @@ rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad)
 		else if (tmp->type == RTPOLYGONTYPE)
 		{
 			poly = (RTPOLY *)tmp;
-			ptarray = rtalloc(sizeof(POINTARRAY *)*poly->nrings);
+			ptarray = rtalloc(sizeof(RTPOINTARRAY *)*poly->nrings);
 			for (j = 0; j < poly->nrings; j++)
 			{
 				ptarray[j] = ptarray_clone_deep(poly->rings[j]);
@@ -540,11 +540,11 @@ static int pt_continues_arc(const RTPOINT4D *a1, const RTPOINT4D *a2, const RTPO
 }
 
 static RTGEOM*
-linestring_from_pa(const POINTARRAY *pa, int srid, int start, int end)
+linestring_from_pa(const RTPOINTARRAY *pa, int srid, int start, int end)
 {
 	int i = 0, j = 0;
 	RTPOINT4D p;
-	POINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), end-start+2);
+	RTPOINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), end-start+2);
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
 	for( i = start; i < end + 2; i++ )
 	{
@@ -555,11 +555,11 @@ linestring_from_pa(const POINTARRAY *pa, int srid, int start, int end)
 }
 
 static RTGEOM*
-circstring_from_pa(const POINTARRAY *pa, int srid, int start, int end)
+circstring_from_pa(const RTPOINTARRAY *pa, int srid, int start, int end)
 {
 	
 	RTPOINT4D p0, p1, p2;
-	POINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), 3);
+	RTPOINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), 3);
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
 	getPoint4d_p(pa, start, &p0);
 	ptarray_set_point4d(pao, 0, &p0);	
@@ -571,7 +571,7 @@ circstring_from_pa(const POINTARRAY *pa, int srid, int start, int end)
 }
 
 static RTGEOM*
-geom_from_pa(const POINTARRAY *pa, int srid, int is_arc, int start, int end)
+geom_from_pa(const RTPOINTARRAY *pa, int srid, int is_arc, int start, int end)
 {
 	RTDEBUGF(4, "srid=%d, is_arc=%d, start=%d, end=%d", srid, is_arc, start, end);
 	if ( is_arc )
@@ -581,7 +581,7 @@ geom_from_pa(const POINTARRAY *pa, int srid, int is_arc, int start, int end)
 }
 
 RTGEOM*
-pta_unstroke(const POINTARRAY *points, int type, int srid)
+pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
 {
 	int i = 0, j, k;
 	RTPOINT4D a1, a2, a3, b;

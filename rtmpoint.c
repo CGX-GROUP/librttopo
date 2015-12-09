@@ -36,7 +36,7 @@ RTMPOINT* rtmpoint_add_rtpoint(RTMPOINT *mobj, const RTPOINT *obj)
 }
 
 RTMPOINT *
-rtmpoint_construct(int srid, const POINTARRAY *pa)
+rtmpoint_construct(int srid, const RTPOINTARRAY *pa)
 {
 	int i;
 	int hasz = ptarray_has_z(pa);

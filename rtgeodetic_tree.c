@@ -39,7 +39,7 @@ circ_tree_free(CIRC_NODE* node)
 * Create a new leaf node, storing pointers back to the end points for later.
 */
 static CIRC_NODE* 
-circ_node_leaf_new(const POINTARRAY* pa, int i)
+circ_node_leaf_new(const RTPOINTARRAY* pa, int i)
 {
 	RTPOINT2D *p1, *p2;
 	POINT3D q1, q2, c;
@@ -93,7 +93,7 @@ circ_node_leaf_new(const POINTARRAY* pa, int i)
 * Return a point node (zero radius, referencing one point)
 */
 static CIRC_NODE* 
-circ_node_leaf_point_new(const POINTARRAY* pa)
+circ_node_leaf_point_new(const RTPOINTARRAY* pa)
 {
 	CIRC_NODE* tree = rtalloc(sizeof(CIRC_NODE));
 	tree->p1 = tree->p2 = (RTPOINT2D*)getPoint_internal(pa, 0);
@@ -325,7 +325,7 @@ circ_node_internal_new(CIRC_NODE** c, int num_nodes)
 * Build a tree of nodes from a point array, one node per edge.
 */
 CIRC_NODE* 
-circ_tree_new(const POINTARRAY* pa)
+circ_tree_new(const RTPOINTARRAY* pa)
 {
 	int num_edges;
 	int i, j;

@@ -62,12 +62,12 @@ segment_locate_along(const RTPOINT4D *p1, const RTPOINT4D *p2, double m, double 
 }
 
 
-static POINTARRAY*
-ptarray_locate_along(const POINTARRAY *pa, double m, double offset)
+static RTPOINTARRAY*
+ptarray_locate_along(const RTPOINTARRAY *pa, double m, double offset)
 {
 	int i;
 	RTPOINT4D p1, p2, pn;
-	POINTARRAY *dpa = NULL;
+	RTPOINTARRAY *dpa = NULL;
 
 	/* Can't do anything with degenerate point arrays */
 	if ( ! pa || pa->npoints < 2 ) return NULL;
@@ -96,7 +96,7 @@ ptarray_locate_along(const POINTARRAY *pa, double m, double offset)
 static RTMPOINT*
 rtline_locate_along(const RTLINE *rtline, double m, double offset)
 {
-	POINTARRAY *opa = NULL;
+	RTPOINTARRAY *opa = NULL;
 	RTMPOINT *mp = NULL;
 	RTGEOM *rtg = rtline_as_rtgeom(rtline);
 	int hasz, hasm, srid;
@@ -542,9 +542,9 @@ RTCOLLECTION*
 rtline_clip_to_ordinate_range(const RTLINE *line, char ordinate, double from, double to)
 {
 
-	POINTARRAY *pa_in = NULL;
+	RTPOINTARRAY *pa_in = NULL;
 	RTCOLLECTION *rtgeom_out = NULL;
-	POINTARRAY *dp = NULL;
+	RTPOINTARRAY *dp = NULL;
 	int i;
 	int added_last_point = 0;
 	RTPOINT4D *p = NULL, *q = NULL, *r = NULL;
@@ -981,7 +981,7 @@ segments_tcpa(RTPOINT4D* p0, const RTPOINT4D* p1,
 }
 
 static int
-ptarray_collect_mvals(const POINTARRAY *pa, double tmin, double tmax, double *mvals)
+ptarray_collect_mvals(const RTPOINTARRAY *pa, double tmin, double tmax, double *mvals)
 {
 	RTPOINT4D pbuf;
 	int i, n=0;
@@ -1039,7 +1039,7 @@ uniq(double *vals, int nvals)
  *         or -1 if given measure was out of the known range.
  */
 static int
-ptarray_locate_along_linear(const POINTARRAY *pa, double m, RTPOINT4D *p, int from)
+ptarray_locate_along_linear(const RTPOINTARRAY *pa, double m, RTPOINT4D *p, int from)
 {
 	int i = from;
 	RTPOINT4D p1, p2;

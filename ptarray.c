@@ -20,43 +20,43 @@
 #include "rtgeom_log.h"
 
 int
-ptarray_has_z(const POINTARRAY *pa)
+ptarray_has_z(const RTPOINTARRAY *pa)
 {
 	if ( ! pa ) return RT_FALSE;
 	return FLAGS_GET_Z(pa->flags);
 }
 
 int
-ptarray_has_m(const POINTARRAY *pa)
+ptarray_has_m(const RTPOINTARRAY *pa)
 {
 	if ( ! pa ) return RT_FALSE;
 	return FLAGS_GET_M(pa->flags);
 }
 
 /*
- * Size of point represeneted in the POINTARRAY
+ * Size of point represeneted in the RTPOINTARRAY
  * 16 for 2d, 24 for 3d, 32 for 4d
  */
 int inline
-ptarray_point_size(const POINTARRAY *pa)
+ptarray_point_size(const RTPOINTARRAY *pa)
 {
 	RTDEBUGF(5, "ptarray_point_size: FLAGS_NDIMS(pa->flags)=%x",FLAGS_NDIMS(pa->flags));
 
 	return sizeof(double)*FLAGS_NDIMS(pa->flags);
 }
 
-POINTARRAY*
+RTPOINTARRAY*
 ptarray_construct(char hasz, char hasm, uint32_t npoints)
 {
-	POINTARRAY *pa = ptarray_construct_empty(hasz, hasm, npoints);
+	RTPOINTARRAY *pa = ptarray_construct_empty(hasz, hasm, npoints);
 	pa->npoints = npoints;
 	return pa;
 }
 
-POINTARRAY*
+RTPOINTARRAY*
 ptarray_construct_empty(char hasz, char hasm, uint32_t maxpoints)
 {
-	POINTARRAY *pa = rtalloc(sizeof(POINTARRAY));
+	RTPOINTARRAY *pa = rtalloc(sizeof(RTPOINTARRAY));
 	pa->serialized_pointlist = NULL;
 	
 	/* Set our dimsionality info on the bitmap */
@@ -80,7 +80,7 @@ ptarray_construct_empty(char hasz, char hasm, uint32_t maxpoints)
 * pointarray supports.
 */
 int
-ptarray_insert_point(POINTARRAY *pa, const RTPOINT4D *p, int where)
+ptarray_insert_point(RTPOINTARRAY *pa, const RTPOINT4D *p, int where)
 {
 	size_t point_size = ptarray_point_size(pa);
 	RTDEBUGF(5,"pa = %p; p = %p; where = %d", pa, p, where);
@@ -140,7 +140,7 @@ ptarray_insert_point(POINTARRAY *pa, const RTPOINT4D *p, int where)
 }
 
 int
-ptarray_append_point(POINTARRAY *pa, const RTPOINT4D *pt, int repeated_points)
+ptarray_append_point(RTPOINTARRAY *pa, const RTPOINT4D *pt, int repeated_points)
 {
 
 	/* Check for pathology */
@@ -171,7 +171,7 @@ ptarray_append_point(POINTARRAY *pa, const RTPOINT4D *pt, int repeated_points)
 }
 
 int
-ptarray_append_ptarray(POINTARRAY *pa1, POINTARRAY *pa2, double gap_tolerance)
+ptarray_append_ptarray(RTPOINTARRAY *pa1, RTPOINTARRAY *pa2, double gap_tolerance)
 {
 	unsigned int poff = 0;
 	unsigned int npoints;
@@ -245,7 +245,7 @@ ptarray_append_ptarray(POINTARRAY *pa1, POINTARRAY *pa2, double gap_tolerance)
 * pointarray supports.
 */
 int
-ptarray_remove_point(POINTARRAY *pa, int where)
+ptarray_remove_point(RTPOINTARRAY *pa, int where)
 {
 	size_t ptsize = ptarray_point_size(pa);
 
@@ -276,12 +276,12 @@ ptarray_remove_point(POINTARRAY *pa, int where)
 }
 
 /**
-* Build a new #POINTARRAY, but on top of someone else's ordinate array. 
+* Build a new #RTPOINTARRAY, but on top of someone else's ordinate array. 
 * Flag as read-only, so that ptarray_free() does not free the serialized_ptlist
 */
-POINTARRAY* ptarray_construct_reference_data(char hasz, char hasm, uint32_t npoints, uint8_t *ptlist)
+RTPOINTARRAY* ptarray_construct_reference_data(char hasz, char hasm, uint32_t npoints, uint8_t *ptlist)
 {
-	POINTARRAY *pa = rtalloc(sizeof(POINTARRAY));
+	RTPOINTARRAY *pa = rtalloc(sizeof(RTPOINTARRAY));
 	RTDEBUGF(5, "hasz = %d, hasm = %d, npoints = %d, ptlist = %p", hasz, hasm, npoints, ptlist);
 	pa->flags = gflags(hasz, hasm, 0);
 	FLAGS_SET_READONLY(pa->flags, 1); /* We don't own this memory, so we can't alter or free it. */
@@ -292,10 +292,10 @@ POINTARRAY* ptarray_construct_reference_data(char hasz, char hasm, uint32_t npoi
 }
 
 
-POINTARRAY*
+RTPOINTARRAY*
 ptarray_construct_copy_data(char hasz, char hasm, uint32_t npoints, const uint8_t *ptlist)
 {
-	POINTARRAY *pa = rtalloc(sizeof(POINTARRAY));
+	RTPOINTARRAY *pa = rtalloc(sizeof(RTPOINTARRAY));
 
 	pa->flags = gflags(hasz, hasm, 0);
 	pa->npoints = npoints;
@@ -314,7 +314,7 @@ ptarray_construct_copy_data(char hasz, char hasm, uint32_t npoints, const uint8_
 	return pa;
 }
 
-void ptarray_free(POINTARRAY *pa)
+void ptarray_free(RTPOINTARRAY *pa)
 {
 	if(pa)
 	{
@@ -327,7 +327,7 @@ void ptarray_free(POINTARRAY *pa)
 
 
 void
-ptarray_reverse(POINTARRAY *pa)
+ptarray_reverse(RTPOINTARRAY *pa)
 {
 	/* TODO change this to double array operations once point array is double aligned */
 	RTPOINT4D pbuf;
@@ -350,10 +350,10 @@ ptarray_reverse(POINTARRAY *pa)
 
 
 /**
- * Reverse X and Y axis on a given POINTARRAY
+ * Reverse X and Y axis on a given RTPOINTARRAY
  */
-POINTARRAY*
-ptarray_flip_coordinates(POINTARRAY *pa)
+RTPOINTARRAY*
+ptarray_flip_coordinates(RTPOINTARRAY *pa)
 {
 	int i;
 	double d;
@@ -372,7 +372,7 @@ ptarray_flip_coordinates(POINTARRAY *pa)
 }
 
 void
-ptarray_swap_ordinates(POINTARRAY *pa, RTORD o1, RTORD o2)
+ptarray_swap_ordinates(RTPOINTARRAY *pa, RTORD o1, RTORD o2)
 {
 	int i;
 	double d, *dp1, *dp2;
@@ -397,19 +397,19 @@ ptarray_swap_ordinates(POINTARRAY *pa, RTORD o1, RTORD o2)
 
 
 /**
- * @brief Returns a modified #POINTARRAY so that no segment is
+ * @brief Returns a modified #RTPOINTARRAY so that no segment is
  * 		longer than the given distance (computed using 2d).
  *
  * Every input point is kept.
  * Z and M values for added points (if needed) are set to 0.
  */
-POINTARRAY *
-ptarray_segmentize2d(const POINTARRAY *ipa, double dist)
+RTPOINTARRAY *
+ptarray_segmentize2d(const RTPOINTARRAY *ipa, double dist)
 {
 	double	segdist;
 	RTPOINT4D	p1, p2;
 	RTPOINT4D pbuf;
-	POINTARRAY *opa;
+	RTPOINTARRAY *opa;
 	int ipoff=0; /* input point offset */
 	int hasz = FLAGS_GET_Z(ipa->flags);
 	int hasm = FLAGS_GET_M(ipa->flags);
@@ -468,7 +468,7 @@ ptarray_segmentize2d(const POINTARRAY *ipa, double dist)
 }
 
 char
-ptarray_same(const POINTARRAY *pa1, const POINTARRAY *pa2)
+ptarray_same(const RTPOINTARRAY *pa1, const RTPOINTARRAY *pa2)
 {
 	uint32_t i;
 	size_t ptsize;
@@ -492,10 +492,10 @@ ptarray_same(const POINTARRAY *pa1, const POINTARRAY *pa2)
 	return RT_TRUE;
 }
 
-POINTARRAY *
-ptarray_addPoint(const POINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t where)
+RTPOINTARRAY *
+ptarray_addPoint(const RTPOINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t where)
 {
-	POINTARRAY *ret;
+	RTPOINTARRAY *ret;
 	RTPOINT4D pbuf;
 	size_t ptsize = ptarray_point_size(pa);
 
@@ -545,10 +545,10 @@ ptarray_addPoint(const POINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t where)
 	return ret;
 }
 
-POINTARRAY *
-ptarray_removePoint(POINTARRAY *pa, uint32_t which)
+RTPOINTARRAY *
+ptarray_removePoint(RTPOINTARRAY *pa, uint32_t which)
 {
-	POINTARRAY *ret;
+	RTPOINTARRAY *ret;
 	size_t ptsize = ptarray_point_size(pa);
 
 	RTDEBUGF(3, "pa %x which %d", pa, which);
@@ -563,7 +563,7 @@ ptarray_removePoint(POINTARRAY *pa, uint32_t which)
 
 	if ( pa->npoints < 3 )
 	{
-		rterror("ptarray_removePointe: can't remove a point from a 2-vertex POINTARRAY");
+		rterror("ptarray_removePointe: can't remove a point from a 2-vertex RTPOINTARRAY");
 	}
 #endif
 
@@ -586,10 +586,10 @@ ptarray_removePoint(POINTARRAY *pa, uint32_t which)
 	return ret;
 }
 
-POINTARRAY *
-ptarray_merge(POINTARRAY *pa1, POINTARRAY *pa2)
+RTPOINTARRAY *
+ptarray_merge(RTPOINTARRAY *pa1, RTPOINTARRAY *pa2)
 {
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	size_t ptsize = ptarray_point_size(pa1);
 
 	if (FLAGS_GET_ZM(pa1->flags) != FLAGS_GET_ZM(pa2->flags))
@@ -617,10 +617,10 @@ ptarray_merge(POINTARRAY *pa1, POINTARRAY *pa2)
 /**
  * @brief Deep clone a pointarray (also clones serialized pointlist)
  */
-POINTARRAY *
-ptarray_clone_deep(const POINTARRAY *in)
+RTPOINTARRAY *
+ptarray_clone_deep(const RTPOINTARRAY *in)
 {
-	POINTARRAY *out = rtalloc(sizeof(POINTARRAY));
+	RTPOINTARRAY *out = rtalloc(sizeof(RTPOINTARRAY));
 	size_t size;
 
 	RTDEBUG(3, "ptarray_clone_deep called.");
@@ -639,12 +639,12 @@ ptarray_clone_deep(const POINTARRAY *in)
 }
 
 /**
- * @brief Clone a POINTARRAY object. Serialized pointlist is not copied.
+ * @brief Clone a RTPOINTARRAY object. Serialized pointlist is not copied.
  */
-POINTARRAY *
-ptarray_clone(const POINTARRAY *in)
+RTPOINTARRAY *
+ptarray_clone(const RTPOINTARRAY *in)
 {
-	POINTARRAY *out = rtalloc(sizeof(POINTARRAY));
+	RTPOINTARRAY *out = rtalloc(sizeof(RTPOINTARRAY));
 
 	RTDEBUG(3, "ptarray_clone_deep called.");
 
@@ -664,26 +664,26 @@ ptarray_clone(const POINTARRAY *in)
 * pointarray.
 */
 int
-ptarray_is_closed(const POINTARRAY *in)
+ptarray_is_closed(const RTPOINTARRAY *in)
 {
 	return 0 == memcmp(getPoint_internal(in, 0), getPoint_internal(in, in->npoints-1), ptarray_point_size(in));
 }
 
 
 int
-ptarray_is_closed_2d(const POINTARRAY *in)
+ptarray_is_closed_2d(const RTPOINTARRAY *in)
 {
 	return 0 == memcmp(getPoint_internal(in, 0), getPoint_internal(in, in->npoints-1), sizeof(RTPOINT2D));
 }
 
 int
-ptarray_is_closed_3d(const POINTARRAY *in)
+ptarray_is_closed_3d(const RTPOINTARRAY *in)
 {
 	return 0 == memcmp(getPoint_internal(in, 0), getPoint_internal(in, in->npoints-1), sizeof(POINT3D));
 }
 
 int
-ptarray_is_closed_z(const POINTARRAY *in)
+ptarray_is_closed_z(const RTPOINTARRAY *in)
 {
 	if ( FLAGS_GET_Z(in->flags) )
 		return ptarray_is_closed_3d(in);
@@ -692,17 +692,17 @@ ptarray_is_closed_z(const POINTARRAY *in)
 }
 
 /**
-* Return 1 if the point is inside the POINTARRAY, -1 if it is outside,
+* Return 1 if the point is inside the RTPOINTARRAY, -1 if it is outside,
 * and 0 if it is on the boundary.
 */
 int 
-ptarray_contains_point(const POINTARRAY *pa, const RTPOINT2D *pt)
+ptarray_contains_point(const RTPOINTARRAY *pa, const RTPOINT2D *pt)
 {
 	return ptarray_contains_point_partial(pa, pt, RT_TRUE, NULL);
 }
 
 int 
-ptarray_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number)
+ptarray_contains_point_partial(const RTPOINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number)
 {
 	int wn = 0;
 	int i;
@@ -786,22 +786,22 @@ ptarray_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int ch
 }
 
 /**
-* For POINTARRAYs representing CIRCULARSTRINGS. That is, linked triples
+* For RTPOINTARRAYs representing CIRCULARSTRINGS. That is, linked triples
 * with each triple being control points of a circular arc. Such
-* POINTARRAYs have an odd number of vertices.
+* RTPOINTARRAYs have an odd number of vertices.
 *
-* Return 1 if the point is inside the POINTARRAY, -1 if it is outside,
+* Return 1 if the point is inside the RTPOINTARRAY, -1 if it is outside,
 * and 0 if it is on the boundary.
 */
 
 int 
-ptarrayarc_contains_point(const POINTARRAY *pa, const RTPOINT2D *pt)
+ptarrayarc_contains_point(const RTPOINTARRAY *pa, const RTPOINT2D *pt)
 {
 	return ptarrayarc_contains_point_partial(pa, pt, RT_TRUE /* Check closed*/, NULL);
 }
 
 int 
-ptarrayarc_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number)
+ptarrayarc_contains_point_partial(const RTPOINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number)
 {
 	int wn = 0;
 	int i, side;
@@ -958,7 +958,7 @@ ptarrayarc_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int
 * http://en.wikipedia.org/wiki/Shoelace_formula
 */
 double
-ptarray_signed_area(const POINTARRAY *pa)
+ptarray_signed_area(const RTPOINTARRAY *pa)
 {
 	const RTPOINT2D *P1;
 	const RTPOINT2D *P2;
@@ -989,7 +989,7 @@ ptarray_signed_area(const POINTARRAY *pa)
 }
 
 int
-ptarray_isccw(const POINTARRAY *pa)
+ptarray_isccw(const RTPOINTARRAY *pa)
 {
 	double area = 0;
 	area = ptarray_signed_area(pa);
@@ -997,15 +997,15 @@ ptarray_isccw(const POINTARRAY *pa)
 	else return RT_TRUE;
 }
 
-POINTARRAY*
-ptarray_force_dims(const POINTARRAY *pa, int hasz, int hasm)
+RTPOINTARRAY*
+ptarray_force_dims(const RTPOINTARRAY *pa, int hasz, int hasm)
 {
 	/* TODO handle zero-length point arrays */
 	int i;
 	int in_hasz = FLAGS_GET_Z(pa->flags);
 	int in_hasm = FLAGS_GET_M(pa->flags);
 	RTPOINT4D pt;
-	POINTARRAY *pa_out = ptarray_construct_empty(hasz, hasm, pa->npoints);
+	RTPOINTARRAY *pa_out = ptarray_construct_empty(hasz, hasm, pa->npoints);
 	
 	for( i = 0; i < pa->npoints; i++ )
 	{
@@ -1020,10 +1020,10 @@ ptarray_force_dims(const POINTARRAY *pa, int hasz, int hasm)
 	return pa_out;
 }
 
-POINTARRAY *
-ptarray_substring(POINTARRAY *ipa, double from, double to, double tolerance)
+RTPOINTARRAY *
+ptarray_substring(RTPOINTARRAY *ipa, double from, double to, double tolerance)
 {
-	POINTARRAY *dpa;
+	RTPOINTARRAY *dpa;
 	RTPOINT4D pt;
 	RTPOINT4D p1, p2;
 	RTPOINT4D *p1ptr=&p1; /* don't break strict-aliasing rule */
@@ -1266,7 +1266,7 @@ closest_point_on_segment(const RTPOINT4D *p, const RTPOINT4D *A, const RTPOINT4D
  * and, optionally, it's actual distance from the point array.
  */
 double
-ptarray_locate_point(const POINTARRAY *pa, const RTPOINT4D *p4d, double *mindistout, RTPOINT4D *proj4d)
+ptarray_locate_point(const RTPOINTARRAY *pa, const RTPOINT4D *p4d, double *mindistout, RTPOINT4D *proj4d)
 {
 	double mindist=-1;
 	double tlen, plen;
@@ -1377,7 +1377,7 @@ ptarray_locate_point(const POINTARRAY *pa, const RTPOINT4D *p4d, double *mindist
  *  	X > 180 becomes X - 360
  */
 void
-ptarray_longitude_shift(POINTARRAY *pa)
+ptarray_longitude_shift(RTPOINTARRAY *pa)
 {
 	int i;
 	double x;
@@ -1393,16 +1393,16 @@ ptarray_longitude_shift(POINTARRAY *pa)
 
 
 /*
- * Returns a POINTARRAY with consecutive equal points
+ * Returns a RTPOINTARRAY with consecutive equal points
  * removed. Equality test on all dimensions of input.
  *
  * Artays returns a newly allocated object.
  *
  */
-POINTARRAY *
-ptarray_remove_repeated_points_minpoints(const POINTARRAY *in, double tolerance, int minpoints)
+RTPOINTARRAY *
+ptarray_remove_repeated_points_minpoints(const RTPOINTARRAY *in, double tolerance, int minpoints)
 {
-	POINTARRAY* out;
+	RTPOINTARRAY* out;
 	size_t ptsize;
 	size_t ipn, opn;
 	const RTPOINT2D *last_point, *this_point;
@@ -1450,14 +1450,14 @@ ptarray_remove_repeated_points_minpoints(const POINTARRAY *in, double tolerance,
 	return out;
 }
 
-POINTARRAY *
-ptarray_remove_repeated_points(const POINTARRAY *in, double tolerance)
+RTPOINTARRAY *
+ptarray_remove_repeated_points(const RTPOINTARRAY *in, double tolerance)
 {
 	return ptarray_remove_repeated_points_minpoints(in, tolerance, 2);
 }
 
 static void
-ptarray_dp_findsplit(POINTARRAY *pts, int p1, int p2, int *split, double *dist)
+ptarray_dp_findsplit(RTPOINTARRAY *pts, int p1, int p2, int *split, double *dist)
 {
 	int k;
 	const RTPOINT2D *pk, *pa, *pb;
@@ -1505,14 +1505,14 @@ ptarray_dp_findsplit(POINTARRAY *pts, int p1, int p2, int *split, double *dist)
 
 }
 
-POINTARRAY *
-ptarray_simplify(POINTARRAY *inpts, double epsilon, unsigned int minpts)
+RTPOINTARRAY *
+ptarray_simplify(RTPOINTARRAY *inpts, double epsilon, unsigned int minpts)
 {
 	int *stack;			/* recursion stack */
 	int sp=-1;			/* recursion stack pointer */
 	int p1, split;
 	double dist;
-	POINTARRAY *outpts;
+	RTPOINTARRAY *outpts;
 	RTPOINT4D pt;
 
 	double eps_sqr = epsilon * epsilon;
@@ -1526,7 +1526,7 @@ ptarray_simplify(POINTARRAY *inpts, double epsilon, unsigned int minpts)
 	RTDEBUGF(2, "Input has %d pts and %d dims", inpts->npoints,
 	                                            FLAGS_NDIMS(inpts->flags));
 
-	/* Allocate output POINTARRAY, and add first point. */
+	/* Allocate output RTPOINTARRAY, and add first point. */
 	outpts = ptarray_construct_empty(FLAGS_GET_Z(inpts->flags), FLAGS_GET_M(inpts->flags), inpts->npoints);
 	getPoint4d_p(inpts, 0, &pt);
 	ptarray_append_point(outpts, &pt, RT_FALSE);
@@ -1565,12 +1565,12 @@ ptarray_simplify(POINTARRAY *inpts, double epsilon, unsigned int minpts)
 }
 
 /**
-* Find the 2d length of the given #POINTARRAY, using circular
+* Find the 2d length of the given #RTPOINTARRAY, using circular
 * arc interpolation between each coordinate triple.
 * Length(A1, A2, A3, A4, A5) = Length(A1, A2, A3)+Length(A3, A4, A5)
 */
 double
-ptarray_arc_length_2d(const POINTARRAY *pts)
+ptarray_arc_length_2d(const RTPOINTARRAY *pts)
 {
 	double dist = 0.0;
 	int i;
@@ -1594,10 +1594,10 @@ ptarray_arc_length_2d(const POINTARRAY *pts)
 }
 
 /**
-* Find the 2d length of the given #POINTARRAY (even if it's 3d)
+* Find the 2d length of the given #RTPOINTARRAY (even if it's 3d)
 */
 double
-ptarray_length_2d(const POINTARRAY *pts)
+ptarray_length_2d(const RTPOINTARRAY *pts)
 {
 	double dist = 0.0;
 	int i;
@@ -1621,11 +1621,11 @@ ptarray_length_2d(const POINTARRAY *pts)
 }
 
 /**
-* Find the 3d/2d length of the given #POINTARRAY
+* Find the 3d/2d length of the given #RTPOINTARRAY
 * (depending on its dimensionality)
 */
 double
-ptarray_length(const POINTARRAY *pts)
+ptarray_length(const RTPOINTARRAY *pts)
 {
 	double dist = 0.0;
 	int i;
@@ -1651,14 +1651,14 @@ ptarray_length(const POINTARRAY *pts)
 
 
 /*
- * Get a pointer to nth point of a POINTARRAY.
+ * Get a pointer to nth point of a RTPOINTARRAY.
  *
  * Casting to returned pointer to RTPOINT2D* should be safe,
- * as gserialized format artays keeps the POINTARRAY pointer
+ * as gserialized format artays keeps the RTPOINTARRAY pointer
  * aligned to double boundary.
  */
 uint8_t *
-getPoint_internal(const POINTARRAY *pa, int n)
+getPoint_internal(const RTPOINTARRAY *pa, int n)
 {
 	size_t size;
 	uint8_t *ptr;
@@ -1705,7 +1705,7 @@ getPoint_internal(const POINTARRAY *pa, int n)
  * Affine transform a pointarray.
  */
 void
-ptarray_affine(POINTARRAY *pa, const AFFINE *a)
+ptarray_affine(RTPOINTARRAY *pa, const AFFINE *a)
 {
 	int i;
 	double x,y,z;
@@ -1756,7 +1756,7 @@ ptarray_affine(POINTARRAY *pa, const AFFINE *a)
  * Scale a pointarray.
  */
 void
-ptarray_scale(POINTARRAY *pa, const RTPOINT4D *fact)
+ptarray_scale(RTPOINTARRAY *pa, const RTPOINT4D *fact)
 {
   int i;
   RTPOINT4D p4d;
@@ -1778,7 +1778,7 @@ ptarray_scale(POINTARRAY *pa, const RTPOINT4D *fact)
 }
 
 int
-ptarray_startpoint(const POINTARRAY* pa, RTPOINT4D* pt)
+ptarray_startpoint(const RTPOINTARRAY* pa, RTPOINT4D* pt)
 {
 	return getPoint4d_p(pa, 0, pt);
 }
@@ -1794,12 +1794,12 @@ ptarray_startpoint(const POINTARRAY* pa, RTPOINT4D* pt)
  * into one single point.
  *
  */
-POINTARRAY *
-ptarray_grid(const POINTARRAY *pa, const gridspec *grid)
+RTPOINTARRAY *
+ptarray_grid(const RTPOINTARRAY *pa, const gridspec *grid)
 {
 	RTPOINT4D pt;
 	int ipn; /* input point numbers */
-	POINTARRAY *dpa;
+	RTPOINTARRAY *dpa;
 
 	RTDEBUGF(2, "ptarray_grid called on %p", pa);
 
@@ -1834,7 +1834,7 @@ ptarray_grid(const POINTARRAY *pa, const gridspec *grid)
 }
 
 int 
-ptarray_npoints_in_rect(const POINTARRAY *pa, const RTGBOX *gbox)
+ptarray_npoints_in_rect(const RTPOINTARRAY *pa, const RTGBOX *gbox)
 {
 	const RTPOINT2D *pt;
 	int n = 0;

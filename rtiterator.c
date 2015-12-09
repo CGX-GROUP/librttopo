@@ -21,7 +21,7 @@ struct LISTNODE
 typedef struct LISTNODE LISTNODE;
 
 /* The RTPOINTITERATOR consists of two stacks of items to process: a stack
- * of geometries, and a stack of POINTARRAYs extracted from those geometries.
+ * of geometries, and a stack of RTPOINTARRAYs extracted from those geometries.
  * The index "i" refers to the "next" point, which is found at the top of the
  * pointarrays stack.
  *
@@ -64,7 +64,7 @@ add_rtgeom_to_stack(RTPOINTITERATOR* s, RTGEOM* g)
 	return RT_SUCCESS;
 }
 
-/** Return a pointer to the first of one or more LISTNODEs holding the POINTARRAYs
+/** Return a pointer to the first of one or more LISTNODEs holding the RTPOINTARRAYs
  *  of a geometry.  Will not handle GeometryCollections.
  */
 static LISTNODE*
@@ -142,15 +142,15 @@ rtpointiterator_advance(RTPOINTITERATOR* s)
 {
 	s->i += 1;
 
-	/* We've reached the end of our current POINTARRAY.  Try to see if there
-	 * are any more POINTARRAYS on the stack. */
-	if (s->pointarrays && s->i >= ((POINTARRAY*) s->pointarrays->item)->npoints)
+	/* We've reached the end of our current RTPOINTARRAY.  Try to see if there
+	 * are any more RTPOINTARRAYS on the stack. */
+	if (s->pointarrays && s->i >= ((RTPOINTARRAY*) s->pointarrays->item)->npoints)
 	{
 		s->pointarrays = pop_node(s->pointarrays);
 		s->i = 0;
 	}
 
-	/* We don't have a current POINTARRAY.  Pull a geometry from the stack, and
+	/* We don't have a current RTPOINTARRAY.  Pull a geometry from the stack, and
 	 * decompose it into its POINTARRARYs. */
 	if (!s->pointarrays)
 	{
@@ -190,7 +190,7 @@ rtpointiterator_peek(RTPOINTITERATOR* s, RTPOINT4D* p)
 int
 rtpointiterator_has_next(RTPOINTITERATOR* s)
 {
-	if (s->pointarrays && s->i < ((POINTARRAY*) s->pointarrays->item)->npoints)
+	if (s->pointarrays && s->i < ((RTPOINTARRAY*) s->pointarrays->item)->npoints)
 		return RT_TRUE;
 	return RT_FALSE;
 }

@@ -157,14 +157,14 @@ RTPOINT* rtpoint_force_dims(const RTPOINT *rtpoint, int hasz, int hasm);
 RTLINE* rtline_force_dims(const RTLINE *rtline, int hasz, int hasm);
 RTPOLY* rtpoly_force_dims(const RTPOLY *rtpoly, int hasz, int hasm);
 RTCOLLECTION* rtcollection_force_dims(const RTCOLLECTION *rtcol, int hasz, int hasm);
-POINTARRAY* ptarray_force_dims(const POINTARRAY *pa, int hasz, int hasm);
+RTPOINTARRAY* ptarray_force_dims(const RTPOINTARRAY *pa, int hasz, int hasm);
 
 /**
- * Swap ordinate values o1 and o2 on a given POINTARRAY
+ * Swap ordinate values o1 and o2 on a given RTPOINTARRAY
  *
  * Ordinates semantic is: 0=x 1=y 2=z 3=m
  */
-void ptarray_swap_ordinates(POINTARRAY *pa, RTORD o1, RTORD o2);
+void ptarray_swap_ordinates(RTPOINTARRAY *pa, RTORD o1, RTORD o2);
 
 /*
 * Is Empty?
@@ -196,7 +196,7 @@ extern int32_t rt_get_int32_t(const uint8_t *loc);
 /**
  * @param minpts minimun number of points to retain, if possible.
  */
-POINTARRAY* ptarray_simplify(POINTARRAY *inpts, double epsilon, unsigned int minpts);
+RTPOINTARRAY* ptarray_simplify(RTPOINTARRAY *inpts, double epsilon, unsigned int minpts);
 RTLINE* rtline_simplify(const RTLINE *iline, double dist, int preserve_collapsed);
 RTPOLY* rtpoly_simplify(const RTPOLY *ipoly, double dist, int preserve_collapsed);
 RTCOLLECTION* rtcollection_simplify(const RTCOLLECTION *igeom, double dist, int preserve_collapsed);
@@ -309,19 +309,19 @@ RTPOLY *rtcurvepoly_stroke(const RTCURVEPOLY *curvepoly, uint32_t perQuad);
 /*
 * Affine
 */
-void ptarray_affine(POINTARRAY *pa, const AFFINE *affine);
+void ptarray_affine(RTPOINTARRAY *pa, const AFFINE *affine);
 
 /*
 * Scale
 */
-void ptarray_scale(POINTARRAY *pa, const RTPOINT4D *factor);
+void ptarray_scale(RTPOINTARRAY *pa, const RTPOINT4D *factor);
 
 /*
 * PointArray
 */
-int ptarray_has_z(const POINTARRAY *pa);
-int ptarray_has_m(const POINTARRAY *pa);
-double ptarray_signed_area(const POINTARRAY *pa);
+int ptarray_has_z(const RTPOINTARRAY *pa);
+int ptarray_has_m(const RTPOINTARRAY *pa);
+double ptarray_signed_area(const RTPOINTARRAY *pa);
 
 /*
 * Clone support
@@ -331,7 +331,7 @@ RTPOLY *rtpoly_clone(const RTPOLY *rtgeom);
 RTTRIANGLE *rttriangle_clone(const RTTRIANGLE *rtgeom);
 RTCOLLECTION *rtcollection_clone(const RTCOLLECTION *rtgeom);
 RTCIRCSTRING *rtcircstring_clone(const RTCIRCSTRING *curve);
-POINTARRAY *ptarray_clone(const POINTARRAY *ptarray);
+RTPOINTARRAY *ptarray_clone(const RTPOINTARRAY *ptarray);
 RTGBOX *box2d_clone(const RTGBOX *rtgeom);
 RTLINE *rtline_clone_deep(const RTLINE *rtgeom);
 RTPOLY *rtpoly_clone_deep(const RTPOLY *rtgeom);
@@ -342,7 +342,7 @@ RTGBOX *gbox_clone(const RTGBOX *gbox);
 * Startpoint
 */
 int rtpoly_startpoint(const RTPOLY* rtpoly, RTPOINT4D* pt);
-int ptarray_startpoint(const POINTARRAY* pa, RTPOINT4D* pt);
+int ptarray_startpoint(const RTPOINTARRAY* pa, RTPOINT4D* pt);
 int rtcollection_startpoint(const RTCOLLECTION* col, RTPOINT4D* pt);
 
 /*
@@ -354,8 +354,8 @@ void closest_point_on_segment(const RTPOINT4D *R, const RTPOINT4D *A, const RTPO
 /* 
 * Repeated points
 */
-POINTARRAY *ptarray_remove_repeated_points_minpoints(const POINTARRAY *in, double tolerance, int minpoints);
-POINTARRAY *ptarray_remove_repeated_points(const POINTARRAY *in, double tolerance);
+RTPOINTARRAY *ptarray_remove_repeated_points_minpoints(const RTPOINTARRAY *in, double tolerance, int minpoints);
+RTPOINTARRAY *ptarray_remove_repeated_points(const RTPOINTARRAY *in, double tolerance);
 RTGEOM* rtmpoint_remove_repeated_points(const RTMPOINT *in, double tolerance);
 RTGEOM* rtline_remove_repeated_points(const RTLINE *in, double tolerance);
 RTGEOM* rtcollection_remove_repeated_points(const RTCOLLECTION *in, double tolerance);
@@ -397,7 +397,7 @@ RTPOINT* rtpoint_grid(const RTPOINT *point, const gridspec *grid);
 RTPOLY* rtpoly_grid(const RTPOLY *poly, const gridspec *grid);
 RTLINE* rtline_grid(const RTLINE *line, const gridspec *grid);
 RTCIRCSTRING* rtcircstring_grid(const RTCIRCSTRING *line, const gridspec *grid);
-POINTARRAY* ptarray_grid(const POINTARRAY *pa, const gridspec *grid);
+RTPOINTARRAY* ptarray_grid(const RTPOINTARRAY *pa, const gridspec *grid);
 
 /*
 * What side of the line formed by p1 and p2 does q fall? 
@@ -412,11 +412,11 @@ int rt_pt_in_arc(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, c
 int rt_arc_is_pt(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3);
 double rt_seg_length(const RTPOINT2D *A1, const RTPOINT2D *A2);
 double rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3);
-int pt_in_ring_2d(const RTPOINT2D *p, const POINTARRAY *ring);
-int ptarray_contains_point(const POINTARRAY *pa, const RTPOINT2D *pt);
-int ptarrayarc_contains_point(const POINTARRAY *pa, const RTPOINT2D *pt);
-int ptarray_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number);
-int ptarrayarc_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number);
+int pt_in_ring_2d(const RTPOINT2D *p, const RTPOINTARRAY *ring);
+int ptarray_contains_point(const RTPOINTARRAY *pa, const RTPOINT2D *pt);
+int ptarrayarc_contains_point(const RTPOINTARRAY *pa, const RTPOINT2D *pt);
+int ptarray_contains_point_partial(const RTPOINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number);
+int ptarrayarc_contains_point_partial(const RTPOINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number);
 int rtcompound_contains_point(const RTCOMPOUND *comp, const RTPOINT2D *pt);
 int rtgeom_contains_point(const RTGEOM *geom, const RTPOINT2D *pt);
 
@@ -461,7 +461,7 @@ extern int _rtgeom_interrupt_requested;
   } \
 }
 
-int ptarray_npoints_in_rect(const POINTARRAY *pa, const RTGBOX *gbox);
+int ptarray_npoints_in_rect(const RTPOINTARRAY *pa, const RTGBOX *gbox);
 int gbox_contains_point2d(const RTGBOX *g, const RTPOINT2D *p);
 int rtpoly_contains_point(const RTPOLY *poly, const RTPOINT2D *pt);
 
@@ -483,7 +483,7 @@ projPJ rtproj_from_string(const char* txt);
  * @param outpj the output (or destination) projection
  */
 int rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj) ;
-int ptarray_transform(POINTARRAY *geom, projPJ inpj, projPJ outpj) ;
+int ptarray_transform(RTPOINTARRAY *geom, projPJ inpj, projPJ outpj) ;
 int point4d_transform(RTPOINT4D *pt, projPJ srcpj, projPJ dstpj) ;
 
 #endif /* _LIBRTGEOM_INTERNAL_H */

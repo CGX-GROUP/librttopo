@@ -30,9 +30,9 @@ static char * assvg_collection(const RTCOLLECTION *col, int relative, int precis
 
 static size_t assvg_geom_size(const RTGEOM *geom, int relative, int precision);
 static size_t assvg_geom_buf(const RTGEOM *geom, char *output, int relative, int precision);
-static size_t pointArray_svg_size(POINTARRAY *pa, int precision);
-static size_t pointArray_svg_rel(POINTARRAY *pa, char * output, int close_ring, int precision);
-static size_t pointArray_svg_abs(POINTARRAY *pa, char * output, int close_ring, int precision);
+static size_t pointArray_svg_size(RTPOINTARRAY *pa, int precision);
+static size_t pointArray_svg_rel(RTPOINTARRAY *pa, char * output, int close_ring, int precision);
+static size_t pointArray_svg_abs(RTPOINTARRAY *pa, char * output, int close_ring, int precision);
 
 
 /**
@@ -543,7 +543,7 @@ assvg_geom_size(const RTGEOM *geom, int relative, int precision)
 
 
 static size_t
-pointArray_svg_rel(POINTARRAY *pa, char *output, int close_ring, int precision)
+pointArray_svg_rel(RTPOINTARRAY *pa, char *output, int close_ring, int precision)
 {
 	int i, end;
 	char *ptr;
@@ -605,7 +605,7 @@ pointArray_svg_rel(POINTARRAY *pa, char *output, int close_ring, int precision)
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_svg_abs(POINTARRAY *pa, char *output, int close_ring, int precision)
+pointArray_svg_abs(RTPOINTARRAY *pa, char *output, int close_ring, int precision)
 {
 	int i, end;
 	char *ptr;
@@ -648,7 +648,7 @@ pointArray_svg_abs(POINTARRAY *pa, char *output, int close_ring, int precision)
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_svg_size(POINTARRAY *pa, int precision)
+pointArray_svg_size(RTPOINTARRAY *pa, int precision)
 {
 	return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(" "))
 	       * 2 * pa->npoints + sizeof(" L ");

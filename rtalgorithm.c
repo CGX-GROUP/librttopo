@@ -277,7 +277,7 @@ rt_arc_center(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTP
 }
 
 int
-pt_in_ring_2d(const RTPOINT2D *p, const POINTARRAY *ring)
+pt_in_ring_2d(const RTPOINT2D *p, const RTPOINTARRAY *ring)
 {
 	int cn = 0;    /* the crossing number counter */
 	int i;
@@ -461,14 +461,14 @@ int rtline_crossing_direction(const RTLINE *l1, const RTLINE *l2)
 {
 	int i = 0, j = 0;
 	const RTPOINT2D *p1, *p2, *q1, *q2;
-	POINTARRAY *pa1 = NULL, *pa2 = NULL;
+	RTPOINTARRAY *pa1 = NULL, *pa2 = NULL;
 	int cross_left = 0;
 	int cross_right = 0;
 	int first_cross = 0;
 	int this_cross = 0;
 
-	pa1 = (POINTARRAY*)l1->points;
-	pa2 = (POINTARRAY*)l2->points;
+	pa1 = (RTPOINTARRAY*)l1->points;
+	pa2 = (RTPOINTARRAY*)l2->points;
 
 	/* One-point lines can't intersect (and shouldn't exist). */
 	if ( pa1->npoints < 2 || pa2->npoints < 2 )

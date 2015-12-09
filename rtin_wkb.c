@@ -308,13 +308,13 @@ static double double_from_wkb_state(wkb_parse_state *s)
 }
 
 /**
-* POINTARRAY
+* RTPOINTARRAY
 * Read a dynamically sized point array and advance the parse state forward.
 * First read the number of points, then read the points.
 */
-static POINTARRAY* ptarray_from_wkb_state(wkb_parse_state *s)
+static RTPOINTARRAY* ptarray_from_wkb_state(wkb_parse_state *s)
 {
-	POINTARRAY *pa = NULL;
+	RTPOINTARRAY *pa = NULL;
 	size_t pa_size;
 	uint32_t ndims = 2;
 	uint32_t npoints = 0;
@@ -369,7 +369,7 @@ static POINTARRAY* ptarray_from_wkb_state(wkb_parse_state *s)
 static RTPOINT* rtpoint_from_wkb_state(wkb_parse_state *s)
 {
 	static uint32_t npoints = 1;
-	POINTARRAY *pa = NULL;
+	RTPOINTARRAY *pa = NULL;
 	size_t pa_size;
 	uint32_t ndims = 2;
 	const RTPOINT2D *pt;
@@ -424,7 +424,7 @@ static RTPOINT* rtpoint_from_wkb_state(wkb_parse_state *s)
 */
 static RTLINE* rtline_from_wkb_state(wkb_parse_state *s)
 {
-	POINTARRAY *pa = ptarray_from_wkb_state(s);
+	RTPOINTARRAY *pa = ptarray_from_wkb_state(s);
 
 	if( pa == NULL || pa->npoints == 0 )
 		return rtline_construct_empty(s->srid, s->has_z, s->has_m);
@@ -449,7 +449,7 @@ static RTLINE* rtline_from_wkb_state(wkb_parse_state *s)
 */
 static RTCIRCSTRING* rtcircstring_from_wkb_state(wkb_parse_state *s)
 {
-	POINTARRAY *pa = ptarray_from_wkb_state(s);
+	RTPOINTARRAY *pa = ptarray_from_wkb_state(s);
 
 	if( pa == NULL || pa->npoints == 0 )
 		return rtcircstring_construct_empty(s->srid, s->has_z, s->has_m);
@@ -491,7 +491,7 @@ static RTPOLY* rtpoly_from_wkb_state(wkb_parse_state *s)
 
 	for( i = 0; i < nrings; i++ )
 	{
-		POINTARRAY *pa = ptarray_from_wkb_state(s);
+		RTPOINTARRAY *pa = ptarray_from_wkb_state(s);
 		if( pa == NULL )
 			continue;
 
@@ -534,7 +534,7 @@ static RTTRIANGLE* rttriangle_from_wkb_state(wkb_parse_state *s)
 {
 	uint32_t nrings = integer_from_wkb_state(s);
 	RTTRIANGLE *tri = rttriangle_construct_empty(s->srid, s->has_z, s->has_m);
-	POINTARRAY *pa = NULL;
+	RTPOINTARRAY *pa = NULL;
 
 	/* Empty triangle? */
 	if( nrings == 0 )
@@ -571,7 +571,7 @@ static RTTRIANGLE* rttriangle_from_wkb_state(wkb_parse_state *s)
 		return NULL;
 	}
 
-	/* Empty TRIANGLE starts w/ empty POINTARRAY, free it first */
+	/* Empty TRIANGLE starts w/ empty RTPOINTARRAY, free it first */
 	if (tri->points)
 		ptarray_free(tri->points);
 	

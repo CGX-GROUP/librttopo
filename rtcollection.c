@@ -103,7 +103,7 @@ rtcollection_getsubgeom(RTCOLLECTION *col, int gnum)
 }
 
 /**
- * @brief Clone #RTCOLLECTION object. #POINTARRAY are not copied.
+ * @brief Clone #RTCOLLECTION object. #RTPOINTARRAY are not copied.
  * 			Bbox is cloned if present in input.
  */
 RTCOLLECTION *
@@ -130,7 +130,7 @@ rtcollection_clone(const RTCOLLECTION *g)
 }
 
 /**
-* @brief Deep clone #RTCOLLECTION object. #POINTARRAY are copied.
+* @brief Deep clone #RTCOLLECTION object. #RTPOINTARRAY are copied.
 */
 RTCOLLECTION *
 rtcollection_clone_deep(const RTCOLLECTION *g)

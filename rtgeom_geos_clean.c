@@ -128,7 +128,7 @@ RTGEOM_GEOS_getPointN(const GEOSGeometry* g_in, uint32_t n)
 RTGEOM * rtcollection_make_geos_friendly(RTCOLLECTION *g);
 RTGEOM * rtline_make_geos_friendly(RTLINE *line);
 RTGEOM * rtpoly_make_geos_friendly(RTPOLY *poly);
-POINTARRAY* ring_make_geos_friendly(POINTARRAY* ring);
+RTPOINTARRAY* ring_make_geos_friendly(RTPOINTARRAY* ring);
 
 /*
  * Ensure the geometry is "structurally" valid
@@ -179,14 +179,14 @@ rtgeom_make_geos_friendly(RTGEOM *geom)
 /*
  * Close the point array, if not already closed in 2d.
  * Returns the input if already closed in 2d, or a newly
- * constructed POINTARRAY.
+ * constructed RTPOINTARRAY.
  * TODO: move in ptarray.c
  */
-POINTARRAY* ptarray_close2d(POINTARRAY* ring);
-POINTARRAY*
-ptarray_close2d(POINTARRAY* ring)
+RTPOINTARRAY* ptarray_close2d(RTPOINTARRAY* ring);
+RTPOINTARRAY*
+ptarray_close2d(RTPOINTARRAY* ring)
 {
-	POINTARRAY* newring;
+	RTPOINTARRAY* newring;
 
 	/* close the ring if not already closed (2d only) */
 	if ( ! ptarray_is_closed_2d(ring) )
@@ -202,11 +202,11 @@ ptarray_close2d(POINTARRAY* ring)
 }
 
 /* May return the same input or a new one (never zero) */
-POINTARRAY*
-ring_make_geos_friendly(POINTARRAY* ring)
+RTPOINTARRAY*
+ring_make_geos_friendly(RTPOINTARRAY* ring)
 {
-	POINTARRAY* closedring;
-	POINTARRAY* ring_in = ring;
+	RTPOINTARRAY* closedring;
+	RTPOINTARRAY* ring_in = ring;
 
 	/* close the ring if not already closed (2d only) */
 	closedring = ptarray_close2d(ring);
@@ -219,7 +219,7 @@ ring_make_geos_friendly(POINTARRAY* ring)
 
 	while ( ring->npoints < 4 )
 	{
-		POINTARRAY *oring = ring;
+		RTPOINTARRAY *oring = ring;
 		RTDEBUGF(4, "ring has %d points, adding another", ring->npoints);
 		/* let's add another... */
 		ring = ptarray_addPoint(ring,
@@ -240,20 +240,20 @@ RTGEOM *
 rtpoly_make_geos_friendly(RTPOLY *poly)
 {
 	RTGEOM* ret;
-	POINTARRAY **new_rings;
+	RTPOINTARRAY **new_rings;
 	int i;
 
 	/* If the polygon has no rings there's nothing to do */
 	if ( ! poly->nrings ) return (RTGEOM*)poly;
 
 	/* Allocate enough pointers for all rings */
-	new_rings = rtalloc(sizeof(POINTARRAY*)*poly->nrings);
+	new_rings = rtalloc(sizeof(RTPOINTARRAY*)*poly->nrings);
 
 	/* All rings must be closed and have > 3 points */
 	for (i=0; i<poly->nrings; i++)
 	{
-		POINTARRAY* ring_in = poly->rings[i];
-		POINTARRAY* ring_out = ring_make_geos_friendly(ring_in);
+		RTPOINTARRAY* ring_in = poly->rings[i];
+		RTPOINTARRAY* ring_out = ring_make_geos_friendly(ring_in);
 
 		if ( ring_in != ring_out )
 		{

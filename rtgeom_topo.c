@@ -1374,7 +1374,7 @@ typedef struct edgeend_t {
  * @return 0 if edge is collapsed (no distinct points)
  */
 static int
-_rtt_FirstDistinctVertex2D(const POINTARRAY* pa, RTPOINT2D *ref, int from, int dir, RTPOINT2D *op)
+_rtt_FirstDistinctVertex2D(const RTPOINTARRAY* pa, RTPOINT2D *ref, int from, int dir, RTPOINT2D *op)
 {
   int i, toofar, inc;
   RTPOINT2D fp;
@@ -1416,7 +1416,7 @@ static int
 _rtt_InitEdgeEndByLine(edgeend *fee, edgeend *lee, RTLINE *edge,
                                             RTPOINT2D *fp, RTPOINT2D *lp)
 {
-  POINTARRAY *pa = edge->points;
+  RTPOINTARRAY *pa = edge->points;
   RTPOINT2D pt;
 
   fee->nextCW = fee->nextCCW =
@@ -1514,7 +1514,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     RTGEOM *g;
     RTGEOM *cleangeom;
     RTPOINT2D p1, p2;
-    POINTARRAY *pa;
+    RTPOINTARRAY *pa;
 
     edge = &(edges[i]);
 
@@ -1683,7 +1683,7 @@ _rtt_GetInteriorEdgePoint(const RTLINE* edge, RTPOINT2D* ip)
 {
   int i;
   RTPOINT2D fp, lp, tp;
-  POINTARRAY *pa = edge->points;
+  RTPOINTARRAY *pa = edge->points;
 
   if ( pa->npoints < 2 ) return 0; /* empty or structurally collapsed */
 
@@ -1804,14 +1804,14 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   /* Should now build a polygon with those edges, in the order
    * given by GetRingEdges.
    */
-  POINTARRAY *pa = NULL;
+  RTPOINTARRAY *pa = NULL;
   for ( i=0; i<num_signed_edge_ids; ++i )
   {
     RTT_ELEMID eid = signed_edge_ids[i];
     RTDEBUGF(1, "Edge %d in ring of edge %" RTTFMT_ELEMID " is edge %" RTTFMT_ELEMID,
                 i, sedge, eid);
     RTT_ISO_EDGE *edge = NULL;
-    POINTARRAY *epa;
+    RTPOINTARRAY *epa;
     for ( j=0; j<numedges; ++j )
     {
       if ( ring_edges[j].edge_id == llabs(eid) )
@@ -1849,7 +1849,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       }
     }
   }
-  POINTARRAY **points = rtalloc(sizeof(POINTARRAY*));
+  RTPOINTARRAY **points = rtalloc(sizeof(RTPOINTARRAY*));
   points[0] = pa;
   /* NOTE: the ring may very well have collapsed components,
    *       which would make it topologically invalid
@@ -2302,7 +2302,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   edgeend span; /* start point analisys */
   edgeend epan; /* end point analisys */
   RTPOINT2D p1, pn, p2;
-  POINTARRAY *pa;
+  RTPOINTARRAY *pa;
   RTT_ELEMID node_ids[2];
   const RTPOINT *start_node_geom = NULL;
   const RTPOINT *end_node_geom = NULL;
@@ -2851,7 +2851,7 @@ rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID faceid)
  *               -1 if no edge was found to be part of the ring
  */
 static int
-_rtt_FindNextRingEdge(const POINTARRAY *ring, int from,
+_rtt_FindNextRingEdge(const RTPOINTARRAY *ring, int from,
                       const RTT_ISO_EDGE *edges, int numedges)
 {
   int i;
@@ -2868,7 +2868,7 @@ _rtt_FindNextRingEdge(const POINTARRAY *ring, int from,
   {
     const RTT_ISO_EDGE *isoe = &(edges[i]);
     RTLINE *edge = isoe->geom;
-    POINTARRAY *epa = edge->points;
+    RTPOINTARRAY *epa = edge->points;
     RTPOINT2D p2, pt;
     int match = 0;
     int j;
@@ -3072,7 +3072,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
   /* for each ring of the face polygon... */
   for ( i=0; i<facepoly->nrings; ++i )
   {
-    const POINTARRAY *ring = facepoly->rings[i];
+    const RTPOINTARRAY *ring = facepoly->rings[i];
     int j = 0;
     RTT_ISO_EDGE *nextedge;
     RTLINE *nextline;
@@ -3166,12 +3166,12 @@ _rtt_EdgeMotionArea(RTLINE *geom, int isclosed)
 {
   GEOSGeometry *gg;
   RTPOINT4D p4d;
-  POINTARRAY *pa;
-  POINTARRAY **pas;
+  RTPOINTARRAY *pa;
+  RTPOINTARRAY **pas;
   RTPOLY *poly;
   RTGEOM *g;
 
-  pas = rtalloc(sizeof(POINTARRAY*));
+  pas = rtalloc(sizeof(RTPOINTARRAY*));
 
   initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -4252,7 +4252,7 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   int nedges, i;
   int e1freenode;
   int e2sign, e2freenode;
-  POINTARRAY *pa;
+  RTPOINTARRAY *pa;
   char buf[256];
   char *ptr;
   size_t bufleft = 256;
@@ -4470,7 +4470,7 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
       break;
     case 2: /* e1.end = e2.end */
     {
-      POINTARRAY *pa2;
+      RTPOINTARRAY *pa2;
       pa2 = ptarray_clone_deep(e2->geom->points);
       ptarray_reverse(pa2);
       pa = ptarray_clone_deep(e1->geom->points);
@@ -5746,7 +5746,7 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
   for ( i=0; i<poly->nrings; ++i )
   {
     RTLINE *line;
-    POINTARRAY *pa;
+    RTPOINTARRAY *pa;
     RTT_ELEMID *eids;
     int nedges;
 

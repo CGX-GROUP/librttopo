@@ -13,7 +13,7 @@
 
 
 EFFECTIVE_AREAS*
-initiate_effectivearea(const POINTARRAY *inpts)
+initiate_effectivearea(const RTPOINTARRAY *inpts)
 {
 	RTDEBUG(2, "Entered  initiate_effectivearea");
 	EFFECTIVE_AREAS *ea;
@@ -385,13 +385,13 @@ void ptarray_calc_areas(EFFECTIVE_AREAS *ea, int avoid_collaps, int set_area, do
 
 
 
-static POINTARRAY * ptarray_set_effective_area(POINTARRAY *inpts,int avoid_collaps,int set_area, double trshld)
+static RTPOINTARRAY * ptarray_set_effective_area(RTPOINTARRAY *inpts,int avoid_collaps,int set_area, double trshld)
 {
 	RTDEBUG(2, "Entered  ptarray_set_effective_area");
 	int p;
 	RTPOINT4D pt;
 	EFFECTIVE_AREAS *ea;
-	POINTARRAY *opts;
+	RTPOINTARRAY *opts;
 	int set_m;
 	if(set_area)
 		set_m=1;
@@ -477,7 +477,7 @@ static RTPOLY* rtpoly_set_effective_area(const RTPOLY *ipoly,int set_area, doubl
 
 	for (i = 0; i < ipoly->nrings; i++)
 	{
-		POINTARRAY *pa = ptarray_set_effective_area(ipoly->rings[i],avoid_collapse,set_area,trshld);
+		RTPOINTARRAY *pa = ptarray_set_effective_area(ipoly->rings[i],avoid_collapse,set_area,trshld);
 		/* Add ring to simplified polygon */
 		if(pa->npoints>=4)
 		{

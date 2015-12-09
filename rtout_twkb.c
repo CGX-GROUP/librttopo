@@ -89,7 +89,7 @@ static void write_bbox(TWKB_STATE *ts, int ndims)
 * @register_npoints, controls whether an npoints entry is added to the buffer (used to skip npoints for point types)
 * @dimension, states the dimensionality of object this array is part of (0 = point, 1 = linear, 2 = areal)
 */
-static int ptarray_to_twkb_buf(const POINTARRAY *pa, TWKB_GLOBALS *globals, TWKB_STATE *ts, int register_npoints, int minpoints)
+static int ptarray_to_twkb_buf(const RTPOINTARRAY *pa, TWKB_GLOBALS *globals, TWKB_STATE *ts, int register_npoints, int minpoints)
 {
 	int ndims = FLAGS_NDIMS(pa->flags);
 	int i, j;

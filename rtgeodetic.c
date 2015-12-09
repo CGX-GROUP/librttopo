@@ -1527,10 +1527,10 @@ void gbox_pt_outside(const RTGBOX *gbox, RTPOINT2D *pt_outside)
 * @param pa_in - input point array pointer
 * @param max_seg_length - maximum output segment length in radians
 */
-static POINTARRAY* 
-ptarray_segmentize_sphere(const POINTARRAY *pa_in, double max_seg_length)
+static RTPOINTARRAY* 
+ptarray_segmentize_sphere(const RTPOINTARRAY *pa_in, double max_seg_length)
 {
-	POINTARRAY *pa_out;
+	RTPOINTARRAY *pa_out;
 	int hasz = ptarray_has_z(pa_in);
 	int hasm = ptarray_has_m(pa_in);
 	int pa_in_offset = 0; /* input point offset */
@@ -1638,7 +1638,7 @@ ptarray_segmentize_sphere(const POINTARRAY *pa_in, double max_seg_length)
 RTGEOM* 
 rtgeom_segmentize_sphere(const RTGEOM *rtg_in, double max_seg_length)
 {
-	POINTARRAY *pa_out;
+	RTPOINTARRAY *pa_out;
 	RTLINE *rtline;
 	RTPOLY *rtpoly_in, *rtpoly_out;
 	RTCOLLECTION *rtcol_in, *rtcol_out;
@@ -1700,7 +1700,7 @@ rtgeom_segmentize_sphere(const RTGEOM *rtg_in, double max_seg_length)
 * the sphere is 4*PI).
 */
 double 
-ptarray_area_sphere(const POINTARRAY *pa)
+ptarray_area_sphere(const RTPOINTARRAY *pa)
 {
 	int i;
 	const RTPOINT2D *p;
@@ -1728,7 +1728,7 @@ ptarray_area_sphere(const POINTARRAY *pa)
 }
 
 
-static double ptarray_distance_spheroid(const POINTARRAY *pa1, const POINTARRAY *pa2, const SPHEROID *s, double tolerance, int check_intersection)
+static double ptarray_distance_spheroid(const RTPOINTARRAY *pa1, const RTPOINTARRAY *pa2, const SPHEROID *s, double tolerance, int check_intersection)
 {
 	GEOGRAPHIC_EDGE e1, e2;
 	GEOGRAPHIC_POINT g1, g2;
@@ -1770,8 +1770,8 @@ static double ptarray_distance_spheroid(const POINTARRAY *pa1, const POINTARRAY 
 	{
 		/* Handle one/many case here */
 		int i;
-		const POINTARRAY *pa_one;
-		const POINTARRAY *pa_many;
+		const RTPOINTARRAY *pa_one;
+		const RTPOINTARRAY *pa_many;
 
 		if ( pa1->npoints == 1 )
 		{
@@ -1996,7 +1996,7 @@ RTPOINT* rtgeom_project_spheroid(const RTPOINT *r, const SPHEROID *spheroid, dou
 	GEOGRAPHIC_POINT geo_source, geo_dest;
 	RTPOINT4D pt_dest;
 	double x, y;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	RTPOINT *rtp;
 
 	/* Check the azimuth validity, convert to radians */
@@ -2121,7 +2121,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 	if ( ( type1 == RTPOINTTYPE || type1 == RTLINETYPE ) &&
 	     ( type2 == RTPOINTTYPE || type2 == RTLINETYPE ) )
 	{
-		POINTARRAY *pa1, *pa2;
+		RTPOINTARRAY *pa1, *pa2;
 
 		if ( type1 == RTPOINTTYPE )
 			pa1 = ((RTPOINT*)rtgeom1)->point;
@@ -2458,7 +2458,7 @@ int rtpoly_covers_point2d(const RTPOLY *poly, const RTPOINT2D *pt_to_test)
 * This function can only be used on RTGEOM that is built on top of
 * GSERIALIZED, otherwise alignment errors will ensue.
 */
-int getPoint2d_p_ro(const POINTARRAY *pa, int n, RTPOINT2D **point)
+int getPoint2d_p_ro(const RTPOINTARRAY *pa, int n, RTPOINT2D **point)
 {
 	uint8_t *pa_ptr = NULL;
 	assert(pa);
@@ -2472,7 +2472,7 @@ int getPoint2d_p_ro(const POINTARRAY *pa, int n, RTPOINT2D **point)
 	return RT_SUCCESS;
 }
 
-int ptarray_calculate_gbox_geodetic(const POINTARRAY *pa, RTGBOX *gbox)
+int ptarray_calculate_gbox_geodetic(const RTPOINTARRAY *pa, RTGBOX *gbox)
 {
 	int i;
 	int first = RT_TRUE;
@@ -2651,7 +2651,7 @@ int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, RTGBOX *gbox)
 
 
 
-static int ptarray_check_geodetic(const POINTARRAY *pa)
+static int ptarray_check_geodetic(const RTPOINTARRAY *pa)
 {
 	int t;
 	RTPOINT2D pt;
@@ -2743,7 +2743,7 @@ int rtgeom_check_geodetic(const RTGEOM *geom)
 	return RT_FALSE;
 }
 
-static int ptarray_force_geodetic(POINTARRAY *pa)
+static int ptarray_force_geodetic(RTPOINTARRAY *pa)
 {
 	int t;
 	int changed = RT_FALSE;
@@ -2827,7 +2827,7 @@ int rtgeom_force_geodetic(RTGEOM *geom)
 }
 
 
-double ptarray_length_spheroid(const POINTARRAY *pa, const SPHEROID *s)
+double ptarray_length_spheroid(const RTPOINTARRAY *pa, const SPHEROID *s)
 {
 	GEOGRAPHIC_POINT a, b;
 	double za = 0.0, zb = 0.0;
@@ -2935,7 +2935,7 @@ double rtgeom_length_spheroid(const RTGEOM *geom, const SPHEROID *s)
 * http://trac.osgeo.org/postgis/ticket/1292
 */
 static int 
-ptarray_nudge_geodetic(POINTARRAY *pa)
+ptarray_nudge_geodetic(RTPOINTARRAY *pa)
 {
 
 	int i;
@@ -3200,7 +3200,7 @@ edge_intersects(const POINT3D *A1, const POINT3D *A2, const POINT3D *B1, const P
 * to derive one in postgis, or the gbox_pt_outside() function if you don't mind burning CPU cycles
 * building a gbox first).
 */
-int ptarray_contains_point_sphere(const POINTARRAY *pa, const RTPOINT2D *pt_outside, const RTPOINT2D *pt_to_test)
+int ptarray_contains_point_sphere(const RTPOINTARRAY *pa, const RTPOINT2D *pt_outside, const RTPOINT2D *pt_to_test)
 {
 	POINT3D S1, S2; /* Stab line end points */
 	POINT3D E1, E2; /* Edge end points (3-space) */

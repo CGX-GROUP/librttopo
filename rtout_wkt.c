@@ -66,7 +66,7 @@ static void empty_to_wkt_sb(stringbuffer_t *sb)
 * we may suppress some dimensions. ISO and Extended formats include
 * all dimensions. Standard OGC output only includes X/Y coordinates.
 */
-static void ptarray_to_wkt_sb(const POINTARRAY *ptarray, stringbuffer_t *sb, int precision, uint8_t variant)
+static void ptarray_to_wkt_sb(const RTPOINTARRAY *ptarray, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	/* OGC only includes X/Y */
 	int dimensions = 2;

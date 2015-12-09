@@ -111,7 +111,7 @@ int rtgeom_parse_wkt(RTGEOM_PARSER_RESULT *parser_result, char *wktstr, int pars
 	char *stringvalue;
 	RTGEOM *geometryvalue;
 	POINT coordinatevalue;
-	POINTARRAY *ptarrayvalue;
+	RTPOINTARRAY *ptarrayvalue;
 }
 
 %token POINT_TOK LINESTRING_TOK POLYGON_TOK 

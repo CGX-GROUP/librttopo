@@ -509,7 +509,7 @@ static int rt_arc_calculate_gbox_cartesian(const RTPOINT4D *p1, const RTPOINT4D 
 	return rv;
 }
 
-int ptarray_calculate_gbox_cartesian(const POINTARRAY *pa, RTGBOX *gbox )
+int ptarray_calculate_gbox_cartesian(const RTPOINTARRAY *pa, RTGBOX *gbox )
 {
 	int i;
 	RTPOINT4D p;

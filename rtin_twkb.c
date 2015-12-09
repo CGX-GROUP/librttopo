@@ -152,12 +152,12 @@ static uint8_t byte_from_twkb_state(twkb_parse_state *s)
 
 
 /**
-* POINTARRAY
+* RTPOINTARRAY
 * Read a dynamically sized point array and advance the parse state forward.
 */
-static POINTARRAY* ptarray_from_twkb_state(twkb_parse_state *s, uint32_t npoints)
+static RTPOINTARRAY* ptarray_from_twkb_state(twkb_parse_state *s, uint32_t npoints)
 {
-	POINTARRAY *pa = NULL;
+	RTPOINTARRAY *pa = NULL;
 	uint32_t ndims = s->ndims;
 	int i;
 	double *dlist;
@@ -207,7 +207,7 @@ static POINTARRAY* ptarray_from_twkb_state(twkb_parse_state *s, uint32_t npoints
 static RTPOINT* rtpoint_from_twkb_state(twkb_parse_state *s)
 {
 	static uint32_t npoints = 1;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 	RTDEBUG(2,"Entering rtpoint_from_twkb_state");
 
@@ -224,7 +224,7 @@ static RTPOINT* rtpoint_from_twkb_state(twkb_parse_state *s)
 static RTLINE* rtline_from_twkb_state(twkb_parse_state *s)
 {
 	uint32_t npoints;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 	RTDEBUG(2,"Entering rtline_from_twkb_state");
 
@@ -282,7 +282,7 @@ static RTPOLY* rtpoly_from_twkb_state(twkb_parse_state *s)
 	{
 		/* Ret number of points */
 		uint32_t npoints = twkb_parse_state_uvarint(s);
-		POINTARRAY *pa = ptarray_from_twkb_state(s, npoints);
+		RTPOINTARRAY *pa = ptarray_from_twkb_state(s, npoints);
 
 		/* Skip empty rings */
 		if( pa == NULL )

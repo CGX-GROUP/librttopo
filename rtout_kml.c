@@ -20,7 +20,7 @@ static int rtpoint_to_kml2_sb(const RTPOINT *point, int precision, const char *p
 static int rtline_to_kml2_sb(const RTLINE *line, int precision, const char *prefix, stringbuffer_t *sb);
 static int rtpoly_to_kml2_sb(const RTPOLY *poly, int precision, const char *prefix, stringbuffer_t *sb);
 static int rtcollection_to_kml2_sb(const RTCOLLECTION *col, int precision, const char *prefix, stringbuffer_t *sb);
-static int ptarray_to_kml2_sb(const POINTARRAY *pa, int precision, stringbuffer_t *sb);
+static int ptarray_to_kml2_sb(const RTPOINTARRAY *pa, int precision, stringbuffer_t *sb);
 
 /*
 * KML 2.2.0
@@ -79,7 +79,7 @@ rtgeom_to_kml2_sb(const RTGEOM *geom, int precision, const char *prefix, stringb
 }
 
 static int 
-ptarray_to_kml2_sb(const POINTARRAY *pa, int precision, stringbuffer_t *sb)
+ptarray_to_kml2_sb(const RTPOINTARRAY *pa, int precision, stringbuffer_t *sb)
 {
 	int i, j;
 	int dims = FLAGS_GET_Z(pa->flags) ? 3 : 2;

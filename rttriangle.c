@@ -24,7 +24,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTTRIANGLE*
-rttriangle_construct(int srid, RTGBOX *bbox, POINTARRAY *points)
+rttriangle_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 {
 	RTTRIANGLE *result;
 
@@ -128,7 +128,7 @@ RTTRIANGLE *
 rttriangle_from_rtline(const RTLINE *shell)
 {
 	RTTRIANGLE *ret;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 	if ( shell->points->npoints != 4 )
 		rterror("rttriangle_from_rtline: shell must have exactly 4 points");
@@ -150,7 +150,7 @@ char
 rttriangle_is_repeated_points(RTTRIANGLE *triangle)
 {
 	char ret;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 	pa = ptarray_remove_repeated_points(triangle->points, 0.0);
 	ret = ptarray_same(pa, triangle->points);

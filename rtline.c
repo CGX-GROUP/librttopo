@@ -26,7 +26,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTLINE *
-rtline_construct(int srid, RTGBOX *bbox, POINTARRAY *points)
+rtline_construct(int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 {
 	RTLINE *result;
 	result = (RTLINE*) rtalloc(sizeof(RTLINE));
@@ -100,7 +100,7 @@ rtline_clone(const RTLINE *g)
 	return ret;
 }
 
-/* Deep clone RTLINE object. POINTARRAY *is* copied. */
+/* Deep clone RTLINE object. RTPOINTARRAY *is* copied. */
 RTLINE *
 rtline_clone_deep(const RTLINE *g)
 {
@@ -133,7 +133,7 @@ rtline_reverse(RTLINE *line)
 RTLINE *
 rtline_segmentize2d(RTLINE *line, double dist)
 {
-	POINTARRAY *segmentized = ptarray_segmentize2d(line->points, dist);
+	RTPOINTARRAY *segmentized = ptarray_segmentize2d(line->points, dist);
 	if ( ! segmentized ) return NULL;
 	return rtline_construct(line->srid, NULL, segmentized);
 }
@@ -155,7 +155,7 @@ rtline_from_rtgeom_array(int srid, uint32_t ngeoms, RTGEOM **geoms)
  	int i;
 	int hasz = RT_FALSE;
 	int hasm = RT_FALSE;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	RTLINE *line;
 	RTPOINT4D pt;
 
@@ -216,7 +216,7 @@ rtline_from_ptarray(int srid, uint32_t npoints, RTPOINT **points)
  	int i;
 	int hasz = RT_FALSE;
 	int hasm = RT_FALSE;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	RTLINE *line;
 	RTPOINT4D pt;
 
@@ -261,7 +261,7 @@ RTLINE *
 rtline_from_rtmpoint(int srid, const RTMPOINT *mpoint)
 {
 	uint32_t i;
-	POINTARRAY *pa = NULL;
+	RTPOINTARRAY *pa = NULL;
 	RTGEOM *rtgeom = (RTGEOM*)mpoint;
 	RTPOINT4D pt;
 
@@ -296,7 +296,7 @@ rtline_get_rtpoint(const RTLINE *line, int where)
 {
 	RTPOINT4D pt;
 	RTPOINT *rtpoint;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 	if ( rtline_is_empty(line) || where < 0 || where >= line->points->npoints )
 		return NULL;
@@ -333,7 +333,7 @@ rtline_add_rtpoint(RTLINE *line, RTPOINT *point, int where)
 RTLINE *
 rtline_removepoint(RTLINE *line, uint32_t index)
 {
-	POINTARRAY *newpa;
+	RTPOINTARRAY *newpa;
 	RTLINE *ret;
 
 	newpa = ptarray_removePoint(line->points, index);
@@ -373,7 +373,7 @@ rtline_measured_from_rtline(const RTLINE *rtline, double m_start, double m_end)
 	double length_so_far = 0.0;
 	double m_range = m_end - m_start;
 	double m;
-	POINTARRAY *pa = NULL;
+	RTPOINTARRAY *pa = NULL;
 	RTPOINT3DZ p1, p2;
 
 	if ( rtline->type != RTLINETYPE )
@@ -426,7 +426,7 @@ rtline_measured_from_rtline(const RTLINE *rtline, double m_start, double m_end)
 RTGEOM*
 rtline_remove_repeated_points(const RTLINE *rtline, double tolerance)
 {
-	POINTARRAY* npts = ptarray_remove_repeated_points_minpoints(rtline->points, tolerance, 2);
+	RTPOINTARRAY* npts = ptarray_remove_repeated_points_minpoints(rtline->points, tolerance, 2);
 
 	RTDEBUGF(3, "%s: npts %p", __func__, npts);
 
@@ -476,7 +476,7 @@ rtline_is_trajectory(const RTLINE *line)
 RTLINE*
 rtline_force_dims(const RTLINE *line, int hasz, int hasm)
 {
-	POINTARRAY *pdims = NULL;
+	RTPOINTARRAY *pdims = NULL;
 	RTLINE *lineout;
 	
 	/* Return 2D empty */
@@ -513,7 +513,7 @@ RTLINE* rtline_simplify(const RTLINE *iline, double dist, int preserve_collapsed
 {
 	static const int minvertices = 2; /* TODO: allow setting this */
 	RTLINE *oline;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 
 	RTDEBUG(2, "function called");
 
@@ -566,7 +566,7 @@ double rtline_length_2d(const RTLINE *line)
 RTLINE* rtline_grid(const RTLINE *line, const gridspec *grid)
 {
 	RTLINE *oline;
-	POINTARRAY *opa;
+	RTPOINTARRAY *opa;
 
 	opa = ptarray_grid(line->points, grid);
 

@@ -49,13 +49,13 @@ rtgeom_geos_error(const char *fmt, ...)
 **
 */
 
-/* Return a POINTARRAY from a GEOSCoordSeq */
-POINTARRAY *
+/* Return a RTPOINTARRAY from a GEOSCoordSeq */
+RTPOINTARRAY *
 ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d)
 {
 	uint32_t dims=2;
 	uint32_t size, i;
-	POINTARRAY *pa;
+	RTPOINTARRAY *pa;
 	RTPOINT4D point;
 
 	RTDEBUG(2, "ptarray_fromGEOSCoordSeq called");
@@ -123,7 +123,7 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 	switch (type)
 	{
 		const GEOSCoordSequence *cs;
-		POINTARRAY *pa, **ppaa;
+		RTPOINTARRAY *pa, **ppaa;
 		const GEOSGeometry *g;
 		RTGEOM **geoms;
 		uint32_t i, ngeoms;
@@ -151,7 +151,7 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 		if ( GEOSisEmpty(geom) )
 		  return (RTGEOM*)rtpoly_construct_empty(SRID, want3d, 0);
 		ngeoms = GEOSGetNumInteriorRings(geom);
-		ppaa = rtalloc(sizeof(POINTARRAY *)*(ngeoms+1));
+		ppaa = rtalloc(sizeof(RTPOINTARRAY *)*(ngeoms+1));
 		g = GEOSGetExteriorRing(geom);
 		cs = GEOSGeom_getCoordSeq(g);
 		ppaa[0] = ptarray_from_GEOSCoordSeq(cs, want3d);
@@ -195,11 +195,11 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 
 
 
-GEOSCoordSeq ptarray_to_GEOSCoordSeq(const POINTARRAY *);
+GEOSCoordSeq ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *);
 
 
 GEOSCoordSeq
-ptarray_to_GEOSCoordSeq(const POINTARRAY *pa)
+ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *pa)
 {
 	uint32_t dims = 2;
 	uint32_t i;
@@ -246,11 +246,11 @@ ptarray_to_GEOSCoordSeq(const POINTARRAY *pa)
 }
 
 static GEOSGeometry *
-ptarray_to_GEOSLinearRing(const POINTARRAY *pa, int autofix)
+ptarray_to_GEOSLinearRing(const RTPOINTARRAY *pa, int autofix)
 {
 	GEOSCoordSeq sq;
 	GEOSGeom g;
-	POINTARRAY *npa = 0;
+	RTPOINTARRAY *npa = 0;
 
 	if ( autofix )
 	{
@@ -350,7 +350,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		RTLINE *rtl = NULL;
 		RTCOLLECTION *rtc = NULL;
 #if RTGEOM_GEOS_VERSION < 33
-		POINTARRAY *pa = NULL;
+		RTPOINTARRAY *pa = NULL;
 #endif
 		
 	case RTPOINTTYPE:
@@ -402,7 +402,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		if ( rtgeom_is_empty(rtgeom) )
 		{
 #if RTGEOM_GEOS_VERSION < 33
-			POINTARRAY *pa = ptarray_construct_empty(rtgeom_has_z(rtgeom), rtgeom_has_m(rtgeom), 2);
+			RTPOINTARRAY *pa = ptarray_construct_empty(rtgeom_has_z(rtgeom), rtgeom_has_m(rtgeom), 2);
 			sq = ptarray_to_GEOSCoordSeq(pa);
 			shell = GEOSGeom_createLinearRing(sq);
 			g = GEOSGeom_createPolygon(shell, NULL, 0);
@@ -1621,7 +1621,7 @@ RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d) {
 			for (i=0; i<ngeoms; i++) {
 				const GEOSGeometry *poly, *ring;
 				const GEOSCoordSequence *cs;
-				POINTARRAY *pa;
+				RTPOINTARRAY *pa;
 
 				poly = GEOSGetGeometryN(geom, i);
 				ring = GEOSGetExteriorRing(poly);

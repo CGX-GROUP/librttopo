@@ -427,7 +427,7 @@ rtgeom_clone(const RTGEOM *rtgeom)
 }
 
 /** 
-* Deep-clone an #RTGEOM object. #POINTARRAY <em>are</em> copied. 
+* Deep-clone an #RTGEOM object. #RTPOINTARRAY <em>are</em> copied. 
 */
 RTGEOM *
 rtgeom_clone_deep(const RTGEOM *rtgeom)

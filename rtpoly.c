@@ -26,7 +26,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTPOLY*
-rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, POINTARRAY **points)
+rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points)
 {
 	RTPOLY *result;
 	int hasz, hasm;
@@ -71,7 +71,7 @@ rtpoly_construct_empty(int srid, char hasz, char hasm)
 	result->srid = srid;
 	result->nrings = 0;
 	result->maxrings = 1; /* Allocate room for ring, just in case. */
-	result->rings = rtalloc(result->maxrings * sizeof(POINTARRAY*));
+	result->rings = rtalloc(result->maxrings * sizeof(RTPOINTARRAY*));
 	result->bbox = NULL;
 	return result;
 }
@@ -122,7 +122,7 @@ rtpoly_clone(const RTPOLY *g)
 	int i;
 	RTPOLY *ret = rtalloc(sizeof(RTPOLY));
 	memcpy(ret, g, sizeof(RTPOLY));
-	ret->rings = rtalloc(sizeof(POINTARRAY *)*g->nrings);
+	ret->rings = rtalloc(sizeof(RTPOINTARRAY *)*g->nrings);
 	for ( i = 0; i < g->nrings; i++ ) {
 		ret->rings[i] = ptarray_clone(g->rings[i]);
 	}
@@ -130,7 +130,7 @@ rtpoly_clone(const RTPOLY *g)
 	return ret;
 }
 
-/* Deep clone RTPOLY object. POINTARRAY are copied, as is ring array */
+/* Deep clone RTPOLY object. RTPOINTARRAY are copied, as is ring array */
 RTPOLY *
 rtpoly_clone_deep(const RTPOLY *g)
 {
@@ -138,7 +138,7 @@ rtpoly_clone_deep(const RTPOLY *g)
 	RTPOLY *ret = rtalloc(sizeof(RTPOLY));
 	memcpy(ret, g, sizeof(RTPOLY));
 	if ( g->bbox ) ret->bbox = gbox_copy(g->bbox);
-	ret->rings = rtalloc(sizeof(POINTARRAY *)*g->nrings);
+	ret->rings = rtalloc(sizeof(RTPOINTARRAY *)*g->nrings);
 	for ( i = 0; i < ret->nrings; i++ )
 	{
 		ret->rings[i] = ptarray_clone_deep(g->rings[i]);
@@ -151,7 +151,7 @@ rtpoly_clone_deep(const RTPOLY *g)
 * Add a ring to a polygon. Point array will be referenced, not copied.
 */
 int
-rtpoly_add_ring(RTPOLY *poly, POINTARRAY *pa) 
+rtpoly_add_ring(RTPOLY *poly, RTPOINTARRAY *pa) 
 {
 	if( ! poly || ! pa ) 
 		return RT_FAILURE;
@@ -160,7 +160,7 @@ rtpoly_add_ring(RTPOLY *poly, POINTARRAY *pa)
 	if( poly->nrings >= poly->maxrings ) 
 	{
 		int new_maxrings = 2 * (poly->nrings + 1);
-		poly->rings = rtrealloc(poly->rings, new_maxrings * sizeof(POINTARRAY*));
+		poly->rings = rtrealloc(poly->rings, new_maxrings * sizeof(RTPOINTARRAY*));
 		poly->maxrings = new_maxrings;
 	}
 	
@@ -209,10 +209,10 @@ rtpoly_reverse(RTPOLY *poly)
 RTPOLY *
 rtpoly_segmentize2d(RTPOLY *poly, double dist)
 {
-	POINTARRAY **newrings;
+	RTPOINTARRAY **newrings;
 	uint32_t i;
 
-	newrings = rtalloc(sizeof(POINTARRAY *)*poly->nrings);
+	newrings = rtalloc(sizeof(RTPOINTARRAY *)*poly->nrings);
 	for (i=0; i<poly->nrings; i++)
 	{
 		newrings[i] = ptarray_segmentize2d(poly->rings[i], dist);
@@ -256,7 +256,7 @@ rtpoly_from_rtlines(const RTLINE *shell,
                     uint32_t nholes, const RTLINE **holes)
 {
 	uint32_t nrings;
-	POINTARRAY **rings = rtalloc((nholes+1)*sizeof(POINTARRAY *));
+	RTPOINTARRAY **rings = rtalloc((nholes+1)*sizeof(RTPOINTARRAY *));
 	int srid = shell->srid;
 	RTPOLY *ret;
 
@@ -289,9 +289,9 @@ RTGEOM*
 rtpoly_remove_repeated_points(const RTPOLY *poly, double tolerance)
 {
 	uint32_t i;
-	POINTARRAY **newrings;
+	RTPOINTARRAY **newrings;
 
-	newrings = rtalloc(sizeof(POINTARRAY *)*poly->nrings);
+	newrings = rtalloc(sizeof(RTPOINTARRAY *)*poly->nrings);
 	for (i=0; i<poly->nrings; i++)
 	{
 		newrings[i] = ptarray_remove_repeated_points_minpoints(poly->rings[i], tolerance, 4);
@@ -316,9 +316,9 @@ rtpoly_force_dims(const RTPOLY *poly, int hasz, int hasm)
 	}
 	else
 	{
-		POINTARRAY **rings = NULL;
+		RTPOINTARRAY **rings = NULL;
 		int i;
-		rings = rtalloc(sizeof(POINTARRAY*) * poly->nrings);
+		rings = rtalloc(sizeof(RTPOINTARRAY*) * poly->nrings);
 		for( i = 0; i < poly->nrings; i++ )
 		{
 			rings[i] = ptarray_force_dims(poly->rings[i], hasz, hasm);
@@ -363,7 +363,7 @@ RTPOLY* rtpoly_simplify(const RTPOLY *ipoly, double dist, int preserve_collapsed
 
 	for ( i = 0; i < ipoly->nrings; i++ )
 	{
-		POINTARRAY *opts;
+		RTPOINTARRAY *opts;
 		int minvertices = 0;
 
 		/* We'll still let holes collapse, but if we're preserving */
@@ -418,7 +418,7 @@ rtpoly_area(const RTPOLY *poly)
 
 	for ( i=0; i < poly->nrings; i++ )
 	{
-		POINTARRAY *ring = poly->rings[i];
+		RTPOINTARRAY *ring = poly->rings[i];
 		double ringarea = 0.0;
 
 		/* Empty or messed-up ring. */
@@ -547,8 +547,8 @@ RTPOLY* rtpoly_grid(const RTPOLY *poly, const gridspec *grid)
 
 	for (ri=0; ri<poly->nrings; ri++)
 	{
-		POINTARRAY *ring = poly->rings[ri];
-		POINTARRAY *newring;
+		RTPOINTARRAY *ring = poly->rings[ri];
+		RTPOINTARRAY *newring;
 
 		newring = ptarray_grid(ring, grid);
 

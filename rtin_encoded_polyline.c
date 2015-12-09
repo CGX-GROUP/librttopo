@@ -20,7 +20,7 @@ RTGEOM*
 rtgeom_from_encoded_polyline(const char *encodedpolyline, int precision)
 {
   RTGEOM *geom = NULL;
-  POINTARRAY *pa = NULL;
+  RTPOINTARRAY *pa = NULL;
   int length = strlen(encodedpolyline);
   int idx = 0;
 	double scale = pow(10,precision);
