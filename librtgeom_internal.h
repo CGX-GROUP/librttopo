@@ -17,6 +17,7 @@
 #define _LIBRTGEOM_INTERNAL_H 1
 
 #include "rttopo_config.h"
+#include "librtgeom.h"
 
 #include "rtgeom_log.h"
 #include "proj_api.h"

@@ -35,6 +35,8 @@
 * ones will be used.
 */
 
+typedef struct RTCTX_T RTCTX;
+
 /** Return rtgeom version string (not to be freed) */
 const char* rtgeom_version(void);
 
