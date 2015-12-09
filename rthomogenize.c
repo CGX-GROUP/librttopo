@@ -15,15 +15,15 @@
 
 
 typedef struct {
-	int cnt[NUMTYPES];
-	RTCOLLECTION* buf[NUMTYPES];
+	int cnt[RTNUMTYPES];
+	RTCOLLECTION* buf[RTNUMTYPES];
 } HomogenizeBuffer;
 
 static void
 init_homogenizebuffer(HomogenizeBuffer *buffer)
 {
 	int i;
-	for ( i = 0; i < NUMTYPES; i++ )
+	for ( i = 0; i < RTNUMTYPES; i++ )
 	{
 		buffer->cnt[i] = 0;
 		buffer->buf[i] = NULL;
@@ -35,7 +35,7 @@ static void
 free_homogenizebuffer(HomogenizeBuffer *buffer)
 {
 	int i;
-	for ( i = 0; i < NUMTYPES; i++ )
+	for ( i = 0; i < RTNUMTYPES; i++ )
 	{
 		if ( buffer->buf[i] )
 		{
@@ -114,7 +114,7 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	rtcollection_build_buffer(col, &buffer);
 	
 	/* Check for homogeneity */
-	for ( i = 0; i < NUMTYPES; i++ )
+	for ( i = 0; i < RTNUMTYPES; i++ )
 	{
 		if ( buffer.cnt[i] > 0 )
 		{
@@ -152,7 +152,7 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 		int j;
 		RTCOLLECTION *outcol;
 		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
-		for ( j = 0; j < NUMTYPES; j++ )
+		for ( j = 0; j < RTNUMTYPES; j++ )
 		{
 			if ( buffer.buf[j] )
 			{

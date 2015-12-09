@@ -261,7 +261,7 @@ RTGEOM *rtpoint_as_rtgeom(const RTPOINT *obj)
 /**
 ** Look-up for the correct MULTI* type promotion for singleton types.
 */
-uint8_t RTMULTITYPE[NUMTYPES] =
+uint8_t RTMULTITYPE[RTNUMTYPES] =
 {
 	0,
 	RTMULTIPOINTTYPE,        /*  1 */

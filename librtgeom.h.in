@@ -66,7 +66,7 @@ const char* rtgeom_version(void);
 #define RTTRIANGLETYPE            14
 #define RTTINTYPE                 15
 
-#define NUMTYPES                16
+#define RTNUMTYPES                16
 
 /**
 * Flags applied in EWKB to indicate Z/M dimensions and

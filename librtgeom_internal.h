@@ -446,7 +446,7 @@ int gbox_centroid(const GBOX* gbox, POINT2D* out);
 /* Utilities */
 extern void trim_trailing_zeros(char *num);
 
-extern uint8_t RTMULTITYPE[NUMTYPES];
+extern uint8_t RTMULTITYPE[RTNUMTYPES];
 
 extern rtinterrupt_callback *_rtgeom_interrupt_callback;
 extern int _rtgeom_interrupt_requested;
