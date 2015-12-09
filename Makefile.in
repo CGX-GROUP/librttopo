@@ -100,12 +100,6 @@ SA_OBJS = \
 	varint.o \
 	rtspheroid.o
 
-ifeq (@SFCGAL@,sfcgal)
-CFLAGS += @SFCGAL_CPPFLAGS@
-LDFLAGS += @SFCGAL_LDFLAGS@
-SA_OBJS += rtgeom_sfcgal.o
-endif
-
 LDFLAGS += -no-undefined
 
 LT_SA_OBJS = $(SA_OBJS:.o=.lo)
@@ -123,7 +117,6 @@ SA_HEADERS = \
 	rtgeom_log.h \
 	rtgeom_geos.h \
 	rtgeom_log.h \
-	rtgeom_sfcgal.h \
 	rtin_wkt.h \
 	rtin_wkt_parse.h \
 	rtout_twkb.h \

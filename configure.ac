@@ -271,60 +271,6 @@ AC_DEFINE_UNQUOTED([RTGEOM_GEOS_VERSION], [$RTGEOM_GEOS_VERSION], [GEOS library 
 AC_SUBST([RTGEOM_GEOS_VERSION])
 AC_SUBST([GEOS_NUMERIC_VERSION])
 
-
-dnl ===========================================================================
-dnl SFCGAL library support
-dnl ===========================================================================
-
-AC_ARG_WITH([sfcgal], 
-	[AS_HELP_STRING([--with-sfcgal=PATH], [Add SFCGAL support. ARG allows to specify an alternate PATH to sfcgal-config])], 
-	[SFCGAL_CONFIG="$withval"], 
-	[with_sfcgal=auto])
-
-HAVE_SFCGAL="no"
-
-if test "x$with_sfcgal" != "xno"; then
-  if test "x$with_sfcgal" = "xyes" -o "x$with_sfcgal" = "xauto"; then
-	  AC_PATH_PROG([SFCGAL_CONFIG], [sfcgal-config], [])
-  fi
-	if test -x "$SFCGAL_CONFIG"; then
-		SFCGAL_VERSION=`$SFCGAL_CONFIG --version` || AC_MSG_ERROR([cannot determine sfcgal version (tried with $SFCGAL_CONFIG --version)])
-		SFCGAL_LDFLAGS=`$SFCGAL_CONFIG --libs`
-		SFCGAL_CPPFLAGS=`$SFCGAL_CONFIG --cflags`" -DHAVE_SFCGAL"
-
-		SFCGAL_MAJOR_VERSION=`echo $SFCGAL_VERSION | cut -d. -f1 | sed 's/[[^0-9]]//g'`
-		SFCGAL_MINOR_VERSION=`echo $SFCGAL_VERSION | cut -d. -f2 | sed 's/[[^0-9]]//g'`
-		RTGEOM_SFCGAL_VERSION="$SFCGAL_MAJOR_VERSION$SFCGAL_MINOR_VERSION"
-		AC_DEFINE_UNQUOTED([RTGEOM_SFCGAL_VERSION], [$RTGEOM_SFCGAL_VERSION], [SFCGAL library version at build time])
-		AC_SUBST([RTGEOM_SFCGAL_VERSION])
-
-		SFCGAL_STATIC=`$SFCGAL_CONFIG --static`
-		if test "x$SFCGAL_STATIC" = "xON"; then
-			AC_MSG_WARN([The SFCGAL version found is not installed as a dynamic library.])
-		else
-        		SFCGAL="sfcgal"
-			HAVE_SFCGAL="yes"
-		fi
-		if test ! "$RTGEOM_SFCGAL_VERSION" -ge 11; then
-			AC_MSG_ERROR([PostGIS requires SFCGAL >= 1.1.0 (found $SFCGAL_VERSION)])
-		fi
-
-	else
-		if test "x$with_sfcgal" != "xauto"; then
-			AC_MSG_ERROR([sfcgal-config cannot be found. Please install sfcgal])
-		fi
-	fi
-fi 
-
-AC_SUBST([SFCGAL_VERSION])
-AC_SUBST([SFCGAL_CPPFLAGS])
-AC_SUBST([SFCGAL_LDFLAGS])
-AC_SUBST([SFCGAL_OBJS])
-AC_SUBST([SFCGAL])
-AC_SUBST([HAVE_SFCGAL])
-
-
-
 dnl ===========================================================================
 dnl Detect the version of PROJ.4 installed
 dnl ===========================================================================
@@ -467,10 +413,10 @@ dnl Define version macros
 dnl
 
 
-CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $XML2_CPPFLAGS $SFCGAL_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $CPPFLAGS"
+CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $XML2_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $CPPFLAGS"
 dnl AC_MSG_RESULT([CPPFLAGS: $CPPFLAGS])
 
-SHLIB_LINK="$PGSQL_LDFLAGS $GEOS_LDFLAGS $PROJ_LDFLAGS -lgeos_c -lproj $JSON_LDFLAGS $XML2_LDFLAGS $SFCGAL_LDFLAGS $PCRE_LDFLAGS $EXCLUDELIBS_LDFLAGS"
+SHLIB_LINK="$PGSQL_LDFLAGS $GEOS_LDFLAGS $PROJ_LDFLAGS -lgeos_c -lproj $JSON_LDFLAGS $XML2_LDFLAGS $PCRE_LDFLAGS $EXCLUDELIBS_LDFLAGS"
 AC_SUBST([SHLIB_LINK])
 dnl AC_MSG_RESULT([SHLIB_LINK: $SHLIB_LINK])
 
@@ -516,10 +462,6 @@ AC_MSG_RESULT()
 AC_MSG_RESULT([ -------------- Dependencies -------------- ])
 AC_MSG_RESULT([  GEOS config:          ${GEOSCONFIG}])
 AC_MSG_RESULT([  GEOS version:         ${GEOS_FULL_VERSION}])
-if test "x$SFCGAL" = "xsfcgal"; then
-    AC_MSG_RESULT([  SFCGAL config:        ${SFCGAL_CONFIG}])
-    AC_MSG_RESULT([  SFCGAL version:       ${SFCGAL_VERSION}])
-fi
 AC_MSG_RESULT([  PROJ4 version:        ${RTGEOM_PROJ_VERSION}])
 AC_MSG_RESULT([  Libxml2 config:       ${XML2CONFIG}])
 AC_MSG_RESULT([  Libxml2 version:      ${RTGEOM_LIBXML2_VERSION}])
