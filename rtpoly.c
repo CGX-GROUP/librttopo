@@ -26,7 +26,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTPOLY*
-rtpoly_construct(int srid, GBOX *bbox, uint32_t nrings, POINTARRAY **points)
+rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, POINTARRAY **points)
 {
 	RTPOLY *result;
 	int hasz, hasm;
@@ -498,7 +498,7 @@ rtpoly_is_closed(const RTPOLY *poly)
 }
 
 int 
-rtpoly_startpoint(const RTPOLY* poly, POINT4D* pt)
+rtpoly_startpoint(const RTPOLY* poly, RTPOINT4D* pt)
 {
 	if ( poly->nrings < 1 )
 		return RT_FAILURE;
@@ -506,7 +506,7 @@ rtpoly_startpoint(const RTPOLY* poly, POINT4D* pt)
 }
 
 int
-rtpoly_contains_point(const RTPOLY *poly, const POINT2D *pt)
+rtpoly_contains_point(const RTPOLY *poly, const RTPOINT2D *pt)
 {
 	int i;
 	

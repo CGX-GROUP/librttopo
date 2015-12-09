@@ -25,28 +25,28 @@
 # endif
 #endif
 
-GBOX* gbox_new(uint8_t flags)
+RTGBOX* gbox_new(uint8_t flags)
 {
-	GBOX *g = (GBOX*)rtalloc(sizeof(GBOX));
+	RTGBOX *g = (RTGBOX*)rtalloc(sizeof(RTGBOX));
 	gbox_init(g);
 	g->flags = flags;
 	return g;
 }
 
-void gbox_init(GBOX *gbox)
+void gbox_init(RTGBOX *gbox)
 {
-	memset(gbox, 0, sizeof(GBOX));
+	memset(gbox, 0, sizeof(RTGBOX));
 }
 
-GBOX* gbox_clone(const GBOX *gbox)
+RTGBOX* gbox_clone(const RTGBOX *gbox)
 {
-	GBOX *g = rtalloc(sizeof(GBOX));
-	memcpy(g, gbox, sizeof(GBOX));
+	RTGBOX *g = rtalloc(sizeof(RTGBOX));
+	memcpy(g, gbox, sizeof(RTGBOX));
 	return g;
 }
 
 /* TODO to be removed */
-BOX3D* box3d_from_gbox(const GBOX *gbox)
+BOX3D* box3d_from_gbox(const RTGBOX *gbox)
 {
 	BOX3D *b;
 	assert(gbox);
@@ -73,12 +73,12 @@ BOX3D* box3d_from_gbox(const GBOX *gbox)
 }
 
 /* TODO to be removed */
-GBOX* box3d_to_gbox(const BOX3D *b3d)
+RTGBOX* box3d_to_gbox(const BOX3D *b3d)
 {
-	GBOX *b;
+	RTGBOX *b;
 	assert(b3d);
 	
-	b = rtalloc(sizeof(GBOX));
+	b = rtalloc(sizeof(RTGBOX));
 
 	b->xmin = b3d->xmin;
 	b->xmax = b3d->xmax;
@@ -90,7 +90,7 @@ GBOX* box3d_to_gbox(const BOX3D *b3d)
  	return b;
 }
 
-void gbox_expand(GBOX *g, double d)
+void gbox_expand(RTGBOX *g, double d)
 {
 	g->xmin -= d;
 	g->xmax += d;
@@ -108,19 +108,19 @@ void gbox_expand(GBOX *g, double d)
 	}
 }
 
-int gbox_union(const GBOX *g1, const GBOX *g2, GBOX *gout)
+int gbox_union(const RTGBOX *g1, const RTGBOX *g2, RTGBOX *gout)
 {
 	if ( ( ! g1 ) && ( ! g2 ) )
 		return RT_FALSE;
 
 	if  ( ! g1 )
 	{
-		memcpy(gout, g2, sizeof(GBOX));
+		memcpy(gout, g2, sizeof(RTGBOX));
 		return RT_TRUE;
 	}
 	if ( ! g2 )
 	{
-		memcpy(gout, g1, sizeof(GBOX));
+		memcpy(gout, g1, sizeof(RTGBOX));
 		return RT_TRUE;
 	}
 	
@@ -138,7 +138,7 @@ int gbox_union(const GBOX *g1, const GBOX *g2, GBOX *gout)
 	return RT_TRUE;
 }
 
-int gbox_same(const GBOX *g1, const GBOX *g2)
+int gbox_same(const RTGBOX *g1, const RTGBOX *g2)
 {
 	if (FLAGS_GET_ZM(g1->flags) != FLAGS_GET_ZM(g2->flags))
 		return RT_FALSE;
@@ -153,7 +153,7 @@ int gbox_same(const GBOX *g1, const GBOX *g2)
 	return RT_TRUE;
 }
 
-int gbox_same_2d(const GBOX *g1, const GBOX *g2)
+int gbox_same_2d(const RTGBOX *g1, const RTGBOX *g2)
 {
     if (g1->xmin == g2->xmin && g1->ymin == g2->ymin &&
         g1->xmax == g2->xmax && g1->ymax == g2->ymax)
@@ -161,7 +161,7 @@ int gbox_same_2d(const GBOX *g1, const GBOX *g2)
 	return RT_FALSE;
 }
 
-int gbox_same_2d_float(const GBOX *g1, const GBOX *g2)
+int gbox_same_2d_float(const RTGBOX *g1, const RTGBOX *g2)
 {
   if  ((g1->xmax == g2->xmax || next_float_up(g1->xmax)   == next_float_up(g2->xmax))   &&
        (g1->ymax == g2->ymax || next_float_up(g1->ymax)   == next_float_up(g2->ymax))   &&
@@ -171,7 +171,7 @@ int gbox_same_2d_float(const GBOX *g1, const GBOX *g2)
   return RT_FALSE;
 }
 
-int gbox_is_valid(const GBOX *gbox)
+int gbox_is_valid(const RTGBOX *gbox)
 {
 	/* X */
 	if ( ! isfinite(gbox->xmin) || isnan(gbox->xmin) ||
@@ -202,7 +202,7 @@ int gbox_is_valid(const GBOX *gbox)
 	return RT_TRUE;		
 }
 
-int gbox_merge_point3d(const POINT3D *p, GBOX *gbox)
+int gbox_merge_point3d(const POINT3D *p, RTGBOX *gbox)
 {
 	if ( gbox->xmin > p->x ) gbox->xmin = p->x;
 	if ( gbox->ymin > p->y ) gbox->ymin = p->y;
@@ -213,7 +213,7 @@ int gbox_merge_point3d(const POINT3D *p, GBOX *gbox)
 	return RT_SUCCESS;
 }
 
-int gbox_init_point3d(const POINT3D *p, GBOX *gbox)
+int gbox_init_point3d(const POINT3D *p, RTGBOX *gbox)
 {
 	gbox->xmin = gbox->xmax = p->x;
 	gbox->ymin = gbox->ymax = p->y;
@@ -221,7 +221,7 @@ int gbox_init_point3d(const POINT3D *p, GBOX *gbox)
 	return RT_SUCCESS;
 }
 
-int gbox_contains_point3d(const GBOX *gbox, const POINT3D *pt)
+int gbox_contains_point3d(const RTGBOX *gbox, const POINT3D *pt)
 {
 	if ( gbox->xmin > pt->x || gbox->ymin > pt->y || gbox->zmin > pt->z ||
 	        gbox->xmax < pt->x || gbox->ymax < pt->y || gbox->zmax < pt->z )
@@ -231,7 +231,7 @@ int gbox_contains_point3d(const GBOX *gbox, const POINT3D *pt)
 	return RT_TRUE;
 }
 
-int gbox_merge(const GBOX *new_box, GBOX *merge_box)
+int gbox_merge(const RTGBOX *new_box, RTGBOX *merge_box)
 {
 	assert(merge_box);
 
@@ -257,7 +257,7 @@ int gbox_merge(const GBOX *new_box, GBOX *merge_box)
 	return RT_SUCCESS;
 }
 
-int gbox_overlaps(const GBOX *g1, const GBOX *g2)
+int gbox_overlaps(const RTGBOX *g1, const RTGBOX *g2)
 {
 
 	/* Make sure our boxes are consistent */
@@ -297,7 +297,7 @@ int gbox_overlaps(const GBOX *g1, const GBOX *g2)
 }
 
 int 
-gbox_overlaps_2d(const GBOX *g1, const GBOX *g2)
+gbox_overlaps_2d(const RTGBOX *g1, const RTGBOX *g2)
 {
 
 	/* Make sure our boxes are consistent */
@@ -313,7 +313,7 @@ gbox_overlaps_2d(const GBOX *g1, const GBOX *g2)
 }
 
 int 
-gbox_contains_2d(const GBOX *g1, const GBOX *g2)
+gbox_contains_2d(const RTGBOX *g1, const RTGBOX *g2)
 {
 	if ( ( g2->xmin < g1->xmin ) || ( g2->xmax > g1->xmax ) ||
 	     ( g2->ymin < g1->ymin ) || ( g2->ymax > g1->ymax ) )
@@ -324,7 +324,7 @@ gbox_contains_2d(const GBOX *g1, const GBOX *g2)
 }
 
 int 
-gbox_contains_point2d(const GBOX *g, const POINT2D *p)
+gbox_contains_point2d(const RTGBOX *g, const RTPOINT2D *p)
 {
 	if ( ( g->xmin <= p->x ) && ( g->xmax >= p->x ) &&
 	     ( g->ymin <= p->y ) && ( g->ymax >= p->y ) )
@@ -338,12 +338,12 @@ gbox_contains_point2d(const GBOX *g, const POINT2D *p)
 * Warning, this function is only good for x/y/z boxes, used
 * in unit testing of geodetic box generation.
 */
-GBOX* gbox_from_string(const char *str)
+RTGBOX* gbox_from_string(const char *str)
 {
 	const char *ptr = str;
 	char *nextptr;
-	char *gbox_start = strstr(str, "GBOX((");
-	GBOX *gbox = gbox_new(gflags(0,0,1));
+	char *gbox_start = strstr(str, "RTGBOX((");
+	RTGBOX *gbox = gbox_new(gflags(0,0,1));
 	if ( ! gbox_start ) return NULL; /* No header found */
 	ptr += 6;
 	gbox->xmin = strtod(ptr, &nextptr);
@@ -366,7 +366,7 @@ GBOX* gbox_from_string(const char *str)
 	return gbox;
 }
 
-char* gbox_to_string(const GBOX *gbox)
+char* gbox_to_string(const RTGBOX *gbox)
 {
 	static int sz = 128;
 	char *str = NULL;
@@ -378,39 +378,39 @@ char* gbox_to_string(const GBOX *gbox)
 
 	if ( FLAGS_GET_GEODETIC(gbox->flags) )
 	{
-		snprintf(str, sz, "GBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->xmax, gbox->ymax, gbox->zmax);
+		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->xmax, gbox->ymax, gbox->zmax);
 		return str;
 	}
 	if ( FLAGS_GET_Z(gbox->flags) && FLAGS_GET_M(gbox->flags) )
 	{
-		snprintf(str, sz, "GBOX((%.8g,%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->mmin, gbox->xmax, gbox->ymax, gbox->zmax, gbox->mmax);
+		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->mmin, gbox->xmax, gbox->ymax, gbox->zmax, gbox->mmax);
 		return str;
 	}
 	if ( FLAGS_GET_Z(gbox->flags) )
 	{
-		snprintf(str, sz, "GBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->xmax, gbox->ymax, gbox->zmax);
+		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->zmin, gbox->xmax, gbox->ymax, gbox->zmax);
 		return str;
 	}
 	if ( FLAGS_GET_M(gbox->flags) )
 	{
-		snprintf(str, sz, "GBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->mmin, gbox->xmax, gbox->ymax, gbox->mmax);
+		snprintf(str, sz, "RTGBOX((%.8g,%.8g,%.8g),(%.8g,%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->mmin, gbox->xmax, gbox->ymax, gbox->mmax);
 		return str;
 	}
-	snprintf(str, sz, "GBOX((%.8g,%.8g),(%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->xmax, gbox->ymax);
+	snprintf(str, sz, "RTGBOX((%.8g,%.8g),(%.8g,%.8g))", gbox->xmin, gbox->ymin, gbox->xmax, gbox->ymax);
 	return str;
 }
 
-GBOX* gbox_copy(const GBOX *box)
+RTGBOX* gbox_copy(const RTGBOX *box)
 {
-	GBOX *copy = (GBOX*)rtalloc(sizeof(GBOX));
-	memcpy(copy, box, sizeof(GBOX));
+	RTGBOX *copy = (RTGBOX*)rtalloc(sizeof(RTGBOX));
+	memcpy(copy, box, sizeof(RTGBOX));
 	return copy;
 }
 
-void gbox_duplicate(const GBOX *original, GBOX *duplicate)
+void gbox_duplicate(const RTGBOX *original, RTGBOX *duplicate)
 {
 	assert(duplicate);
-	memcpy(duplicate, original, sizeof(GBOX));
+	memcpy(duplicate, original, sizeof(RTGBOX));
 }
 
 size_t gbox_serialized_size(uint8_t flags)
@@ -423,13 +423,13 @@ size_t gbox_serialized_size(uint8_t flags)
 
 
 /* ********************************************************************************
-** Compute cartesian bounding GBOX boxes from RTGEOM.
+** Compute cartesian bounding RTGBOX boxes from RTGEOM.
 */
 
-int rt_arc_calculate_gbox_cartesian_2d(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, GBOX *gbox)
+int rt_arc_calculate_gbox_cartesian_2d(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, RTGBOX *gbox)
 {
-	POINT2D xmin, ymin, xmax, ymax;
-	POINT2D C;
+	RTPOINT2D xmin, ymin, xmax, ymax;
+	RTPOINT2D C;
 	int A2_side;
 	double radius_A;
 
@@ -495,13 +495,13 @@ int rt_arc_calculate_gbox_cartesian_2d(const POINT2D *A1, const POINT2D *A2, con
 }
 
 
-static int rt_arc_calculate_gbox_cartesian(const POINT4D *p1, const POINT4D *p2, const POINT4D *p3, GBOX *gbox)
+static int rt_arc_calculate_gbox_cartesian(const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, RTGBOX *gbox)
 {
 	int rv;
 
 	RTDEBUG(2, "rt_arc_calculate_gbox_cartesian called.");
 
-	rv = rt_arc_calculate_gbox_cartesian_2d((POINT2D*)p1, (POINT2D*)p2, (POINT2D*)p3, gbox);
+	rv = rt_arc_calculate_gbox_cartesian_2d((RTPOINT2D*)p1, (RTPOINT2D*)p2, (RTPOINT2D*)p3, gbox);
     gbox->zmin = FP_MIN(p1->z, p3->z);
     gbox->mmin = FP_MIN(p1->m, p3->m);
     gbox->zmax = FP_MAX(p1->z, p3->z);
@@ -509,10 +509,10 @@ static int rt_arc_calculate_gbox_cartesian(const POINT4D *p1, const POINT4D *p2,
 	return rv;
 }
 
-int ptarray_calculate_gbox_cartesian(const POINTARRAY *pa, GBOX *gbox )
+int ptarray_calculate_gbox_cartesian(const POINTARRAY *pa, RTGBOX *gbox )
 {
 	int i;
-	POINT4D p;
+	RTPOINT4D p;
 	int has_z, has_m;
 
 	if ( ! pa ) return RT_FAILURE;
@@ -553,11 +553,11 @@ int ptarray_calculate_gbox_cartesian(const POINTARRAY *pa, GBOX *gbox )
 	return RT_SUCCESS;
 }
 
-static int rtcircstring_calculate_gbox_cartesian(RTCIRCSTRING *curve, GBOX *gbox)
+static int rtcircstring_calculate_gbox_cartesian(RTCIRCSTRING *curve, RTGBOX *gbox)
 {
 	uint8_t flags = gflags(FLAGS_GET_Z(curve->flags), FLAGS_GET_M(curve->flags), 0);
-	GBOX tmp;
-	POINT4D p1, p2, p3;
+	RTGBOX tmp;
+	RTPOINT4D p1, p2, p3;
 	int i;
 
 	if ( ! curve ) return RT_FAILURE;
@@ -584,25 +584,25 @@ static int rtcircstring_calculate_gbox_cartesian(RTCIRCSTRING *curve, GBOX *gbox
 	return RT_SUCCESS;
 }
 
-static int rtpoint_calculate_gbox_cartesian(RTPOINT *point, GBOX *gbox)
+static int rtpoint_calculate_gbox_cartesian(RTPOINT *point, RTGBOX *gbox)
 {
 	if ( ! point ) return RT_FAILURE;
 	return ptarray_calculate_gbox_cartesian( point->point, gbox );
 }
 
-static int rtline_calculate_gbox_cartesian(RTLINE *line, GBOX *gbox)
+static int rtline_calculate_gbox_cartesian(RTLINE *line, RTGBOX *gbox)
 {
 	if ( ! line ) return RT_FAILURE;
 	return ptarray_calculate_gbox_cartesian( line->points, gbox );
 }
 
-static int rttriangle_calculate_gbox_cartesian(RTTRIANGLE *triangle, GBOX *gbox)
+static int rttriangle_calculate_gbox_cartesian(RTTRIANGLE *triangle, RTGBOX *gbox)
 {
 	if ( ! triangle ) return RT_FAILURE;
 	return ptarray_calculate_gbox_cartesian( triangle->points, gbox );
 }
 
-static int rtpoly_calculate_gbox_cartesian(RTPOLY *poly, GBOX *gbox)
+static int rtpoly_calculate_gbox_cartesian(RTPOLY *poly, RTGBOX *gbox)
 {
 	if ( ! poly ) return RT_FAILURE;
 	if ( poly->nrings == 0 ) return RT_FAILURE;
@@ -610,9 +610,9 @@ static int rtpoly_calculate_gbox_cartesian(RTPOLY *poly, GBOX *gbox)
 	return ptarray_calculate_gbox_cartesian( poly->rings[0], gbox );
 }
 
-static int rtcollection_calculate_gbox_cartesian(RTCOLLECTION *coll, GBOX *gbox)
+static int rtcollection_calculate_gbox_cartesian(RTCOLLECTION *coll, RTGBOX *gbox)
 {
-	GBOX subbox;
+	RTGBOX subbox;
 	int i;
 	int result = RT_FAILURE;
 	int first = RT_TRUE;
@@ -645,7 +645,7 @@ static int rtcollection_calculate_gbox_cartesian(RTCOLLECTION *coll, GBOX *gbox)
 	return result;
 }
 
-int rtgeom_calculate_gbox_cartesian(const RTGEOM *rtgeom, GBOX *gbox)
+int rtgeom_calculate_gbox_cartesian(const RTGEOM *rtgeom, RTGBOX *gbox)
 {
 	if ( ! rtgeom ) return RT_FAILURE;
 	RTDEBUGF(4, "rtgeom_calculate_gbox got type (%d) - %s", rtgeom->type, rttype_name(rtgeom->type));
@@ -679,7 +679,7 @@ int rtgeom_calculate_gbox_cartesian(const RTGEOM *rtgeom, GBOX *gbox)
 	return RT_FAILURE;
 }
 
-void gbox_float_round(GBOX *gbox)
+void gbox_float_round(RTGBOX *gbox)
 {
 	gbox->xmin = next_float_down(gbox->xmin);
 	gbox->xmax = next_float_up(gbox->xmax);

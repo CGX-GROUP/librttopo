@@ -372,7 +372,7 @@ static RTPOINT* rtpoint_from_wkb_state(wkb_parse_state *s)
 	POINTARRAY *pa = NULL;
 	size_t pa_size;
 	uint32_t ndims = 2;
-	const POINT2D *pt;
+	const RTPOINT2D *pt;
 
 	/* Count the dimensions. */
 	if( s->has_z ) ndims++;

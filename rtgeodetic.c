@@ -161,7 +161,7 @@ void geographic_point_init(double lon, double lat, GEOGRAPHIC_POINT *g)
 
 /** Returns the angular height (latitudinal span) of the box in radians */
 double 
-gbox_angular_height(const GBOX* gbox)
+gbox_angular_height(const RTGBOX* gbox)
 {
 	double d[6];
 	int i;
@@ -188,7 +188,7 @@ gbox_angular_height(const GBOX* gbox)
 
 /** Returns the angular width (longitudinal span) of the box in radians */
 double 
-gbox_angular_width(const GBOX* gbox)
+gbox_angular_width(const RTGBOX* gbox)
 {
 	double d[6];
 	int i, j;
@@ -240,7 +240,7 @@ gbox_angular_width(const GBOX* gbox)
 
 /** Computes the average(ish) center of the box and returns success. */
 int
-gbox_centroid(const GBOX* gbox, POINT2D* out)
+gbox_centroid(const RTGBOX* gbox, RTPOINT2D* out)
 {
 	double d[6];
 	GEOGRAPHIC_POINT g;
@@ -289,7 +289,7 @@ gbox_centroid(const GBOX* gbox, POINT2D* out)
 * This function is overdetermined, for very large polygons it might add an
 * unwarranted pole. STILL NEEDS WORK!
 */
-static int gbox_check_poles(GBOX *gbox)
+static int gbox_check_poles(RTGBOX *gbox)
 {
 	int rv = RT_FALSE;
 	RTDEBUG(4, "checking poles");
@@ -370,7 +370,7 @@ void cart2geog(const POINT3D *p, GEOGRAPHIC_POINT *g)
 /**
 * Convert lon/lat coordinates to cartesion coordinates on unit sphere
 */
-void ll2cart(const POINT2D *g, POINT3D *p)
+void ll2cart(const RTPOINT2D *g, POINT3D *p)
 {
 	double x_rad = M_PI * g->x / 180.0;
 	double y_rad = M_PI * g->y / 180.0;
@@ -382,7 +382,7 @@ void ll2cart(const POINT2D *g, POINT3D *p)
 
 /**
 * Convert cartesion coordinates on unit sphere to lon/lat coordinates 
-static void cart2ll(const POINT3D *p, POINT2D *g)
+static void cart2ll(const POINT3D *p, RTPOINT2D *g)
 {
 	g->x = longitude_degrees_normalize(180.0 * atan2(p->y, p->x) / M_PI);
 	g->y = latitude_degrees_normalize(180.0 * asin(p->z) / M_PI);
@@ -471,7 +471,7 @@ double vector_angle(const POINT3D* v1, const POINT3D* v2)
 /**
 * Normalize to a unit vector.
 */
-static void normalize2d(POINT2D *p)
+static void normalize2d(RTPOINT2D *p)
 {
 	double d = sqrt(p->x*p->x + p->y*p->y);
 	if (FP_IS_ZERO(d))
@@ -1289,7 +1289,7 @@ int sphere_project(const GEOGRAPHIC_POINT *r, double distance, double azimuth, G
 }
 
 
-int edge_calculate_gbox_slow(const GEOGRAPHIC_EDGE *e, GBOX *gbox)
+int edge_calculate_gbox_slow(const GEOGRAPHIC_EDGE *e, RTGBOX *gbox)
 {
 	int steps = 1000000;
 	int i;
@@ -1353,9 +1353,9 @@ int edge_calculate_gbox_slow(const GEOGRAPHIC_EDGE *e, GBOX *gbox)
 * side of the plane-dividing line formed by the end points that is opposite
 * the origin of the plane are extrema and should be added to the bounding box.
 */
-int edge_calculate_gbox(const POINT3D *A1, const POINT3D *A2, GBOX *gbox)
+int edge_calculate_gbox(const POINT3D *A1, const POINT3D *A2, RTGBOX *gbox)
 {
-	POINT2D R1, R2, RX, O;
+	RTPOINT2D R1, R2, RX, O;
 	POINT3D AN, A3;
 	POINT3D X[6];
 	int i, o_side;
@@ -1420,7 +1420,7 @@ int edge_calculate_gbox(const POINT3D *A1, const POINT3D *A2, GBOX *gbox)
 	return RT_SUCCESS;
 }
 
-void rtpoly_pt_outside(const RTPOLY *poly, POINT2D *pt_outside)
+void rtpoly_pt_outside(const RTPOLY *poly, RTPOINT2D *pt_outside)
 {	
 	/* Make sure we have boxes */
 	if ( poly->bbox )
@@ -1430,7 +1430,7 @@ void rtpoly_pt_outside(const RTPOLY *poly, POINT2D *pt_outside)
 	}
 	else
 	{
-		GBOX gbox;
+		RTGBOX gbox;
 		rtgeom_calculate_gbox_geodetic((RTGEOM*)poly, &gbox);
 		gbox_pt_outside(&gbox, pt_outside);
 		return;
@@ -1441,11 +1441,11 @@ void rtpoly_pt_outside(const RTPOLY *poly, POINT2D *pt_outside)
 * Given a unit geocentric gbox, return a lon/lat (degrees) coordinate point point that is
 * guaranteed to be outside the box (and therefore anything it contains).
 */
-void gbox_pt_outside(const GBOX *gbox, POINT2D *pt_outside)
+void gbox_pt_outside(const RTGBOX *gbox, RTPOINT2D *pt_outside)
 {
 	double grow = M_PI / 180.0 / 60.0; /* one arc-minute */
 	int i;
-	GBOX ge;
+	RTGBOX ge;
 	POINT3D corners[8];
 	POINT3D pt;
 	GEOGRAPHIC_POINT g;
@@ -1534,7 +1534,7 @@ ptarray_segmentize_sphere(const POINTARRAY *pa_in, double max_seg_length)
 	int hasz = ptarray_has_z(pa_in);
 	int hasm = ptarray_has_m(pa_in);
 	int pa_in_offset = 0; /* input point offset */
-	POINT4D p1, p2, p;
+	RTPOINT4D p1, p2, p;
 	POINT3D q1, q2, q, qn;
 	GEOGRAPHIC_POINT g1, g2, g;
 	double d;
@@ -1703,7 +1703,7 @@ double
 ptarray_area_sphere(const POINTARRAY *pa)
 {
 	int i;
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	GEOGRAPHIC_POINT a, b, c;
 	double area = 0.0;
 	
@@ -1734,7 +1734,7 @@ static double ptarray_distance_spheroid(const POINTARRAY *pa1, const POINTARRAY 
 	GEOGRAPHIC_POINT g1, g2;
 	GEOGRAPHIC_POINT nearest1, nearest2;
 	POINT3D A1, A2, B1, B2;
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	double distance;
 	int i, j;
 	int use_sphere = (s->a == s->b ? 1 : 0);
@@ -1920,7 +1920,7 @@ static double ptarray_distance_spheroid(const POINTARRAY *pa1, const POINTARRAY 
 /**
 * Calculate the area of an RTGEOM. Anything except POLYGON, MULTIPOLYGON
 * and GEOMETRYCOLLECTION return zero immediately. Multi's recurse, polygons
-* calculate external ring area and subtract internal ring area. A GBOX is
+* calculate external ring area and subtract internal ring area. A RTGBOX is
 * required to calculate an outside point.
 */
 double rtgeom_area_sphere(const RTGEOM *rtgeom, const SPHEROID *spheroid)
@@ -1994,7 +1994,7 @@ double rtgeom_area_sphere(const RTGEOM *rtgeom, const SPHEROID *spheroid)
 RTPOINT* rtgeom_project_spheroid(const RTPOINT *r, const SPHEROID *spheroid, double distance, double azimuth)
 {
 	GEOGRAPHIC_POINT geo_source, geo_dest;
-	POINT4D pt_dest;
+	RTPOINT4D pt_dest;
 	double x, y;
 	POINTARRAY *pa;
 	RTPOINT *rtp;
@@ -2081,7 +2081,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 {
 	uint8_t type1, type2;
 	int check_intersection = RT_FALSE;
-	GBOX gbox1, gbox2;
+	RTGBOX gbox1, gbox2;
 
 	gbox_init(&gbox1);
 	gbox_init(&gbox2);
@@ -2140,7 +2140,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 	if ( ( type1 == RTPOLYGONTYPE && type2 == RTPOINTTYPE ) ||
 	     ( type2 == RTPOLYGONTYPE && type1 == RTPOINTTYPE ) )
 	{
-		const POINT2D *p;
+		const RTPOINT2D *p;
 		RTPOLY *rtpoly;
 		RTPOINT *rtpt;
 		double distance = FLT_MAX;
@@ -2180,7 +2180,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 	if ( ( type1 == RTPOLYGONTYPE && type2 == RTLINETYPE ) ||
 	     ( type2 == RTPOLYGONTYPE && type1 == RTLINETYPE ) )
 	{
-		const POINT2D *p;
+		const RTPOINT2D *p;
 		RTPOLY *rtpoly;
 		RTLINE *rtline;
 		double distance = FLT_MAX;
@@ -2225,7 +2225,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 	if ( ( type1 == RTPOLYGONTYPE && type2 == RTPOLYGONTYPE ) ||
 	     ( type2 == RTPOLYGONTYPE && type1 == RTPOLYGONTYPE ) )
 	{
-		const POINT2D *p;
+		const RTPOINT2D *p;
 		RTPOLY *rtpoly1 = (RTPOLY*)rtgeom1;
 		RTPOLY *rtpoly2 = (RTPOLY*)rtgeom2;
 		double distance = FLT_MAX;
@@ -2302,7 +2302,7 @@ double rtgeom_distance_spheroid(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2, co
 int rtgeom_covers_rtgeom_sphere(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 {
 	int type1, type2;
-	GBOX gbox1, gbox2;
+	RTGBOX gbox1, gbox2;
 	gbox1.flags = gbox2.flags = 0;
 		
 	assert(rtgeom1);
@@ -2335,7 +2335,7 @@ int rtgeom_covers_rtgeom_sphere(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 	/* Handle the polygon/point case */
 	if ( type1 == RTPOLYGONTYPE && type2 == RTPOINTTYPE )
 	{
-		POINT2D pt_to_test;
+		RTPOINT2D pt_to_test;
 		getPoint2d_p(((RTPOINT*)rtgeom2)->point, 0, &pt_to_test);
 		return rtpoly_covers_point2d((RTPOLY*)rtgeom1, &pt_to_test);
 	}
@@ -2383,14 +2383,14 @@ int rtgeom_covers_rtgeom_sphere(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 * a guaranteed outside point (lon/lat decimal degrees) (calculate with gbox_pt_outside())
 * return RT_TRUE if point is inside or on edge of polygon.
 */
-int rtpoly_covers_point2d(const RTPOLY *poly, const POINT2D *pt_to_test)
+int rtpoly_covers_point2d(const RTPOLY *poly, const RTPOINT2D *pt_to_test)
 {
 	int i;
 	int in_hole_count = 0;
 	POINT3D p;
 	GEOGRAPHIC_POINT gpt_to_test;
-	POINT2D pt_outside;
-	GBOX gbox;
+	RTPOINT2D pt_outside;
+	RTGBOX gbox;
 	gbox.flags = 0;
 
 	/* Nulls and empties don't contain anything! */
@@ -2458,7 +2458,7 @@ int rtpoly_covers_point2d(const RTPOLY *poly, const POINT2D *pt_to_test)
 * This function can only be used on RTGEOM that is built on top of
 * GSERIALIZED, otherwise alignment errors will ensue.
 */
-int getPoint2d_p_ro(const POINTARRAY *pa, int n, POINT2D **point)
+int getPoint2d_p_ro(const POINTARRAY *pa, int n, RTPOINT2D **point)
 {
 	uint8_t *pa_ptr = NULL;
 	assert(pa);
@@ -2467,18 +2467,18 @@ int getPoint2d_p_ro(const POINTARRAY *pa, int n, POINT2D **point)
 
 	pa_ptr = getPoint_internal(pa, n);
 	/* printf( "pa_ptr[0]: %g\n", *((double*)pa_ptr)); */
-	*point = (POINT2D*)pa_ptr;
+	*point = (RTPOINT2D*)pa_ptr;
 
 	return RT_SUCCESS;
 }
 
-int ptarray_calculate_gbox_geodetic(const POINTARRAY *pa, GBOX *gbox)
+int ptarray_calculate_gbox_geodetic(const POINTARRAY *pa, RTGBOX *gbox)
 {
 	int i;
 	int first = RT_TRUE;
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	POINT3D A1, A2;
-	GBOX edge_gbox;
+	RTGBOX edge_gbox;
 
 	assert(gbox);
 	assert(pa);
@@ -2527,21 +2527,21 @@ int ptarray_calculate_gbox_geodetic(const POINTARRAY *pa, GBOX *gbox)
 	return RT_SUCCESS;
 }
 
-static int rtpoint_calculate_gbox_geodetic(const RTPOINT *point, GBOX *gbox)
+static int rtpoint_calculate_gbox_geodetic(const RTPOINT *point, RTGBOX *gbox)
 {
 	assert(point);
 	return ptarray_calculate_gbox_geodetic(point->point, gbox);
 }
 
-static int rtline_calculate_gbox_geodetic(const RTLINE *line, GBOX *gbox)
+static int rtline_calculate_gbox_geodetic(const RTLINE *line, RTGBOX *gbox)
 {
 	assert(line);
 	return ptarray_calculate_gbox_geodetic(line->points, gbox);
 }
 
-static int rtpolygon_calculate_gbox_geodetic(const RTPOLY *poly, GBOX *gbox)
+static int rtpolygon_calculate_gbox_geodetic(const RTPOLY *poly, RTGBOX *gbox)
 {
-	GBOX ringbox;
+	RTGBOX ringbox;
 	int i;
 	int first = RT_TRUE;
 	assert(poly);
@@ -2569,16 +2569,16 @@ static int rtpolygon_calculate_gbox_geodetic(const RTPOLY *poly, GBOX *gbox)
 	return RT_SUCCESS;
 }
 
-static int rttriangle_calculate_gbox_geodetic(const RTTRIANGLE *triangle, GBOX *gbox)
+static int rttriangle_calculate_gbox_geodetic(const RTTRIANGLE *triangle, RTGBOX *gbox)
 {
 	assert(triangle);
 	return ptarray_calculate_gbox_geodetic(triangle->points, gbox);
 }
 
 
-static int rtcollection_calculate_gbox_geodetic(const RTCOLLECTION *coll, GBOX *gbox)
+static int rtcollection_calculate_gbox_geodetic(const RTCOLLECTION *coll, RTGBOX *gbox)
 {
-	GBOX subbox;
+	RTGBOX subbox;
 	int i;
 	int result = RT_FAILURE;
 	int first = RT_TRUE;
@@ -2611,7 +2611,7 @@ static int rtcollection_calculate_gbox_geodetic(const RTCOLLECTION *coll, GBOX *
 	return result;
 }
 
-int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, GBOX *gbox)
+int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, RTGBOX *gbox)
 {
 	int result = RT_FAILURE;
 	RTDEBUGF(4, "got type %d", geom->type);
@@ -2654,7 +2654,7 @@ int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, GBOX *gbox)
 static int ptarray_check_geodetic(const POINTARRAY *pa)
 {
 	int t;
-	POINT2D pt;
+	RTPOINT2D pt;
 
 	assert(pa);
 
@@ -2747,7 +2747,7 @@ static int ptarray_force_geodetic(POINTARRAY *pa)
 {
 	int t;
 	int changed = RT_FALSE;
-	POINT4D pt;
+	RTPOINT4D pt;
 
 	assert(pa);
 
@@ -2831,7 +2831,7 @@ double ptarray_length_spheroid(const POINTARRAY *pa, const SPHEROID *s)
 {
 	GEOGRAPHIC_POINT a, b;
 	double za = 0.0, zb = 0.0;
-	POINT4D p;
+	RTPOINT4D p;
 	int i;
 	int hasz = RT_FALSE;
 	double length = 0.0;
@@ -2939,7 +2939,7 @@ ptarray_nudge_geodetic(POINTARRAY *pa)
 {
 
 	int i;
-	POINT4D p;
+	RTPOINT4D p;
 	int altered = RT_FALSE;
 	int rv = RT_FALSE;
 	static double tolerance = 1e-10;
@@ -3200,11 +3200,11 @@ edge_intersects(const POINT3D *A1, const POINT3D *A2, const POINT3D *B1, const P
 * to derive one in postgis, or the gbox_pt_outside() function if you don't mind burning CPU cycles
 * building a gbox first).
 */
-int ptarray_contains_point_sphere(const POINTARRAY *pa, const POINT2D *pt_outside, const POINT2D *pt_to_test)
+int ptarray_contains_point_sphere(const POINTARRAY *pa, const RTPOINT2D *pt_outside, const RTPOINT2D *pt_to_test)
 {
 	POINT3D S1, S2; /* Stab line end points */
 	POINT3D E1, E2; /* Edge end points (3-space) */
-	POINT2D p; /* Edge end points (lon/lat) */
+	RTPOINT2D p; /* Edge end points (lon/lat) */
 	int count = 0, i, inter;
 
 	/* Null input, not enough points for a ring? You ain't closed! */

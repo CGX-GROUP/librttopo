@@ -24,24 +24,24 @@
  * TODO: obsolete this
  */
 int
-rtpoint_getPoint2d_p(const RTPOINT *point, POINT2D *out)
+rtpoint_getPoint2d_p(const RTPOINT *point, RTPOINT2D *out)
 {
 	return getPoint2d_p(point->point, 0, out);
 }
 
 /* convenience functions to hide the POINTARRAY */
 int
-rtpoint_getPoint3dz_p(const RTPOINT *point, POINT3DZ *out)
+rtpoint_getPoint3dz_p(const RTPOINT *point, RTPOINT3DZ *out)
 {
 	return getPoint3dz_p(point->point,0,out);
 }
 int
-rtpoint_getPoint3dm_p(const RTPOINT *point, POINT3DM *out)
+rtpoint_getPoint3dm_p(const RTPOINT *point, RTPOINT3DM *out)
 {
 	return getPoint3dm_p(point->point,0,out);
 }
 int
-rtpoint_getPoint4d_p(const RTPOINT *point, POINT4D *out)
+rtpoint_getPoint4d_p(const RTPOINT *point, RTPOINT4D *out)
 {
 	return getPoint4d_p(point->point,0,out);
 }
@@ -49,7 +49,7 @@ rtpoint_getPoint4d_p(const RTPOINT *point, POINT4D *out)
 double
 rtpoint_get_x(const RTPOINT *point)
 {
-	POINT4D pt;
+	RTPOINT4D pt;
 	if ( rtpoint_is_empty(point) )
 		rterror("rtpoint_get_x called with empty geometry");
 	getPoint4d_p(point->point, 0, &pt);
@@ -59,7 +59,7 @@ rtpoint_get_x(const RTPOINT *point)
 double
 rtpoint_get_y(const RTPOINT *point)
 {
-	POINT4D pt;
+	RTPOINT4D pt;
 	if ( rtpoint_is_empty(point) )
 		rterror("rtpoint_get_y called with empty geometry");
 	getPoint4d_p(point->point, 0, &pt);
@@ -69,7 +69,7 @@ rtpoint_get_y(const RTPOINT *point)
 double
 rtpoint_get_z(const RTPOINT *point)
 {
-	POINT4D pt;
+	RTPOINT4D pt;
 	if ( rtpoint_is_empty(point) )
 		rterror("rtpoint_get_z called with empty geometry");
 	if ( ! FLAGS_GET_Z(point->flags) )
@@ -81,7 +81,7 @@ rtpoint_get_z(const RTPOINT *point)
 double
 rtpoint_get_m(const RTPOINT *point)
 {
-	POINT4D pt;
+	RTPOINT4D pt;
 	if ( rtpoint_is_empty(point) )
 		rterror("rtpoint_get_m called with empty geometry");
 	if ( ! FLAGS_GET_M(point->flags) )
@@ -95,7 +95,7 @@ rtpoint_get_m(const RTPOINT *point)
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTPOINT *
-rtpoint_construct(int srid, GBOX *bbox, POINTARRAY *point)
+rtpoint_construct(int srid, RTGBOX *bbox, POINTARRAY *point)
 {
 	RTPOINT *result;
 	uint8_t flags = 0;
@@ -131,7 +131,7 @@ rtpoint_construct_empty(int srid, char hasz, char hasm)
 RTPOINT *
 rtpoint_make2d(int srid, double x, double y)
 {
-	POINT4D p = {x, y, 0.0, 0.0};
+	RTPOINT4D p = {x, y, 0.0, 0.0};
 	POINTARRAY *pa = ptarray_construct_empty(0, 0, 1);
 
 	ptarray_append_point(pa, &p, RT_TRUE);
@@ -141,7 +141,7 @@ rtpoint_make2d(int srid, double x, double y)
 RTPOINT *
 rtpoint_make3dz(int srid, double x, double y, double z)
 {
-	POINT4D p = {x, y, z, 0.0};
+	RTPOINT4D p = {x, y, z, 0.0};
 	POINTARRAY *pa = ptarray_construct_empty(1, 0, 1);
 
 	ptarray_append_point(pa, &p, RT_TRUE);
@@ -152,7 +152,7 @@ rtpoint_make3dz(int srid, double x, double y, double z)
 RTPOINT *
 rtpoint_make3dm(int srid, double x, double y, double m)
 {
-	POINT4D p = {x, y, 0.0, m};
+	RTPOINT4D p = {x, y, 0.0, m};
 	POINTARRAY *pa = ptarray_construct_empty(0, 1, 1);
 
 	ptarray_append_point(pa, &p, RT_TRUE);
@@ -163,7 +163,7 @@ rtpoint_make3dm(int srid, double x, double y, double m)
 RTPOINT *
 rtpoint_make4d(int srid, double x, double y, double z, double m)
 {
-	POINT4D p = {x, y, z, m};
+	RTPOINT4D p = {x, y, z, m};
 	POINTARRAY *pa = ptarray_construct_empty(1, 1, 1);
 
 	ptarray_append_point(pa, &p, RT_TRUE);
@@ -172,7 +172,7 @@ rtpoint_make4d(int srid, double x, double y, double z, double m)
 }
 
 RTPOINT *
-rtpoint_make(int srid, int hasz, int hasm, const POINT4D *p)
+rtpoint_make(int srid, int hasz, int hasm, const RTPOINT4D *p)
 {
 	POINTARRAY *pa = ptarray_construct_empty(hasz, hasm, 1);
 	ptarray_append_point(pa, p, RT_TRUE);

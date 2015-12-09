@@ -833,7 +833,7 @@ pointArray_toX3D3(POINTARRAY *pa, char *output, int precision, int opts, int is_
 			/** Only output the point if it is not the last point of a closed object or it is a non-closed type **/
 			if ( !is_closed || i < (pa->npoints - 1) )
 			{
-				POINT2D pt;
+				RTPOINT2D pt;
 				getPoint2d_p(pa, i, &pt);
 
 				if (fabs(pt.x) < OUT_MAX_DOUBLE)
@@ -865,7 +865,7 @@ pointArray_toX3D3(POINTARRAY *pa, char *output, int precision, int opts, int is_
 			/** Only output the point if it is not the last point of a closed object or it is a non-closed type **/
 			if ( !is_closed || i < (pa->npoints - 1) )
 			{
-				POINT4D pt;
+				RTPOINT4D pt;
 				getPoint4d_p(pa, i, &pt);
 
 				if (fabs(pt.x) < OUT_MAX_DOUBLE)

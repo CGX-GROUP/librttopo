@@ -59,10 +59,10 @@ static size_t pointArray_toGML3(POINTARRAY *pa, char *buf, int precision, int op
 static size_t pointArray_GMLsize(POINTARRAY *pa, int precision);
 
 static char *
-gbox_to_gml2(const GBOX *bbox, const char *srs, int precision, const char *prefix)
+gbox_to_gml2(const RTGBOX *bbox, const char *srs, int precision, const char *prefix)
 {
 	int size;
-	POINT4D pt;
+	RTPOINT4D pt;
 	POINTARRAY *pa;
 	char *ptr, *output;
 	size_t prefixlen = strlen(prefix);
@@ -114,10 +114,10 @@ gbox_to_gml2(const GBOX *bbox, const char *srs, int precision, const char *prefi
 }
 
 static char *
-gbox_to_gml3(const GBOX *bbox, const char *srs, int precision, int opts, const char *prefix)
+gbox_to_gml3(const RTGBOX *bbox, const char *srs, int precision, int opts, const char *prefix)
 {
 	int size;
-	POINT4D pt;
+	RTPOINT4D pt;
 	POINTARRAY *pa;
 	char *ptr, *output;
 	size_t prefixlen = strlen(prefix);
@@ -184,7 +184,7 @@ gbox_to_gml3(const GBOX *bbox, const char *srs, int precision, int opts, const c
 extern char *
 rtgeom_extent_to_gml2(const RTGEOM *geom, const char *srs, int precision, const char *prefix)
 {
-	const GBOX* bbox = rtgeom_get_bbox(geom);
+	const RTGBOX* bbox = rtgeom_get_bbox(geom);
 	/*
 		if ( ! bbox ) {
 			rterror("rtgeom_extent_to_gml2: empty geometry doesn't have a bounding box");
@@ -199,7 +199,7 @@ rtgeom_extent_to_gml2(const RTGEOM *geom, const char *srs, int precision, const 
 extern char *
 rtgeom_extent_to_gml3(const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix)
 {
-	const GBOX* bbox = rtgeom_get_bbox(geom);
+	const RTGBOX* bbox = rtgeom_get_bbox(geom);
 	/*
 		if ( ! bbox ) {
 			rterror("rtgeom_extent_to_gml3: empty geometry doesn't have a bounding box");
@@ -660,7 +660,7 @@ pointArray_toGML2(POINTARRAY *pa, char *output, int precision)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT2D *pt;
+			const RTPOINT2D *pt;
 			pt = getPoint2d_cp(pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)
@@ -683,7 +683,7 @@ pointArray_toGML2(POINTARRAY *pa, char *output, int precision)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT3DZ *pt;
+			const RTPOINT3DZ *pt;
 			pt = getPoint3dz_cp(pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)
@@ -1907,7 +1907,7 @@ pointArray_toGML3(POINTARRAY *pa, char *output, int precision, int opts)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT2D *pt;
+			const RTPOINT2D *pt;
 			pt = getPoint2d_cp(pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)
@@ -1933,7 +1933,7 @@ pointArray_toGML3(POINTARRAY *pa, char *output, int precision, int opts)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT3DZ *pt;
+			const RTPOINT3DZ *pt;
 			pt = getPoint3dz_cp(pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)

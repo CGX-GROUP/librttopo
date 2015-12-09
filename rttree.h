@@ -9,11 +9,11 @@ typedef struct rect_node
 	double ymax;
 	struct rect_node *left_node;
 	struct rect_node *right_node;
-	POINT2D *p1;
-	POINT2D *p2;
+	RTPOINT2D *p1;
+	RTPOINT2D *p2;
 } RECT_NODE;	
 
-int rect_tree_contains_point(const RECT_NODE *tree, const POINT2D *pt, int *on_boundary);
+int rect_tree_contains_point(const RECT_NODE *tree, const RTPOINT2D *pt, int *on_boundary);
 int rect_tree_intersects_tree(const RECT_NODE *tree1, const RECT_NODE *tree2);
 void rect_tree_free(RECT_NODE *node);
 RECT_NODE* rect_node_leaf_new(const POINTARRAY *pa, int i);

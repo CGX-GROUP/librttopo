@@ -173,7 +173,7 @@ rtt_be_getNodeWithinDistance2D(RTT_TOPOLOGY* topo, RTPOINT* pt,
 
 static RTT_ISO_NODE*
 rtt_be_getNodeWithinBox2D( const RTT_TOPOLOGY* topo,
-                           const GBOX* box, int* numelems, int fields,
+                           const RTGBOX* box, int* numelems, int fields,
                            int limit )
 {
   CBT4(topo, getNodeWithinBox2D, box, numelems, fields, limit);
@@ -181,7 +181,7 @@ rtt_be_getNodeWithinBox2D( const RTT_TOPOLOGY* topo,
 
 static RTT_ISO_EDGE*
 rtt_be_getEdgeWithinBox2D( const RTT_TOPOLOGY* topo,
-                           const GBOX* box, int* numelems, int fields,
+                           const RTGBOX* box, int* numelems, int fields,
                            int limit )
 {
   CBT4(topo, getEdgeWithinBox2D, box, numelems, fields, limit);
@@ -189,7 +189,7 @@ rtt_be_getEdgeWithinBox2D( const RTT_TOPOLOGY* topo,
 
 static RTT_ISO_FACE*
 rtt_be_getFaceWithinBox2D( const RTT_TOPOLOGY* topo,
-                           const GBOX* box, int* numelems, int fields,
+                           const RTGBOX* box, int* numelems, int fields,
                            int limit )
 {
   CBT4(topo, getFaceWithinBox2D, box, numelems, fields, limit);
@@ -248,14 +248,14 @@ rtt_be_getEdgeByNode(RTT_TOPOLOGY* topo, const RTT_ELEMID* ids,
 
 static RTT_ISO_EDGE*
 rtt_be_getEdgeByFace(RTT_TOPOLOGY* topo, const RTT_ELEMID* ids,
-                   int* numelems, int fields, const GBOX *box)
+                   int* numelems, int fields, const RTGBOX *box)
 {
   CBT4(topo, getEdgeByFace, ids, numelems, fields, box);
 }
 
 static RTT_ISO_NODE*
 rtt_be_getNodeByFace(RTT_TOPOLOGY* topo, const RTT_ELEMID* ids,
-                   int* numelems, int fields, const GBOX *box)
+                   int* numelems, int fields, const RTGBOX *box)
 {
   CBT4(topo, getNodeByFace, ids, numelems, fields, box);
 }
@@ -560,7 +560,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   int i, num_nodes, num_edges;
   RTT_ISO_EDGE *edges;
   RTT_ISO_NODE *nodes;
-  const GBOX *edgebox;
+  const RTGBOX *edgebox;
   GEOSGeometry *edgegg;
   const GEOSPreparedGeometry* prepared_edge;
 
@@ -760,7 +760,7 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
   RTT_ELEMID node_ids[2];
   RTT_ISO_NODE updated_nodes[2];
   int skipISOChecks = 0;
-  POINT2D p1, p2;
+  RTPOINT2D p1, p2;
 
   /* NOT IN THE SPECS:
    * A closed edge is never isolated (as it forms a face)
@@ -1374,10 +1374,10 @@ typedef struct edgeend_t {
  * @return 0 if edge is collapsed (no distinct points)
  */
 static int
-_rtt_FirstDistinctVertex2D(const POINTARRAY* pa, POINT2D *ref, int from, int dir, POINT2D *op)
+_rtt_FirstDistinctVertex2D(const POINTARRAY* pa, RTPOINT2D *ref, int from, int dir, RTPOINT2D *op)
 {
   int i, toofar, inc;
-  POINT2D fp;
+  RTPOINT2D fp;
 
   if ( dir > 0 )
   {
@@ -1414,10 +1414,10 @@ _rtt_FirstDistinctVertex2D(const POINTARRAY* pa, POINT2D *ref, int from, int dir
  */
 static int
 _rtt_InitEdgeEndByLine(edgeend *fee, edgeend *lee, RTLINE *edge,
-                                            POINT2D *fp, POINT2D *lp)
+                                            RTPOINT2D *fp, RTPOINT2D *lp)
 {
   POINTARRAY *pa = edge->points;
-  POINT2D pt;
+  RTPOINT2D pt;
 
   fee->nextCW = fee->nextCCW =
   lee->nextCW = lee->nextCCW = 0;
@@ -1513,7 +1513,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     RTT_ISO_EDGE *edge;
     RTGEOM *g;
     RTGEOM *cleangeom;
-    POINT2D p1, p2;
+    RTPOINT2D p1, p2;
     POINTARRAY *pa;
 
     edge = &(edges[i]);
@@ -1679,10 +1679,10 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
  * return 0 on failure (line is empty or collapsed), 1 otherwise
  */
 static int
-_rtt_GetInteriorEdgePoint(const RTLINE* edge, POINT2D* ip)
+_rtt_GetInteriorEdgePoint(const RTLINE* edge, RTPOINT2D* ip)
 {
   int i;
-  POINT2D fp, lp, tp;
+  RTPOINT2D fp, lp, tp;
   POINTARRAY *pa = edge->points;
 
   if ( pa->npoints < 2 ) return 0; /* empty or structurally collapsed */
@@ -1859,7 +1859,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   int isccw = ptarray_isccw(pa);
   RTDEBUGF(1, "Ring of edge %" RTTFMT_ELEMID " is %sclockwise",
               sedge, isccw ? "counter" : "");
-  const GBOX* shellbox = rtgeom_get_bbox(rtpoly_as_rtgeom(shell));
+  const RTGBOX* shellbox = rtgeom_get_bbox(rtpoly_as_rtgeom(shell));
 
   if ( face == 0 )
   {
@@ -1884,7 +1884,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
     {{
       RTT_ISO_FACE updface;
       updface.face_id = face;
-      updface.mbr = (GBOX *)shellbox; /* const cast, we won't free it, later */
+      updface.mbr = (RTGBOX *)shellbox; /* const cast, we won't free it, later */
       int ret = rtt_be_updateFacesById( topo, &updface, 1 );
       if ( ret == -1 )
       {
@@ -1937,7 +1937,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   }}
   else
   {
-    newface.mbr = (GBOX *)shellbox; /* const cast, we won't free it, later */
+    newface.mbr = (RTGBOX *)shellbox; /* const cast, we won't free it, later */
   }
 
   /* Insert the new face */
@@ -2030,7 +2030,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       int contains;
       GEOSGeometry *egg;
       RTPOINT *epgeom;
-      POINT2D ep;
+      RTPOINT2D ep;
 
       /* (2.1) skip edges whose ID is in the list of boundary edges ? */
       for ( j=0; j<num_signed_edge_ids; ++j )
@@ -2301,7 +2301,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   RTGEOM *cleangeom;
   edgeend span; /* start point analisys */
   edgeend epan; /* end point analisys */
-  POINT2D p1, pn, p2;
+  RTPOINT2D p1, pn, p2;
   POINTARRAY *pa;
   RTT_ELEMID node_ids[2];
   const RTPOINT *start_node_geom = NULL;
@@ -2855,7 +2855,7 @@ _rtt_FindNextRingEdge(const POINTARRAY *ring, int from,
                       const RTT_ISO_EDGE *edges, int numedges)
 {
   int i;
-  POINT2D p1;
+  RTPOINT2D p1;
 
   /* Get starting ring point */
   getPoint2d_p(ring, from, &p1);
@@ -2869,7 +2869,7 @@ _rtt_FindNextRingEdge(const POINTARRAY *ring, int from,
     const RTT_ISO_EDGE *isoe = &(edges[i]);
     RTLINE *edge = isoe->geom;
     POINTARRAY *epa = edge->points;
-    POINT2D p2, pt;
+    RTPOINT2D p2, pt;
     int match = 0;
     int j;
 
@@ -3165,7 +3165,7 @@ static GEOSGeometry *
 _rtt_EdgeMotionArea(RTLINE *geom, int isclosed)
 {
   GEOSGeometry *gg;
-  POINT4D p4d;
+  RTPOINT4D p4d;
   POINTARRAY *pa;
   POINTARRAY **pas;
   RTPOLY *poly;
@@ -3222,7 +3222,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 {
   RTT_ISO_EDGE *oldedge;
   RTT_ISO_EDGE newedge;
-  POINT2D p1, p2, pt;
+  RTPOINT2D p1, p2, pt;
   int i;
   int isclosed = 0;
 
@@ -3346,7 +3346,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 
   /* Check that the "motion range" doesn't include any node */
   // 1. compute combined bbox of old and new edge
-  GBOX mbox; /* motion box */
+  RTGBOX mbox; /* motion box */
   rtgeom_add_bbox((RTGEOM*)oldedge->geom); /* just in case */
   rtgeom_add_bbox((RTGEOM*)geom); /* just in case */
   gbox_union(oldedge->geom->bbox, geom->bbox, &mbox);
@@ -4023,8 +4023,8 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
         rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
-      GBOX *box1=NULL;
-      GBOX *box2=NULL;
+      RTGBOX *box1=NULL;
+      RTGBOX *box2=NULL;
       for ( i=0; i<nfaces; ++i )
       {
         if ( faces[i].face_id == edge->face_left )
@@ -4702,7 +4702,7 @@ rtt_GetNodeByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   int num;
   int flds = RTT_COL_NODE_NODE_ID|RTT_COL_NODE_GEOM; /* geom not needed */
   RTT_ELEMID id = 0;
-  POINT2D qp; /* query point */
+  RTPOINT2D qp; /* query point */
 
   if ( ! getPoint2d_p(pt->point, 0, &qp) )
   {
@@ -4890,7 +4890,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
 static double
 _rtt_minTolerance( RTGEOM *g )
 {
-  const GBOX* gbox;
+  const RTGBOX* gbox;
   double max;
   double ret;
 
@@ -5072,7 +5072,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       */
       RTGEOM *tmp;
       double z;
-      POINT4D p4d;
+      RTPOINT4D p4d;
       RTPOINT *prjpt;
       /* add Z to "prj" */
       tmp = rtgeom_force_3dz(prj);
@@ -5115,7 +5115,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       double snaptol;
       RTGEOM *snapedge;
       RTLINE *snapline;
-      POINT4D p1, p2;
+      RTPOINT4D p1, p2;
 
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID
                   " does not contain projected point to it",
@@ -5254,7 +5254,7 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
   RTT_ELEMID id;
   RTT_ISO_EDGE *edges;
   int num, i;
-  const GBOX *qbox = rtgeom_get_bbox( rtline_as_rtgeom(edge) );
+  const RTGBOX *qbox = rtgeom_get_bbox( rtline_as_rtgeom(edge) );
   GEOSGeometry *edgeg;
   const int flds = RTT_COL_EDGE_EDGE_ID|RTT_COL_EDGE_GEOM;
 
@@ -5326,7 +5326,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   RTT_ISO_NODE *node;
   RTT_ELEMID nid[2]; /* start_node, end_node */
   RTT_ELEMID id; /* edge id */
-  POINT4D p4d;
+  RTPOINT4D p4d;
   int nn, i;
 
   start_point = rtline_get_rtpoint(edge, 0);
@@ -5495,7 +5495,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   RTT_ISO_NODE *nodes;
   int num;
   int i;
-  GBOX qbox;
+  RTGBOX qbox;
 
   *nedges = -1; /* error condition, by default */
 
@@ -5734,7 +5734,7 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
   RTT_ISO_FACE *faces;
   int nfacesinbox;
   RTT_ELEMID *ids = NULL;
-  GBOX qbox;
+  RTGBOX qbox;
   const GEOSPreparedGeometry *ppoly;
   GEOSGeometry *polyg;
 

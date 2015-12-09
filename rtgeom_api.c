@@ -211,10 +211,10 @@ next_double_up(float d)
  *
  * NOTE: point is a real POINT3D *not* a pointer
  */
-POINT4D
+RTPOINT4D
 getPoint4d(const POINTARRAY *pa, int n)
 {
-	POINT4D result;
+	RTPOINT4D result;
 	getPoint4d_p(pa, n, &result);
 	return result;
 }
@@ -227,7 +227,7 @@ getPoint4d(const POINTARRAY *pa, int n)
  * NOTE: this will modify the point4d pointed to by 'point'.
  */
 int
-getPoint4d_p(const POINTARRAY *pa, int n, POINT4D *op)
+getPoint4d_p(const POINTARRAY *pa, int n, RTPOINT4D *op)
 {
 	uint8_t *ptr;
 	int zmflag;
@@ -252,22 +252,22 @@ getPoint4d_p(const POINTARRAY *pa, int n, POINT4D *op)
 	switch (zmflag)
 	{
 	case 0: /* 2d  */
-		memcpy(op, ptr, sizeof(POINT2D));
+		memcpy(op, ptr, sizeof(RTPOINT2D));
 		op->m=NO_M_VALUE;
 		op->z=NO_Z_VALUE;
 		break;
 
 	case 3: /* ZM */
-		memcpy(op, ptr, sizeof(POINT4D));
+		memcpy(op, ptr, sizeof(RTPOINT4D));
 		break;
 
 	case 2: /* Z */
-		memcpy(op, ptr, sizeof(POINT3DZ));
+		memcpy(op, ptr, sizeof(RTPOINT3DZ));
 		op->m=NO_M_VALUE;
 		break;
 
 	case 1: /* M */
-		memcpy(op, ptr, sizeof(POINT3DM));
+		memcpy(op, ptr, sizeof(RTPOINT3DM));
 		op->m=op->z; /* we use Z as temporary storage */
 		op->z=NO_Z_VALUE;
 		break;
@@ -284,12 +284,12 @@ getPoint4d_p(const POINTARRAY *pa, int n, POINT4D *op)
 /*
  * Copy a point from the point array into the parameter point
  * will set point's z=NO_Z_VALUE if pa is 2d
- * NOTE: point is a real POINT3DZ *not* a pointer
+ * NOTE: point is a real RTPOINT3DZ *not* a pointer
  */
-POINT3DZ
+RTPOINT3DZ
 getPoint3dz(const POINTARRAY *pa, int n)
 {
-	POINT3DZ result;
+	RTPOINT3DZ result;
 	getPoint3dz_p(pa, n, &result);
 	return result;
 }
@@ -298,12 +298,12 @@ getPoint3dz(const POINTARRAY *pa, int n)
  * Copy a point from the point array into the parameter point
  * will set point's z=NO_Z_VALUE if pa is 2d
  *
- * NOTE: point is a real POINT3DZ *not* a pointer
+ * NOTE: point is a real RTPOINT3DZ *not* a pointer
  */
-POINT3DM
+RTPOINT3DM
 getPoint3dm(const POINTARRAY *pa, int n)
 {
-	POINT3DM result;
+	RTPOINT3DM result;
 	getPoint3dm_p(pa, n, &result);
 	return result;
 }
@@ -315,7 +315,7 @@ getPoint3dm(const POINTARRAY *pa, int n)
  * NOTE: this will modify the point3dz pointed to by 'point'.
  */
 int
-getPoint3dz_p(const POINTARRAY *pa, int n, POINT3DZ *op)
+getPoint3dz_p(const POINTARRAY *pa, int n, RTPOINT3DZ *op)
 {
 	uint8_t *ptr;
 
@@ -341,7 +341,7 @@ getPoint3dz_p(const POINTARRAY *pa, int n, POINT3DZ *op)
 	 */
 	if ( FLAGS_GET_Z(pa->flags) )
 	{
-		memcpy(op, ptr, sizeof(POINT3DZ));
+		memcpy(op, ptr, sizeof(RTPOINT3DZ));
 	}
 
 	/*
@@ -350,7 +350,7 @@ getPoint3dz_p(const POINTARRAY *pa, int n, POINT3DZ *op)
 	 */
 	else
 	{
-		memcpy(op, ptr, sizeof(POINT2D));
+		memcpy(op, ptr, sizeof(RTPOINT2D));
 		op->z=NO_Z_VALUE;
 	}
 
@@ -365,7 +365,7 @@ getPoint3dz_p(const POINTARRAY *pa, int n, POINT3DZ *op)
  * NOTE: this will modify the point3dm pointed to by 'point'.
  */
 int
-getPoint3dm_p(const POINTARRAY *pa, int n, POINT3DM *op)
+getPoint3dm_p(const POINTARRAY *pa, int n, RTPOINT3DM *op)
 {
 	uint8_t *ptr;
 	int zmflag;
@@ -394,7 +394,7 @@ getPoint3dm_p(const POINTARRAY *pa, int n, POINT3DM *op)
 	 */
 	if ( zmflag == 1 )
 	{
-		memcpy(op, ptr, sizeof(POINT3DM));
+		memcpy(op, ptr, sizeof(RTPOINT3DM));
 		return 1;
 	}
 
@@ -402,7 +402,7 @@ getPoint3dm_p(const POINTARRAY *pa, int n, POINT3DM *op)
 	 * Otherwise copy the 2d part and
 	 * initialize M to NO_M_VALUE
 	 */
-	memcpy(op, ptr, sizeof(POINT2D));
+	memcpy(op, ptr, sizeof(RTPOINT2D));
 
 	/*
 	 * Then, if input has Z skip it and
@@ -411,7 +411,7 @@ getPoint3dm_p(const POINTARRAY *pa, int n, POINT3DM *op)
 	 */
 	if ( zmflag == 3 )
 	{
-		ptr+=sizeof(POINT3DZ);
+		ptr+=sizeof(RTPOINT3DZ);
 		memcpy(&(op->m), ptr, sizeof(double));
 	}
 	else
@@ -427,12 +427,12 @@ getPoint3dm_p(const POINTARRAY *pa, int n, POINT3DM *op)
  * Copy a point from the point array into the parameter point
  * z value (if present) is not returned.
  *
- * NOTE: point is a real POINT2D *not* a pointer
+ * NOTE: point is a real RTPOINT2D *not* a pointer
  */
-POINT2D
+RTPOINT2D
 getPoint2d(const POINTARRAY *pa, int n)
 {
-	const POINT2D *result;
+	const RTPOINT2D *result;
 	result = getPoint2d_cp(pa, n);
 	return *result;
 }
@@ -444,7 +444,7 @@ getPoint2d(const POINTARRAY *pa, int n)
  * NOTE: this will modify the point2d pointed to by 'point'.
  */
 int
-getPoint2d_p(const POINTARRAY *pa, int n, POINT2D *point)
+getPoint2d_p(const POINTARRAY *pa, int n, RTPOINT2D *point)
 {
 #if PARANOIA_LEVEL > 0
 	if ( ! pa ) return 0;
@@ -457,7 +457,7 @@ getPoint2d_p(const POINTARRAY *pa, int n, POINT2D *point)
 #endif
 
 	/* this does x,y */
-	memcpy(point, getPoint_internal(pa, n), sizeof(POINT2D));
+	memcpy(point, getPoint_internal(pa, n), sizeof(RTPOINT2D));
 	return 1;
 }
 
@@ -467,7 +467,7 @@ getPoint2d_p(const POINTARRAY *pa, int n, POINT2D *point)
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-const POINT2D*
+const RTPOINT2D*
 getPoint2d_cp(const POINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
@@ -478,10 +478,10 @@ getPoint2d_cp(const POINTARRAY *pa, int n)
 		return 0; /*error */
 	}
 
-	return (const POINT2D*)getPoint_internal(pa, n);
+	return (const RTPOINT2D*)getPoint_internal(pa, n);
 }
 
-const POINT3DZ*
+const RTPOINT3DZ*
 getPoint3dz_cp(const POINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
@@ -498,11 +498,11 @@ getPoint3dz_cp(const POINTARRAY *pa, int n)
 		return 0; /*error */
 	}
 
-	return (const POINT3DZ*)getPoint_internal(pa, n);
+	return (const RTPOINT3DZ*)getPoint_internal(pa, n);
 }
 
 
-const POINT4D*
+const RTPOINT4D*
 getPoint4d_cp(const POINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
@@ -519,7 +519,7 @@ getPoint4d_cp(const POINTARRAY *pa, int n)
 		return 0; /*error */
 	}
 
-	return (const POINT4D*)getPoint_internal(pa, n);
+	return (const RTPOINT4D*)getPoint_internal(pa, n);
 }
 
 
@@ -532,7 +532,7 @@ getPoint4d_cp(const POINTARRAY *pa, int n)
  *
  */
 void
-ptarray_set_point4d(POINTARRAY *pa, int n, const POINT4D *p4d)
+ptarray_set_point4d(POINTARRAY *pa, int n, const RTPOINT4D *p4d)
 {
 	uint8_t *ptr;
 	assert(n >= 0 && n < pa->npoints);
@@ -540,18 +540,18 @@ ptarray_set_point4d(POINTARRAY *pa, int n, const POINT4D *p4d)
 	switch ( FLAGS_GET_ZM(pa->flags) )
 	{
 	case 3:
-		memcpy(ptr, p4d, sizeof(POINT4D));
+		memcpy(ptr, p4d, sizeof(RTPOINT4D));
 		break;
 	case 2:
-		memcpy(ptr, p4d, sizeof(POINT3DZ));
+		memcpy(ptr, p4d, sizeof(RTPOINT3DZ));
 		break;
 	case 1:
-		memcpy(ptr, p4d, sizeof(POINT2D));
-		ptr+=sizeof(POINT2D);
+		memcpy(ptr, p4d, sizeof(RTPOINT2D));
+		ptr+=sizeof(RTPOINT2D);
 		memcpy(ptr, &(p4d->m), sizeof(double));
 		break;
 	case 0:
-		memcpy(ptr, p4d, sizeof(POINT2D));
+		memcpy(ptr, p4d, sizeof(RTPOINT2D));
 		break;
 	}
 }
@@ -597,7 +597,7 @@ void printBOX3D(BOX3D *box)
 void printPA(POINTARRAY *pa)
 {
 	int t;
-	POINT4D pt;
+	RTPOINT4D pt;
 	char *mflag;
 
 
@@ -802,7 +802,7 @@ deparse_hex(uint8_t str, char *result)
  *   F=.2   :    A-I-------B
  */
 void
-interpolate_point4d(POINT4D *A, POINT4D *B, POINT4D *I, double F)
+interpolate_point4d(RTPOINT4D *A, RTPOINT4D *B, RTPOINT4D *I, double F)
 {
 #if PARANOIA_LEVEL > 0
 	double absF=fabs(F);

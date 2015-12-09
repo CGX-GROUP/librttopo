@@ -221,7 +221,7 @@ rtline_split_by_point_to(const RTLINE* rtline_in, const RTPOINT* blade_in,
                          RTMLINE* v)
 {
 	double loc, dist;
-	POINT4D pt, pt_projected;
+	RTPOINT4D pt, pt_projected;
 	POINTARRAY* pa1;
 	POINTARRAY* pa2;
 	double vstol; /* vertex snap tolerance */

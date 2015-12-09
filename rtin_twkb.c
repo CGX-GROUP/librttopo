@@ -291,7 +291,7 @@ static RTPOLY* rtpoly_from_twkb_state(twkb_parse_state *s)
 		/* Force first and last points to be the same. */
 		if( ! ptarray_is_closed_2d(pa) )
 		{
-			POINT4D pt;
+			RTPOINT4D pt;
 			getPoint4d_p(pa, 0, &pt);
 			ptarray_append_point(pa, &pt, RT_FALSE);
 		}
@@ -547,7 +547,7 @@ static void header_from_twkb_state(twkb_parse_state *s)
 */
 RTGEOM* rtgeom_from_twkb_state(twkb_parse_state *s)
 {
-	GBOX bbox;
+	RTGBOX bbox;
 	RTGEOM *geom = NULL;
 	uint32_t has_bbox = RT_FALSE;
 	int i;
@@ -568,7 +568,7 @@ RTGEOM* rtgeom_from_twkb_state(twkb_parse_state *s)
 	{
 		/* Initialize */
 		has_bbox = s->has_bbox;
-		memset(&bbox, 0, sizeof(GBOX));
+		memset(&bbox, 0, sizeof(RTGBOX));
 		bbox.flags = gflags(s->has_z, s->has_m, 0);
 
 		/* X */

@@ -132,7 +132,7 @@ static double ptarray_area_spheroid(const POINTARRAY *pa, const SPHEROID *sphero
 	geod_polygon_init(&poly, 0);
 	int i;
 	double area; /* returned polygon area */
-	POINT2D p; /* long/lat units are degrees */
+	RTPOINT2D p; /* long/lat units are degrees */
 
 	/* Pass points from point array; don't close the linearring */
 	for ( i = 0; i < pa->npoints - 1; i++ )
@@ -480,10 +480,10 @@ static double spheroid_striparea(const GEOGRAPHIC_POINT *a, const GEOGRAPHIC_POI
 static double ptarray_area_spheroid(const POINTARRAY *pa, const SPHEROID *spheroid)
 {
 	GEOGRAPHIC_POINT a, b;
-	POINT2D p;
+	RTPOINT2D p;
 	int i;
 	double area = 0.0;
-	GBOX gbox2d;
+	RTGBOX gbox2d;
 	int in_south = RT_FALSE;
 	double delta_lon_tolerance;
 	double latitude_min;
@@ -621,7 +621,7 @@ static double ptarray_area_spheroid(const POINTARRAY *pa, const SPHEROID *sphero
 /**
 * Calculate the area of an RTGEOM. Anything except POLYGON, MULTIPOLYGON
 * and GEOMETRYCOLLECTION return zero immediately. Multi's recurse, polygons
-* calculate external ring area and subtract internal ring area. A GBOX is
+* calculate external ring area and subtract internal ring area. A RTGBOX is
 * required to check relationship to equator an outside point.
 * WARNING: Does NOT WORK for polygons over equator or pole.
 */

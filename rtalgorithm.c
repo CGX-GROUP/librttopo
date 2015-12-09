@@ -25,7 +25,7 @@ int signum(double n)
 }
 
 int
-p4d_same(const POINT4D *p1, const POINT4D *p2)
+p4d_same(const RTPOINT4D *p1, const RTPOINT4D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) && FP_EQUALS(p1->z,p2->z) && FP_EQUALS(p1->m,p2->m) )
 		return RT_TRUE;
@@ -43,7 +43,7 @@ p3d_same(const POINT3D *p1, const POINT3D *p2)
 }
 
 int
-p2d_same(const POINT2D *p1, const POINT2D *p2)
+p2d_same(const RTPOINT2D *p1, const RTPOINT2D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) )
 		return RT_TRUE;
@@ -58,7 +58,7 @@ p2d_same(const POINT2D *p1, const POINT2D *p2)
 * Return  1  if point Q is right of segment P
 * Return  0  if point Q in on segment P
 */
-int rt_segment_side(const POINT2D *p1, const POINT2D *p2, const POINT2D *q)
+int rt_segment_side(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q)
 {
 	double side = ( (q->x - p1->x) * (p2->y - p1->y) - (p2->x - p1->x) * (q->y - p1->y) );
 	if ( side == 0.0 )
@@ -71,7 +71,7 @@ int rt_segment_side(const POINT2D *p1, const POINT2D *p2, const POINT2D *q)
 * Returns the length of a linear segment
 */
 double
-rt_seg_length(const POINT2D *A1, const POINT2D *A2)
+rt_seg_length(const RTPOINT2D *A1, const RTPOINT2D *A2)
 {
 	return sqrt((A1->x-A2->x)*(A1->x-A2->x)+(A1->y-A2->y)*(A1->y-A2->y));
 }
@@ -82,7 +82,7 @@ rt_seg_length(const POINT2D *A1, const POINT2D *A2)
 * determined to be on the circle defined by A1/A2/A3.
 */
 int
-rt_pt_in_arc(const POINT2D *P, const POINT2D *A1, const POINT2D *A2, const POINT2D *A3)
+rt_pt_in_arc(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
 	return rt_segment_side(A1, A3, A2) == rt_segment_side(A1, A3, P);
 }
@@ -92,7 +92,7 @@ rt_pt_in_arc(const POINT2D *P, const POINT2D *A1, const POINT2D *A2, const POINT
 * deterined to be on the line defined by A1/A2.
 */
 int
-rt_pt_in_seg(const POINT2D *P, const POINT2D *A1, const POINT2D *A2)
+rt_pt_in_seg(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2)
 {
 	return ((A1->x <= P->x && P->x < A2->x) || (A1->x >= P->x && P->x > A2->x)) ||
 	       ((A1->y <= P->y && P->y < A2->y) || (A1->y >= P->y && P->y > A2->y));
@@ -102,7 +102,7 @@ rt_pt_in_seg(const POINT2D *P, const POINT2D *A1, const POINT2D *A2)
 * Returns true if arc A is actually a point (all vertices are the same) .
 */
 int
-rt_arc_is_pt(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3)
+rt_arc_is_pt(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
 	if ( A1->x == A2->x && A2->x == A3->x && 
 	     A1->y == A2->y && A2->y == A3->y )
@@ -115,9 +115,9 @@ rt_arc_is_pt(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3)
 * Returns the length of a circular arc segment
 */
 double
-rt_arc_length(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3)
+rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
-	POINT2D C;
+	RTPOINT2D C;
 	double radius_A, circumference_A;
 	int a2_side, clockwise;
 	double a1, a3;
@@ -175,9 +175,9 @@ rt_arc_length(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3)
 	return circumference_A * (angle / (2*M_PI));
 }
 
-int rt_arc_side(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, const POINT2D *Q)
+int rt_arc_side(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, const RTPOINT2D *Q)
 {
-	POINT2D C;
+	RTPOINT2D C;
 	double radius_A;
 	double side_Q, side_A2;
 	double d;
@@ -224,9 +224,9 @@ int rt_arc_side(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, const P
 * point is coincident with either end point, they are taken as colinear.
 */
 double
-rt_arc_center(const POINT2D *p1, const POINT2D *p2, const POINT2D *p3, POINT2D *result)	
+rt_arc_center(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTPOINT2D *result)	
 {
-	POINT2D c;
+	RTPOINT2D c;
 	double cx, cy, cr;
 	double dx21, dy21, dx31, dy31, h21, h31, d;
 
@@ -277,16 +277,16 @@ rt_arc_center(const POINT2D *p1, const POINT2D *p2, const POINT2D *p3, POINT2D *
 }
 
 int
-pt_in_ring_2d(const POINT2D *p, const POINTARRAY *ring)
+pt_in_ring_2d(const RTPOINT2D *p, const POINTARRAY *ring)
 {
 	int cn = 0;    /* the crossing number counter */
 	int i;
-	const POINT2D *v1, *v2;
-	const POINT2D *first, *last;
+	const RTPOINT2D *v1, *v2;
+	const RTPOINT2D *first, *last;
 
 	first = getPoint2d_cp(ring, 0);
 	last = getPoint2d_cp(ring, ring->npoints-1);
-	if ( memcmp(first, last, sizeof(POINT2D)) )
+	if ( memcmp(first, last, sizeof(RTPOINT2D)) )
 	{
 		rterror("pt_in_ring_2d: V[n] != V[0] (%g %g != %g %g)",
 		        first->x, first->y, last->x, last->y);
@@ -333,7 +333,7 @@ pt_in_ring_2d(const POINT2D *p, const POINTARRAY *ring)
 
 
 static int 
-rt_seg_interact(const POINT2D *p1, const POINT2D *p2, const POINT2D *q1, const POINT2D *q2)
+rt_seg_interact(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
 {
 	double minq=FP_MIN(q1->x,q2->x);
 	double maxq=FP_MAX(q1->x,q2->x);
@@ -368,7 +368,7 @@ rt_seg_interact(const POINT2D *p1, const POINT2D *p2, const POINT2D *q1, const P
 **		SEG_CROSS_LEFT = 2,
 **		SEG_CROSS_RIGHT = 3,
 */
-int rt_segment_intersects(const POINT2D *p1, const POINT2D *p2, const POINT2D *q1, const POINT2D *q2)
+int rt_segment_intersects(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
 {
 
 	int pq1, pq2, qp1, qp2;
@@ -460,7 +460,7 @@ int rt_segment_intersects(const POINT2D *p1, const POINT2D *p2, const POINT2D *q
 int rtline_crossing_direction(const RTLINE *l1, const RTLINE *l2)
 {
 	int i = 0, j = 0;
-	const POINT2D *p1, *p2, *q1, *q2;
+	const RTPOINT2D *p1, *p2, *q1, *q2;
 	POINTARRAY *pa1 = NULL, *pa2 = NULL;
 	int cross_left = 0;
 	int cross_right = 0;
@@ -644,7 +644,7 @@ char *geohash_point(double longitude, double latitude, int precision)
 ** From geohash-native.c, (c) 2008 David Troy <dave@roundhousetech.com>
 ** Released under the MIT License.
 */
-unsigned int geohash_point_as_int(POINT2D *pt)
+unsigned int geohash_point_as_int(RTPOINT2D *pt)
 {
 	int is_even=1;
 	double lat[2], lon[2], mid;
@@ -739,7 +739,7 @@ void decode_geohash_bbox(char *geohash, double *lat, double *lon, int precision)
 	}
 }
 
-int rtgeom_geohash_precision(GBOX bbox, GBOX *bounds)
+int rtgeom_geohash_precision(RTGBOX bbox, RTGBOX *bounds)
 {
 	double minx, miny, maxx, maxy;
 	double latmax, latmin, lonmax, lonmin;
@@ -826,8 +826,8 @@ int rtgeom_geohash_precision(GBOX bbox, GBOX *bounds)
 */
 char *rtgeom_geohash(const RTGEOM *rtgeom, int precision)
 {
-	GBOX gbox;
-	GBOX gbox_bounds;
+	RTGBOX gbox;
+	RTGBOX gbox_bounds;
 	double lat, lon;
 	int result;
 

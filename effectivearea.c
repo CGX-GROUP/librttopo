@@ -389,7 +389,7 @@ static POINTARRAY * ptarray_set_effective_area(POINTARRAY *inpts,int avoid_colla
 {
 	RTDEBUG(2, "Entered  ptarray_set_effective_area");
 	int p;
-	POINT4D pt;
+	RTPOINT4D pt;
 	EFFECTIVE_AREAS *ea;
 	POINTARRAY *opts;
 	int set_m;

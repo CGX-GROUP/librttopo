@@ -25,7 +25,7 @@
 */
 RTGEOM *GEOS2RTGEOM(const GEOSGeometry *geom, char want3d);
 GEOSGeometry * RTGEOM2GEOS(const RTGEOM *g, int autofix);
-GEOSGeometry * GBOX2GEOS(const GBOX *g);
+GEOSGeometry * GBOX2GEOS(const RTGBOX *g);
 GEOSGeometry * RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in);
 
 int cluster_intersecting(GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** clusterGeoms, uint32_t* num_clusters);

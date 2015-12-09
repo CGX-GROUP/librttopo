@@ -13,10 +13,10 @@
 
 
 
-GBOX *
-box2d_clone(const GBOX *in)
+RTGBOX *
+box2d_clone(const RTGBOX *in)
 {
-	GBOX *ret = rtalloc(sizeof(GBOX));
-	memcpy(ret, in, sizeof(GBOX));
+	RTGBOX *ret = rtalloc(sizeof(RTGBOX));
+	memcpy(ret, in, sizeof(RTGBOX));
 	return ret;
 }

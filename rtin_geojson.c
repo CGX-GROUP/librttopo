@@ -82,7 +82,7 @@ findMemberByName(json_object* poObj, const char* pszName )
 static int
 parse_geojson_coord(json_object *poObj, int *hasz, POINTARRAY *pa)
 {
-	POINT4D pt;
+	RTPOINT4D pt;
 
 	RTDEBUGF(3, "parse_geojson_coord called for object %s.", json_object_to_json_string( poObj ) );
 

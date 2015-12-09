@@ -18,7 +18,7 @@
 
 
 static inline int
-get_3dvector_from_points(POINT3DZ *p1,POINT3DZ *p2, VECTOR3D *v)
+get_3dvector_from_points(RTPOINT3DZ *p1,RTPOINT3DZ *p2, VECTOR3D *v)
 {
 	v->x=p2->x-p1->x;
 	v->y=p2->y-p1->y;
@@ -48,7 +48,7 @@ RTGEOM* create_v_line(const RTGEOM *rtgeom,double x, double y, int srid)
 {
 	
 	RTPOINT *rtpoints[2];
-	GBOX gbox;
+	RTGBOX gbox;
 	int rv = rtgeom_calculate_gbox(rtgeom, &gbox);
 	
 	if ( rv == RT_FAILURE )
@@ -559,8 +559,8 @@ point to point calculation
 int
 rt_dist3d_point_point(RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl)
 {
-	POINT3DZ p1;
-	POINT3DZ p2;
+	RTPOINT3DZ p1;
+	RTPOINT3DZ p2;
 	RTDEBUG(2, "rt_dist3d_point_point is called");
 
 	getPoint3dz_p(point1->point, 0, &p1);
@@ -575,7 +575,7 @@ point to line calculation
 int
 rt_dist3d_point_line(RTPOINT *point, RTLINE *line, DISTPTS3D *dl)
 {
-	POINT3DZ p;
+	RTPOINT3DZ p;
 	POINTARRAY *pa = line->points;
 	RTDEBUG(2, "rt_dist3d_point_line is called");
 
@@ -597,7 +597,7 @@ for max distance it is artays point against boundary
 int
 rt_dist3d_point_poly(RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl)
 {
-	POINT3DZ p, projp;/*projp is "point projected on plane"*/
+	RTPOINT3DZ p, projp;/*projp is "point projected on plane"*/
 	PLANE3D plane;
 	RTDEBUG(2, "rt_dist3d_point_poly is called");
 	getPoint3dz_p(point->point, 0, &p);
@@ -690,10 +690,10 @@ int rt_dist3d_poly_poly(RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
  * Returns distance between point and pointarray
  */
 int
-rt_dist3d_pt_ptarray(POINT3DZ *p, POINTARRAY *pa,DISTPTS3D *dl)
+rt_dist3d_pt_ptarray(RTPOINT3DZ *p, POINTARRAY *pa,DISTPTS3D *dl)
 {
 	int t;
-	POINT3DZ	start, end;
+	RTPOINT3DZ	start, end;
 	int twist = dl->twisted;
 
 	RTDEBUG(2, "rt_dist3d_pt_ptarray is called");
@@ -720,9 +720,9 @@ If searching for min distance, this one finds the closest point on segment A-B f
 if searching for max distance it just sends p-A and p-B to pt-pt calculation
 */
 int
-rt_dist3d_pt_seg(POINT3DZ *p, POINT3DZ *A, POINT3DZ *B, DISTPTS3D *dl)
+rt_dist3d_pt_seg(RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl)
 {
-	POINT3DZ c;
+	RTPOINT3DZ c;
 	double	r;
 	/*if start==end, then use pt distance */
 	if (  ( A->x == B->x) && (A->y == B->y) && (A->z == B->z)  )
@@ -785,7 +785,7 @@ or most far away from each other
 depending on dl->mode (max or min)
 */
 int
-rt_dist3d_pt_pt(POINT3DZ *thep1, POINT3DZ *thep2,DISTPTS3D *dl)
+rt_dist3d_pt_pt(RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
 {
 	double dx = thep2->x - thep1->x;
 	double dy = thep2->y - thep1->y;
@@ -820,8 +820,8 @@ int
 rt_dist3d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS3D *dl)
 {
 	int t,u;
-	POINT3DZ	start, end;
-	POINT3DZ	start2, end2;
+	RTPOINT3DZ	start, end;
+	RTPOINT3DZ	start2, end2;
 	int twist = dl->twisted;
 	RTDEBUGF(2, "rt_dist3d_ptarray_ptarray called (points: %d-%d)",l1->npoints, l2->npoints);
 
@@ -871,11 +871,11 @@ rt_dist3d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS3D *dl)
 Finds the two closest points on two linesegments
 */
 int 
-rt_dist3d_seg_seg(POINT3DZ *s1p1, POINT3DZ *s1p2, POINT3DZ *s2p1, POINT3DZ *s2p2, DISTPTS3D *dl)
+rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3DZ *s2p2, DISTPTS3D *dl)
 {
 	VECTOR3D v1, v2, vl;
 	double s1k, s2k; /*two variables representing where on Line 1 (s1k) and where on Line 2 (s2k) a connecting line between the two lines is perpendicular to both lines*/
-	POINT3DZ p1, p2;
+	RTPOINT3DZ p1, p2;
 	double a, b, c, d, e, D;
 			
 	/*s1p1 and s1p2 are the same point */
@@ -993,7 +993,7 @@ If not we check from original point to the bounadary.
 If the projected point is inside a hole of the polygon we check the distance to the boudary of that hole.
 */
 int
-rt_dist3d_pt_poly(POINT3DZ *p, RTPOLY *poly, PLANE3D *plane,POINT3DZ *projp, DISTPTS3D *dl)
+rt_dist3d_pt_poly(RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp, DISTPTS3D *dl)
 {	
 	int i;
 	
@@ -1034,7 +1034,7 @@ int rt_dist3d_ptarray_poly(POINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPTS3
 	int i,j,k;
 	double f, s1, s2;
 	VECTOR3D projp1_projp2;
-	POINT3DZ p1, p2,projp1, projp2, intersectionp;
+	RTPOINT3DZ p1, p2,projp1, projp2, intersectionp;
 	
 	getPoint3dz_p(pa, 0, &p1);
 	
@@ -1113,7 +1113,7 @@ int
 define_plane(POINTARRAY *pa, PLANE3D *pl)
 {
 	int i,j, numberofvectors, pointsinslice;
-	POINT3DZ p, p1, p2;
+	RTPOINT3DZ p, p1, p2;
 
 	double sumx=0;
 	double sumy=0;
@@ -1176,7 +1176,7 @@ define_plane(POINTARRAY *pa, PLANE3D *pl)
 Finds a point on a plane from where the original point is perpendicular to the plane
 */
 double 
-project_point_on_plane(POINT3DZ *p,  PLANE3D *pl, POINT3DZ *p0)
+project_point_on_plane(RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0)
 {
 /*In our plane definition we have a point on the plane and a normal vektor (pl.pv), perpendicular to the plane
 this vector will be paralell to the line between our inputted point above the plane and the point we are searching for on the plane.
@@ -1214,18 +1214,18 @@ So, we already have a direction from p to find p0, but we don't know the distanc
 *	That is the dimension with the highest number in pv
  */
 int
-pt_in_ring_3d(const POINT3DZ *p, const POINTARRAY *ring,PLANE3D *plane)
+pt_in_ring_3d(const RTPOINT3DZ *p, const POINTARRAY *ring,PLANE3D *plane)
 {
 	
 	int cn = 0;    /* the crossing number counter */
 	int i;
-	POINT3DZ v1, v2;
+	RTPOINT3DZ v1, v2;
 
-	POINT3DZ	first, last;
+	RTPOINT3DZ	first, last;
 
 	getPoint3dz_p(ring, 0, &first);
 	getPoint3dz_p(ring, ring->npoints-1, &last);
-	if ( memcmp(&first, &last, sizeof(POINT3DZ)) )
+	if ( memcmp(&first, &last, sizeof(RTPOINT3DZ)) )
 	{
 		rterror("pt_in_ring_3d: V[n] != V[0] (%g %g %g!= %g %g %g)",
 		        first.x, first.y, first.z, last.x, last.y, last.z);

@@ -83,7 +83,7 @@ ptarray_to_kml2_sb(const POINTARRAY *pa, int precision, stringbuffer_t *sb)
 {
 	int i, j;
 	int dims = FLAGS_GET_Z(pa->flags) ? 3 : 2;
-	POINT4D pt;
+	RTPOINT4D pt;
 	double *d;
 	
 	for ( i = 0; i < pa->npoints; i++ )

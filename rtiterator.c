@@ -179,7 +179,7 @@ rtpointiterator_advance(RTPOINTITERATOR* s)
 /* Public API implementation */
 
 int
-rtpointiterator_peek(RTPOINTITERATOR* s, POINT4D* p)
+rtpointiterator_peek(RTPOINTITERATOR* s, RTPOINT4D* p)
 {
 	if (!rtpointiterator_has_next(s))
 		return RT_FAILURE;
@@ -196,7 +196,7 @@ rtpointiterator_has_next(RTPOINTITERATOR* s)
 }
 
 int
-rtpointiterator_next(RTPOINTITERATOR* s, POINT4D* p)
+rtpointiterator_next(RTPOINTITERATOR* s, RTPOINT4D* p)
 {
 	if (!rtpointiterator_has_next(s))
 		return RT_FAILURE;
@@ -210,7 +210,7 @@ rtpointiterator_next(RTPOINTITERATOR* s, POINT4D* p)
 }
 
 int
-rtpointiterator_modify_next(RTPOINTITERATOR* s, const POINT4D* p)
+rtpointiterator_modify_next(RTPOINTITERATOR* s, const RTPOINT4D* p)
 {
 	if (!rtpointiterator_has_next(s))
 		return RT_FAILURE;

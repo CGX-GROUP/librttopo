@@ -26,7 +26,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTLINE *
-rtline_construct(int srid, GBOX *bbox, POINTARRAY *points)
+rtline_construct(int srid, RTGBOX *bbox, POINTARRAY *points)
 {
 	RTLINE *result;
 	result = (RTLINE*) rtalloc(sizeof(RTLINE));
@@ -157,7 +157,7 @@ rtline_from_rtgeom_array(int srid, uint32_t ngeoms, RTGEOM **geoms)
 	int hasm = RT_FALSE;
 	POINTARRAY *pa;
 	RTLINE *line;
-	POINT4D pt;
+	RTPOINT4D pt;
 
 	/*
 	 * Find output dimensions, check integrity
@@ -218,7 +218,7 @@ rtline_from_ptarray(int srid, uint32_t npoints, RTPOINT **points)
 	int hasm = RT_FALSE;
 	POINTARRAY *pa;
 	RTLINE *line;
-	POINT4D pt;
+	RTPOINT4D pt;
 
 	/*
 	 * Find output dimensions, check integrity
@@ -263,7 +263,7 @@ rtline_from_rtmpoint(int srid, const RTMPOINT *mpoint)
 	uint32_t i;
 	POINTARRAY *pa = NULL;
 	RTGEOM *rtgeom = (RTGEOM*)mpoint;
-	POINT4D pt;
+	RTPOINT4D pt;
 
 	char hasz = rtgeom_has_z(rtgeom);
 	char hasm = rtgeom_has_m(rtgeom);
@@ -294,7 +294,7 @@ rtline_from_rtmpoint(int srid, const RTMPOINT *mpoint)
 RTPOINT*
 rtline_get_rtpoint(const RTLINE *line, int where)
 {
-	POINT4D pt;
+	RTPOINT4D pt;
 	RTPOINT *rtpoint;
 	POINTARRAY *pa;
 
@@ -312,7 +312,7 @@ rtline_get_rtpoint(const RTLINE *line, int where)
 int
 rtline_add_rtpoint(RTLINE *line, RTPOINT *point, int where)
 {
-	POINT4D pt;	
+	RTPOINT4D pt;	
 	getPoint4d_p(point->point, 0, &pt);
 
 	if ( ptarray_insert_point(line->points, &pt, where) != RT_SUCCESS )
@@ -348,7 +348,7 @@ rtline_removepoint(RTLINE *line, uint32_t index)
  * Note: input will be changed, make sure you have permissions for this.
  */
 void
-rtline_setPoint4d(RTLINE *line, uint32_t index, POINT4D *newpoint)
+rtline_setPoint4d(RTLINE *line, uint32_t index, RTPOINT4D *newpoint)
 {
 	ptarray_set_point4d(line->points, index, newpoint);
 	/* Update the box, if there is one to update */
@@ -374,7 +374,7 @@ rtline_measured_from_rtline(const RTLINE *rtline, double m_start, double m_end)
 	double m_range = m_end - m_start;
 	double m;
 	POINTARRAY *pa = NULL;
-	POINT3DZ p1, p2;
+	RTPOINT3DZ p1, p2;
 
 	if ( rtline->type != RTLINETYPE )
 	{
@@ -397,8 +397,8 @@ rtline_measured_from_rtline(const RTLINE *rtline, double m_start, double m_end)
 
 	for ( i = 0; i < npoints; i++ )
 	{
-		POINT4D q;
-		POINT2D a, b;
+		RTPOINT4D q;
+		RTPOINT2D a, b;
 		getPoint3dz_p(rtline->points, i, &p2);
 		a.x = p1.x;
 		a.y = p1.y;
@@ -447,7 +447,7 @@ rtline_is_closed(const RTLINE *line)
 int
 rtline_is_trajectory(const RTLINE *line)
 {
-  POINT3DM p;
+  RTPOINT3DM p;
   int i, n;
   double m = -1 * FLT_MAX;
 
@@ -530,7 +530,7 @@ RTLINE* rtline_simplify(const RTLINE *iline, double dist, int preserve_collapsed
 		/* Make sure single-point collapses have two points */
 		if ( preserve_collapsed )
 		{
-			POINT4D pt;
+			RTPOINT4D pt;
 			getPoint4d_p(pa, 0, &pt);		
 			ptarray_append_point(pa, &pt, RT_TRUE);
 		}

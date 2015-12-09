@@ -55,7 +55,7 @@ static
 char * pointarray_to_encoded_polyline(const POINTARRAY *pa, int precision)
 {
 	int i;
-	const POINT2D *prevPoint;
+	const RTPOINT2D *prevPoint;
 	int *delta = rtalloc(2*sizeof(int)*pa->npoints);
 	char *encoded_polyline = NULL;
 	stringbuffer_t *sb;
@@ -69,7 +69,7 @@ char * pointarray_to_encoded_polyline(const POINTARRAY *pa, int precision)
 	/*  points only include the offset from the previous point */
 	for (i=1; i<pa->npoints; i++)
 	{
-		const POINT2D *point = getPoint2d_cp(pa, i);
+		const RTPOINT2D *point = getPoint2d_cp(pa, i);
 		delta[2*i] = round(point->y*scale) - round(prevPoint->y*scale);
 		delta[(2*i)+1] = round(point->x*scale) - round(prevPoint->x*scale);
 		prevPoint = point;

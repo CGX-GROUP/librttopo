@@ -27,7 +27,7 @@ rtcollection_release(RTCOLLECTION *rtcollection)
 
 
 RTCOLLECTION *
-rtcollection_construct(uint8_t type, int srid, GBOX *bbox,
+rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
                        uint32_t ngeoms, RTGEOM **geoms)
 {
 	RTCOLLECTION *ret;
@@ -422,7 +422,7 @@ RTCOLLECTION* rtcollection_extract(RTCOLLECTION *col, int type)
 
 	if ( geomlistlen > 0 )
 	{
-		GBOX gbox;
+		RTGBOX gbox;
 		outcol = rtcollection_construct(outtype, col->srid, NULL, geomlistlen, geomlist);
 		rtgeom_calculate_gbox((RTGEOM *) outcol, &gbox);
 		outcol->bbox = gbox_copy(&gbox);
@@ -557,7 +557,7 @@ int rtcollection_allows_subtype(int collectiontype, int subtype)
 }
 
 int
-rtcollection_startpoint(const RTCOLLECTION* col, POINT4D* pt)
+rtcollection_startpoint(const RTCOLLECTION* col, RTPOINT4D* pt)
 {
 	if ( col->ngeoms < 1 )
 		return RT_FAILURE;

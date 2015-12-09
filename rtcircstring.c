@@ -26,7 +26,7 @@ RTCIRCSTRING *rtcircstring_from_rtpointarray(int srid, uint32_t npoints, RTPOINT
 RTCIRCSTRING *rtcircstring_from_rtmpoint(int srid, RTMPOINT *mpoint);
 RTCIRCSTRING *rtcircstring_addpoint(RTCIRCSTRING *curve, RTPOINT *point, uint32_t where);
 RTCIRCSTRING *rtcircstring_removepoint(RTCIRCSTRING *curve, uint32_t index);
-void rtcircstring_setPoint4d(RTCIRCSTRING *curve, uint32_t index, POINT4D *newpoint);
+void rtcircstring_setPoint4d(RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *newpoint);
 
 
 
@@ -35,7 +35,7 @@ void rtcircstring_setPoint4d(RTCIRCSTRING *curve, uint32_t index, POINT4D *newpo
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTCIRCSTRING *
-rtcircstring_construct(int srid, GBOX *bbox, POINTARRAY *points)
+rtcircstring_construct(int srid, RTGBOX *bbox, POINTARRAY *points)
 {
 	RTCIRCSTRING *result;
 
@@ -246,7 +246,7 @@ rtcircstring_removepoint(RTCIRCSTRING *curve, uint32_t index)
  * Note: input will be changed, make sure you have permissions for this.
  * */
 void
-rtcircstring_setPoint4d(RTCIRCSTRING *curve, uint32_t index, POINT4D *newpoint)
+rtcircstring_setPoint4d(RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *newpoint)
 {
 	ptarray_set_point4d(curve->points, index, newpoint);
 }
@@ -285,7 +285,7 @@ double rtcircstring_length_2d(const RTCIRCSTRING *circ)
  * Returns NULL if the geometry is empty or the index invalid.
  */
 RTPOINT* rtcircstring_get_rtpoint(const RTCIRCSTRING *circ, int where) {
-	POINT4D pt;
+	RTPOINT4D pt;
 	RTPOINT *rtpoint;
 	POINTARRAY *pa;
 

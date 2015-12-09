@@ -155,7 +155,7 @@ char* gserialized_to_string(const GSERIALIZED *g)
 	return rtgeom_to_wkt(rtgeom_from_gserialized(g), RTWKT_ISO, 12, 0);
 }
 
-int gserialized_read_gbox_p(const GSERIALIZED *g, GBOX *gbox)
+int gserialized_read_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 {
 
 	/* Null input! */
@@ -202,7 +202,7 @@ int gserialized_read_gbox_p(const GSERIALIZED *g, GBOX *gbox)
 * Populate a bounding box *without* allocating an RTGEOM. Useful
 * for some performance purposes.
 */
-static int gserialized_peek_gbox_p(const GSERIALIZED *g, GBOX *gbox)
+static int gserialized_peek_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 {
 	uint32_t type = gserialized_get_type(g);
 
@@ -368,7 +368,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, GBOX *gbox)
 * Read the bounding box off a serialization and calculate one if
 * it is not already there.
 */
-int gserialized_get_gbox_p(const GSERIALIZED *g, GBOX *box)
+int gserialized_get_gbox_p(const GSERIALIZED *g, RTGBOX *box)
 {
 	/* Try to just read the serialized box. */
 	if ( gserialized_read_gbox_p(g, box) == RT_SUCCESS )
@@ -835,7 +835,7 @@ static size_t gserialized_from_rtgeom_any(const RTGEOM *geom, uint8_t *buf)
 	return 0;
 }
 
-static size_t gserialized_from_gbox(const GBOX *gbox, uint8_t *buf)
+static size_t gserialized_from_gbox(const RTGBOX *gbox, uint8_t *buf)
 {
 	uint8_t *loc = buf;
 	float f;
@@ -1254,7 +1254,7 @@ RTGEOM* rtgeom_from_gserialized(const GSERIALIZED *g)
 	uint32_t g_type = 0;
 	uint8_t *data_ptr = NULL;
 	RTGEOM *rtgeom = NULL;
-	GBOX bbox;
+	RTGBOX bbox;
 	size_t g_size = 0;
 
 	assert(g);

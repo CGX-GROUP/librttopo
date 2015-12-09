@@ -25,8 +25,8 @@ Structure used in distance-calculations
 typedef struct
 {
 	double distance;	/*the distance between p1 and p2*/
-	POINT3DZ p1;
-	POINT3DZ p2;
+	RTPOINT3DZ p1;
+	RTPOINT3DZ p2;
 	int mode;	/*the direction of looking, if thedir = -1 then we look for 3dmaxdistance and if it is 1 then we look for 3dmindistance*/
 	int twisted; /*To preserve the order of incoming points to match the first and second point in 3dshortest and 3dlongest line*/
 	double tolerance; /*the tolerance for 3ddwithin and 3ddfullywithin*/
@@ -40,7 +40,7 @@ VECTOR3D;
 
 typedef struct
 {
-	POINT3DZ		pop;  /*Point On Plane*/
+	RTPOINT3DZ		pop;  /*Point On Plane*/
 	VECTOR3D	pv;  /*Perpendicular normal vector*/
 }
 PLANE3D; 
@@ -62,7 +62,7 @@ int rt_dist3d_distribute_fast(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D 
 /*
 Brute force functions
 */
-int rt_dist3d_pt_ptarray(POINT3DZ *p, POINTARRAY *pa, DISTPTS3D *dl);
+int rt_dist3d_pt_ptarray(RTPOINT3DZ *p, POINTARRAY *pa, DISTPTS3D *dl);
 int rt_dist3d_point_point(RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl);
 int rt_dist3d_point_line(RTPOINT *point, RTLINE *line, DISTPTS3D *dl);
 int rt_dist3d_line_line(RTLINE *line1,RTLINE *line2 , DISTPTS3D *dl);
@@ -70,17 +70,17 @@ int rt_dist3d_point_poly(RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl);
 int rt_dist3d_line_poly(RTLINE *line, RTPOLY *poly, DISTPTS3D *dl);
 int rt_dist3d_poly_poly(RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl);
 int rt_dist3d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS3D *dl);
-int rt_dist3d_seg_seg(POINT3DZ *A, POINT3DZ *B, POINT3DZ *C, POINT3DZ *D, DISTPTS3D *dl);
-int rt_dist3d_pt_pt(POINT3DZ *p1, POINT3DZ *p2, DISTPTS3D *dl);
-int rt_dist3d_pt_seg(POINT3DZ *p, POINT3DZ *A, POINT3DZ *B, DISTPTS3D *dl);
-int rt_dist3d_pt_poly(POINT3DZ *p, RTPOLY *poly, PLANE3D *plane,POINT3DZ *projp,  DISTPTS3D *dl);
+int rt_dist3d_seg_seg(RTPOINT3DZ *A, RTPOINT3DZ *B, RTPOINT3DZ *C, RTPOINT3DZ *D, DISTPTS3D *dl);
+int rt_dist3d_pt_pt(RTPOINT3DZ *p1, RTPOINT3DZ *p2, DISTPTS3D *dl);
+int rt_dist3d_pt_seg(RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl);
+int rt_dist3d_pt_poly(RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp,  DISTPTS3D *dl);
 int rt_dist3d_ptarray_poly(POINTARRAY *pa, RTPOLY *poly, PLANE3D *plane, DISTPTS3D *dl);
 
 
 
-double project_point_on_plane(POINT3DZ *p,  PLANE3D *pl, POINT3DZ *p0);
+double project_point_on_plane(RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0);
 int define_plane(POINTARRAY *pa, PLANE3D *pl);
-int pt_in_ring_3d(const POINT3DZ *p, const POINTARRAY *ring,PLANE3D *plane);
+int pt_in_ring_3d(const RTPOINT3DZ *p, const POINTARRAY *ring,PLANE3D *plane);
 
 /*
 Helper functions

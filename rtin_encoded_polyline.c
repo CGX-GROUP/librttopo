@@ -31,7 +31,7 @@ rtgeom_from_encoded_polyline(const char *encodedpolyline, int precision)
   pa = ptarray_construct_empty(RT_FALSE, RT_FALSE, 1);
 
   while (idx < length) {
-    POINT4D pt;
+    RTPOINT4D pt;
     char byte = 0;
 
     int res = 0;

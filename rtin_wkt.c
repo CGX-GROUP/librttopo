@@ -250,7 +250,7 @@ POINT wkt_parser_coord_4(double c1, double c2, double c3, double c4)
 
 POINTARRAY* wkt_parser_ptarray_add_coord(POINTARRAY *pa, POINT p)
 {
-	POINT4D pt;
+	RTPOINT4D pt;
 	RTDEBUG(4,"entered");
 	
 	/* Error on trouble */

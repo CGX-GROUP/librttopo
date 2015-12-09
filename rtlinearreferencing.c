@@ -16,7 +16,7 @@
 #include "measures3d.h"
 
 static int
-segment_locate_along(const POINT4D *p1, const POINT4D *p2, double m, double offset, POINT4D *pn)
+segment_locate_along(const RTPOINT4D *p1, const RTPOINT4D *p2, double m, double offset, RTPOINT4D *pn)
 {
 	double m1 = p1->m;
 	double m2 = p2->m;
@@ -66,7 +66,7 @@ static POINTARRAY*
 ptarray_locate_along(const POINTARRAY *pa, double m, double offset)
 {
 	int i;
-	POINT4D p1, p2, pn;
+	RTPOINT4D p1, p2, pn;
 	POINTARRAY *dpa = NULL;
 
 	/* Can't do anything with degenerate point arrays */
@@ -229,13 +229,13 @@ rtgeom_locate_along(const RTGEOM *rtin, double m, double offset)
 }
 
 /**
-* Given a POINT4D and an ordinate number, return
+* Given a RTPOINT4D and an ordinate number, return
 * the value of the ordinate.
 * @param p input point
 * @param ordinate number (1=x, 2=y, 3=z, 4=m)
 * @return d value at that ordinate
 */
-double rtpoint_get_ordinate(const POINT4D *p, char ordinate)
+double rtpoint_get_ordinate(const RTPOINT4D *p, char ordinate)
 {
 	if ( ! p )
 	{
@@ -267,7 +267,7 @@ double rtpoint_get_ordinate(const POINT4D *p, char ordinate)
 * Given a point, ordinate number and value, set that ordinate on the
 * point.
 */
-void rtpoint_set_ordinate(POINT4D *p, char ordinate, double value)
+void rtpoint_set_ordinate(RTPOINT4D *p, char ordinate, double value)
 {
 	if ( ! p )
 	{
@@ -305,7 +305,7 @@ void rtpoint_set_ordinate(POINT4D *p, char ordinate, double value)
 * generate a new point that is proportionally between the input points,
 * using the values in the provided dimension as the scaling factors.
 */
-int point_interpolate(const POINT4D *p1, const POINT4D *p2, POINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value)
+int point_interpolate(const RTPOINT4D *p1, const RTPOINT4D *p2, RTPOINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value)
 {
 	static char* dims = "XYZM";
 	double p1_value = rtpoint_get_ordinate(p1, ordinate);
@@ -352,7 +352,7 @@ rtpoint_clip_to_ordinate_range(const RTPOINT *point, char ordinate, double from,
 {
 	RTCOLLECTION *rtgeom_out = NULL;
 	char hasz, hasm;
-	POINT4D p4d;
+	RTPOINT4D p4d;
 	double ordinate_value;
 
 	/* Nothing to do with NULL */
@@ -427,7 +427,7 @@ rtmpoint_clip_to_ordinate_range(const RTMPOINT *mpoint, char ordinate, double fr
 	/* For each point, is its ordinate value between from and to? */
 	for ( i = 0; i < mpoint->ngeoms; i ++ )
 	{
-		POINT4D p4d;
+		RTPOINT4D p4d;
 		double ordinate_value;
 
 		rtpoint_getPoint4d_p(mpoint->geoms[i], &p4d);
@@ -547,7 +547,7 @@ rtline_clip_to_ordinate_range(const RTLINE *line, char ordinate, double from, do
 	POINTARRAY *dp = NULL;
 	int i;
 	int added_last_point = 0;
-	POINT4D *p = NULL, *q = NULL, *r = NULL;
+	RTPOINT4D *p = NULL, *q = NULL, *r = NULL;
 	double ordinate_value_p = 0.0, ordinate_value_q = 0.0;
 	char hasz = rtgeom_has_z(rtline_as_rtgeom(line));
 	char hasm = rtgeom_has_m(rtline_as_rtgeom(line));
@@ -579,9 +579,9 @@ rtline_clip_to_ordinate_range(const RTLINE *line, char ordinate, double from, do
 	}
 
 	/* Prepare our working point objects. */
-	p = rtalloc(sizeof(POINT4D));
-	q = rtalloc(sizeof(POINT4D));
-	r = rtalloc(sizeof(POINT4D));
+	p = rtalloc(sizeof(RTPOINT4D));
+	q = rtalloc(sizeof(RTPOINT4D));
+	r = rtalloc(sizeof(RTPOINT4D));
 
 	/* Construct a collection to hold our outputs. */
 	rtgeom_out = rtcollection_construct_empty(RTMULTILINETYPE, line->srid, hasz, hasm);
@@ -842,7 +842,7 @@ rtgeom_locate_between(const RTGEOM *rtin, double from, double to, double offset)
 double
 rtgeom_interpolate_point(const RTGEOM *rtin, const RTPOINT *rtpt)
 {
-	POINT4D p, p_proj;
+	RTPOINT4D p, p_proj;
 	double ret = 0.0;
 
 	if ( ! rtin )
@@ -895,14 +895,14 @@ rtgeom_interpolate_point(const RTGEOM *rtin, const RTPOINT *rtpt)
  *
  */
 static double
-segments_tcpa(POINT4D* p0, const POINT4D* p1,
-              POINT4D* q0, const POINT4D* q1,
+segments_tcpa(RTPOINT4D* p0, const RTPOINT4D* p1,
+              RTPOINT4D* q0, const RTPOINT4D* q1,
               double t0, double t1)
 {
-	POINT3DZ pv; /* velocity of p, aka u */
-	POINT3DZ qv; /* velocity of q, aka v */
-	POINT3DZ dv; /* velocity difference */
-	POINT3DZ w0; /* vector between first points */
+	RTPOINT3DZ pv; /* velocity of p, aka u */
+	RTPOINT3DZ qv; /* velocity of q, aka v */
+	RTPOINT3DZ dv; /* velocity difference */
+	RTPOINT3DZ w0; /* vector between first points */
 
 	/*
 	  rtnotice("FROM %g,%g,%g,%g -- %g,%g,%g,%g",
@@ -983,7 +983,7 @@ segments_tcpa(POINT4D* p0, const POINT4D* p1,
 static int
 ptarray_collect_mvals(const POINTARRAY *pa, double tmin, double tmax, double *mvals)
 {
-	POINT4D pbuf;
+	RTPOINT4D pbuf;
 	int i, n=0;
 	for (i=0; i<pa->npoints; ++i)
 	{
@@ -1039,10 +1039,10 @@ uniq(double *vals, int nvals)
  *         or -1 if given measure was out of the known range.
  */
 static int
-ptarray_locate_along_linear(const POINTARRAY *pa, double m, POINT4D *p, int from)
+ptarray_locate_along_linear(const POINTARRAY *pa, double m, RTPOINT4D *p, int from)
 {
 	int i = from;
-	POINT4D p1, p2;
+	RTPOINT4D p1, p2;
 
 	/* Walk through each segment in the point array */
 	getPoint4d_p(pa, i, &p1);
@@ -1064,7 +1064,7 @@ rtgeom_tcpa(const RTGEOM *g1, const RTGEOM *g2, double *mindist)
 {
 	RTLINE *l1, *l2;
 	int i;
-	const GBOX *gbox1, *gbox2;
+	const RTGBOX *gbox1, *gbox2;
 	double tmin, tmax;
 	double *mvals;
 	int nmvals = 0;
@@ -1137,7 +1137,7 @@ rtgeom_tcpa(const RTGEOM *g1, const RTGEOM *g2, double *mindist)
 		{
 			/* there's a single time, must be that one... */
 			double t0 = mvals[0];
-			POINT4D p0, p1;
+			RTPOINT4D p0, p1;
 			RTDEBUGF(1, "Inputs only exist both at a single time (%g)", t0);
 			if ( mindist )
 			{
@@ -1170,26 +1170,26 @@ rtgeom_tcpa(const RTGEOM *g1, const RTGEOM *g2, double *mindist)
 		double t0 = mvals[i-1];
 		double t1 = mvals[i];
 		double t;
-		POINT4D p0, p1, q0, q1;
+		RTPOINT4D p0, p1, q0, q1;
 		int seg;
 		double dist2;
 
 		// rtnotice("T %g-%g", t0, t1);
 
 		seg = ptarray_locate_along_linear(l1->points, t0, &p0, 0);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 1: %g, %g, %g", t0, seg, p0.x, p0.y, p0.z);
 
 		seg = ptarray_locate_along_linear(l1->points, t1, &p1, seg);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 1: %g, %g, %g", t1, seg, p1.x, p1.y, p1.z);
 
 		seg = ptarray_locate_along_linear(l2->points, t0, &q0, 0);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 2: %g, %g, %g", t0, seg, q0.x, q0.y, q0.z);
 
 		seg = ptarray_locate_along_linear(l2->points, t1, &q1, seg);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 2: %g, %g, %g", t1, seg, q1.x, q1.y, q1.z);
 
 		t = segments_tcpa(&p0, &p1, &q0, &q1, t0, t1);
@@ -1231,7 +1231,7 @@ rtgeom_cpa_within(const RTGEOM *g1, const RTGEOM *g2, double maxdist)
 {
 	RTLINE *l1, *l2;
 	int i;
-	const GBOX *gbox1, *gbox2;
+	const RTGBOX *gbox1, *gbox2;
 	double tmin, tmax;
 	double *mvals;
 	int nmvals = 0;
@@ -1304,7 +1304,7 @@ rtgeom_cpa_within(const RTGEOM *g1, const RTGEOM *g2, double maxdist)
 	{
 		/* there's a single time, must be that one... */
 		double t0 = mvals[0];
-		POINT4D p0, p1;
+		RTPOINT4D p0, p1;
 		RTDEBUGF(1, "Inputs only exist both at a single time (%g)", t0);
 		if ( -1 == ptarray_locate_along_linear(l1->points, t0, &p0, 0) )
 		{
@@ -1333,26 +1333,26 @@ rtgeom_cpa_within(const RTGEOM *g1, const RTGEOM *g2, double maxdist)
 #if RTGEOM_DEBUG_LEVEL >= 1
 		double t;
 #endif
-		POINT4D p0, p1, q0, q1;
+		RTPOINT4D p0, p1, q0, q1;
 		int seg;
 		double dist2;
 
 		// rtnotice("T %g-%g", t0, t1);
 
 		seg = ptarray_locate_along_linear(l1->points, t0, &p0, 0);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 1: %g, %g, %g", t0, seg, p0.x, p0.y, p0.z);
 
 		seg = ptarray_locate_along_linear(l1->points, t1, &p1, seg);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 1: %g, %g, %g", t1, seg, p1.x, p1.y, p1.z);
 
 		seg = ptarray_locate_along_linear(l2->points, t0, &q0, 0);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 2: %g, %g, %g", t0, seg, q0.x, q0.y, q0.z);
 
 		seg = ptarray_locate_along_linear(l2->points, t1, &q1, seg);
-		if ( -1 == seg ) continue; /* possible, if GBOX is approximated */
+		if ( -1 == seg ) continue; /* possible, if RTGBOX is approximated */
 		// rtnotice("Measure %g on segment %d of line 2: %g, %g, %g", t1, seg, q1.x, q1.y, q1.z);
 
 #if RTGEOM_DEBUG_LEVEL >= 1

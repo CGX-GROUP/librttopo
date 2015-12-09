@@ -285,7 +285,7 @@ rtgeom_as_multi(const RTGEOM *rtgeom)
 {
 	RTGEOM **ogeoms;
 	RTGEOM *ogeom = NULL;
-	GBOX *box = NULL;
+	RTGBOX *box = NULL;
 	int type;
 
 	type = rtgeom->type;
@@ -565,8 +565,8 @@ rtgeom_same(const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 int
 rtpoint_inside_circle(const RTPOINT *p, double cx, double cy, double rad)
 {
-	const POINT2D *pt;
-	POINT2D center;
+	const RTPOINT2D *pt;
+	RTPOINT2D center;
 
 	if ( ! p || ! p->point )
 		return RT_FALSE;
@@ -608,7 +608,7 @@ rtgeom_add_bbox(RTGEOM *rtgeom)
 }
 
 void 
-rtgeom_add_bbox_deep(RTGEOM *rtgeom, GBOX *gbox)
+rtgeom_add_bbox_deep(RTGEOM *rtgeom, RTGBOX *gbox)
 {
 	if ( rtgeom_is_empty(rtgeom) ) return;
 
@@ -636,7 +636,7 @@ rtgeom_add_bbox_deep(RTGEOM *rtgeom, GBOX *gbox)
 	}
 }
 
-const GBOX *
+const RTGBOX *
 rtgeom_get_bbox(const RTGEOM *rtg)
 {
 	/* add it if not already there */
@@ -649,7 +649,7 @@ rtgeom_get_bbox(const RTGEOM *rtg)
 * Calculate the gbox for this goemetry, a cartesian box or
 * geodetic box, depending on how it is flagged.
 */
-int rtgeom_calculate_gbox(const RTGEOM *rtgeom, GBOX *gbox)
+int rtgeom_calculate_gbox(const RTGEOM *rtgeom, RTGBOX *gbox)
 {
 	gbox->flags = rtgeom->flags;
 	if( FLAGS_GET_GEODETIC(rtgeom->flags) )
@@ -1739,7 +1739,7 @@ rtgeom_affine(RTGEOM *geom, const AFFINE *affine)
 }
 
 void
-rtgeom_scale(RTGEOM *geom, const POINT4D *factor)
+rtgeom_scale(RTGEOM *geom, const RTPOINT4D *factor)
 {
 	int type = geom->type;
 	int i;
@@ -1834,7 +1834,7 @@ rtgeom_construct_empty(uint8_t type, int srid, char hasz, char hasm)
 }
 
 int
-rtgeom_startpoint(const RTGEOM* rtgeom, POINT4D* pt)
+rtgeom_startpoint(const RTGEOM* rtgeom, RTPOINT4D* pt)
 {
 	if ( ! rtgeom )
 		return RT_FAILURE;
@@ -1893,17 +1893,17 @@ rtgeom_grid(const RTGEOM *rtgeom, const gridspec *grid)
 
 /* Prototype for recursion */
 static int 
-rtgeom_subdivide_recursive(const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const GBOX *clip);
+rtgeom_subdivide_recursive(const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const RTGBOX *clip);
 
 static int
-rtgeom_subdivide_recursive(const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const GBOX *clip)
+rtgeom_subdivide_recursive(const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const RTGBOX *clip)
 {
 	const int maxdepth = 50;
 	int nvertices = 0;
 	int i, n = 0;
 	double width = clip->xmax - clip->xmin;
 	double height = clip->ymax - clip->ymin;
-	GBOX subbox1, subbox2;
+	RTGBOX subbox1, subbox2;
 	RTGEOM *clipped1, *clipped2;
 	
 	if ( geom->type == RTPOLYHEDRALSURFACETYPE || geom->type == RTTINTYPE )
@@ -2000,7 +2000,7 @@ rtgeom_subdivide(const RTGEOM *geom, int maxvertices)
 	static int startdepth = 0;
 	static int minmaxvertices = 8;
 	RTCOLLECTION *col;
-	GBOX clip;
+	RTGBOX clip;
 	
 	col = rtcollection_construct_empty(RTCOLLECTIONTYPE, geom->srid, rtgeom_has_z(geom), rtgeom_has_m(geom));
 

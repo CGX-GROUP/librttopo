@@ -83,7 +83,7 @@ int rttin_is_closed(const RTTIN *tin)
 	int narcs, carc;
 	int found;
 	tin_arcs arcs;
-	POINT4D pa, pb;
+	RTPOINT4D pa, pb;
 	RTTRIANGLE *patch;
 
 	/* If surface is not 3D, it's can't be closed */

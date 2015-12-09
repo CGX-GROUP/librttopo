@@ -77,7 +77,7 @@ make_strtree(void** geoms, uint32_t num_geoms, char is_rtgeom)
 		}
 		else
 		{
-            const GBOX* box = rtgeom_get_bbox(geoms[i]);
+            const RTGBOX* box = rtgeom_get_bbox(geoms[i]);
             if (box)
             {
                 tree.envelopes[i] = GBOX2GEOS(box);
@@ -244,13 +244,13 @@ union_pairs_within_distance(RTGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, d
 			.tolerance = tolerance
 		};
 
-        const GBOX* geom_extent = rtgeom_get_bbox(geoms[i]);
+        const RTGBOX* geom_extent = rtgeom_get_bbox(geoms[i]);
         if (!geom_extent)
         {
             /* Empty geometry */
             continue;
         }
-		GBOX* query_extent = gbox_clone(geom_extent);
+		RTGBOX* query_extent = gbox_clone(geom_extent);
 		gbox_expand(query_extent, tolerance);
 		GEOSGeometry* query_envelope = GBOX2GEOS(query_extent);
 

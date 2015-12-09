@@ -222,18 +222,18 @@ enum RTCG_SEGMENT_INTERSECTION_TYPE {
 /*
 * Do the segments intersect? How?
 */
-int rt_segment_intersects(const POINT2D *p1, const POINT2D *p2, const POINT2D *q1, const POINT2D *q2);
+int rt_segment_intersects(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2);
 
 /*
 * Get/Set an enumeratoed ordinate. (x,y,z,m)
 */
-double rtpoint_get_ordinate(const POINT4D *p, char ordinate);
-void rtpoint_set_ordinate(POINT4D *p, char ordinate, double value);
+double rtpoint_get_ordinate(const RTPOINT4D *p, char ordinate);
+void rtpoint_set_ordinate(RTPOINT4D *p, char ordinate, double value);
 
 /* 
 * Generate an interpolated coordinate p given an interpolation value and ordinate to apply it to
 */
-int point_interpolate(const POINT4D *p1, const POINT4D *p2, POINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value);
+int point_interpolate(const RTPOINT4D *p1, const RTPOINT4D *p2, RTPOINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value);
 
 
 /**
@@ -259,16 +259,16 @@ RTCOLLECTION *rtpoint_clip_to_ordinate_range(const RTPOINT *mpoint, char ordinat
 /*
 * Geohash
 */
-int rtgeom_geohash_precision(GBOX bbox, GBOX *bounds);
+int rtgeom_geohash_precision(RTGBOX bbox, RTGBOX *bounds);
 char *geohash_point(double longitude, double latitude, int precision);
 void decode_geohash_bbox(char *geohash, double *lat, double *lon, int precision);
 
 /*
 * Point comparisons
 */
-int p4d_same(const POINT4D *p1, const POINT4D *p2);
+int p4d_same(const RTPOINT4D *p1, const RTPOINT4D *p2);
 int p3d_same(const POINT3D *p1, const POINT3D *p2);
-int p2d_same(const POINT2D *p1, const POINT2D *p2);
+int p2d_same(const RTPOINT2D *p1, const RTPOINT2D *p2);
 
 /*
 * Area calculations
@@ -278,10 +278,10 @@ double rtcurvepoly_area(const RTCURVEPOLY *curvepoly);
 double rttriangle_area(const RTTRIANGLE *triangle);
 
 /**
-* Pull a #GBOX from the header of a #GSERIALIZED, if one is available. If
+* Pull a #RTGBOX from the header of a #GSERIALIZED, if one is available. If
 * it is not, return RT_FAILURE.
 */
-extern int gserialized_read_gbox_p(const GSERIALIZED *g, GBOX *gbox);
+extern int gserialized_read_gbox_p(const GSERIALIZED *g, RTGBOX *gbox);
 
 /*
 * Length calculations
@@ -314,7 +314,7 @@ void ptarray_affine(POINTARRAY *pa, const AFFINE *affine);
 /*
 * Scale
 */
-void ptarray_scale(POINTARRAY *pa, const POINT4D *factor);
+void ptarray_scale(POINTARRAY *pa, const RTPOINT4D *factor);
 
 /*
 * PointArray
@@ -332,24 +332,24 @@ RTTRIANGLE *rttriangle_clone(const RTTRIANGLE *rtgeom);
 RTCOLLECTION *rtcollection_clone(const RTCOLLECTION *rtgeom);
 RTCIRCSTRING *rtcircstring_clone(const RTCIRCSTRING *curve);
 POINTARRAY *ptarray_clone(const POINTARRAY *ptarray);
-GBOX *box2d_clone(const GBOX *rtgeom);
+RTGBOX *box2d_clone(const RTGBOX *rtgeom);
 RTLINE *rtline_clone_deep(const RTLINE *rtgeom);
 RTPOLY *rtpoly_clone_deep(const RTPOLY *rtgeom);
 RTCOLLECTION *rtcollection_clone_deep(const RTCOLLECTION *rtgeom);
-GBOX *gbox_clone(const GBOX *gbox);
+RTGBOX *gbox_clone(const RTGBOX *gbox);
 
 /*
 * Startpoint
 */
-int rtpoly_startpoint(const RTPOLY* rtpoly, POINT4D* pt);
-int ptarray_startpoint(const POINTARRAY* pa, POINT4D* pt);
-int rtcollection_startpoint(const RTCOLLECTION* col, POINT4D* pt);
+int rtpoly_startpoint(const RTPOLY* rtpoly, RTPOINT4D* pt);
+int ptarray_startpoint(const POINTARRAY* pa, RTPOINT4D* pt);
+int rtcollection_startpoint(const RTCOLLECTION* col, RTPOINT4D* pt);
 
 /*
  * Write into *ret the coordinates of the closest point on
  * segment A-B to the reference input point R
  */
-void closest_point_on_segment(const POINT4D *R, const POINT4D *A, const POINT4D *B, POINT4D *ret);
+void closest_point_on_segment(const RTPOINT4D *R, const RTPOINT4D *A, const RTPOINT4D *B, RTPOINT4D *ret);
 
 /* 
 * Repeated points
@@ -403,22 +403,22 @@ POINTARRAY* ptarray_grid(const POINTARRAY *pa, const gridspec *grid);
 * What side of the line formed by p1 and p2 does q fall? 
 * Returns -1 for left and 1 for right and 0 for co-linearity
 */
-int rt_segment_side(const POINT2D *p1, const POINT2D *p2, const POINT2D *q);
-int rt_arc_side(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, const POINT2D *Q);
-int rt_arc_calculate_gbox_cartesian_2d(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, GBOX *gbox);
-double rt_arc_center(const POINT2D *p1, const POINT2D *p2, const POINT2D *p3, POINT2D *result);
-int rt_pt_in_seg(const POINT2D *P, const POINT2D *A1, const POINT2D *A2);
-int rt_pt_in_arc(const POINT2D *P, const POINT2D *A1, const POINT2D *A2, const POINT2D *A3);
-int rt_arc_is_pt(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3);
-double rt_seg_length(const POINT2D *A1, const POINT2D *A2);
-double rt_arc_length(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3);
-int pt_in_ring_2d(const POINT2D *p, const POINTARRAY *ring);
-int ptarray_contains_point(const POINTARRAY *pa, const POINT2D *pt);
-int ptarrayarc_contains_point(const POINTARRAY *pa, const POINT2D *pt);
-int ptarray_contains_point_partial(const POINTARRAY *pa, const POINT2D *pt, int check_closed, int *winding_number);
-int ptarrayarc_contains_point_partial(const POINTARRAY *pa, const POINT2D *pt, int check_closed, int *winding_number);
-int rtcompound_contains_point(const RTCOMPOUND *comp, const POINT2D *pt);
-int rtgeom_contains_point(const RTGEOM *geom, const POINT2D *pt);
+int rt_segment_side(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q);
+int rt_arc_side(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, const RTPOINT2D *Q);
+int rt_arc_calculate_gbox_cartesian_2d(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, RTGBOX *gbox);
+double rt_arc_center(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTPOINT2D *result);
+int rt_pt_in_seg(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2);
+int rt_pt_in_arc(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3);
+int rt_arc_is_pt(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3);
+double rt_seg_length(const RTPOINT2D *A1, const RTPOINT2D *A2);
+double rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3);
+int pt_in_ring_2d(const RTPOINT2D *p, const POINTARRAY *ring);
+int ptarray_contains_point(const POINTARRAY *pa, const RTPOINT2D *pt);
+int ptarrayarc_contains_point(const POINTARRAY *pa, const RTPOINT2D *pt);
+int ptarray_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number);
+int ptarrayarc_contains_point_partial(const POINTARRAY *pa, const RTPOINT2D *pt, int check_closed, int *winding_number);
+int rtcompound_contains_point(const RTCOMPOUND *comp, const RTPOINT2D *pt);
+int rtgeom_contains_point(const RTGEOM *geom, const RTPOINT2D *pt);
 
 /**
 * Split a line by a point and push components to the provided multiline.
@@ -438,10 +438,10 @@ void rtcollection_reserve(RTCOLLECTION *col, int ngeoms);
 /** Check if subtype is allowed in collectiontype */
 extern int rtcollection_allows_subtype(int collectiontype, int subtype);
 
-/** GBOX utility functions to figure out coverage/location on the globe */
-double gbox_angular_height(const GBOX* gbox);
-double gbox_angular_width(const GBOX* gbox);
-int gbox_centroid(const GBOX* gbox, POINT2D* out);
+/** RTGBOX utility functions to figure out coverage/location on the globe */
+double gbox_angular_height(const RTGBOX* gbox);
+double gbox_angular_width(const RTGBOX* gbox);
+int gbox_centroid(const RTGBOX* gbox, RTPOINT2D* out);
 
 /* Utilities */
 extern void trim_trailing_zeros(char *num);
@@ -461,9 +461,9 @@ extern int _rtgeom_interrupt_requested;
   } \
 }
 
-int ptarray_npoints_in_rect(const POINTARRAY *pa, const GBOX *gbox);
-int gbox_contains_point2d(const GBOX *g, const POINT2D *p);
-int rtpoly_contains_point(const RTPOLY *poly, const POINT2D *pt);
+int ptarray_npoints_in_rect(const POINTARRAY *pa, const RTGBOX *gbox);
+int gbox_contains_point2d(const RTGBOX *g, const RTPOINT2D *p);
+int rtpoly_contains_point(const RTPOLY *poly, const RTPOINT2D *pt);
 
 /*******************************************************************************
  * PROJ4-dependent extra functions on RTGEOM
@@ -484,6 +484,6 @@ projPJ rtproj_from_string(const char* txt);
  */
 int rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj) ;
 int ptarray_transform(POINTARRAY *geom, projPJ inpj, projPJ outpj) ;
-int point4d_transform(POINT4D *pt, projPJ srcpj, projPJ dstpj) ;
+int point4d_transform(RTPOINT4D *pt, projPJ srcpj, projPJ dstpj) ;
 
 #endif /* _LIBRTGEOM_INTERNAL_H */

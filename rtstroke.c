@@ -99,13 +99,13 @@ static double interpolate_arc(double angle, double a1, double a2, double a3, dou
 }
 
 static POINTARRAY *
-rtcircle_stroke(const POINT4D *p1, const POINT4D *p2, const POINT4D *p3, uint32_t perQuad)
+rtcircle_stroke(const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, uint32_t perQuad)
 {
-	POINT2D center;
-	POINT2D *t1 = (POINT2D*)p1;
-	POINT2D *t2 = (POINT2D*)p2;
-	POINT2D *t3 = (POINT2D*)p3;
-	POINT4D pt;
+	RTPOINT2D center;
+	RTPOINT2D *t1 = (RTPOINT2D*)p1;
+	RTPOINT2D *t2 = (RTPOINT2D*)p2;
+	RTPOINT2D *t3 = (RTPOINT2D*)p3;
+	RTPOINT4D pt;
 	int p2_side = 0;
 	int clockwise = RT_TRUE;
 	double radius; /* Arc radius */
@@ -193,7 +193,7 @@ rtcircstring_stroke(const RTCIRCSTRING *icurve, uint32_t perQuad)
 	POINTARRAY *ptarray;
 	POINTARRAY *tmp;
 	uint32_t i, j;
-	POINT4D p1, p2, p3, p4;
+	RTPOINT4D p1, p2, p3, p4;
 
 	RTDEBUGF(2, "rtcircstring_stroke called., dim = %d", icurve->points->flags);
 
@@ -245,7 +245,7 @@ rtcompound_stroke(const RTCOMPOUND *icompound, uint32_t perQuad)
 	POINTARRAY *ptarray = NULL, *ptarray_out = NULL;
 	RTLINE *tmp = NULL;
 	uint32_t i, j;
-	POINT4D p;
+	RTPOINT4D p;
 
 	RTDEBUG(2, "rtcompound_stroke called.");
 
@@ -475,9 +475,9 @@ rtgeom_stroke(const RTGEOM *geom, uint32_t perQuad)
  * TODO: move to rtalgorithm
  */
 static double
-rt_arc_angle(const POINT2D *a, const POINT2D *b, const POINT2D *c)
+rt_arc_angle(const RTPOINT2D *a, const RTPOINT2D *b, const RTPOINT2D *c)
 {
-  POINT2D ab, cb;
+  RTPOINT2D ab, cb;
 
   ab.x = b->x - a->x;
   ab.y = b->y - a->y;
@@ -497,13 +497,13 @@ rt_arc_angle(const POINT2D *a, const POINT2D *b, const POINT2D *c)
 * Returns RT_TRUE if b is on the arc formed by a1/a2/a3, but not within
 * that portion already described by a1/a2/a3
 */
-static int pt_continues_arc(const POINT4D *a1, const POINT4D *a2, const POINT4D *a3, const POINT4D *b)
+static int pt_continues_arc(const RTPOINT4D *a1, const RTPOINT4D *a2, const RTPOINT4D *a3, const RTPOINT4D *b)
 {
-	POINT2D center;
-	POINT2D *t1 = (POINT2D*)a1;
-	POINT2D *t2 = (POINT2D*)a2;
-	POINT2D *t3 = (POINT2D*)a3;
-	POINT2D *tb = (POINT2D*)b;
+	RTPOINT2D center;
+	RTPOINT2D *t1 = (RTPOINT2D*)a1;
+	RTPOINT2D *t2 = (RTPOINT2D*)a2;
+	RTPOINT2D *t3 = (RTPOINT2D*)a3;
+	RTPOINT2D *tb = (RTPOINT2D*)b;
 	double radius = rt_arc_center(t1, t2, t3, &center);
 	double b_distance, diff;
 
@@ -543,7 +543,7 @@ static RTGEOM*
 linestring_from_pa(const POINTARRAY *pa, int srid, int start, int end)
 {
 	int i = 0, j = 0;
-	POINT4D p;
+	RTPOINT4D p;
 	POINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), end-start+2);
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
 	for( i = start; i < end + 2; i++ )
@@ -558,7 +558,7 @@ static RTGEOM*
 circstring_from_pa(const POINTARRAY *pa, int srid, int start, int end)
 {
 	
-	POINT4D p0, p1, p2;
+	RTPOINT4D p0, p1, p2;
 	POINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), 3);
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
 	getPoint4d_p(pa, start, &p0);
@@ -584,8 +584,8 @@ RTGEOM*
 pta_unstroke(const POINTARRAY *points, int type, int srid)
 {
 	int i = 0, j, k;
-	POINT4D a1, a2, a3, b;
-	POINT4D first, center;
+	RTPOINT4D a1, a2, a3, b;
+	RTPOINT4D first, center;
 	char *edges_in_arcs;
 	int found_arc = RT_FALSE;
 	int current_arc = 1;
@@ -629,7 +629,7 @@ pta_unstroke(const POINTARRAY *points, int type, int srid)
 		getPoint4d_p(points, i  , &a1);
 		getPoint4d_p(points, i+1, &a2);
 		getPoint4d_p(points, i+2, &a3);
-		memcpy(&first, &a1, sizeof(POINT4D));
+		memcpy(&first, &a1, sizeof(RTPOINT4D));
 
 		for( j = i+3; j < num_edges+1; j++ )
 		{
@@ -652,9 +652,9 @@ pta_unstroke(const POINTARRAY *points, int type, int srid)
 				break;
 			}
 
-			memcpy(&a1, &a2, sizeof(POINT4D));
-			memcpy(&a2, &a3, sizeof(POINT4D));
-			memcpy(&a3,  &b, sizeof(POINT4D));
+			memcpy(&a1, &a2, sizeof(RTPOINT4D));
+			memcpy(&a2, &a3, sizeof(RTPOINT4D));
+			memcpy(&a3,  &b, sizeof(RTPOINT4D));
 		}
 		/* Jump past all the edges that were added to the arc */
 		if ( found_arc )
@@ -670,9 +670,9 @@ pta_unstroke(const POINTARRAY *points, int type, int srid)
 				num_quadrants = 4;
 			}
 			else {
-				rt_arc_center((POINT2D*)&first, (POINT2D*)&b, (POINT2D*)&a1, (POINT2D*)&center);
-				angle = rt_arc_angle((POINT2D*)&first, (POINT2D*)&center, (POINT2D*)&b);
-        int p2_side = rt_segment_side((POINT2D*)&first, (POINT2D*)&a1, (POINT2D*)&b);
+				rt_arc_center((RTPOINT2D*)&first, (RTPOINT2D*)&b, (RTPOINT2D*)&a1, (RTPOINT2D*)&center);
+				angle = rt_arc_angle((RTPOINT2D*)&first, (RTPOINT2D*)&center, (RTPOINT2D*)&b);
+        int p2_side = rt_segment_side((RTPOINT2D*)&first, (RTPOINT2D*)&a1, (RTPOINT2D*)&b);
         if ( p2_side >= 0 ) angle = -angle; 
 
 				if ( angle < 0 ) angle = 2 * M_PI + angle;

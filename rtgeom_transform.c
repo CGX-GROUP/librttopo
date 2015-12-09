@@ -19,7 +19,7 @@
 
 /** convert decimal degress to radians */
 static void
-to_rad(POINT4D *pt)
+to_rad(RTPOINT4D *pt)
 {
 	pt->x *= M_PI/180.0;
 	pt->y *= M_PI/180.0;
@@ -27,7 +27,7 @@ to_rad(POINT4D *pt)
 
 /** convert radians to decimal degress */
 static void
-to_dec(POINT4D *pt)
+to_dec(RTPOINT4D *pt)
 {
 	pt->x *= 180.0/M_PI;
 	pt->y *= 180.0/M_PI;
@@ -41,7 +41,7 @@ int
 ptarray_transform(POINTARRAY *pa, projPJ inpj, projPJ outpj)
 {
   int i;
-	POINT4D p;
+	RTPOINT4D p;
 
   for ( i = 0; i < pa->npoints; i++ )
   {
@@ -116,10 +116,10 @@ rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
 }
 
 int
-point4d_transform(POINT4D *pt, projPJ srcpj, projPJ dstpj)
+point4d_transform(RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
 {
 	int* pj_errno_ref;
-	POINT4D orig_pt;
+	RTPOINT4D orig_pt;
 
 	/* Make a copy of the input point so we can report the original should an error occur */
 	orig_pt.x = pt->x;

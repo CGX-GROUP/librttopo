@@ -107,7 +107,7 @@ assvg_point_buf(const RTPOINT *point, char * output, int circle, int precision)
 	char *ptr=output;
 	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
 	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	POINT2D pt;
+	RTPOINT2D pt;
 
 	getPoint2d_p(point->point, 0, &pt);
 
@@ -549,7 +549,7 @@ pointArray_svg_rel(POINTARRAY *pa, char *output, int close_ring, int precision)
 	char *ptr;
 	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
 	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	POINT2D pt, lpt;
+	RTPOINT2D pt, lpt;
 
 	ptr = output;
 
@@ -611,7 +611,7 @@ pointArray_svg_abs(POINTARRAY *pa, char *output, int close_ring, int precision)
 	char *ptr;
 	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
 	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	POINT2D pt;
+	RTPOINT2D pt;
 
 	ptr = output;
 

@@ -56,7 +56,7 @@ ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d)
 	uint32_t dims=2;
 	uint32_t size, i;
 	POINTARRAY *pa;
-	POINT4D point;
+	RTPOINT4D point;
 
 	RTDEBUG(2, "ptarray_fromGEOSCoordSeq called");
 
@@ -203,8 +203,8 @@ ptarray_to_GEOSCoordSeq(const POINTARRAY *pa)
 {
 	uint32_t dims = 2;
 	uint32_t i;
-	const POINT3DZ *p3d;
-	const POINT2D *p2d;
+	const RTPOINT3DZ *p3d;
+	const RTPOINT2D *p2d;
 	GEOSCoordSeq sq;
 
 	if ( FLAGS_GET_Z(pa->flags) ) 
@@ -218,7 +218,7 @@ ptarray_to_GEOSCoordSeq(const POINTARRAY *pa)
 		if ( dims == 3 )
 		{
 			p3d = getPoint3dz_cp(pa, i);
-			p2d = (const POINT2D *)p3d;
+			p2d = (const RTPOINT2D *)p3d;
 			RTDEBUGF(4, "Point: %g,%g,%g", p3d->x, p3d->y, p3d->z);
 		}
 		else
@@ -276,7 +276,7 @@ ptarray_to_GEOSLinearRing(const POINTARRAY *pa, int autofix)
 }
 
 GEOSGeometry *
-GBOX2GEOS(const GBOX *box)
+GBOX2GEOS(const RTGBOX *box)
 {
 	GEOSGeometry* envelope;
 	GEOSGeometry* ring;

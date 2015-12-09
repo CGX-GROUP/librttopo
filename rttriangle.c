@@ -24,7 +24,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTTRIANGLE*
-rttriangle_construct(int srid, GBOX *bbox, POINTARRAY *points)
+rttriangle_construct(int srid, RTGBOX *bbox, POINTARRAY *points)
 {
 	RTTRIANGLE *result;
 
@@ -174,8 +174,8 @@ rttriangle_area(const RTTRIANGLE *triangle)
 {
 	double area=0.0;
 	int i;
-	POINT2D p1;
-	POINT2D p2;
+	RTPOINT2D p1;
+	RTPOINT2D p2;
 
 	if (! triangle->points->npoints) return area; /* empty triangle */
 

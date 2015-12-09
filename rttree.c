@@ -31,7 +31,7 @@ void rect_tree_free(RECT_NODE *node)
 }
 
 /* 0 => no containment */
-int rect_tree_contains_point(const RECT_NODE *node, const POINT2D *pt, int *on_boundary)
+int rect_tree_contains_point(const RECT_NODE *node, const RTPOINT2D *pt, int *on_boundary)
 {
 	if ( FP_CONTAINS_INCL(node->ymin, pt->y, node->ymax) )
 	{
@@ -103,11 +103,11 @@ int rect_tree_intersects_tree(const RECT_NODE *n1, const RECT_NODE *n2)
 */
 RECT_NODE* rect_node_leaf_new(const POINTARRAY *pa, int i)
 {
-	POINT2D *p1, *p2;
+	RTPOINT2D *p1, *p2;
 	RECT_NODE *node;
 
-	p1 = (POINT2D*)getPoint_internal(pa, i);
-	p2 = (POINT2D*)getPoint_internal(pa, i+1);
+	p1 = (RTPOINT2D*)getPoint_internal(pa, i);
+	p2 = (RTPOINT2D*)getPoint_internal(pa, i+1);
 
 	/* Zero length edge, doesn't get a node */
 	if ( FP_EQUALS(p1->x, p2->x) && FP_EQUALS(p1->y, p2->y) )

@@ -22,8 +22,8 @@
 typedef struct
 {
 	double distance;	/*the distance between p1 and p2*/
-	POINT2D p1;
-	POINT2D p2;
+	RTPOINT2D p1;
+	RTPOINT2D p2;
 	int mode;	/*the direction of looking, if thedir = -1 then we look for maxdistance and if it is 1 then we look for mindistance*/
 	int twisted; /*To preserve the order of incoming points to match the first and secon point in shortest and longest line*/
 	double tolerance; /*the tolerance for dwithin and dfullywithin*/
@@ -48,8 +48,8 @@ int rt_dist2d_distribute_fast(RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS *dl);
 /*
 * Brute force functions
 */
-int rt_dist2d_pt_ptarray(const POINT2D *p, POINTARRAY *pa, DISTPTS *dl);
-int rt_dist2d_pt_ptarrayarc(const POINT2D *p, const POINTARRAY *pa, DISTPTS *dl);
+int rt_dist2d_pt_ptarray(const RTPOINT2D *p, POINTARRAY *pa, DISTPTS *dl);
+int rt_dist2d_pt_ptarrayarc(const RTPOINT2D *p, const POINTARRAY *pa, DISTPTS *dl);
 int rt_dist2d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2, DISTPTS *dl);
 int rt_dist2d_ptarray_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl);
 int rt_dist2d_ptarrayarc_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl);
@@ -74,25 +74,25 @@ int rt_dist2d_curvepoly_curvepoly(RTCURVEPOLY *poly1, RTCURVEPOLY *poly2, DISTPT
 * New faster distance calculations
 */
 int rt_dist2d_pre_seg_seg(POINTARRAY *l1, POINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl);
-int rt_dist2d_selected_seg_seg(const POINT2D *A, const POINT2D *B, const POINT2D *C, const POINT2D *D, DISTPTS *dl);
+int rt_dist2d_selected_seg_seg(const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl);
 int struct_cmp_by_measure(const void *a, const void *b);
-int rt_dist2d_fast_ptarray_ptarray(POINTARRAY *l1,POINTARRAY *l2, DISTPTS *dl,  GBOX *box1, GBOX *box2);
+int rt_dist2d_fast_ptarray_ptarray(POINTARRAY *l1,POINTARRAY *l2, DISTPTS *dl,  RTGBOX *box1, RTGBOX *box2);
 
 /*
 * Distance calculation primitives. 
 */
-int rt_dist2d_pt_pt  (const POINT2D *P,  const POINT2D *Q,  DISTPTS *dl);
-int rt_dist2d_pt_seg (const POINT2D *P,  const POINT2D *A1, const POINT2D *A2, DISTPTS *dl);
-int rt_dist2d_pt_arc (const POINT2D *P,  const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, DISTPTS *dl);
-int rt_dist2d_seg_seg(const POINT2D *A1, const POINT2D *A2, const POINT2D *B1, const POINT2D *B2, DISTPTS *dl);
-int rt_dist2d_seg_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *B1, const POINT2D *B2, const POINT2D *B3, DISTPTS *dl);
-int rt_dist2d_arc_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, const POINT2D *B1, const POINT2D *B2, const POINT2D* B3, DISTPTS *dl);
+int rt_dist2d_pt_pt  (const RTPOINT2D *P,  const RTPOINT2D *Q,  DISTPTS *dl);
+int rt_dist2d_pt_seg (const RTPOINT2D *P,  const RTPOINT2D *A1, const RTPOINT2D *A2, DISTPTS *dl);
+int rt_dist2d_pt_arc (const RTPOINT2D *P,  const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, DISTPTS *dl);
+int rt_dist2d_seg_seg(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *B1, const RTPOINT2D *B2, DISTPTS *dl);
+int rt_dist2d_seg_arc(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *B1, const RTPOINT2D *B2, const RTPOINT2D *B3, DISTPTS *dl);
+int rt_dist2d_arc_arc(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, const RTPOINT2D *B1, const RTPOINT2D *B2, const RTPOINT2D* B3, DISTPTS *dl);
 void rt_dist2d_distpts_init(DISTPTS *dl, int mode);
 
 /*
 * Length primitives
 */
-double rt_arc_length(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3);
+double rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3);
 
 /*
 * Geometry returning functions

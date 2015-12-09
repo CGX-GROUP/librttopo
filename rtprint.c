@@ -392,7 +392,7 @@ static char * rtdoubles_to_latlon(double lat, double lon, const char * format)
  */
 char* rtpoint_to_latlon(const RTPOINT * pt, const char *format)
 {
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	if (NULL == pt)
 	{
 		rterror("Cannot convert a null point into formatted text.");

@@ -71,7 +71,7 @@ RTT_ISO_EDGE;
 typedef struct
 {
   RTT_ELEMID face_id;
-  GBOX *mbr;
+  RTGBOX *mbr;
 }
 RTT_ISO_FACE;
 
@@ -436,7 +436,7 @@ typedef struct RTT_BE_CALLBACKS_T {
    */
   RTT_ISO_NODE* (*getNodeWithinBox2D) (
       const RTT_BE_TOPOLOGY* topo,
-      const GBOX* box,
+      const RTGBOX* box,
       int* numelems, int fields, int limit
   );
 
@@ -461,7 +461,7 @@ typedef struct RTT_BE_CALLBACKS_T {
    */
   RTT_ISO_EDGE* (*getEdgeWithinBox2D) (
       const RTT_BE_TOPOLOGY* topo,
-      const GBOX* box,
+      const RTGBOX* box,
       int* numelems, int fields, int limit
   );
 
@@ -640,7 +640,7 @@ typedef struct RTT_BE_CALLBACKS_T {
   RTT_ISO_EDGE* (*getEdgeByFace) (
       const RTT_BE_TOPOLOGY* topo,
       const RTT_ELEMID* ids, int* numelems, int fields,
-      const GBOX *box
+      const RTGBOX *box
   );
 
   /**
@@ -664,7 +664,7 @@ typedef struct RTT_BE_CALLBACKS_T {
   RTT_ISO_NODE* (*getNodeByFace) (
       const RTT_BE_TOPOLOGY* topo,
       const RTT_ELEMID* faces, int* numelems, int fields,
-      const GBOX *box
+      const RTGBOX *box
   );
 
   /**
@@ -847,7 +847,7 @@ typedef struct RTT_BE_CALLBACKS_T {
    */
   RTT_ISO_FACE* (*getFaceWithinBox2D) (
       const RTT_BE_TOPOLOGY* topo,
-      const GBOX* box,
+      const RTGBOX* box,
       int* numelems, int fields, int limit
   );
 

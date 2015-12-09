@@ -234,10 +234,10 @@ typedef struct
 BOX3D;
 
 /******************************************************************
-* GBOX structure. 
+* RTGBOX structure. 
 * We include the flags (information about dimensinality), 
 * so we don't have to constantly pass them
-* into functions that use the GBOX.
+* into functions that use the RTGBOX.
 */
 typedef struct
 {
@@ -250,7 +250,7 @@ typedef struct
 	double zmax;
 	double mmin;
 	double mmax;
-} GBOX;
+} RTGBOX;
 
 
 /******************************************************************
@@ -274,19 +274,19 @@ typedef struct
 SPHEROID;
 
 /******************************************************************
-* POINT2D, POINT3D, POINT3DM, POINT4D
+* RTPOINT2D, POINT3D, RTPOINT3DM, RTPOINT4D
 */
 typedef struct
 {
 	double x, y;
 }
-POINT2D;
+RTPOINT2D;
 
 typedef struct
 {
 	double x, y, z;
 }
-POINT3DZ;
+RTPOINT3DZ;
 
 typedef struct
 {
@@ -298,13 +298,13 @@ typedef struct
 {
 	double x, y, m;
 }
-POINT3DM;
+RTPOINT3DM;
 
 typedef struct
 {
 	double x, y, z, m;
 }
-POINT4D;
+RTPOINT4D;
 
 /******************************************************************
 *  POINTARRAY
@@ -348,7 +348,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	void *data;
 }
@@ -359,7 +359,7 @@ typedef struct
 {
 	uint8_t type; /* RTPOINTTYPE */
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	POINTARRAY *point;  /* hide 2d/3d (this will be an array of 1 point) */
 }
@@ -370,7 +370,7 @@ typedef struct
 {
 	uint8_t type; /* RTLINETYPE */
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	POINTARRAY *points; /* array of POINT3D */
 }
@@ -381,7 +381,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	POINTARRAY *points;
 }
@@ -392,7 +392,7 @@ typedef struct
 {
 	uint8_t type; /* RTCIRCSTRINGTYPE */
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	POINTARRAY *points; /* array of POINT(3D/3DM) */
 }
@@ -403,7 +403,7 @@ typedef struct
 {
 	uint8_t type; /* RTPOLYGONTYPE */
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int nrings;   /* how many rings we are currently storing */
 	int maxrings; /* how many rings we have space for in **rings */
@@ -416,7 +416,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -429,7 +429,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -442,7 +442,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -455,7 +455,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -468,7 +468,7 @@ typedef struct
 {
 	uint8_t type; /* RTCOMPOUNDTYPE */
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -481,7 +481,7 @@ typedef struct
 {
 	uint8_t type; /* RTCURVEPOLYTYPE */
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int nrings;    /* how many rings we are currently storing */
 	int maxrings;  /* how many rings we have space for in **rings */
@@ -494,7 +494,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -507,7 +507,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -520,7 +520,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -533,7 +533,7 @@ typedef struct
 {
 	uint8_t type;
 	uint8_t flags;
-	GBOX *bbox;
+	RTGBOX *bbox;
 	int32_t srid;
 	int ngeoms;   /* how many geometries we are currently storing */
 	int maxgeoms; /* how many geometries we have space for in **geoms */
@@ -675,7 +675,7 @@ extern void rtgeom_add_bbox(RTGEOM *rtgeom);
 /**
 * Compute a box for geom and all sub-geometries, if not already computed
 */
-extern void rtgeom_add_bbox_deep(RTGEOM *rtgeom, GBOX *gbox);
+extern void rtgeom_add_bbox_deep(RTGEOM *rtgeom, RTGBOX *gbox);
 
 /** 
  * Get a non-empty geometry bounding box, computing and
@@ -684,7 +684,7 @@ extern void rtgeom_add_bbox_deep(RTGEOM *rtgeom, GBOX *gbox);
  * NOTE: empty geometries don't have a bounding box so
  *       you'd still get a NULL for them.
  */
-extern const GBOX *rtgeom_get_bbox(const RTGEOM *rtgeom);
+extern const RTGBOX *rtgeom_get_bbox(const RTGEOM *rtgeom);
 
 /** 
 * Determine whether a RTGEOM can contain sub-geometries or not 
@@ -719,7 +719,7 @@ extern const char *rttype_name(uint8_t type);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern POINT4D getPoint4d(const POINTARRAY *pa, int n);
+extern RTPOINT4D getPoint4d(const POINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
@@ -727,23 +727,23 @@ extern POINT4D getPoint4d(const POINTARRAY *pa, int n);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: this will modify the point4d pointed to by 'point'.
  */
-extern int getPoint4d_p(const POINTARRAY *pa, int n, POINT4D *point);
+extern int getPoint4d_p(const POINTARRAY *pa, int n, RTPOINT4D *point);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern POINT3DZ getPoint3dz(const POINTARRAY *pa, int n);
-extern POINT3DM getPoint3dm(const POINTARRAY *pa, int n);
+extern RTPOINT3DZ getPoint3dz(const POINTARRAY *pa, int n);
+extern RTPOINT3DM getPoint3dm(const POINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: this will modify the point3d pointed to by 'point'.
  */
-extern int getPoint3dz_p(const POINTARRAY *pa, int n, POINT3DZ *point);
-extern int getPoint3dm_p(const POINTARRAY *pa, int n, POINT3DM *point);
+extern int getPoint3dz_p(const POINTARRAY *pa, int n, RTPOINT3DZ *point);
+extern int getPoint3dm_p(const POINTARRAY *pa, int n, RTPOINT3DM *point);
 
 
 /*
@@ -751,38 +751,38 @@ extern int getPoint3dm_p(const POINTARRAY *pa, int n, POINT3DM *point);
  * z value (if present is not returned)
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern POINT2D getPoint2d(const POINTARRAY *pa, int n);
+extern RTPOINT2D getPoint2d(const POINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * z value (if present is not returned)
  * NOTE: this will modify the point2d pointed to by 'point'.
  */
-extern int getPoint2d_p(const POINTARRAY *pa, int n, POINT2D *point);
+extern int getPoint2d_p(const POINTARRAY *pa, int n, RTPOINT2D *point);
 
 /**
-* Returns a POINT2D pointer into the POINTARRAY serialized_ptlist, 
+* Returns a RTPOINT2D pointer into the POINTARRAY serialized_ptlist, 
 * suitable for reading from. This is very high performance
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const POINT2D* getPoint2d_cp(const POINTARRAY *pa, int n);
+extern const RTPOINT2D* getPoint2d_cp(const POINTARRAY *pa, int n);
 
 /**
-* Returns a POINT3DZ pointer into the POINTARRAY serialized_ptlist, 
+* Returns a RTPOINT3DZ pointer into the POINTARRAY serialized_ptlist, 
 * suitable for reading from. This is very high performance
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const POINT3DZ* getPoint3dz_cp(const POINTARRAY *pa, int n);
+extern const RTPOINT3DZ* getPoint3dz_cp(const POINTARRAY *pa, int n);
 
 /**
-* Returns a POINT4D pointer into the POINTARRAY serialized_ptlist, 
+* Returns a RTPOINT4D pointer into the POINTARRAY serialized_ptlist, 
 * suitable for reading from. This is very high performance
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const POINT4D* getPoint4d_cp(const POINTARRAY *pa, int n);
+extern const RTPOINT4D* getPoint4d_cp(const POINTARRAY *pa, int n);
 
 /*
  * set point N to the given value
@@ -792,7 +792,7 @@ extern const POINT4D* getPoint4d_cp(const POINTARRAY *pa, int n);
  *
  * N must be a valid point index 
  */
-extern void ptarray_set_point4d(POINTARRAY *pa, int n, const POINT4D *p4d);
+extern void ptarray_set_point4d(POINTARRAY *pa, int n, const RTPOINT4D *p4d);
 
 /*
  * get a pointer to nth point of a POINTARRAY
@@ -841,7 +841,7 @@ extern POINTARRAY* ptarray_construct_empty(char hasz, char hasm, uint32_t maxpoi
 * If allow_duplicate is RT_TRUE, then a duplicate point will
 * not be added.
 */
-extern int ptarray_append_point(POINTARRAY *pa, const POINT4D *pt, int allow_duplicates);
+extern int ptarray_append_point(POINTARRAY *pa, const RTPOINT4D *pt, int allow_duplicates);
 
 /**
  * Append a #POINTARRAY, pa2 to the end of an existing #POINTARRAY, pa1.
@@ -860,7 +860,7 @@ extern int ptarray_append_ptarray(POINTARRAY *pa1, POINTARRAY *pa2, double gap_t
 * Insert a point into an existing #POINTARRAY. Zero
 * is the index of the start of the array.
 */
-extern int ptarray_insert_point(POINTARRAY *pa, const POINT4D *p, int where);
+extern int ptarray_insert_point(POINTARRAY *pa, const RTPOINT4D *p, int where);
 
 /**
 * Remove a point from an existing #POINTARRAY. Zero
@@ -941,10 +941,10 @@ extern RTGEOM* rtgeom_force_sfs(RTGEOM *geom, int version);
 /*
  * convenience functions to hide the POINTARRAY
  */
-extern int rtpoint_getPoint2d_p(const RTPOINT *point, POINT2D *out);
-extern int rtpoint_getPoint3dz_p(const RTPOINT *point, POINT3DZ *out);
-extern int rtpoint_getPoint3dm_p(const RTPOINT *point, POINT3DM *out);
-extern int rtpoint_getPoint4d_p(const RTPOINT *point, POINT4D *out);
+extern int rtpoint_getPoint2d_p(const RTPOINT *point, RTPOINT2D *out);
+extern int rtpoint_getPoint3dz_p(const RTPOINT *point, RTPOINT3DZ *out);
+extern int rtpoint_getPoint3dm_p(const RTPOINT *point, RTPOINT3DM *out);
+extern int rtpoint_getPoint4d_p(const RTPOINT *point, RTPOINT4D *out);
 
 /******************************************************************
  * RTLINE functions
@@ -1027,8 +1027,8 @@ extern void rtgeom_set_srid(RTGEOM *geom, int srid);
  * between float8 and float4 representations.
  */
 
-extern BOX3D* box3d_from_gbox(const GBOX *gbox);
-extern GBOX* box3d_to_gbox(const BOX3D *b3d);
+extern BOX3D* box3d_from_gbox(const RTGBOX *gbox);
+extern RTGBOX* box3d_to_gbox(const BOX3D *b3d);
 
 void expand_box3d(BOX3D *box, double d);
 
@@ -1099,10 +1099,10 @@ extern double next_double_down(float d);
 extern double next_double_up(float d);
 
 /* general utilities 2D */
-extern double  distance2d_pt_pt(const POINT2D *p1, const POINT2D *p2);
-extern double  distance2d_sqr_pt_pt(const POINT2D *p1, const POINT2D *p2);
-extern double  distance2d_pt_seg(const POINT2D *p, const POINT2D *A, const POINT2D *B);
-extern double  distance2d_sqr_pt_seg(const POINT2D *p, const POINT2D *A, const POINT2D *B);
+extern double  distance2d_pt_pt(const RTPOINT2D *p1, const RTPOINT2D *p2);
+extern double  distance2d_sqr_pt_pt(const RTPOINT2D *p1, const RTPOINT2D *p2);
+extern double  distance2d_pt_seg(const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
+extern double  distance2d_sqr_pt_seg(const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
 extern RTGEOM* rtgeom_closest_line(const RTGEOM *rt1, const RTGEOM *rt2);
 extern RTGEOM* rtgeom_furthest_line(const RTGEOM *rt1, const RTGEOM *rt2);
 extern RTGEOM* rtgeom_closest_point(const RTGEOM *rt1, const RTGEOM *rt2);
@@ -1132,7 +1132,7 @@ extern double rtgeom_length_2d(const RTGEOM *geom);
 extern double rtgeom_perimeter(const RTGEOM *geom);
 extern double rtgeom_perimeter_2d(const RTGEOM *geom);
 extern void rtgeom_affine(RTGEOM *geom, const AFFINE *affine);
-extern void rtgeom_scale(RTGEOM *geom, const POINT4D *factors);
+extern void rtgeom_scale(RTGEOM *geom, const RTPOINT4D *factors);
 extern int rtgeom_dimension(const RTGEOM *geom);
 
 extern RTPOINT* rtline_get_rtpoint(const RTLINE *line, int where);
@@ -1148,8 +1148,8 @@ extern double ptarray_length(const POINTARRAY *pts);
 extern double ptarray_arc_length_2d(const POINTARRAY *pts);
 
 
-extern int pt_in_ring_2d(const POINT2D *p, const POINTARRAY *ring);
-extern int azimuth_pt_pt(const POINT2D *p1, const POINT2D *p2, double *ret);
+extern int pt_in_ring_2d(const RTPOINT2D *p, const POINTARRAY *ring);
+extern int azimuth_pt_pt(const RTPOINT2D *p1, const RTPOINT2D *p2, double *ret);
 extern int rtpoint_inside_circle(const RTPOINT *p, double cx, double cy, double rad);
 extern void rtgeom_reverse(RTGEOM *rtgeom);
 extern void rtline_reverse(RTLINE *line);
@@ -1157,7 +1157,7 @@ extern void rtpoly_reverse(RTPOLY *poly);
 extern void rttriangle_reverse(RTTRIANGLE *triangle);
 extern char* rtgeom_summary(const RTGEOM *rtgeom, int offset);
 extern char* rtpoint_to_latlon(const RTPOINT *p, const char *format);
-extern int rtgeom_startpoint(const RTGEOM* rtgeom, POINT4D* pt);
+extern int rtgeom_startpoint(const RTGEOM* rtgeom, RTPOINT4D* pt);
 
 /**
 * Ensure the outer ring is clockwise oriented and all inner rings 
@@ -1168,7 +1168,7 @@ extern void rtpoly_force_clockwise(RTPOLY *poly);
 extern void rttriangle_force_clockwise(RTTRIANGLE *triangle);
 
 
-extern void interpolate_point4d(POINT4D *A, POINT4D *B, POINT4D *I, double F);
+extern void interpolate_point4d(RTPOINT4D *A, RTPOINT4D *B, RTPOINT4D *I, double F);
 
 void rtgeom_longitude_shift(RTGEOM *rtgeom);
 
@@ -1232,7 +1232,7 @@ char rtcircstring_same(const RTCIRCSTRING *p1, const RTCIRCSTRING *p2);
 /**
  * @brief Clone RTGEOM object. Serialized point lists are not copied.
  *
- * #GBOX are copied
+ * #RTGBOX are copied
  *
  * @see ptarray_clone 
  */
@@ -1253,14 +1253,14 @@ POINTARRAY *ptarray_clone_deep(const POINTARRAY *ptarray);
 * passed to them, they just take references, so do not free them out
 * from underneath the geometries.
 */
-extern RTPOINT* rtpoint_construct(int srid, GBOX *bbox, POINTARRAY *point);
+extern RTPOINT* rtpoint_construct(int srid, RTGBOX *bbox, POINTARRAY *point);
 extern RTMPOINT *rtmpoint_construct(int srid, const POINTARRAY *pa);
-extern RTLINE* rtline_construct(int srid, GBOX *bbox, POINTARRAY *points);
-extern RTCIRCSTRING* rtcircstring_construct(int srid, GBOX *bbox, POINTARRAY *points);
-extern RTPOLY* rtpoly_construct(int srid, GBOX *bbox, uint32_t nrings, POINTARRAY **points);
-extern RTCURVEPOLY* rtcurvepoly_construct(int srid, GBOX *bbox, uint32_t nrings, RTGEOM **geoms);
-extern RTTRIANGLE* rttriangle_construct(int srid, GBOX *bbox, POINTARRAY *points);
-extern RTCOLLECTION* rtcollection_construct(uint8_t type, int srid, GBOX *bbox, uint32_t ngeoms, RTGEOM **geoms); 
+extern RTLINE* rtline_construct(int srid, RTGBOX *bbox, POINTARRAY *points);
+extern RTCIRCSTRING* rtcircstring_construct(int srid, RTGBOX *bbox, POINTARRAY *points);
+extern RTPOLY* rtpoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, POINTARRAY **points);
+extern RTCURVEPOLY* rtcurvepoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, RTGEOM **geoms);
+extern RTTRIANGLE* rttriangle_construct(int srid, RTGBOX *bbox, POINTARRAY *points);
+extern RTCOLLECTION* rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox, uint32_t ngeoms, RTGEOM **geoms); 
 /*
 * Empty geometry constructors.
 */
@@ -1283,13 +1283,13 @@ extern RTPOINT *rtpoint_make2d(int srid, double x, double y);
 extern RTPOINT *rtpoint_make3dz(int srid, double x, double y, double z);
 extern RTPOINT *rtpoint_make3dm(int srid, double x, double y, double m);
 extern RTPOINT *rtpoint_make4d(int srid, double x, double y, double z, double m);
-extern RTPOINT *rtpoint_make(int srid, int hasz, int hasm, const POINT4D *p);
+extern RTPOINT *rtpoint_make(int srid, int hasz, int hasm, const RTPOINT4D *p);
 extern RTLINE *rtline_from_rtgeom_array(int srid, uint32_t ngeoms, RTGEOM **geoms);
 extern RTLINE *rtline_from_ptarray(int srid, uint32_t npoints, RTPOINT **points); /* TODO: deprecate */
 extern RTLINE *rtline_from_rtmpoint(int srid, const RTMPOINT *mpoint);
 extern RTLINE *rtline_addpoint(RTLINE *line, RTPOINT *point, uint32_t where);
 extern RTLINE *rtline_removepoint(RTLINE *line, uint32_t which);
-extern void rtline_setPoint4d(RTLINE *line, uint32_t which, POINT4D *newpoint);
+extern void rtline_setPoint4d(RTLINE *line, uint32_t which, RTPOINT4D *newpoint);
 extern RTPOLY *rtpoly_from_rtlines(const RTLINE *shell, uint32_t nholes, const RTLINE **holes);
 extern RTTRIANGLE *rttriangle_from_rtline(const RTLINE *shell);
 
@@ -1332,7 +1332,7 @@ extern int rtgeom_ndims(const RTGEOM *geom);
  * If not-null, the third argument will be set to the actual distance
  * of the point from the pointarray.
  */
-extern double ptarray_locate_point(const POINTARRAY *pa, const POINT4D *pt, double *dist, POINT4D *p_located);
+extern double ptarray_locate_point(const POINTARRAY *pa, const RTPOINT4D *pt, double *dist, RTPOINT4D *p_located);
 
 /**
 * Add a measure dimension to a line, interpolating linearly from the start 
@@ -1399,7 +1399,7 @@ extern RTCOLLECTION *rtcollection_segmentize2d(RTCOLLECTION *coll, double dist);
 * Calculate the GeoHash (http://geohash.org) string for a geometry. Caller must free.
 */
 char *rtgeom_geohash(const RTGEOM *rtgeom, int precision);
-unsigned int geohash_point_as_int(POINT2D *pt);
+unsigned int geohash_point_as_int(RTPOINT2D *pt);
 
 
 /**
@@ -1596,7 +1596,7 @@ extern int rtpointiterator_has_next(RTPOINTITERATOR* s);
  * the iterator to the next point.
  * Returns RT_SUCCESS if the assignment was successful, RT_FAILURE otherwise.
  * */
-extern int rtpointiterator_modify_next(RTPOINTITERATOR* s, const POINT4D* p);
+extern int rtpointiterator_modify_next(RTPOINTITERATOR* s, const RTPOINT4D* p);
 
 /**
  * Attempts to assign the next point in the iterator to p, and advances
@@ -1604,13 +1604,13 @@ extern int rtpointiterator_modify_next(RTPOINTITERATOR* s, const POINT4D* p);
  * advanced without reading a point.
  * Returns RT_SUCCESS if the assignment was successful, RT_FAILURE otherwise.
  * */
-extern int rtpointiterator_next(RTPOINTITERATOR* s, POINT4D* p);
+extern int rtpointiterator_next(RTPOINTITERATOR* s, RTPOINT4D* p);
 
 /**
  * Attempts to assigns the next point in the iterator to p.  Does not advance.
  * Returns RT_SUCCESS if the assignment was successful, RT_FAILURE otherwise.
  */
-extern int rtpointiterator_peek(RTPOINTITERATOR* s, POINT4D* p);
+extern int rtpointiterator_peek(RTPOINTITERATOR* s, RTPOINT4D* p);
 
 
 /**
@@ -1632,16 +1632,16 @@ extern void deparse_hex(uint8_t str, char *result);
 /**
 * Calculate the geocentric bounding box directly from the serialized
 * form of the geodetic coordinates. Only accepts serialized geographies
-* flagged as geodetic. Caller is responsible for disposing of the GBOX.
+* flagged as geodetic. Caller is responsible for disposing of the RTGBOX.
 */
-extern GBOX* gserialized_calculate_gbox_geocentric(const GSERIALIZED *g);
+extern RTGBOX* gserialized_calculate_gbox_geocentric(const GSERIALIZED *g);
 
 /**
 * Calculate the geocentric bounding box directly from the serialized
 * form of the geodetic coordinates. Only accepts serialized geographies
 * flagged as geodetic.
 */
-int gserialized_calculate_gbox_geocentric_p(const GSERIALIZED *g, GBOX *g_box);
+int gserialized_calculate_gbox_geocentric_p(const GSERIALIZED *g, RTGBOX *g_box);
 
 /**
 * Return a RTWKT representation of the gserialized geometry. 
@@ -1680,121 +1680,121 @@ extern void rtgeom_set_geodetic(RTGEOM *geom, int value);
 * to fill out. RTGEOM must have been built from a GSERIALIZED to provide
 * double aligned point arrays.
 */
-extern int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, GBOX *gbox);
+extern int rtgeom_calculate_gbox_geodetic(const RTGEOM *geom, RTGBOX *gbox);
 
 /**
 * Calculate the 2-4D bounding box of a geometry. Z/M coordinates are honored 
 * for this calculation, though for curves they are not included in calculations
 * of curvature.
 */
-extern int rtgeom_calculate_gbox_cartesian(const RTGEOM *rtgeom, GBOX *gbox);
+extern int rtgeom_calculate_gbox_cartesian(const RTGEOM *rtgeom, RTGBOX *gbox);
 
 /**
 * Calculate bounding box of a geometry, automatically taking into account
 * whether it is cartesian or geodetic.
 */
-extern int rtgeom_calculate_gbox(const RTGEOM *rtgeom, GBOX *gbox);
+extern int rtgeom_calculate_gbox(const RTGEOM *rtgeom, RTGBOX *gbox);
 
 /**
 * New function to read doubles directly from the double* coordinate array
 * of an aligned rtgeom #POINTARRAY (built by de-serializing a #GSERIALIZED).
 */
-extern int getPoint2d_p_ro(const POINTARRAY *pa, int n, POINT2D **point);
+extern int getPoint2d_p_ro(const POINTARRAY *pa, int n, RTPOINT2D **point);
 
 /**
 * Calculate geodetic (x/y/z) box and add values to gbox. Return #RT_SUCCESS on success.
 */
-extern int ptarray_calculate_gbox_geodetic(const POINTARRAY *pa, GBOX *gbox);
+extern int ptarray_calculate_gbox_geodetic(const POINTARRAY *pa, RTGBOX *gbox);
 
 /**
 * Calculate box (x/y) and add values to gbox. Return #RT_SUCCESS on success.
 */
-extern int ptarray_calculate_gbox_cartesian(const POINTARRAY *pa, GBOX *gbox );
+extern int ptarray_calculate_gbox_cartesian(const POINTARRAY *pa, RTGBOX *gbox );
 
 /**
 * Calculate a spherical point that falls outside the geocentric gbox
 */
-void gbox_pt_outside(const GBOX *gbox, POINT2D *pt_outside);
+void gbox_pt_outside(const RTGBOX *gbox, RTPOINT2D *pt_outside);
 
 /**
 * Create a new gbox with the dimensionality indicated by the flags. Caller
 * is responsible for freeing.
 */
-extern GBOX* gbox_new(uint8_t flags);
+extern RTGBOX* gbox_new(uint8_t flags);
 
 /**
-* Zero out all the entries in the #GBOX. Useful for cleaning
+* Zero out all the entries in the #RTGBOX. Useful for cleaning
 * statically allocated gboxes.
 */
-extern void gbox_init(GBOX *gbox);
+extern void gbox_init(RTGBOX *gbox);
 
 /**
-* Update the merged #GBOX to be large enough to include itself and the new box.
+* Update the merged #RTGBOX to be large enough to include itself and the new box.
 */
-extern int gbox_merge(const GBOX *new_box, GBOX *merged_box);
+extern int gbox_merge(const RTGBOX *new_box, RTGBOX *merged_box);
 
 /**
-* Update the output #GBOX to be large enough to include both inputs.
+* Update the output #RTGBOX to be large enough to include both inputs.
 */
-extern int gbox_union(const GBOX *g1, const GBOX *g2, GBOX *gout);
+extern int gbox_union(const RTGBOX *g1, const RTGBOX *g2, RTGBOX *gout);
 
 /**
 * Move the box minimums down and the maximums up by the distance provided.
 */
-extern void gbox_expand(GBOX *g, double d);
+extern void gbox_expand(RTGBOX *g, double d);
 
 /**
-* Initialize a #GBOX using the values of the point.
+* Initialize a #RTGBOX using the values of the point.
 */
-extern int gbox_init_point3d(const POINT3D *p, GBOX *gbox);
+extern int gbox_init_point3d(const POINT3D *p, RTGBOX *gbox);
 
 /**
-* Update the #GBOX to be large enough to include itself and the new point.
+* Update the #RTGBOX to be large enough to include itself and the new point.
 */
-extern int gbox_merge_point3d(const POINT3D *p, GBOX *gbox);
+extern int gbox_merge_point3d(const POINT3D *p, RTGBOX *gbox);
 
 /**
 * Return true if the point is inside the gbox
 */
-extern int gbox_contains_point3d(const GBOX *gbox, const POINT3D *pt);
+extern int gbox_contains_point3d(const RTGBOX *gbox, const POINT3D *pt);
 
 /**
-* Allocate a string representation of the #GBOX, based on dimensionality of flags.
+* Allocate a string representation of the #RTGBOX, based on dimensionality of flags.
 */
-extern char* gbox_to_string(const GBOX *gbox);
+extern char* gbox_to_string(const RTGBOX *gbox);
 
 /**
-* Return a copy of the #GBOX, based on dimensionality of flags.
+* Return a copy of the #RTGBOX, based on dimensionality of flags.
 */
-extern GBOX* gbox_copy(const GBOX *gbox);
+extern RTGBOX* gbox_copy(const RTGBOX *gbox);
 
 /**
 * Warning, do not use this function, it is very particular about inputs.
 */
-extern GBOX* gbox_from_string(const char *str);
+extern RTGBOX* gbox_from_string(const char *str);
 
 /**
-* Return #RT_TRUE if the #GBOX overlaps, #RT_FALSE otherwise. 
+* Return #RT_TRUE if the #RTGBOX overlaps, #RT_FALSE otherwise. 
 */
-extern int gbox_overlaps(const GBOX *g1, const GBOX *g2);
+extern int gbox_overlaps(const RTGBOX *g1, const RTGBOX *g2);
 
 /**
-* Return #RT_TRUE if the #GBOX overlaps on the 2d plane, #RT_FALSE otherwise. 
+* Return #RT_TRUE if the #RTGBOX overlaps on the 2d plane, #RT_FALSE otherwise. 
 */
-extern int gbox_overlaps_2d(const GBOX *g1, const GBOX *g2);
+extern int gbox_overlaps_2d(const RTGBOX *g1, const RTGBOX *g2);
 
 /**
-* Return #RT_TRUE if the first #GBOX contains the second on the 2d plane, #RT_FALSE otherwise. 
+* Return #RT_TRUE if the first #RTGBOX contains the second on the 2d plane, #RT_FALSE otherwise. 
 */
-extern int  gbox_contains_2d(const GBOX *g1, const GBOX *g2);
+extern int  gbox_contains_2d(const RTGBOX *g1, const RTGBOX *g2);
 
 /**
-* Copy the values of original #GBOX into duplicate.
+* Copy the values of original #RTGBOX into duplicate.
 */
-extern void gbox_duplicate(const GBOX *original, GBOX *duplicate);
+extern void gbox_duplicate(const RTGBOX *original, RTGBOX *duplicate);
 
 /**
-* Return the number of bytes necessary to hold a #GBOX of this dimension in 
+* Return the number of bytes necessary to hold a #RTGBOX of this dimension in 
 * serialized form.
 */
 extern size_t gbox_serialized_size(uint8_t flags);
@@ -1802,31 +1802,31 @@ extern size_t gbox_serialized_size(uint8_t flags);
 /**
 * Check if 2 given Gbox are the same
 */
-extern int gbox_same(const GBOX *g1, const GBOX *g2);
+extern int gbox_same(const RTGBOX *g1, const RTGBOX *g2);
 
 /**
-* Check if 2 given GBOX are the same in x and y
+* Check if 2 given RTGBOX are the same in x and y
 */
-extern int gbox_same_2d(const GBOX *g1, const GBOX *g2);
+extern int gbox_same_2d(const RTGBOX *g1, const RTGBOX *g2);
 
 /**
-* Check if two given GBOX are the same in x and y, or would round to the same
-* GBOX in x and if serialized in GSERIALIZED
+* Check if two given RTGBOX are the same in x and y, or would round to the same
+* RTGBOX in x and if serialized in GSERIALIZED
 */
-extern int gbox_same_2d_float(const GBOX *g1, const GBOX *g2);
+extern int gbox_same_2d_float(const RTGBOX *g1, const RTGBOX *g2);
 
 /**
- * Round given GBOX to float boundaries
+ * Round given RTGBOX to float boundaries
  *
- * This turns a GBOX into the version it would become
+ * This turns a RTGBOX into the version it would become
  * after a serialize/deserialize round trip.
  */
-extern void gbox_float_round(GBOX *gbox);
+extern void gbox_float_round(RTGBOX *gbox);
 
 /**
 * Return false if any of the dimensions is NaN or infinite
 */
-extern int gbox_is_valid(const GBOX *gbox);
+extern int gbox_is_valid(const RTGBOX *gbox);
 
 /**
 * Utility function to get type number from string. For example, a string 'POINTZ' 
@@ -1857,11 +1857,11 @@ extern GSERIALIZED* gserialized_from_rtgeom(RTGEOM *geom, int is_geodetic, size_
 extern RTGEOM* rtgeom_from_gserialized(const GSERIALIZED *g);
 
 /**
-* Pull a #GBOX from the header of a #GSERIALIZED, if one is available. If
+* Pull a #RTGBOX from the header of a #GSERIALIZED, if one is available. If
 * it is not, calculate it from the geometry. If that doesn't work (null
 * or empty) return RT_FAILURE.
 */
-extern int gserialized_get_gbox_p(const GSERIALIZED *g, GBOX *gbox);
+extern int gserialized_get_gbox_p(const GSERIALIZED *g, RTGBOX *gbox);
 
 
 /**

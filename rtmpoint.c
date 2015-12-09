@@ -46,7 +46,7 @@ rtmpoint_construct(int srid, const POINTARRAY *pa)
 	for ( i = 0; i < pa->npoints; i++ )
 	{
 		RTPOINT *rtp;
-		POINT4D p;
+		RTPOINT4D p;
 		getPoint4d_p(pa, i, &p);		
 		rtp = rtpoint_make(srid, hasz, hasm, &p);
 		rtmpoint_add_rtpoint(ret, rtp);

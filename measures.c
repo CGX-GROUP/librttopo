@@ -560,7 +560,7 @@ point to point calculation
 int
 rt_dist2d_point_point(RTPOINT *point1, RTPOINT *point2, DISTPTS *dl)
 {
-	const POINT2D *p1, *p2;
+	const RTPOINT2D *p1, *p2;
 
 	p1 = getPoint2d_cp(point1->point, 0);
 	p2 = getPoint2d_cp(point2->point, 0);
@@ -574,7 +574,7 @@ point to line calculation
 int
 rt_dist2d_point_line(RTPOINT *point, RTLINE *line, DISTPTS *dl)
 {
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	RTDEBUG(2, "rt_dist2d_point_line is called");
 	p = getPoint2d_cp(point->point, 0);
 	return rt_dist2d_pt_ptarray(p, line->points, dl);
@@ -583,7 +583,7 @@ rt_dist2d_point_line(RTPOINT *point, RTLINE *line, DISTPTS *dl)
 int
 rt_dist2d_point_circstring(RTPOINT *point, RTCIRCSTRING *circ, DISTPTS *dl)
 {
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	p = getPoint2d_cp(point->point, 0);
 	return rt_dist2d_pt_ptarrayarc(p, circ->points, dl);
 }
@@ -596,7 +596,7 @@ rt_dist2d_point_circstring(RTPOINT *point, RTCIRCSTRING *circ, DISTPTS *dl)
 int
 rt_dist2d_point_poly(RTPOINT *point, RTPOLY *poly, DISTPTS *dl)
 {
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	int i;
 
 	RTDEBUG(2, "rt_dist2d_point_poly called");
@@ -644,7 +644,7 @@ rt_dist2d_point_poly(RTPOINT *point, RTPOLY *poly, DISTPTS *dl)
 int
 rt_dist2d_point_curvepoly(RTPOINT *point, RTCURVEPOLY *poly, DISTPTS *dl)
 {
-	const POINT2D *p;
+	const RTPOINT2D *p;
 	int i;
 
 	p = getPoint2d_cp(point->point, 0);
@@ -718,7 +718,7 @@ rt_dist2d_line_circstring(RTLINE *line1, RTCIRCSTRING *line2, DISTPTS *dl)
 int
 rt_dist2d_line_poly(RTLINE *line, RTPOLY *poly, DISTPTS *dl)
 {
-	const POINT2D *pt;
+	const RTPOINT2D *pt;
 	int i;
 
 	RTDEBUGF(2, "rt_dist2d_line_poly called (%d rings)", poly->nrings);
@@ -781,7 +781,7 @@ rt_dist2d_line_poly(RTLINE *line, RTPOLY *poly, DISTPTS *dl)
 int
 rt_dist2d_line_curvepoly(RTLINE *line, RTCURVEPOLY *poly, DISTPTS *dl)
 {
-	const POINT2D *pt = getPoint2d_cp(line->points, 0);
+	const RTPOINT2D *pt = getPoint2d_cp(line->points, 0);
 	int i;
 
 	if ( rtgeom_contains_point(poly->rings[0], pt) == RT_OUTSIDE )
@@ -829,7 +829,7 @@ int
 rt_dist2d_poly_poly(RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 {
 
-	const POINT2D *pt;
+	const RTPOINT2D *pt;
 	int i;
 
 	RTDEBUG(2, "rt_dist2d_poly_poly called");
@@ -931,7 +931,7 @@ rt_dist2d_circstring_circstring(RTCIRCSTRING *line1, RTCIRCSTRING *line2, DISTPT
 	return rt_dist2d_ptarrayarc_ptarrayarc(line1->points, line2->points, dl);
 }
 
-static const POINT2D *
+static const RTPOINT2D *
 rt_curvering_getfirstpoint2d_cp(RTGEOM *geom)
 {
 	switch( geom->type )
@@ -955,7 +955,7 @@ rt_curvering_getfirstpoint2d_cp(RTGEOM *geom)
 int
 rt_dist2d_curvepoly_curvepoly(RTCURVEPOLY *poly1, RTCURVEPOLY *poly2, DISTPTS *dl)
 {
-	const POINT2D *pt;
+	const RTPOINT2D *pt;
 	int i;
 
 	RTDEBUG(2, "rt_dist2d_curvepoly_curvepoly called");
@@ -1032,10 +1032,10 @@ rt_dist2d_curvepoly_curvepoly(RTCURVEPOLY *poly1, RTCURVEPOLY *poly2, DISTPTS *d
  * Returns minimum distance between point and pointarray
  */
 int
-rt_dist2d_pt_ptarray(const POINT2D *p, POINTARRAY *pa,DISTPTS *dl)
+rt_dist2d_pt_ptarray(const RTPOINT2D *p, POINTARRAY *pa,DISTPTS *dl)
 {
 	int t;
-	const POINT2D *start, *end;
+	const RTPOINT2D *start, *end;
 	int twist = dl->twisted;
 
 	RTDEBUG(2, "rt_dist2d_pt_ptarray is called");
@@ -1062,12 +1062,12 @@ rt_dist2d_pt_ptarray(const POINT2D *p, POINTARRAY *pa,DISTPTS *dl)
 * Returns minimum distance between point and arc pointarray.
 */
 int
-rt_dist2d_pt_ptarrayarc(const POINT2D *p, const POINTARRAY *pa, DISTPTS *dl)
+rt_dist2d_pt_ptarrayarc(const RTPOINT2D *p, const POINTARRAY *pa, DISTPTS *dl)
 {
 	int t;
-	const POINT2D *A1;
-	const POINT2D *A2;
-	const POINT2D *A3;
+	const RTPOINT2D *A1;
+	const RTPOINT2D *A2;
+	const RTPOINT2D *A3;
 	int twist = dl->twisted;
 
 	RTDEBUG(2, "rt_dist2d_pt_ptarrayarc is called");
@@ -1117,8 +1117,8 @@ int
 rt_dist2d_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS *dl)
 {
 	int t,u;
-	const POINT2D	*start, *end;
-	const POINT2D	*start2, *end2;
+	const RTPOINT2D	*start, *end;
+	const RTPOINT2D	*start2, *end2;
 	int twist = dl->twisted;
 
 	RTDEBUGF(2, "rt_dist2d_ptarray_ptarray called (points: %d-%d)",l1->npoints, l2->npoints);
@@ -1169,11 +1169,11 @@ int
 rt_dist2d_ptarray_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl)
 {
 	int t, u;
-	const POINT2D *A1;
-	const POINT2D *A2;
-	const POINT2D *B1;
-	const POINT2D *B2;
-	const POINT2D *B3;
+	const RTPOINT2D *A1;
+	const RTPOINT2D *A2;
+	const RTPOINT2D *B1;
+	const RTPOINT2D *B2;
+	const RTPOINT2D *B3;
 	int twist = dl->twisted;
 
 	RTDEBUGF(2, "rt_dist2d_ptarray_ptarrayarc called (points: %d-%d)",pa->npoints, pb->npoints);
@@ -1223,12 +1223,12 @@ int
 rt_dist2d_ptarrayarc_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DISTPTS *dl)
 {
 	int t, u;
-	const POINT2D *A1;
-	const POINT2D *A2;
-	const POINT2D *A3;
-	const POINT2D *B1;
-	const POINT2D *B2;
-	const POINT2D *B3;
+	const RTPOINT2D *A1;
+	const RTPOINT2D *A2;
+	const RTPOINT2D *A3;
+	const RTPOINT2D *B1;
+	const RTPOINT2D *B2;
+	const RTPOINT2D *B3;
 	int twist = dl->twisted;
 
 	RTDEBUGF(2, "rt_dist2d_ptarrayarc_ptarrayarc called (points: %d-%d)",pa->npoints, pb->npoints);
@@ -1271,11 +1271,11 @@ rt_dist2d_ptarrayarc_ptarrayarc(const POINTARRAY *pa, const POINTARRAY *pb, DIST
 * Line/circle approach from http://stackoverflow.com/questions/1073336/circle-line-collision-detection 
 */
 int 
-rt_dist2d_seg_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *B1, const POINT2D *B2, const POINT2D *B3, DISTPTS *dl)
+rt_dist2d_seg_arc(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *B1, const RTPOINT2D *B2, const RTPOINT2D *B3, DISTPTS *dl)
 {
-	POINT2D C; /* center of arc circle */
+	RTPOINT2D C; /* center of arc circle */
 	double radius_C; /* radius of arc circle */
-	POINT2D D; /* point on A closest to C */
+	RTPOINT2D D; /* point on A closest to C */
 	double dist_C_D; /* distance from C to D */
 	int pt_in_arc, pt_in_seg;
 	DISTPTS dltmp;
@@ -1309,7 +1309,7 @@ rt_dist2d_seg_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *B1, const
 	if ( dist_C_D < radius_C )
 	{
 		double length_A; /* length of the segment A */
-		POINT2D E, F; /* points of interection of edge A and circle(B) */
+		RTPOINT2D E, F; /* points of interection of edge A and circle(B) */
 		double dist_D_EF; /* distance from D to E or F (same distance both ways) */
 
 		dist_D_EF = sqrt(radius_C*radius_C - dist_C_D*dist_C_D);
@@ -1371,7 +1371,7 @@ rt_dist2d_seg_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *B1, const
 	/* Otherwise, the closest point will be an end point of A */
 	else
 	{
-		POINT2D G; /* Point on circle closest to A */
+		RTPOINT2D G; /* Point on circle closest to A */
 		G.x = C.x + (D.x-C.x) * radius_C / dist_C_D;
 		G.y = C.y + (D.y-C.y) * radius_C / dist_C_D;
 		
@@ -1418,11 +1418,11 @@ rt_dist2d_seg_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *B1, const
 }
 
 int
-rt_dist2d_pt_arc(const POINT2D* P, const POINT2D* A1, const POINT2D* A2, const POINT2D* A3, DISTPTS* dl)
+rt_dist2d_pt_arc(const RTPOINT2D* P, const RTPOINT2D* A1, const RTPOINT2D* A2, const RTPOINT2D* A3, DISTPTS* dl)
 {
 	double radius_A, d;
-	POINT2D C; /* center of circle defined by arc A */
-	POINT2D X; /* point circle(A) where line from C to P crosses */
+	RTPOINT2D C; /* center of circle defined by arc A */
+	RTPOINT2D X; /* point circle(A) where line from C to P crosses */
 	
 	if ( dl->mode < 0 )
 		rterror("rt_dist2d_pt_arc does not support maxdistance mode");
@@ -1461,14 +1461,14 @@ rt_dist2d_pt_arc(const POINT2D* P, const POINT2D* A1, const POINT2D* A2, const P
 
 
 int
-rt_dist2d_arc_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, 
-                  const POINT2D *B1, const POINT2D *B2, const POINT2D *B3,
+rt_dist2d_arc_arc(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, 
+                  const RTPOINT2D *B1, const RTPOINT2D *B2, const RTPOINT2D *B3,
                   DISTPTS *dl)
 {
-	POINT2D CA, CB; /* Center points of arcs A and B */
+	RTPOINT2D CA, CB; /* Center points of arcs A and B */
 	double radius_A, radius_B, d; /* Radii of arcs A and B */
-	POINT2D P; /* Temporary point P */
-	POINT2D D; /* Mid-point between the centers CA and CB */
+	RTPOINT2D P; /* Temporary point P */
+	RTPOINT2D D; /* Mid-point between the centers CA and CB */
 	int pt_in_arc_A, pt_in_arc_B; /* Test whether potential intersection point is within the arc */
 	
 	if ( dl->mode != DIST_MIN )
@@ -1503,7 +1503,7 @@ rt_dist2d_arc_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3,
 	/* Make sure that arc "A" has the bigger radius */
 	if ( radius_B > radius_A )
 	{
-		const POINT2D *tmp;
+		const RTPOINT2D *tmp;
 		tmp = B1; B1 = A1; A1 = tmp;
 		tmp = B2; B2 = A2; A2 = tmp;
 		tmp = B3; B3 = A3; A3 = tmp;
@@ -1542,7 +1542,7 @@ rt_dist2d_arc_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3,
 	/* the line joining CA to CB. */
 	else if ( d > (radius_A + radius_B) /* Disjoint */ || d < (radius_A - radius_B) /* Contained */ )
 	{
-		POINT2D XA, XB; /* Points where the line from CA to CB cross their circle bounds */
+		RTPOINT2D XA, XB; /* Points where the line from CA to CB cross their circle bounds */
 		
 		/* Calculate hypothetical nearest points, the places on the */
 		/* two circles where the center-center line crosses. If both */
@@ -1566,7 +1566,7 @@ rt_dist2d_arc_arc(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3,
 	/* http://paulbourke.net/geometry/2circle/ */
 	else if ( d < (radius_A + radius_B) )
 	{
-		POINT2D E, F; /* Points where circle(A) and circle(B) cross */
+		RTPOINT2D E, F; /* Points where circle(A) and circle(B) cross */
 		/* Distance from CA to D */
 		double a = (radius_A*radius_A - radius_B*radius_B + d*d) / (2*d);
 		/* Distance from D to E or F */
@@ -1647,7 +1647,7 @@ This function is changed so it is not doing any comparasion of distance
 but just sending every possible combination further to rt_dist2d_pt_seg
 */
 int
-rt_dist2d_seg_seg(const POINT2D *A, const POINT2D *B, const POINT2D *C, const POINT2D *D, DISTPTS *dl)
+rt_dist2d_seg_seg(const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl)
 {
 	double	s_top, s_bot,s;
 	double	r_top, r_bot,r;
@@ -1727,7 +1727,7 @@ rt_dist2d_seg_seg(const POINT2D *A, const POINT2D *B, const POINT2D *C, const PO
 	{
 		if (dl->mode == DIST_MIN)	/*If there is intersection we identify the intersection point and return it but only if we are looking for mindistance*/
 		{
-			POINT2D theP;
+			RTPOINT2D theP;
 
 			if (((A->x==C->x)&&(A->y==C->y))||((A->x==D->x)&&(A->y==D->y)))
 			{
@@ -1773,14 +1773,14 @@ The naming is not good but comes from that it compares a
 chosen selection of the points not all of them
 */
 int
-rt_dist2d_fast_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS *dl, GBOX *box1, GBOX *box2)
+rt_dist2d_fast_ptarray_ptarray(POINTARRAY *l1, POINTARRAY *l2,DISTPTS *dl, RTGBOX *box1, RTGBOX *box2)
 {
 	/*here we define two lists to hold our calculated "z"-values and the order number in the geometry*/
 
 	double k, thevalue;
 	float	deltaX, deltaY, c1m, c2m;
-	POINT2D	c1, c2;
-	const POINT2D *theP;
+	RTPOINT2D	c1, c2;
+	const RTPOINT2D *theP;
 	float min1X, max1X, max1Y, min1Y,min2X, max2X, max2Y, min2Y;
 	int t;
 	int n1 = l1->npoints;
@@ -1903,7 +1903,7 @@ struct_cmp_by_measure(const void *a, const void *b)
 int
 rt_dist2d_pre_seg_seg(POINTARRAY *l1, POINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl)
 {
-	const POINT2D *p1, *p2, *p3, *p4, *p01, *p02;
+	const RTPOINT2D *p1, *p2, *p3, *p4, *p01, *p02;
 	int pnr1,pnr2,pnr3,pnr4, n1, n2, i, u, r, twist;
 	double maxmeasure;
 	n1=	l1->npoints;
@@ -1988,7 +1988,7 @@ rt_dist2d_pre_seg_seg(POINTARRAY *l1, POINTARRAY *l2,LISTSTRUCT *list1, LISTSTRU
 	already know they do not intersect
 */
 int
-rt_dist2d_selected_seg_seg(const POINT2D *A, const POINT2D *B, const POINT2D *C, const POINT2D *D, DISTPTS *dl)
+rt_dist2d_selected_seg_seg(const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl)
 {
 	RTDEBUGF(2, "rt_dist2d_selected_seg_seg [%g,%g]->[%g,%g] by [%g,%g]->[%g,%g]",
 	         A->x,A->y,B->x,B->y, C->x,C->y, D->x, D->y);
@@ -2034,9 +2034,9 @@ and just returning the distance without identifying the points.
 To get this points it was nessecary to change and it also showed to be about 10%faster.
 */
 int
-rt_dist2d_pt_seg(const POINT2D *p, const POINT2D *A, const POINT2D *B, DISTPTS *dl)
+rt_dist2d_pt_seg(const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B, DISTPTS *dl)
 {
-	POINT2D c;
+	RTPOINT2D c;
 	double	r;
 	/*if start==end, then use pt distance */
 	if (  ( A->x == B->x) && (A->y == B->y) )
@@ -2110,7 +2110,7 @@ or most far away from each other
 depending on dl->mode (max or min)
 */
 int
-rt_dist2d_pt_pt(const POINT2D *thep1, const POINT2D *thep2, DISTPTS *dl)
+rt_dist2d_pt_pt(const RTPOINT2D *thep1, const RTPOINT2D *thep2, DISTPTS *dl)
 {
 	double hside = thep2->x - thep1->x;
 	double vside = thep2->y - thep1->y;
@@ -2146,7 +2146,7 @@ End of Functions in common for Brute force and new calculation
 The old function nessecary for ptarray_segmentize2d in ptarray.c
 */
 double
-distance2d_pt_pt(const POINT2D *p1, const POINT2D *p2)
+distance2d_pt_pt(const RTPOINT2D *p1, const RTPOINT2D *p2)
 {
 	double hside = p2->x - p1->x;
 	double vside = p2->y - p1->y;
@@ -2156,7 +2156,7 @@ distance2d_pt_pt(const POINT2D *p1, const POINT2D *p2)
 }
 
 double
-distance2d_sqr_pt_pt(const POINT2D *p1, const POINT2D *p2)
+distance2d_sqr_pt_pt(const RTPOINT2D *p1, const RTPOINT2D *p2)
 {
 	double hside = p2->x - p1->x;
 	double vside = p2->y - p1->y;
@@ -2171,7 +2171,7 @@ distance2d_sqr_pt_pt(const POINT2D *p1, const POINT2D *p2)
 The old function nessecary for ptarray_segmentize2d in ptarray.c
 */
 double
-distance2d_pt_seg(const POINT2D *p, const POINT2D *A, const POINT2D *B)
+distance2d_pt_seg(const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B)
 {
 	double	r,s;
 
@@ -2220,7 +2220,7 @@ distance2d_pt_seg(const POINT2D *p, const POINT2D *A, const POINT2D *B)
 
 /* return distance squared, useful to avoid sqrt calculations */
 double
-distance2d_sqr_pt_seg(const POINT2D *p, const POINT2D *A, const POINT2D *B)
+distance2d_sqr_pt_seg(const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B)
 {
 	double	r,s;
 
@@ -2256,7 +2256,7 @@ distance2d_sqr_pt_seg(const POINT2D *p, const POINT2D *A, const POINT2D *B)
  * Return 0 on exception (same point), 1 otherwise.
  */
 int
-azimuth_pt_pt(const POINT2D *A, const POINT2D *B, double *d)
+azimuth_pt_pt(const RTPOINT2D *A, const RTPOINT2D *B, double *d)
 {
 	if ( A->x == B->x )
 	{

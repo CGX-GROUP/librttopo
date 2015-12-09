@@ -89,7 +89,7 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 	int narcs, carc;
 	int found;
 	psurface_arcs arcs;
-	POINT4D pa, pb;
+	RTPOINT4D pa, pb;
 	RTPOLY *patch;
 
 	/* If surface is not 3D, it's can't be closed */

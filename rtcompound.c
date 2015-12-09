@@ -30,7 +30,7 @@ rtcompound_is_closed(const RTCOMPOUND *compound)
 	}
 	else
 	{
-		size = sizeof(POINT2D);
+		size = sizeof(RTPOINT2D);
 	}
 
 	if ( compound->geoms[compound->ngeoms - 1]->type == RTCIRCSTRINGTYPE )
@@ -90,7 +90,7 @@ int rtcompound_add_rtgeom(RTCOMPOUND *comp, RTGEOM *geom)
 	
 	if( col->ngeoms > 0 )
 	{
-		POINT4D last, first;
+		RTPOINT4D last, first;
 		/* First point of the component we are adding */
 		RTLINE *newline = (RTLINE*)geom;
 		/* Last point of the previous component */
@@ -118,7 +118,7 @@ rtcompound_construct_empty(int srid, char hasz, char hasm)
 	return ret;
 }
 
-int rtgeom_contains_point(const RTGEOM *geom, const POINT2D *pt)
+int rtgeom_contains_point(const RTGEOM *geom, const RTPOINT2D *pt)
 {
 	switch( geom->type )
 	{
@@ -134,7 +134,7 @@ int rtgeom_contains_point(const RTGEOM *geom, const POINT2D *pt)
 }
 
 int 
-rtcompound_contains_point(const RTCOMPOUND *comp, const POINT2D *pt)
+rtcompound_contains_point(const RTCOMPOUND *comp, const RTPOINT2D *pt)
 {
 	int i;
 	RTLINE *rtline;

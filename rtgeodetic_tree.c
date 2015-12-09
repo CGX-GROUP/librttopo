@@ -41,14 +41,14 @@ circ_tree_free(CIRC_NODE* node)
 static CIRC_NODE* 
 circ_node_leaf_new(const POINTARRAY* pa, int i)
 {
-	POINT2D *p1, *p2;
+	RTPOINT2D *p1, *p2;
 	POINT3D q1, q2, c;
 	GEOGRAPHIC_POINT g1, g2, gc;
 	CIRC_NODE *node;
 	double diameter;
 
-	p1 = (POINT2D*)getPoint_internal(pa, i);
-	p2 = (POINT2D*)getPoint_internal(pa, i+1);
+	p1 = (RTPOINT2D*)getPoint_internal(pa, i);
+	p2 = (RTPOINT2D*)getPoint_internal(pa, i+1);
 	geographic_point_init(p1->x, p1->y, &g1);
 	geographic_point_init(p2->x, p2->y, &g2);
 
@@ -96,7 +96,7 @@ static CIRC_NODE*
 circ_node_leaf_point_new(const POINTARRAY* pa)
 {
 	CIRC_NODE* tree = rtalloc(sizeof(CIRC_NODE));
-	tree->p1 = tree->p2 = (POINT2D*)getPoint_internal(pa, 0);
+	tree->p1 = tree->p2 = (RTPOINT2D*)getPoint_internal(pa, 0);
 	geographic_point_init(tree->p1->x, tree->p1->y, &(tree->center));
 	tree->radius = 0.0;
 	tree->nodes = NULL;
@@ -115,7 +115,7 @@ circ_node_leaf_point_new(const POINTARRAY* pa)
 static int
 circ_node_compare(const void* v1, const void* v2)
 {
-	POINT2D p1, p2;
+	RTPOINT2D p1, p2;
 	unsigned int u1, u2;
 	CIRC_NODE *c1 = *((CIRC_NODE**)v1);
 	CIRC_NODE *c2 = *((CIRC_NODE**)v2);
@@ -429,9 +429,9 @@ circ_nodes_merge(CIRC_NODE** nodes, int num_nodes)
 
 
 /**
-* Returns a #POINT2D that is a vertex of the input shape
+* Returns a #RTPOINT2D that is a vertex of the input shape
 */
-int circ_tree_get_point(const CIRC_NODE* node, POINT2D* pt)
+int circ_tree_get_point(const CIRC_NODE* node, RTPOINT2D* pt)
 {
 	if ( circ_node_is_leaf(node) )
 	{
@@ -452,7 +452,7 @@ int circ_tree_get_point(const CIRC_NODE* node, POINT2D* pt)
 * KNOWN PROBLEM: Grazings (think of a sharp point, just touching the
 *   stabline) will be counted for one, which will throw off the count.
 */
-int circ_tree_contains_point(const CIRC_NODE* node, const POINT2D* pt, const POINT2D* pt_outside, int* on_boundary)
+int circ_tree_contains_point(const CIRC_NODE* node, const RTPOINT2D* pt, const RTPOINT2D* pt_outside, int* on_boundary)
 {
 	GEOGRAPHIC_POINT closest;
 	GEOGRAPHIC_EDGE stab_edge, edge;
@@ -608,7 +608,7 @@ circ_tree_distance_tree_internal(const CIRC_NODE* n1, const CIRC_NODE* n2, doubl
 	/* short circuit. */
 	if ( n1->geom_type == RTPOLYGONTYPE && n2->geom_type && ! rttype_is_collection(n2->geom_type) )
 	{
-		POINT2D pt;
+		RTPOINT2D pt;
 		circ_tree_get_point(n2, &pt);
 		RTDEBUGF(4, "n1 is polygon, testing if contains (%.5g,%.5g)", pt.x, pt.y);
 		if ( circ_tree_contains_point(n1, &pt, &(n1->pt_outside), NULL) )
@@ -624,7 +624,7 @@ circ_tree_distance_tree_internal(const CIRC_NODE* n1, const CIRC_NODE* n2, doubl
 	/* short circuit. */
 	if ( n2->geom_type == RTPOLYGONTYPE && n1->geom_type && ! rttype_is_collection(n1->geom_type) )
 	{
-		POINT2D pt;
+		RTPOINT2D pt;
 		circ_tree_get_point(n1, &pt);
 		RTDEBUGF(4, "n2 is polygon, testing if contains (%.5g,%.5g)", pt.x, pt.y);
 		if ( circ_tree_contains_point(n2, &pt, &(n2->pt_outside), NULL) )

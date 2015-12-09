@@ -14,15 +14,15 @@
 #include <string.h>	/* strlen */
 #include <assert.h>
 
-static char *asgeojson_point(const RTPOINT *point, char *srs, GBOX *bbox, int precision);
-static char *asgeojson_line(const RTLINE *line, char *srs, GBOX *bbox, int precision);
-static char *asgeojson_poly(const RTPOLY *poly, char *srs, GBOX *bbox, int precision);
-static char * asgeojson_multipoint(const RTMPOINT *mpoint, char *srs, GBOX *bbox, int precision);
-static char * asgeojson_multiline(const RTMLINE *mline, char *srs, GBOX *bbox, int precision);
-static char * asgeojson_multipolygon(const RTMPOLY *mpoly, char *srs, GBOX *bbox, int precision);
-static char * asgeojson_collection(const RTCOLLECTION *col, char *srs, GBOX *bbox, int precision);
-static size_t asgeojson_geom_size(const RTGEOM *geom, GBOX *bbox, int precision);
-static size_t asgeojson_geom_buf(const RTGEOM *geom, char *output, GBOX *bbox, int precision);
+static char *asgeojson_point(const RTPOINT *point, char *srs, RTGBOX *bbox, int precision);
+static char *asgeojson_line(const RTLINE *line, char *srs, RTGBOX *bbox, int precision);
+static char *asgeojson_poly(const RTPOLY *poly, char *srs, RTGBOX *bbox, int precision);
+static char * asgeojson_multipoint(const RTMPOINT *mpoint, char *srs, RTGBOX *bbox, int precision);
+static char * asgeojson_multiline(const RTMLINE *mline, char *srs, RTGBOX *bbox, int precision);
+static char * asgeojson_multipolygon(const RTMPOLY *mpoly, char *srs, RTGBOX *bbox, int precision);
+static char * asgeojson_collection(const RTCOLLECTION *col, char *srs, RTGBOX *bbox, int precision);
+static size_t asgeojson_geom_size(const RTGEOM *geom, RTGBOX *bbox, int precision);
+static size_t asgeojson_geom_buf(const RTGEOM *geom, char *output, RTGBOX *bbox, int precision);
 
 static size_t pointArray_to_geojson(POINTARRAY *pa, char *buf, int precision);
 static size_t pointArray_geojson_size(POINTARRAY *pa, int precision);
@@ -34,8 +34,8 @@ char *
 rtgeom_to_geojson(const RTGEOM *geom, char *srs, int precision, int has_bbox)
 {
 	int type = geom->type;
-	GBOX *bbox = NULL;
-	GBOX tmp;
+	RTGBOX *bbox = NULL;
+	RTGBOX tmp;
 
 	if ( precision > OUT_MAX_DOUBLE_PRECISION ) precision = OUT_MAX_DOUBLE_PRECISION;
 
@@ -125,7 +125,7 @@ asgeojson_bbox_size(int hasz, int precision)
 }
 
 static size_t
-asgeojson_bbox_buf(char *output, GBOX *bbox, int hasz, int precision)
+asgeojson_bbox_buf(char *output, RTGBOX *bbox, int hasz, int precision)
 {
 	char *ptr = output;
 
@@ -148,7 +148,7 @@ asgeojson_bbox_buf(char *output, GBOX *bbox, int hasz, int precision)
  */
 
 static size_t
-asgeojson_point_size(const RTPOINT *point, char *srs, GBOX *bbox, int precision)
+asgeojson_point_size(const RTPOINT *point, char *srs, RTGBOX *bbox, int precision)
 {
 	int size;
 
@@ -166,7 +166,7 @@ asgeojson_point_size(const RTPOINT *point, char *srs, GBOX *bbox, int precision)
 }
 
 static size_t
-asgeojson_point_buf(const RTPOINT *point, char *srs, char *output, GBOX *bbox, int precision)
+asgeojson_point_buf(const RTPOINT *point, char *srs, char *output, RTGBOX *bbox, int precision)
 {
 	char *ptr = output;
 
@@ -184,7 +184,7 @@ asgeojson_point_buf(const RTPOINT *point, char *srs, char *output, GBOX *bbox, i
 }
 
 static char *
-asgeojson_point(const RTPOINT *point, char *srs, GBOX *bbox, int precision)
+asgeojson_point(const RTPOINT *point, char *srs, RTGBOX *bbox, int precision)
 {
 	char *output;
 	int size;
@@ -202,7 +202,7 @@ asgeojson_point(const RTPOINT *point, char *srs, GBOX *bbox, int precision)
  */
 
 static size_t
-asgeojson_line_size(const RTLINE *line, char *srs, GBOX *bbox, int precision)
+asgeojson_line_size(const RTLINE *line, char *srs, RTGBOX *bbox, int precision)
 {
 	int size;
 
@@ -216,7 +216,7 @@ asgeojson_line_size(const RTLINE *line, char *srs, GBOX *bbox, int precision)
 }
 
 static size_t
-asgeojson_line_buf(const RTLINE *line, char *srs, char *output, GBOX *bbox, int precision)
+asgeojson_line_buf(const RTLINE *line, char *srs, char *output, RTGBOX *bbox, int precision)
 {
 	char *ptr=output;
 
@@ -231,7 +231,7 @@ asgeojson_line_buf(const RTLINE *line, char *srs, char *output, GBOX *bbox, int 
 }
 
 static char *
-asgeojson_line(const RTLINE *line, char *srs, GBOX *bbox, int precision)
+asgeojson_line(const RTLINE *line, char *srs, RTGBOX *bbox, int precision)
 {
 	char *output;
 	int size;
@@ -250,7 +250,7 @@ asgeojson_line(const RTLINE *line, char *srs, GBOX *bbox, int precision)
  */
 
 static size_t
-asgeojson_poly_size(const RTPOLY *poly, char *srs, GBOX *bbox, int precision)
+asgeojson_poly_size(const RTPOLY *poly, char *srs, RTGBOX *bbox, int precision)
 {
 	size_t size;
 	int i;
@@ -271,7 +271,7 @@ asgeojson_poly_size(const RTPOLY *poly, char *srs, GBOX *bbox, int precision)
 }
 
 static size_t
-asgeojson_poly_buf(const RTPOLY *poly, char *srs, char *output, GBOX *bbox, int precision)
+asgeojson_poly_buf(const RTPOLY *poly, char *srs, char *output, RTGBOX *bbox, int precision)
 {
 	int i;
 	char *ptr=output;
@@ -293,7 +293,7 @@ asgeojson_poly_buf(const RTPOLY *poly, char *srs, char *output, GBOX *bbox, int 
 }
 
 static char *
-asgeojson_poly(const RTPOLY *poly, char *srs, GBOX *bbox, int precision)
+asgeojson_poly(const RTPOLY *poly, char *srs, RTGBOX *bbox, int precision)
 {
 	char *output;
 	int size;
@@ -312,7 +312,7 @@ asgeojson_poly(const RTPOLY *poly, char *srs, GBOX *bbox, int precision)
  */
 
 static size_t
-asgeojson_multipoint_size(const RTMPOINT *mpoint, char *srs, GBOX *bbox, int precision)
+asgeojson_multipoint_size(const RTMPOINT *mpoint, char *srs, RTGBOX *bbox, int precision)
 {
 	RTPOINT * point;
 	int size;
@@ -334,7 +334,7 @@ asgeojson_multipoint_size(const RTMPOINT *mpoint, char *srs, GBOX *bbox, int pre
 }
 
 static size_t
-asgeojson_multipoint_buf(const RTMPOINT *mpoint, char *srs, char *output, GBOX *bbox, int precision)
+asgeojson_multipoint_buf(const RTMPOINT *mpoint, char *srs, char *output, RTGBOX *bbox, int precision)
 {
 	RTPOINT *point;
 	int i;
@@ -357,7 +357,7 @@ asgeojson_multipoint_buf(const RTMPOINT *mpoint, char *srs, char *output, GBOX *
 }
 
 static char *
-asgeojson_multipoint(const RTMPOINT *mpoint, char *srs, GBOX *bbox, int precision)
+asgeojson_multipoint(const RTMPOINT *mpoint, char *srs, RTGBOX *bbox, int precision)
 {
 	char *output;
 	int size;
@@ -376,7 +376,7 @@ asgeojson_multipoint(const RTMPOINT *mpoint, char *srs, GBOX *bbox, int precisio
  */
 
 static size_t
-asgeojson_multiline_size(const RTMLINE *mline, char *srs, GBOX *bbox, int precision)
+asgeojson_multiline_size(const RTMLINE *mline, char *srs, RTGBOX *bbox, int precision)
 {
 	RTLINE * line;
 	int size;
@@ -399,7 +399,7 @@ asgeojson_multiline_size(const RTMLINE *mline, char *srs, GBOX *bbox, int precis
 }
 
 static size_t
-asgeojson_multiline_buf(const RTMLINE *mline, char *srs, char *output, GBOX *bbox, int precision)
+asgeojson_multiline_buf(const RTMLINE *mline, char *srs, char *output, RTGBOX *bbox, int precision)
 {
 	RTLINE *line;
 	int i;
@@ -425,7 +425,7 @@ asgeojson_multiline_buf(const RTMLINE *mline, char *srs, char *output, GBOX *bbo
 }
 
 static char *
-asgeojson_multiline(const RTMLINE *mline, char *srs, GBOX *bbox, int precision)
+asgeojson_multiline(const RTMLINE *mline, char *srs, RTGBOX *bbox, int precision)
 {
 	char *output;
 	int size;
@@ -444,7 +444,7 @@ asgeojson_multiline(const RTMLINE *mline, char *srs, GBOX *bbox, int precision)
  */
 
 static size_t
-asgeojson_multipolygon_size(const RTMPOLY *mpoly, char *srs, GBOX *bbox, int precision)
+asgeojson_multipolygon_size(const RTMPOLY *mpoly, char *srs, RTGBOX *bbox, int precision)
 {
 	RTPOLY *poly;
 	int size;
@@ -472,7 +472,7 @@ asgeojson_multipolygon_size(const RTMPOLY *mpoly, char *srs, GBOX *bbox, int pre
 }
 
 static size_t
-asgeojson_multipolygon_buf(const RTMPOLY *mpoly, char *srs, char *output, GBOX *bbox, int precision)
+asgeojson_multipolygon_buf(const RTMPOLY *mpoly, char *srs, char *output, RTGBOX *bbox, int precision)
 {
 	RTPOLY *poly;
 	int i, j;
@@ -502,7 +502,7 @@ asgeojson_multipolygon_buf(const RTMPOLY *mpoly, char *srs, char *output, GBOX *
 }
 
 static char *
-asgeojson_multipolygon(const RTMPOLY *mpoly, char *srs, GBOX *bbox, int precision)
+asgeojson_multipolygon(const RTMPOLY *mpoly, char *srs, RTGBOX *bbox, int precision)
 {
 	char *output;
 	int size;
@@ -521,7 +521,7 @@ asgeojson_multipolygon(const RTMPOLY *mpoly, char *srs, GBOX *bbox, int precisio
  */
 
 static size_t
-asgeojson_collection_size(const RTCOLLECTION *col, char *srs, GBOX *bbox, int precision)
+asgeojson_collection_size(const RTCOLLECTION *col, char *srs, RTGBOX *bbox, int precision)
 {
 	int i;
 	int size;
@@ -544,7 +544,7 @@ asgeojson_collection_size(const RTCOLLECTION *col, char *srs, GBOX *bbox, int pr
 }
 
 static size_t
-asgeojson_collection_buf(const RTCOLLECTION *col, char *srs, char *output, GBOX *bbox, int precision)
+asgeojson_collection_buf(const RTCOLLECTION *col, char *srs, char *output, RTGBOX *bbox, int precision)
 {
 	int i;
 	char *ptr=output;
@@ -568,7 +568,7 @@ asgeojson_collection_buf(const RTCOLLECTION *col, char *srs, char *output, GBOX 
 }
 
 static char *
-asgeojson_collection(const RTCOLLECTION *col, char *srs, GBOX *bbox, int precision)
+asgeojson_collection(const RTCOLLECTION *col, char *srs, RTGBOX *bbox, int precision)
 {
 	char *output;
 	int size;
@@ -583,7 +583,7 @@ asgeojson_collection(const RTCOLLECTION *col, char *srs, GBOX *bbox, int precisi
 
 
 static size_t
-asgeojson_geom_size(const RTGEOM *geom, GBOX *bbox, int precision)
+asgeojson_geom_size(const RTGEOM *geom, RTGBOX *bbox, int precision)
 {
 	int type = geom->type;
 	size_t size = 0;
@@ -623,7 +623,7 @@ asgeojson_geom_size(const RTGEOM *geom, GBOX *bbox, int precision)
 
 
 static size_t
-asgeojson_geom_buf(const RTGEOM *geom, char *output, GBOX *bbox, int precision)
+asgeojson_geom_buf(const RTGEOM *geom, char *output, RTGBOX *bbox, int precision)
 {
 	int type = geom->type;
 	char *ptr=output;
@@ -721,7 +721,7 @@ pointArray_to_geojson(POINTARRAY *pa, char *output, int precision)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT2D *pt;
+			const RTPOINT2D *pt;
 			pt = getPoint2d_cp(pa, i);
 
 			rtprint_double(pt->x, precision, x, BUFSIZE);
@@ -737,7 +737,7 @@ pointArray_to_geojson(POINTARRAY *pa, char *output, int precision)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT3DZ *pt;
+			const RTPOINT3DZ *pt;
 			pt = getPoint3dz_cp(pa, i);
 
 			rtprint_double(pt->x, precision, x, BUFSIZE);

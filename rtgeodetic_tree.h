@@ -17,18 +17,18 @@ typedef struct circ_node
 	struct circ_node** nodes;
 	int edge_num;
     int geom_type;
-    POINT2D pt_outside;
-	POINT2D* p1;
-	POINT2D* p2;
+    RTPOINT2D pt_outside;
+	RTPOINT2D* p1;
+	RTPOINT2D* p2;
 } CIRC_NODE;
 
 void circ_tree_print(const CIRC_NODE* node, int depth);
 CIRC_NODE* circ_tree_new(const POINTARRAY* pa);
 void circ_tree_free(CIRC_NODE* node);
-int circ_tree_contains_point(const CIRC_NODE* node, const POINT2D* pt, const POINT2D* pt_outside, int* on_boundary);
+int circ_tree_contains_point(const CIRC_NODE* node, const RTPOINT2D* pt, const RTPOINT2D* pt_outside, int* on_boundary);
 double circ_tree_distance_tree(const CIRC_NODE* n1, const CIRC_NODE* n2, const SPHEROID *spheroid, double threshold);
 CIRC_NODE* rtgeom_calculate_circ_tree(const RTGEOM* rtgeom);
-int circ_tree_get_point(const CIRC_NODE* node, POINT2D* pt);
+int circ_tree_get_point(const CIRC_NODE* node, RTPOINT2D* pt);
 
 #endif /* _RTGEODETIC_TREE_H */
 
