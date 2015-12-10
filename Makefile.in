@@ -91,7 +91,6 @@ SA_OBJS = \
 	rtgeom_topo.o \
 	rtgeom_transform.o \
 	rtunionfind.o \
-	effectivearea.o \
 	varint.o
 
 LDFLAGS += -no-undefined
@@ -101,7 +100,6 @@ LT_OBJS = $(LT_SA_OBJS)
 
 SA_HEADERS = \
 	bytebuffer.h \
-	effectivearea.h \
 	librtgeom.h \
 	librtgeom_internal.h \
 	librtgeom_topo.h \
