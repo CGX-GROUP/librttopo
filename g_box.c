@@ -16,15 +16,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-/* Fall back to older finite() if necessary */
-#ifndef HAVE_ISFINITE
-# ifdef HAVE_GNU_ISFINITE
-#  define _GNU_SOURCE
-# else
-#  define isfinite finite
-# endif
-#endif
-
 RTGBOX* gbox_new(RTCTX *ctx, uint8_t flags)
 {
 	RTGBOX *g = (RTGBOX*)rtalloc(ctx, sizeof(RTGBOX));
