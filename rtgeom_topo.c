@@ -54,10 +54,9 @@
  *
  ********************************************************************/
 
-RTT_BE_IFACE* rtt_CreateBackendIface(const RTT_BE_DATA *data)
+RTT_BE_IFACE* rtt_CreateBackendIface(const RTCTX *ctx, const RTT_BE_DATA *data)
 {
-  RTCTX *ctx = NULL; /* TODO: create one */
-  RTT_BE_IFACE *iface = rtalloc(iface->ctx, sizeof(RTT_BE_IFACE));
+  RTT_BE_IFACE *iface = rtalloc(ctx, sizeof(RTT_BE_IFACE));
   iface->data = data;
   iface->cb = NULL;
   iface->ctx = ctx;

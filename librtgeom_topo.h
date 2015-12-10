@@ -859,9 +859,10 @@ typedef struct RTT_BE_CALLBACKS_T {
  *
  * Ownership to caller delete with rtt_FreeBackendIface
  *
+ * @param ctx librtgeom context
  * @param data Backend data, passed as first parameter to all callback functions
  */
-RTT_BE_IFACE* rtt_CreateBackendIface(const RTT_BE_DATA* data);
+RTT_BE_IFACE* rtt_CreateBackendIface(const RTCTX* ctx, const RTT_BE_DATA* data);
 
 /**
  * Register backend callbacks into the opaque iface handler
