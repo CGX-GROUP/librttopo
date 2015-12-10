@@ -18,39 +18,39 @@
 
 
 void
-rtmpoly_release(RTMPOLY *rtmpoly)
+rtmpoly_release(RTCTX *ctx, RTMPOLY *rtmpoly)
 {
-	rtgeom_release(rtmpoly_as_rtgeom(rtmpoly));
+	rtgeom_release(ctx, rtmpoly_as_rtgeom(ctx, rtmpoly));
 }
 
 RTMPOLY *
-rtmpoly_construct_empty(int srid, char hasz, char hasm)
+rtmpoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 {
-	RTMPOLY *ret = (RTMPOLY*)rtcollection_construct_empty(RTMULTIPOLYGONTYPE, srid, hasz, hasm);
+	RTMPOLY *ret = (RTMPOLY*)rtcollection_construct_empty(ctx, RTMULTIPOLYGONTYPE, srid, hasz, hasm);
 	return ret;
 }
 
 
-RTMPOLY* rtmpoly_add_rtpoly(RTMPOLY *mobj, const RTPOLY *obj)
+RTMPOLY* rtmpoly_add_rtpoly(RTCTX *ctx, RTMPOLY *mobj, const RTPOLY *obj)
 {
-	return (RTMPOLY*)rtcollection_add_rtgeom((RTCOLLECTION*)mobj, (RTGEOM*)obj);
+	return (RTMPOLY*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
 
-void rtmpoly_free(RTMPOLY *mpoly)
+void rtmpoly_free(RTCTX *ctx, RTMPOLY *mpoly)
 {
 	int i;
 	if ( ! mpoly ) return;
 	if ( mpoly->bbox )
-		rtfree(mpoly->bbox);
+		rtfree(ctx, mpoly->bbox);
 
 	for ( i = 0; i < mpoly->ngeoms; i++ )
 		if ( mpoly->geoms && mpoly->geoms[i] )
-			rtpoly_free(mpoly->geoms[i]);
+			rtpoly_free(ctx, mpoly->geoms[i]);
 
 	if ( mpoly->geoms )
-		rtfree(mpoly->geoms);
+		rtfree(ctx, mpoly->geoms);
 
-	rtfree(mpoly);
+	rtfree(ctx, mpoly);
 }
 

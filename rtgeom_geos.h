@@ -23,15 +23,15 @@
 /*
 ** Public prototypes for GEOS utility functions.
 */
-RTGEOM *GEOS2RTGEOM(const GEOSGeometry *geom, char want3d);
-GEOSGeometry * RTGEOM2GEOS(const RTGEOM *g, int autofix);
-GEOSGeometry * GBOX2GEOS(const RTGBOX *g);
-GEOSGeometry * RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in);
+RTGEOM *GEOS2RTGEOM(RTCTX *ctx, const GEOSGeometry *geom, char want3d);
+GEOSGeometry * RTGEOM2GEOS(RTCTX *ctx, const RTGEOM *g, int autofix);
+GEOSGeometry * GBOX2GEOS(RTCTX *ctx, const RTGBOX *g);
+GEOSGeometry * RTGEOM_GEOS_buildArea(RTCTX *ctx, const GEOSGeometry* geom_in);
 
-int cluster_intersecting(GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** clusterGeoms, uint32_t* num_clusters);
-int cluster_within_distance(RTGEOM** geoms, uint32_t num_geoms, double tolerance, RTGEOM*** clusterGeoms, uint32_t* num_clusters);
+int cluster_intersecting(RTCTX *ctx, GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** clusterGeoms, uint32_t* num_clusters);
+int cluster_within_distance(RTCTX *ctx, RTGEOM** geoms, uint32_t num_geoms, double tolerance, RTGEOM*** clusterGeoms, uint32_t* num_clusters);
 
-RTPOINTARRAY *ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d);
+RTPOINTARRAY *ptarray_from_GEOSCoordSeq(RTCTX *ctx, const GEOSCoordSequence *cs, char want3d);
 
 
 extern char rtgeom_geos_errmsg[];

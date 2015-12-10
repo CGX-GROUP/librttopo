@@ -14,18 +14,18 @@
 #include "rtunionfind.h"
 #include <string.h>
 
-static int cmp_int(const void *a, const void *b);
-static int cmp_int_ptr(const void *a, const void *b);
+static int cmp_int(RTCTX *ctx, const void *a, const void *b);
+static int cmp_int_ptr(RTCTX *ctx, const void *a, const void *b);
 
 UNIONFIND*
-UF_create(uint32_t N)
+UF_create(RTCTX *ctx, uint32_t N)
 {
 	size_t i;
-	UNIONFIND* uf = rtalloc(sizeof(UNIONFIND));
+	UNIONFIND* uf = rtalloc(ctx, sizeof(UNIONFIND));
 	uf->N = N;
 	uf->num_clusters = N;
-	uf->clusters = rtalloc(N * sizeof(uint32_t));
-	uf->cluster_sizes = rtalloc(N * sizeof(uint32_t));
+	uf->clusters = rtalloc(ctx, N * sizeof(uint32_t));
+	uf->cluster_sizes = rtalloc(ctx, N * sizeof(uint32_t));
 
 	for (i = 0; i < N; i++)
 	{
@@ -37,15 +37,15 @@ UF_create(uint32_t N)
 }
 
 void
-UF_destroy(UNIONFIND* uf)
+UF_destroy(RTCTX *ctx, UNIONFIND* uf)
 {
-	rtfree(uf->clusters);
-	rtfree(uf->cluster_sizes);
-	rtfree(uf);
+	rtfree(ctx, uf->clusters);
+	rtfree(ctx, uf->cluster_sizes);
+	rtfree(ctx, uf);
 }
 
 uint32_t
-UF_find (UNIONFIND* uf, uint32_t i)
+UF_find(RTCTX *ctx, UNIONFIND* uf, uint32_t i)
 {
 	while (uf->clusters[i] != i)
 	{
@@ -56,10 +56,10 @@ UF_find (UNIONFIND* uf, uint32_t i)
 }
 
 void
-UF_union(UNIONFIND* uf, uint32_t i, uint32_t j)
+UF_union(RTCTX *ctx, UNIONFIND* uf, uint32_t i, uint32_t j)
 {
-	uint32_t a = UF_find(uf, i);
-	uint32_t b = UF_find(uf, j);
+	uint32_t a = UF_find(ctx, uf, i);
+	uint32_t b = UF_find(ctx, uf, j);
 
 	if (a == b)
 	{
@@ -84,18 +84,18 @@ UF_union(UNIONFIND* uf, uint32_t i, uint32_t j)
 }
 
 uint32_t*
-UF_ordered_by_cluster(UNIONFIND* uf)
+UF_ordered_by_cluster(RTCTX *ctx, UNIONFIND* uf)
 {
 	size_t i;
-	uint32_t** cluster_id_ptr_by_elem_id = rtalloc(uf->N * sizeof (uint32_t*));
-	uint32_t* ordered_ids = rtalloc(uf->N * sizeof (uint32_t));
+	uint32_t** cluster_id_ptr_by_elem_id = rtalloc(ctx, uf->N * sizeof (uint32_t*));
+	uint32_t* ordered_ids = rtalloc(ctx, uf->N * sizeof (uint32_t));
 
 	for (i = 0; i < uf->N; i++)
 	{
 		/* Make sure each value in uf->clusters is pointing to the
 		 * root of the cluster.
 		 * */
-		UF_find(uf, i);
+		UF_find(ctx, uf, i);
 		cluster_id_ptr_by_elem_id[i] = &(uf->clusters[i]);
 	}
 
@@ -112,11 +112,11 @@ UF_ordered_by_cluster(UNIONFIND* uf)
 		ordered_ids[i] = (cluster_id_ptr_by_elem_id[i] - uf->clusters);
 	}
 
-	rtfree(cluster_id_ptr_by_elem_id);
+	rtfree(ctx, cluster_id_ptr_by_elem_id);
 	return ordered_ids;
 }
 static int
-cmp_int(const void *a, const void *b)
+cmp_int(RTCTX *ctx, const void *a, const void *b)
 {
 	if (*((uint32_t*) a) > *((uint32_t*) b))
 	{
@@ -133,9 +133,9 @@ cmp_int(const void *a, const void *b)
 }
 
 static int
-cmp_int_ptr(const void *a, const void *b)
+cmp_int_ptr(RTCTX *ctx, const void *a, const void *b)
 {
-	int val_cmp = cmp_int(*((uint32_t**) a), *((uint32_t**) b));
+	int val_cmp = cmp_int(ctx, *((uint32_t**) a), *((uint32_t**) b));
 	if (val_cmp != 0)
 	{
 		return val_cmp;

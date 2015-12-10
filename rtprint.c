@@ -11,7 +11,7 @@
 
 /* Ensures the given lat and lon are in the "normal" range:
  * -90 to +90 for lat, -180 to +180 for lon. */
-static void rtprint_normalize_latlon(double *lat, double *lon)
+static void rtprint_normalize_latlon(RTCTX *ctx, double *lat, double *lon)
 {
 	/* First remove all the truly excessive trips around the world via up or down. */
 	while (*lat > 270)
@@ -53,7 +53,7 @@ static void rtprint_normalize_latlon(double *lat, double *lon)
  * lat vs. lon.  They are only used if the "C" (compass dir) token appears in the
  * format string.
  * NOTE: Format string and symbols are required to be in UTF-8. */
-static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char *neg_dir_symbol, const char * format)
+static char * rtdouble_to_dms(RTCTX *ctx, double val, const char *pos_dir_symbol, const char *neg_dir_symbol, const char * format)
 {
 	/* 3 numbers, 1 sign or compass dir, and 5 possible strings (degree signs, spaces, misc text, etc) between or around them.*/
 	static int NUM_PIECES = 9;
@@ -112,7 +112,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 	{
 		/* Sanity check, we don't want to overwrite an entire piece of work and no one should need a 1K-sized
 		* format string anyway. */
-		rterror("Bad format, exceeds maximum length (%d).", WORK_SIZE);
+		rterror(ctx, "Bad format, exceeds maximum length (%d).", WORK_SIZE);
 	}
 
 	for (index = 0; index < format_length; index++)
@@ -133,7 +133,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 				deg_piece = current_piece;
 				if (deg_digits > 0)
 				{
-					rterror("Bad format, cannot include degrees (DD.DDD) more than once.");
+					rterror(ctx, "Bad format, cannot include degrees (DD.DDD) more than once.");
 				}
 				reading_deg = 1;
 				reading_min = 0;
@@ -154,7 +154,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 				min_piece = current_piece;
 				if (min_digits > 0)
 				{
-					rterror("Bad format, cannot include minutes (MM.MMM) more than once.");
+					rterror(ctx, "Bad format, cannot include minutes (MM.MMM) more than once.");
 				}
 				reading_deg = 0;
 				reading_min = 1;
@@ -175,7 +175,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 				sec_piece = current_piece;
 				if (sec_digits > 0)
 				{
-					rterror("Bad format, cannot include seconds (SS.SSS) more than once.");
+					rterror(ctx, "Bad format, cannot include seconds (SS.SSS) more than once.");
 				}
 				reading_deg = 0;
 				reading_min = 0;
@@ -196,7 +196,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 
 			if (compass_dir_piece >= 0)
 			{
-				rterror("Bad format, cannot include compass dir (C) more than once.");
+				rterror(ctx, "Bad format, cannot include compass dir (C) more than once.");
 			}
 			/* The compass dir is a piece all by itself.  */
 			compass_dir_piece = current_piece;
@@ -251,20 +251,20 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 				}
 				else
 				{
-					rterror("Bad format, invalid high-order byte found first, format string may not be UTF-8.");
+					rterror(ctx, "Bad format, invalid high-order byte found first, format string may not be UTF-8.");
 				}
 			}
 			if (multibyte_char_width > 1)
 			{
 				if (index + multibyte_char_width >= format_length)
 				{
-					rterror("Bad format, UTF-8 character first byte found with insufficient following bytes, format string may not be UTF-8.");
+					rterror(ctx, "Bad format, UTF-8 character first byte found with insufficient following bytes, format string may not be UTF-8.");
 				}
 				for (following_byte_index = (index + 1); following_byte_index < (index + multibyte_char_width); following_byte_index++)
 				{
 					if ((format[following_byte_index] & 0xC0) != 0x80)
 					{
-						rterror("Bad format, invalid byte found following leading byte of multibyte character, format string may not be UTF-8.");
+						rterror(ctx, "Bad format, invalid byte found following leading byte of multibyte character, format string may not be UTF-8.");
 					}
 				}
 			}
@@ -276,12 +276,12 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 		}
 		if (current_piece >= NUM_PIECES)
 		{
-			rterror("Internal error, somehow needed more pieces than it should.");
+			rterror(ctx, "Internal error, somehow needed more pieces than it should.");
 		}
 	}
 	if (deg_piece < 0)
 	{
-		rterror("Bad format, degrees (DD.DDD) must be included.");
+		rterror(ctx, "Bad format, degrees (DD.DDD) must be included.");
 	}
 
 	/* Divvy the number up into D, DM, or DMS */
@@ -300,7 +300,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 	{
 		if (0 == min_digits)
 		{
-			rterror("Bad format, cannot include seconds (SS.SSS) without including minutes (MM.MMM).");
+			rterror(ctx, "Bad format, cannot include seconds (SS.SSS) without including minutes (MM.MMM).");
 		}
 		minutes = (long)minutes;
 		seconds = (val - (degrees + (minutes / 60))) * 3600;
@@ -319,7 +319,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 	/* Format the degrees into their string piece. */
 	if (deg_digits + deg_dec_digits + 2 > WORK_SIZE)
 	{
-		rterror("Bad format, degrees (DD.DDD) number of digits was greater than our working limit.");
+		rterror(ctx, "Bad format, degrees (DD.DDD) number of digits was greater than our working limit.");
 	}
 	if(deg_piece >= 0) 
 	{
@@ -331,7 +331,7 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 		/* Format the minutes into their string piece. */
 		if (min_digits + min_dec_digits + 2 > WORK_SIZE)
 		{
-			rterror("Bad format, minutes (MM.MMM) number of digits was greater than our working limit.");
+			rterror(ctx, "Bad format, minutes (MM.MMM) number of digits was greater than our working limit.");
 		}
 		sprintf(pieces[min_piece], "%*.*f", min_digits, min_dec_digits, minutes);
 	}
@@ -340,13 +340,13 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
 		/* Format the seconds into their string piece. */
 		if (sec_digits + sec_dec_digits + 2 > WORK_SIZE)
 		{
-			rterror("Bad format, seconds (SS.SSS) number of digits was greater than our working limit.");
+			rterror(ctx, "Bad format, seconds (SS.SSS) number of digits was greater than our working limit.");
 		}
 		sprintf(pieces[sec_piece], "%*.*f", sec_digits, sec_dec_digits, seconds);
 	}
 
 	/* Allocate space for the result.  Leave plenty of room for excess digits, negative sign, etc.*/
-	result = (char*)rtalloc(format_length + WORK_SIZE);
+	result = (char*)rtalloc(ctx, format_length + WORK_SIZE);
 	/* Append all the pieces together. There may be less than 9, but in that case the rest will be blank. */
 	strcpy(result, pieces[0]);
 	for (index = 1; index < NUM_PIECES; index++)
@@ -363,23 +363,23 @@ static char * rtdouble_to_dms(double val, const char *pos_dir_symbol, const char
  * NOTE: Format string is required to be in UTF-8.
  * NOTE2: returned string is rtalloc'ed, caller is responsible to rtfree it up
  */
-static char * rtdoubles_to_latlon(double lat, double lon, const char * format)
+static char * rtdoubles_to_latlon(RTCTX *ctx, double lat, double lon, const char * format)
 {
 	char * lat_text;
 	char * lon_text;
 	char * result;
 
 	/* Normalize lat/lon to the normal (-90 to 90, -180 to 180) range. */
-	rtprint_normalize_latlon(&lat, &lon);
+	rtprint_normalize_latlon(ctx, &lat, &lon);
 	/* This is somewhat inefficient as the format is parsed twice. */
-	lat_text = rtdouble_to_dms(lat, "N", "S", format);
-	lon_text = rtdouble_to_dms(lon, "E", "W", format);
+	lat_text = rtdouble_to_dms(ctx, lat, "N", "S", format);
+	lon_text = rtdouble_to_dms(ctx, lon, "E", "W", format);
 
 	/* lat + lon + a space between + the null terminator. */
-	result = (char*)rtalloc(strlen(lat_text) + strlen(lon_text) + 2);
+	result = (char*)rtalloc(ctx, strlen(lat_text) + strlen(lon_text) + 2);
 	sprintf(result, "%s %s", lat_text, lon_text);
-	rtfree(lat_text);
-	rtfree(lon_text);
+	rtfree(ctx, lat_text);
+	rtfree(ctx, lon_text);
 	return result;
 }
 
@@ -390,17 +390,17 @@ static char * rtdoubles_to_latlon(double lat, double lon, const char * format)
  * NOTE: Format string is required to be in UTF-8.
  * NOTE2: returned string is rtalloc'ed, caller is responsible to rtfree it up
  */
-char* rtpoint_to_latlon(const RTPOINT * pt, const char *format)
+char* rtpoint_to_latlon(RTCTX *ctx, const RTPOINT * pt, const char *format)
 {
 	const RTPOINT2D *p;
 	if (NULL == pt)
 	{
-		rterror("Cannot convert a null point into formatted text.");
+		rterror(ctx, "Cannot convert a null point into formatted text.");
 	}
-	if (rtgeom_is_empty((RTGEOM *)pt))
+	if (rtgeom_is_empty(ctx, (RTGEOM *)pt))
 	{
-		rterror("Cannot convert an empty point into formatted text.");
+		rterror(ctx, "Cannot convert an empty point into formatted text.");
 	}
-	p = getPoint2d_cp(pt->point, 0);
-	return rtdoubles_to_latlon(p->y, p->x, format);
+	p = getPoint2d_cp(ctx, pt->point, 0);
+	return rtdoubles_to_latlon(ctx, p->y, p->x, format);
 }

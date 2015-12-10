@@ -35,7 +35,7 @@
 static void geojson_rterror(char *msg, int error_code)
 {
 	RTDEBUGF(3, "rtgeom_from_geojson ERROR %i", error_code);
-	rterror("%s", msg);
+	rterror(ctx, "%s", msg);
 }
 
 /* Prototype */
@@ -139,7 +139,7 @@ parse_geojson_coord(json_object *poObj, int *hasz, RTPOINTARRAY *pa)
 		return RT_FAILURE;
 	}
 
-	return ptarray_append_point(pa, &pt, RT_TRUE);
+	return ptarray_append_point(ctx, pa, &pt, RT_TRUE);
 }
 
 static RTGEOM*
@@ -158,10 +158,10 @@ parse_geojson_point(json_object *geojson, int *hasz, int root_srid)
 		return NULL;
 	}
 	
-	pa = ptarray_construct_empty(1, 0, 1);
+	pa = ptarray_construct_empty(ctx, 1, 0, 1);
 	parse_geojson_coord(coords, hasz, pa);
 
-	geom = (RTGEOM *) rtpoint_construct(root_srid, NULL, pa);
+	geom = (RTGEOM *) rtpoint_construct(ctx, root_srid, NULL, pa);
 	RTDEBUG(2, "parse_geojson_point finished.");
 	return geom;
 }
@@ -183,7 +183,7 @@ parse_geojson_linestring(json_object *geojson, int *hasz, int root_srid)
 	return NULL;
 	}
 
-	pa = ptarray_construct_empty(1, 0, 1);
+	pa = ptarray_construct_empty(ctx, 1, 0, 1);
 
 	if( json_type_array == json_object_get_type( points ) )
 	{
@@ -196,7 +196,7 @@ parse_geojson_linestring(json_object *geojson, int *hasz, int root_srid)
 		}
 	}
 
-	geom = (RTGEOM *) rtline_construct(root_srid, NULL, pa);
+	geom = (RTGEOM *) rtline_construct(ctx, root_srid, NULL, pa);
 
 	RTDEBUG(2, "parse_geojson_linestring finished.");
 	return geom;
@@ -229,7 +229,7 @@ parse_geojson_polygon(json_object *geojson, int *hasz, int root_srid)
 	/* No rings => POLYGON EMPTY */
 	if ( ! nRings )
 	{
-		return (RTGEOM *)rtpoly_construct_empty(root_srid, 0, 0);
+		return (RTGEOM *)rtpoly_construct_empty(ctx, root_srid, 0, 0);
 	}
 	
 	for ( i = 0; i < nRings; i++ )
@@ -246,9 +246,9 @@ parse_geojson_polygon(json_object *geojson, int *hasz, int root_srid)
 		if ( nPoints == 0 ) continue;
 		
 		if ( ! ppa )
-			ppa = (RTPOINTARRAY**)rtalloc(sizeof(RTPOINTARRAY*) * nRings);
+			ppa = (RTPOINTARRAY**)rtalloc(ctx, sizeof(RTPOINTARRAY*) * nRings);
 		
-		ppa[i] = ptarray_construct_empty(1, 0, 1);
+		ppa[i] = ptarray_construct_empty(ctx, 1, 0, 1);
 		for ( j = 0; j < nPoints; j++ )
 		{
 			json_object* coords = NULL;
@@ -259,9 +259,9 @@ parse_geojson_polygon(json_object *geojson, int *hasz, int root_srid)
 	
 	/* All the rings were empty! */
 	if ( ! ppa )
-		return (RTGEOM *)rtpoly_construct_empty(root_srid, 0, 0);
+		return (RTGEOM *)rtpoly_construct_empty(ctx, root_srid, 0, 0);
 	
-	return (RTGEOM *) rtpoly_construct(root_srid, NULL, nRings, ppa);
+	return (RTGEOM *) rtpoly_construct(ctx, root_srid, NULL, nRings, ppa);
 }
 
 static RTGEOM*
@@ -273,11 +273,11 @@ parse_geojson_multipoint(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOINTTYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTMULTIPOINTTYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOINTTYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTMULTIPOINTTYPE, -1, 1, 0);
 	}
 
 	poObjPoints = findMemberByName( geojson, "coordinates" );
@@ -296,11 +296,11 @@ parse_geojson_multipoint(json_object *geojson, int *hasz, int root_srid)
 			json_object* poObjCoords = NULL;
 			poObjCoords = json_object_array_get_idx( poObjPoints, i );
 
-			pa = ptarray_construct_empty(1, 0, 1);
+			pa = ptarray_construct_empty(ctx, 1, 0, 1);
 			parse_geojson_coord(poObjCoords, hasz, pa);
 
-			geom = (RTGEOM*)rtmpoint_add_rtpoint((RTMPOINT*)geom,
-			                                     (RTPOINT*)rtpoint_construct(root_srid, NULL, pa));
+			geom = (RTGEOM*)rtmpoint_add_rtpoint(ctx, (RTMPOINT*)geom,
+			                                     (RTPOINT*)rtpoint_construct(ctx, root_srid, NULL, pa));
 		}
 	}
 
@@ -316,11 +316,11 @@ parse_geojson_multilinestring(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTILINETYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTMULTILINETYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTILINETYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTMULTILINETYPE, -1, 1, 0);
 	}
 
 	poObjLines = findMemberByName( geojson, "coordinates" );
@@ -338,7 +338,7 @@ parse_geojson_multilinestring(json_object *geojson, int *hasz, int root_srid)
 			RTPOINTARRAY *pa = NULL;
 			json_object* poObjLine = NULL;
 			poObjLine = json_object_array_get_idx( poObjLines, i );
-			pa = ptarray_construct_empty(1, 0, 1);
+			pa = ptarray_construct_empty(ctx, 1, 0, 1);
 
 			if( json_type_array == json_object_get_type( poObjLine ) )
 			{
@@ -350,8 +350,8 @@ parse_geojson_multilinestring(json_object *geojson, int *hasz, int root_srid)
 					parse_geojson_coord(coords, hasz, pa);
 				}
 
-				geom = (RTGEOM*)rtmline_add_rtline((RTMLINE*)geom,
-				                                   (RTLINE*)rtline_construct(root_srid, NULL, pa));
+				geom = (RTGEOM*)rtmline_add_rtline(ctx, (RTMLINE*)geom,
+				                                   (RTLINE*)rtline_construct(ctx, root_srid, NULL, pa));
 			}
 		}
 	}
@@ -368,11 +368,11 @@ parse_geojson_multipolygon(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOLYGONTYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTMULTIPOLYGONTYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTMULTIPOLYGONTYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTMULTIPOLYGONTYPE, -1, 1, 0);
 	}
 
 	poObjPolys = findMemberByName( geojson, "coordinates" );
@@ -392,7 +392,7 @@ parse_geojson_multipolygon(json_object *geojson, int *hasz, int root_srid)
 
 			if( json_type_array == json_object_get_type( poObjPoly ) )
 			{
-				RTPOLY *rtpoly = rtpoly_construct_empty(geom->srid, rtgeom_has_z(geom), rtgeom_has_m(geom));
+				RTPOLY *rtpoly = rtpoly_construct_empty(ctx, geom->srid, rtgeom_has_z(ctx, geom), rtgeom_has_m(ctx, geom));
 				int nRings = json_object_array_length( poObjPoly );
 				
 				for(j = 0; j < nRings; ++j)
@@ -402,7 +402,7 @@ parse_geojson_multipolygon(json_object *geojson, int *hasz, int root_srid)
 					if( json_type_array == json_object_get_type( points ) )
 					{
 
-						RTPOINTARRAY *pa = ptarray_construct_empty(1, 0, 1);
+						RTPOINTARRAY *pa = ptarray_construct_empty(ctx, 1, 0, 1);
 
 						int nPoints = json_object_array_length( points );
 						for ( k=0; k < nPoints; k++ )
@@ -411,10 +411,10 @@ parse_geojson_multipolygon(json_object *geojson, int *hasz, int root_srid)
 							parse_geojson_coord(coords, hasz, pa);
 						}
 						
-						rtpoly_add_ring(rtpoly, pa);
+						rtpoly_add_ring(ctx, rtpoly, pa);
 					}
 				}
-				geom = (RTGEOM*)rtmpoly_add_rtpoly((RTMPOLY*)geom, rtpoly);
+				geom = (RTGEOM*)rtmpoly_add_rtpoly(ctx, (RTMPOLY*)geom, rtpoly);
 			}
 		}
 	}
@@ -431,11 +431,11 @@ parse_geojson_geometrycollection(json_object *geojson, int *hasz, int root_srid)
 
 	if (!root_srid)
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, root_srid, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, root_srid, 1, 0);
 	}
 	else
 	{
-		geom = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, -1, 1, 0);
+		geom = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, -1, 1, 0);
 	}
 
 	poObjGeoms = findMemberByName( geojson, "geometries" );
@@ -452,7 +452,7 @@ parse_geojson_geometrycollection(json_object *geojson, int *hasz, int root_srid)
 		for(i = 0; i < nGeoms; ++i )
 		{
 			poObjGeom = json_object_array_get_idx( poObjGeoms, i );
-			geom = (RTGEOM*)rtcollection_add_rtgeom((RTCOLLECTION *)geom,
+			geom = (RTGEOM*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION *)geom,
 			                                        parse_geojson(poObjGeom, hasz, root_srid));
 		}
 	}
@@ -502,18 +502,18 @@ parse_geojson(json_object *geojson, int *hasz, int root_srid)
 	if( strcasecmp( name, "GeometryCollection" )==0 )
 		return parse_geojson_geometrycollection(geojson, hasz, root_srid);
 
-	rterror("invalid GeoJson representation");
+	rterror(ctx, "invalid GeoJson representation");
 	return NULL; /* Never reach */
 }
 
 #endif /* HAVE_LIBJSON or HAVE_LIBJSON_C --} */
 
 RTGEOM*
-rtgeom_from_geojson(const char *geojson, char **srs)
+rtgeom_from_geojson(RTCTX *ctx, const char *geojson, char **srs)
 {
 #ifndef HAVE_LIBJSON
 	*srs = NULL;
-	rterror("You need JSON-C for rtgeom_from_geojson");
+	rterror(ctx, "You need JSON-C for rtgeom_from_geojson");
 	return NULL;
 #else /* HAVE_LIBJSON */
 
@@ -555,7 +555,7 @@ rtgeom_from_geojson(const char *geojson, char **srs)
 					const char* pszName = json_object_get_string( poNameURL );
 					if ( pszName )
 					{
-						*srs = rtalloc(strlen(pszName) + 1);
+						*srs = rtalloc(ctx, strlen(pszName) + 1);
 						strcpy(*srs, pszName);
 					}
 				}
@@ -566,12 +566,12 @@ rtgeom_from_geojson(const char *geojson, char **srs)
 	rtgeom = parse_geojson(poObj, &hasz, 0);
 	json_object_put(poObj);
 
-	rtgeom_add_bbox(rtgeom);
+	rtgeom_add_bbox(ctx, rtgeom);
 
 	if (!hasz)
 	{
-		RTGEOM *tmp = rtgeom_force_2d(rtgeom);
-		rtgeom_free(rtgeom);
+		RTGEOM *tmp = rtgeom_force_2d(ctx, rtgeom);
+		rtgeom_free(ctx, rtgeom);
 		rtgeom = tmp;
 
 		RTDEBUG(2, "geom_from_geojson called.");

@@ -17,53 +17,53 @@
 #include "rtgeom_log.h"
 
 
-RTPSURFACE* rtpsurface_add_rtpoly(RTPSURFACE *mobj, const RTPOLY *obj)
+RTPSURFACE* rtpsurface_add_rtpoly(RTCTX *ctx, RTPSURFACE *mobj, const RTPOLY *obj)
 {
-	return (RTPSURFACE*)rtcollection_add_rtgeom((RTCOLLECTION*)mobj, (RTGEOM*)obj);
+	return (RTPSURFACE*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
 
-void rtpsurface_free(RTPSURFACE *psurf)
+void rtpsurface_free(RTCTX *ctx, RTPSURFACE *psurf)
 {
 	int i;
 	if ( ! psurf ) return;
 	if ( psurf->bbox )
-		rtfree(psurf->bbox);
+		rtfree(ctx, psurf->bbox);
 
 	for ( i = 0; i < psurf->ngeoms; i++ )
 		if ( psurf->geoms && psurf->geoms[i] )
-			rtpoly_free(psurf->geoms[i]);
+			rtpoly_free(ctx, psurf->geoms[i]);
 
 	if ( psurf->geoms )
-		rtfree(psurf->geoms);
+		rtfree(ctx, psurf->geoms);
 
-	rtfree(psurf);
+	rtfree(ctx, psurf);
 }
 
 
-void printRTPSURFACE(RTPSURFACE *psurf)
+void printRTPSURFACE(RTCTX *ctx, RTPSURFACE *psurf)
 {
 	int i, j;
 	RTPOLY *patch;
 
 	if (psurf->type != RTPOLYHEDRALSURFACETYPE)
-		rterror("printRTPSURFACE called with something else than a POLYHEDRALSURFACE");
+		rterror(ctx, "printRTPSURFACE called with something else than a POLYHEDRALSURFACE");
 
-	rtnotice("RTPSURFACE {");
-	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(psurf->flags));
-	rtnotice("    SRID = %i", (int)psurf->srid);
-	rtnotice("    ngeoms = %i", (int)psurf->ngeoms);
+	rtnotice(ctx, "RTPSURFACE {");
+	rtnotice(ctx, "    ndims = %i", (int)RTFLAGS_NDIMS(psurf->flags));
+	rtnotice(ctx, "    SRID = %i", (int)psurf->srid);
+	rtnotice(ctx, "    ngeoms = %i", (int)psurf->ngeoms);
 
 	for (i=0; i<psurf->ngeoms; i++)
 	{
 		patch = (RTPOLY *) psurf->geoms[i];
 		for (j=0; j<patch->nrings; j++)
 		{
-			rtnotice("    RING # %i :",j);
-			printPA(patch->rings[j]);
+			rtnotice(ctx, "    RING # %i :",j);
+			printPA(ctx, patch->rings[j]);
 		}
 	}
-	rtnotice("}");
+	rtnotice(ctx, "}");
 }
 
 
@@ -83,7 +83,7 @@ typedef struct struct_psurface_arcs *psurface_arcs;
 
 /* We supposed that the geometry is valid
    we could have wrong result if not */
-int rtpsurface_is_closed(const RTPSURFACE *psurface)
+int rtpsurface_is_closed(RTCTX *ctx, const RTPSURFACE *psurface)
 {
 	int i, j, k;
 	int narcs, carc;
@@ -105,7 +105,7 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 		narcs += patch->rings[0]->npoints - 1;
 	}
 
-	arcs = rtalloc(sizeof(struct struct_psurface_arcs) * narcs);
+	arcs = rtalloc(ctx, sizeof(struct struct_psurface_arcs) * narcs);
 	for (i=0, carc=0; i < psurface->ngeoms ; i++)
 	{
 
@@ -113,8 +113,8 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 		for (j=0; j < patch->rings[0]->npoints - 1; j++)
 		{
 
-			getPoint4d_p(patch->rings[0], j,   &pa);
-			getPoint4d_p(patch->rings[0], j+1, &pb);
+			getPoint4d_p(ctx, patch->rings[0], j,   &pa);
+			getPoint4d_p(ctx, patch->rings[0], j+1, &pb);
 
 			/* remove redundant points if any */
 			if (pa.x == pb.x && pa.y == pb.y && pa.z == pb.z) continue;
@@ -125,7 +125,7 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 			        (pa.x == pb.x && pa.y == pb.y && pa.z > pb.z) )
 			{
 				pa = pb;
-				getPoint4d_p(patch->rings[0], j, &pb);
+				getPoint4d_p(ctx, patch->rings[0], j, &pb);
 			}
 
 			for (found=0, k=0; k < carc ; k++)
@@ -143,7 +143,7 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 					      anyway not a closed one */
 					if (arcs[k].cnt > 2)
 					{
-						rtfree(arcs);
+						rtfree(ctx, arcs);
 						return 0;
 					}
 				}
@@ -165,7 +165,7 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 				      anyway not a closed one */
 				if (carc > narcs)
 				{
-					rtfree(arcs);
+					rtfree(ctx, arcs);
 					return 0;
 				}
 			}
@@ -178,11 +178,11 @@ int rtpsurface_is_closed(const RTPSURFACE *psurface)
 	{
 		if (arcs[k].cnt != 2)
 		{
-			rtfree(arcs);
+			rtfree(ctx, arcs);
 			return 0;
 		}
 	}
-	rtfree(arcs);
+	rtfree(ctx, arcs);
 
 	/* Invalid Polyhedral case */
 	if (carc < psurface->ngeoms) return 0;

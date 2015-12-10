@@ -120,14 +120,14 @@ struct geomtype_struct geomtype_struct_array[] =
 */
 const char dumb_upper_map[128] = "................................................0123456789.......ABCDEFGHIJKLMNOPQRSTUVWXYZ......ABCDEFGHIJKLMNOPQRSTUVWXYZ.....";
 
-static char dump_toupper(int in)
+static char dump_toupper(RTCTX *ctx, int in)
 {
 	if ( in < 0 || in > 127 ) 
 		return '.';
 	return dumb_upper_map[in];
 }
 
-uint8_t gflags(int hasz, int hasm, int geodetic)
+uint8_t gflags(RTCTX *ctx, int hasz, int hasm, int geodetic)
 {
 	uint8_t flags = 0;
 	if ( hasz )
@@ -145,7 +145,7 @@ uint8_t gflags(int hasz, int hasm, int geodetic)
 * Type == 0 in the case of the string "GEOMETRY" or "GEOGRAPHY".
 * Return RT_SUCCESS for success.
 */
-int geometry_type_from_string(const char *str, uint8_t *type, int *z, int *m)
+int geometry_type_from_string(RTCTX *ctx, const char *str, uint8_t *type, int *z, int *m)
 {
 	char *tmpstr;
 	int tmpstartpos, tmpendpos;
@@ -183,9 +183,9 @@ int geometry_type_from_string(const char *str, uint8_t *type, int *z, int *m)
 	}
 
 	/* Copy and convert to upper case for comparison */
-	tmpstr = rtalloc(tmpendpos - tmpstartpos + 2);
+	tmpstr = rtalloc(ctx, tmpendpos - tmpstartpos + 2);
 	for (i = tmpstartpos; i <= tmpendpos; i++)
-		tmpstr[i - tmpstartpos] = dump_toupper(str[i]);
+		tmpstr[i - tmpstartpos] = dump_toupper(ctx, str[i]);
 
 	/* Add NULL to terminate */
 	tmpstr[i - tmpstartpos] = '\0';
@@ -199,14 +199,14 @@ int geometry_type_from_string(const char *str, uint8_t *type, int *z, int *m)
 			*z = geomtype_struct_array[i].z;
 			*m = geomtype_struct_array[i].m;
 
-			rtfree(tmpstr);
+			rtfree(ctx, tmpstr);
 
 			return RT_SUCCESS;
 		}
 
 	}
 
-	rtfree(tmpstr);
+	rtfree(ctx, tmpstr);
 
 	return RT_FAILURE;
 }

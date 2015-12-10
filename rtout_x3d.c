@@ -20,22 +20,22 @@
 #include "librtgeom_internal.h"
 
 /** defid is the id of the coordinate can be used to hold other elements DEF='abc' transform='' etc. **/
-static size_t asx3d3_point_size(const RTPOINT *point, char *srs, int precision, int opts, const char *defid);
-static char *asx3d3_point(const RTPOINT *point, char *srs, int precision, int opts, const char *defid);
-static size_t asx3d3_line_size(const RTLINE *line, char *srs, int precision, int opts, const char *defid);
-static char *asx3d3_line(const RTLINE *line, char *srs, int precision, int opts, const char *defid);
-static size_t asx3d3_poly_size(const RTPOLY *poly, char *srs, int precision, int opts, const char *defid);
-static size_t asx3d3_triangle_size(const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid);
-static char *asx3d3_triangle(const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid);
-static size_t asx3d3_multi_size(const RTCOLLECTION *col, char *srs, int precisioSn, int opts, const char *defid);
-static char *asx3d3_multi(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
-static char *asx3d3_psurface(const RTPSURFACE *psur, char *srs, int precision, int opts, const char *defid);
-static char *asx3d3_tin(const RTTIN *tin, char *srs, int precision, int opts, const char *defid);
-static size_t asx3d3_collection_size(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
-static char *asx3d3_collection(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
-static size_t pointArray_toX3D3(RTPOINTARRAY *pa, char *buf, int precision, int opts, int is_closed);
+static size_t asx3d3_point_size(RTCTX *ctx, const RTPOINT *point, char *srs, int precision, int opts, const char *defid);
+static char * asx3d3_point(RTCTX *ctx, const RTPOINT *point, char *srs, int precision, int opts, const char *defid);
+static size_t asx3d3_line_size(RTCTX *ctx, const RTLINE *line, char *srs, int precision, int opts, const char *defid);
+static char * asx3d3_line(RTCTX *ctx, const RTLINE *line, char *srs, int precision, int opts, const char *defid);
+static size_t asx3d3_poly_size(RTCTX *ctx, const RTPOLY *poly, char *srs, int precision, int opts, const char *defid);
+static size_t asx3d3_triangle_size(RTCTX *ctx, const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid);
+static char * asx3d3_triangle(RTCTX *ctx, const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid);
+static size_t asx3d3_multi_size(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precisioSn, int opts, const char *defid);
+static char * asx3d3_multi(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
+static char * asx3d3_psurface(RTCTX *ctx, const RTPSURFACE *psur, char *srs, int precision, int opts, const char *defid);
+static char * asx3d3_tin(RTCTX *ctx, const RTTIN *tin, char *srs, int precision, int opts, const char *defid);
+static size_t asx3d3_collection_size(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
+static char * asx3d3_collection(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid);
+static size_t pointArray_toX3D3(RTCTX *ctx, RTPOINTARRAY *pa, char *buf, int precision, int opts, int is_closed);
 
-static size_t pointArray_X3Dsize(RTPOINTARRAY *pa, int precision);
+static size_t pointArray_X3Dsize(RTCTX *ctx, RTPOINTARRAY *pa, int precision);
 
 
 /*
@@ -45,66 +45,66 @@ static size_t pointArray_X3Dsize(RTPOINTARRAY *pa, int precision);
 
 /* takes a GEOMETRY and returns an X3D representation */
 extern char *
-rtgeom_to_x3d3(const RTGEOM *geom, char *srs, int precision, int opts, const char *defid)
+rtgeom_to_x3d3(RTCTX *ctx, const RTGEOM *geom, char *srs, int precision, int opts, const char *defid)
 {
 	int type = geom->type;
 
 	switch (type)
 	{
 	case RTPOINTTYPE:
-		return asx3d3_point((RTPOINT*)geom, srs, precision, opts, defid);
+		return asx3d3_point(ctx, (RTPOINT*)geom, srs, precision, opts, defid);
 
 	case RTLINETYPE:
-		return asx3d3_line((RTLINE*)geom, srs, precision, opts, defid);
+		return asx3d3_line(ctx, (RTLINE*)geom, srs, precision, opts, defid);
 
 	case RTPOLYGONTYPE:
 	{
 		/** We might change this later, but putting a polygon in an indexed face set
 		* seems like the simplest way to go so treat just like a mulitpolygon
 		*/
-		RTCOLLECTION *tmp = (RTCOLLECTION*)rtgeom_as_multi(geom);
-		char *ret = asx3d3_multi(tmp, srs, precision, opts, defid);
-		rtcollection_free(tmp);
+		RTCOLLECTION *tmp = (RTCOLLECTION*)rtgeom_as_multi(ctx, geom);
+		char *ret = asx3d3_multi(ctx, tmp, srs, precision, opts, defid);
+		rtcollection_free(ctx, tmp);
 		return ret;
 	}
 
 	case RTTRIANGLETYPE:
-		return asx3d3_triangle((RTTRIANGLE*)geom, srs, precision, opts, defid);
+		return asx3d3_triangle(ctx, (RTTRIANGLE*)geom, srs, precision, opts, defid);
 
 	case RTMULTIPOINTTYPE:
 	case RTMULTILINETYPE:
 	case RTMULTIPOLYGONTYPE:
-		return asx3d3_multi((RTCOLLECTION*)geom, srs, precision, opts, defid);
+		return asx3d3_multi(ctx, (RTCOLLECTION*)geom, srs, precision, opts, defid);
 
 	case RTPOLYHEDRALSURFACETYPE:
-		return asx3d3_psurface((RTPSURFACE*)geom, srs, precision, opts, defid);
+		return asx3d3_psurface(ctx, (RTPSURFACE*)geom, srs, precision, opts, defid);
 
 	case RTTINTYPE:
-		return asx3d3_tin((RTTIN*)geom, srs, precision, opts, defid);
+		return asx3d3_tin(ctx, (RTTIN*)geom, srs, precision, opts, defid);
 
 	case RTCOLLECTIONTYPE:
-		return asx3d3_collection((RTCOLLECTION*)geom, srs, precision, opts, defid);
+		return asx3d3_collection(ctx, (RTCOLLECTION*)geom, srs, precision, opts, defid);
 
 	default:
-		rterror("rtgeom_to_x3d3: '%s' geometry type not supported", rttype_name(type));
+		rterror(ctx, "rtgeom_to_x3d3: '%s' geometry type not supported", rttype_name(ctx, type));
 		return NULL;
 	}
 }
 
 static size_t
-asx3d3_point_size(const RTPOINT *point, char *srs, int precision, int opts, const char *defid)
+asx3d3_point_size(RTCTX *ctx, const RTPOINT *point, char *srs, int precision, int opts, const char *defid)
 {
 	int size;
 	/* size_t defidlen = strlen(defid); */
 
-	size = pointArray_X3Dsize(point->point, precision);
+	size = pointArray_X3Dsize(ctx, point->point, precision);
 	/* size += ( sizeof("<point><pos>/") + (defidlen*2) ) * 2; */
 	/* if (srs)     size += strlen(srs) + sizeof(" srsName=.."); */
 	return size;
 }
 
 static size_t
-asx3d3_point_buf(const RTPOINT *point, char *srs, char *output, int precision, int opts, const char *defid)
+asx3d3_point_buf(RTCTX *ctx, const RTPOINT *point, char *srs, char *output, int precision, int opts, const char *defid)
 {
 	char *ptr = output;
 	/* int dimension=2; */
@@ -118,32 +118,32 @@ asx3d3_point_buf(const RTPOINT *point, char *srs, char *output, int precision, i
 	/* ptr += sprintf(ptr, "%s", defid); */
 
 	/* ptr += sprintf(ptr, "<%spos>", defid); */
-	ptr += pointArray_toX3D3(point->point, ptr, precision, opts, 0);
+	ptr += pointArray_toX3D3(ctx, point->point, ptr, precision, opts, 0);
 	/* ptr += sprintf(ptr, "</%spos></%sPoint>", defid, defid); */
 
 	return (ptr-output);
 }
 
 static char *
-asx3d3_point(const RTPOINT *point, char *srs, int precision, int opts, const char *defid)
+asx3d3_point(RTCTX *ctx, const RTPOINT *point, char *srs, int precision, int opts, const char *defid)
 {
 	char *output;
 	int size;
 
-	size = asx3d3_point_size(point, srs, precision, opts, defid);
-	output = rtalloc(size);
-	asx3d3_point_buf(point, srs, output, precision, opts, defid);
+	size = asx3d3_point_size(ctx, point, srs, precision, opts, defid);
+	output = rtalloc(ctx, size);
+	asx3d3_point_buf(ctx, point, srs, output, precision, opts, defid);
 	return output;
 }
 
 
 static size_t
-asx3d3_line_size(const RTLINE *line, char *srs, int precision, int opts, const char *defid)
+asx3d3_line_size(RTCTX *ctx, const RTLINE *line, char *srs, int precision, int opts, const char *defid)
 {
 	int size;
 	size_t defidlen = strlen(defid);
 
-	size = pointArray_X3Dsize(line->points, precision)*2;
+	size = pointArray_X3Dsize(ctx, line->points, precision)*2;
 	
 	if ( X3D_USE_GEOCOORDS(opts) ) {
 			size += (
@@ -161,7 +161,7 @@ asx3d3_line_size(const RTLINE *line, char *srs, int precision, int opts, const c
 }
 
 static size_t
-asx3d3_line_buf(const RTLINE *line, char *srs, char *output, int precision, int opts, const char *defid)
+asx3d3_line_buf(RTCTX *ctx, const RTLINE *line, char *srs, char *output, int precision, int opts, const char *defid)
 {
 	char *ptr=output;
 	/* int dimension=2; */
@@ -176,7 +176,7 @@ asx3d3_line_buf(const RTLINE *line, char *srs, char *output, int precision, int 
 	if ( X3D_USE_GEOCOORDS(opts) ) ptr += sprintf(ptr, "<GeoCoordinate geoSystem='\"GD\" \"WE\" \"%s\"' point='", ( (opts & RT_X3D_FLIP_XY) ? "latitude_first" : "longitude_first") );
 	else
 		ptr += sprintf(ptr, "<Coordinate point='");
-	ptr += pointArray_toX3D3(line->points, ptr, precision, opts, rtline_is_closed((RTLINE *) line));
+	ptr += pointArray_toX3D3(ctx, line->points, ptr, precision, opts, rtline_is_closed(ctx, (RTLINE *) line));
 
 	ptr += sprintf(ptr, "' />");
 
@@ -185,17 +185,17 @@ asx3d3_line_buf(const RTLINE *line, char *srs, char *output, int precision, int 
 }
 
 static size_t
-asx3d3_line_coords(const RTLINE *line, char *output, int precision, int opts)
+asx3d3_line_coords(RTCTX *ctx, const RTLINE *line, char *output, int precision, int opts)
 {
 	char *ptr=output;
 	/* ptr += sprintf(ptr, ""); */
-	ptr += pointArray_toX3D3(line->points, ptr, precision, opts, rtline_is_closed(line));
+	ptr += pointArray_toX3D3(ctx, line->points, ptr, precision, opts, rtline_is_closed(ctx, line));
 	return (ptr-output);
 }
 
 /* Calculate the coordIndex property of the IndexedLineSet for the multilinestring */
 static size_t
-asx3d3_mline_coordindex(const RTMLINE *mgeom, char *output)
+asx3d3_mline_coordindex(RTCTX *ctx, const RTMLINE *mgeom, char *output)
 {
 	char *ptr=output;
 	RTLINE *geom;
@@ -219,7 +219,7 @@ asx3d3_mline_coordindex(const RTMLINE *mgeom, char *output)
 			/** if the linestring is closed, we put the start point index
 			*   for the last vertex to denote use first point
 			*    and don't increment the index **/
-			if (!rtline_is_closed(geom) || k < (np -1) )
+			if (!rtline_is_closed(ctx, geom) || k < (np -1) )
 			{
 				ptr += sprintf(ptr, "%d", j);
 				j += 1;
@@ -241,7 +241,7 @@ asx3d3_mline_coordindex(const RTMLINE *mgeom, char *output)
     This is not ideal -- would be really nice to just share this function with psurf,
     but I'm not smart enough to do that yet*/
 static size_t
-asx3d3_mpoly_coordindex(const RTMPOLY *psur, char *output)
+asx3d3_mpoly_coordindex(RTCTX *ctx, const RTMPOLY *psur, char *output)
 {
 	char *ptr=output;
 	RTPOLY *patch;
@@ -286,20 +286,20 @@ asx3d3_mpoly_coordindex(const RTMPOLY *psur, char *output)
 
 /** Return the linestring as an X3D LineSet */
 static char *
-asx3d3_line(const RTLINE *line, char *srs, int precision, int opts, const char *defid)
+asx3d3_line(RTCTX *ctx, const RTLINE *line, char *srs, int precision, int opts, const char *defid)
 {
 	char *output;
 	int size;
 
-	size = sizeof("<LineSet><CoordIndex ='' /></LineSet>") + asx3d3_line_size(line, srs, precision, opts, defid);
-	output = rtalloc(size);
-	asx3d3_line_buf(line, srs, output, precision, opts, defid);
+	size = sizeof("<LineSet><CoordIndex ='' /></LineSet>") + asx3d3_line_size(ctx, line, srs, precision, opts, defid);
+	output = rtalloc(ctx, size);
+	asx3d3_line_buf(ctx, line, srs, output, precision, opts, defid);
 	return output;
 }
 
 /** Compute the string space needed for the IndexedFaceSet representation of the polygon **/
 static size_t
-asx3d3_poly_size(const RTPOLY *poly,  char *srs, int precision, int opts, const char *defid)
+asx3d3_poly_size(RTCTX *ctx, const RTPOLY *poly,  char *srs, int precision, int opts, const char *defid)
 {
 	size_t size;
 	size_t defidlen = strlen(defid);
@@ -308,58 +308,58 @@ asx3d3_poly_size(const RTPOLY *poly,  char *srs, int precision, int opts, const 
 	size = ( sizeof("<IndexedFaceSet></IndexedFaceSet>") + (defidlen*3) ) * 2 + 6 * (poly->nrings - 1);
 
 	for (i=0; i<poly->nrings; i++)
-		size += pointArray_X3Dsize(poly->rings[i], precision);
+		size += pointArray_X3Dsize(ctx, poly->rings[i], precision);
 
 	return size;
 }
 
 /** Compute the X3D coordinates of the polygon **/
 static size_t
-asx3d3_poly_buf(const RTPOLY *poly, char *srs, char *output, int precision, int opts, int is_patch, const char *defid)
+asx3d3_poly_buf(RTCTX *ctx, const RTPOLY *poly, char *srs, char *output, int precision, int opts, int is_patch, const char *defid)
 {
 	int i;
 	char *ptr=output;
 
-	ptr += pointArray_toX3D3(poly->rings[0], ptr, precision, opts, 1);
+	ptr += pointArray_toX3D3(ctx, poly->rings[0], ptr, precision, opts, 1);
 	for (i=1; i<poly->nrings; i++)
 	{
 		ptr += sprintf(ptr, " "); /* inner ring points start */
-		ptr += pointArray_toX3D3(poly->rings[i], ptr, precision, opts,1);
+		ptr += pointArray_toX3D3(ctx, poly->rings[i], ptr, precision, opts,1);
 	}
 	return (ptr-output);
 }
 
 static size_t
-asx3d3_triangle_size(const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid)
+asx3d3_triangle_size(RTCTX *ctx, const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid)
 {
 	size_t size;
 	size_t defidlen = strlen(defid);
 
 	/** 6 for the 3 sides and space to separate each side **/
 	size = sizeof("<IndexedTriangleSet index=''></IndexedTriangleSet>") + defidlen + 6;
-	size += pointArray_X3Dsize(triangle->points, precision);
+	size += pointArray_X3Dsize(ctx, triangle->points, precision);
 
 	return size;
 }
 
 static size_t
-asx3d3_triangle_buf(const RTTRIANGLE *triangle, char *srs, char *output, int precision, int opts, const char *defid)
+asx3d3_triangle_buf(RTCTX *ctx, const RTTRIANGLE *triangle, char *srs, char *output, int precision, int opts, const char *defid)
 {
 	char *ptr=output;
-	ptr += pointArray_toX3D3(triangle->points, ptr, precision, opts, 1);
+	ptr += pointArray_toX3D3(ctx, triangle->points, ptr, precision, opts, 1);
 
 	return (ptr-output);
 }
 
 static char *
-asx3d3_triangle(const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid)
+asx3d3_triangle(RTCTX *ctx, const RTTRIANGLE *triangle, char *srs, int precision, int opts, const char *defid)
 {
 	char *output;
 	int size;
 
-	size = asx3d3_triangle_size(triangle, srs, precision, opts, defid);
-	output = rtalloc(size);
-	asx3d3_triangle_buf(triangle, srs, output, precision, opts, defid);
+	size = asx3d3_triangle_size(ctx, triangle, srs, precision, opts, defid);
+	output = rtalloc(ctx, size);
+	asx3d3_triangle_buf(ctx, triangle, srs, output, precision, opts, defid);
 	return output;
 }
 
@@ -370,7 +370,7 @@ asx3d3_triangle(const RTTRIANGLE *triangle, char *srs, int precision, int opts, 
  * Don't call this with single-geoms inspected.
  */
 static size_t
-asx3d3_multi_size(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
+asx3d3_multi_size(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
 {
 	int i;
 	size_t size;
@@ -392,17 +392,17 @@ asx3d3_multi_size(const RTCOLLECTION *col, char *srs, int precision, int opts, c
 		if (subgeom->type == RTPOINTTYPE)
 		{
 			/* size += ( sizeof("point=''") + defidlen ) * 2; */
-			size += asx3d3_point_size((RTPOINT*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_point_size(ctx, (RTPOINT*)subgeom, 0, precision, opts, defid);
 		}
 		else if (subgeom->type == RTLINETYPE)
 		{
 			/* size += ( sizeof("<curveMember>/") + defidlen ) * 2; */
-			size += asx3d3_line_size((RTLINE*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_line_size(ctx, (RTLINE*)subgeom, 0, precision, opts, defid);
 		}
 		else if (subgeom->type == RTPOLYGONTYPE)
 		{
 			/* size += ( sizeof("<surfaceMember>/") + defidlen ) * 2; */
-			size += asx3d3_poly_size((RTPOLY*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_poly_size(ctx, (RTPOLY*)subgeom, 0, precision, opts, defid);
 		}
 	}
 
@@ -413,7 +413,7 @@ asx3d3_multi_size(const RTCOLLECTION *col, char *srs, int precision, int opts, c
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision, int opts, const char *defid)
+asx3d3_multi_buf(RTCTX *ctx, const RTCOLLECTION *col, char *srs, char *output, int precision, int opts, const char *defid)
 {
 	char *ptr, *x3dtype;
 	int i;
@@ -440,17 +440,17 @@ asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision
         case RTMULTILINETYPE:
             x3dtype = "IndexedLineSet";
             ptr += sprintf(ptr, "<%s %s coordIndex='", x3dtype, defid);
-            ptr += asx3d3_mline_coordindex((const RTMLINE *)col, ptr);
+            ptr += asx3d3_mline_coordindex(ctx, (const RTMLINE *)col, ptr);
             ptr += sprintf(ptr, "'>");
             break;
         case RTMULTIPOLYGONTYPE:
             x3dtype = "IndexedFaceSet";
             ptr += sprintf(ptr, "<%s %s coordIndex='", x3dtype, defid);
-            ptr += asx3d3_mpoly_coordindex((const RTMPOLY *)col, ptr);
+            ptr += asx3d3_mpoly_coordindex(ctx, (const RTMPOLY *)col, ptr);
             ptr += sprintf(ptr, "'>");
             break;
         default:
-            rterror("asx3d3_multi_buf: '%s' geometry type not supported", rttype_name(col->type));
+            rterror(ctx, "asx3d3_multi_buf: '%s' geometry type not supported", rttype_name(ctx, col->type));
             return 0;
     }
     if (dimension == 3){
@@ -465,17 +465,17 @@ asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision
 		subgeom = col->geoms[i];
 		if (subgeom->type == RTPOINTTYPE)
 		{
-			ptr += asx3d3_point_buf((RTPOINT*)subgeom, 0, ptr, precision, opts, defid);
+			ptr += asx3d3_point_buf(ctx, (RTPOINT*)subgeom, 0, ptr, precision, opts, defid);
 			ptr += sprintf(ptr, " ");
 		}
 		else if (subgeom->type == RTLINETYPE)
 		{
-			ptr += asx3d3_line_coords((RTLINE*)subgeom, ptr, precision, opts);
+			ptr += asx3d3_line_coords(ctx, (RTLINE*)subgeom, ptr, precision, opts);
 			ptr += sprintf(ptr, " ");
 		}
 		else if (subgeom->type == RTPOLYGONTYPE)
 		{
-			ptr += asx3d3_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, opts, 0, defid);
+			ptr += asx3d3_poly_buf(ctx, (RTPOLY*)subgeom, 0, ptr, precision, opts, 0, defid);
 			ptr += sprintf(ptr, " ");
 		}
 	}
@@ -492,20 +492,20 @@ asx3d3_multi_buf(const RTCOLLECTION *col, char *srs, char *output, int precision
  * Don't call this with single-geoms inspected!
  */
 static char *
-asx3d3_multi(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
+asx3d3_multi(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
 {
 	char *x3d;
 	size_t size;
 
-	size = asx3d3_multi_size(col, srs, precision, opts, defid);
-	x3d = rtalloc(size);
-	asx3d3_multi_buf(col, srs, x3d, precision, opts, defid);
+	size = asx3d3_multi_size(ctx, col, srs, precision, opts, defid);
+	x3d = rtalloc(ctx, size);
+	asx3d3_multi_buf(ctx, col, srs, x3d, precision, opts, defid);
 	return x3d;
 }
 
 
 static size_t
-asx3d3_psurface_size(const RTPSURFACE *psur, char *srs, int precision, int opts, const char *defid)
+asx3d3_psurface_size(RTCTX *ctx, const RTPSURFACE *psur, char *srs, int precision, int opts, const char *defid)
 {
 	int i;
 	size_t size;
@@ -517,7 +517,7 @@ asx3d3_psurface_size(const RTPSURFACE *psur, char *srs, int precision, int opts,
 
 	for (i=0; i<psur->ngeoms; i++)
 	{
-		size += asx3d3_poly_size(psur->geoms[i], 0, precision, opts, defid)*5; /** need to make space for coordIndex values too including -1 separating each poly**/
+		size += asx3d3_poly_size(ctx, psur->geoms[i], 0, precision, opts, defid)*5; /** need to make space for coordIndex values too including -1 separating each poly**/
 	}
 
 	return size;
@@ -528,7 +528,7 @@ asx3d3_psurface_size(const RTPSURFACE *psur, char *srs, int precision, int opts,
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asx3d3_psurface_buf(const RTPSURFACE *psur, char *srs, char *output, int precision, int opts, const char *defid)
+asx3d3_psurface_buf(RTCTX *ctx, const RTPSURFACE *psur, char *srs, char *output, int precision, int opts, const char *defid)
 {
 	char *ptr;
 	int i;
@@ -568,7 +568,7 @@ asx3d3_psurface_buf(const RTPSURFACE *psur, char *srs, char *output, int precisi
 
 	for (i=0; i<psur->ngeoms; i++)
 	{
-		ptr += asx3d3_poly_buf(psur->geoms[i], 0, ptr, precision, opts, 1, defid);
+		ptr += asx3d3_poly_buf(ctx, psur->geoms[i], 0, ptr, precision, opts, 1, defid);
 		if (i < (psur->ngeoms - 1) )
 		{
 			ptr += sprintf(ptr, " "); /* only add a trailing space if its not the last polygon in the set */
@@ -585,20 +585,20 @@ asx3d3_psurface_buf(const RTPSURFACE *psur, char *srs, char *output, int precisi
  * Don't call this with single-geoms inspected!
  */
 static char *
-asx3d3_psurface(const RTPSURFACE *psur, char *srs, int precision, int opts, const char *defid)
+asx3d3_psurface(RTCTX *ctx, const RTPSURFACE *psur, char *srs, int precision, int opts, const char *defid)
 {
 	char *x3d;
 	size_t size;
 
-	size = asx3d3_psurface_size(psur, srs, precision, opts, defid);
-	x3d = rtalloc(size);
-	asx3d3_psurface_buf(psur, srs, x3d, precision, opts, defid);
+	size = asx3d3_psurface_size(ctx, psur, srs, precision, opts, defid);
+	x3d = rtalloc(ctx, size);
+	asx3d3_psurface_buf(ctx, psur, srs, x3d, precision, opts, defid);
 	return x3d;
 }
 
 
 static size_t
-asx3d3_tin_size(const RTTIN *tin, char *srs, int precision, int opts, const char *defid)
+asx3d3_tin_size(RTCTX *ctx, const RTTIN *tin, char *srs, int precision, int opts, const char *defid)
 {
 	int i;
 	size_t size;
@@ -611,7 +611,7 @@ asx3d3_tin_size(const RTTIN *tin, char *srs, int precision, int opts, const char
 
 	for (i=0; i<tin->ngeoms; i++)
 	{
-		size += (asx3d3_triangle_size(tin->geoms[i], 0, precision, opts, defid) * 20); /** 3 is to make space for coordIndex **/
+		size += (asx3d3_triangle_size(ctx, tin->geoms[i], 0, precision, opts, defid) * 20); /** 3 is to make space for coordIndex **/
 	}
 
 	return size;
@@ -622,7 +622,7 @@ asx3d3_tin_size(const RTTIN *tin, char *srs, int precision, int opts, const char
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asx3d3_tin_buf(const RTTIN *tin, char *srs, char *output, int precision, int opts, const char *defid)
+asx3d3_tin_buf(RTCTX *ctx, const RTTIN *tin, char *srs, char *output, int precision, int opts, const char *defid)
 {
 	char *ptr;
 	int i;
@@ -649,7 +649,7 @@ asx3d3_tin_buf(const RTTIN *tin, char *srs, char *output, int precision, int opt
 	
 	for (i=0; i<tin->ngeoms; i++)
 	{
-		ptr += asx3d3_triangle_buf(tin->geoms[i], 0, ptr, precision,
+		ptr += asx3d3_triangle_buf(ctx, tin->geoms[i], 0, ptr, precision,
 		                           opts, defid);
 		if (i < (tin->ngeoms - 1) )
 		{
@@ -668,19 +668,19 @@ asx3d3_tin_buf(const RTTIN *tin, char *srs, char *output, int precision, int opt
  * Don't call this with single-geoms inspected!
  */
 static char *
-asx3d3_tin(const RTTIN *tin, char *srs, int precision, int opts, const char *defid)
+asx3d3_tin(RTCTX *ctx, const RTTIN *tin, char *srs, int precision, int opts, const char *defid)
 {
 	char *x3d;
 	size_t size;
 
-	size = asx3d3_tin_size(tin, srs, precision, opts, defid);
-	x3d = rtalloc(size);
-	asx3d3_tin_buf(tin, srs, x3d, precision, opts, defid);
+	size = asx3d3_tin_size(ctx, tin, srs, precision, opts, defid);
+	x3d = rtalloc(ctx, size);
+	asx3d3_tin_buf(ctx, tin, srs, x3d, precision, opts, defid);
 	return x3d;
 }
 
 static size_t
-asx3d3_collection_size(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
+asx3d3_collection_size(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
 {
 	int i;
 	size_t size;
@@ -699,37 +699,37 @@ asx3d3_collection_size(const RTCOLLECTION *col, char *srs, int precision, int op
 		size += ( sizeof("<Shape />") + defidlen ) * 2; /** for collections we need to wrap each in a shape tag to make valid **/
 		if ( subgeom->type == RTPOINTTYPE )
 		{
-			size += asx3d3_point_size((RTPOINT*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_point_size(ctx, (RTPOINT*)subgeom, 0, precision, opts, defid);
 		}
 		else if ( subgeom->type == RTLINETYPE )
 		{
-			size += asx3d3_line_size((RTLINE*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_line_size(ctx, (RTLINE*)subgeom, 0, precision, opts, defid);
 		}
 		else if ( subgeom->type == RTPOLYGONTYPE )
 		{
-			size += asx3d3_poly_size((RTPOLY*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_poly_size(ctx, (RTPOLY*)subgeom, 0, precision, opts, defid);
 		}
 		else if ( subgeom->type == RTTINTYPE )
 		{
-			size += asx3d3_tin_size((RTTIN*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_tin_size(ctx, (RTTIN*)subgeom, 0, precision, opts, defid);
 		}
 		else if ( subgeom->type == RTPOLYHEDRALSURFACETYPE )
 		{
-			size += asx3d3_psurface_size((RTPSURFACE*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_psurface_size(ctx, (RTPSURFACE*)subgeom, 0, precision, opts, defid);
 		}
-		else if ( rtgeom_is_collection(subgeom) )
+		else if ( rtgeom_is_collection(ctx, subgeom) )
 		{
-			size += asx3d3_multi_size((RTCOLLECTION*)subgeom, 0, precision, opts, defid);
+			size += asx3d3_multi_size(ctx, (RTCOLLECTION*)subgeom, 0, precision, opts, defid);
 		}
 		else
-			rterror("asx3d3_collection_size: unknown geometry type");
+			rterror(ctx, "asx3d3_collection_size: unknown geometry type");
 	}
 
 	return size;
 }
 
 static size_t
-asx3d3_collection_buf(const RTCOLLECTION *col, char *srs, char *output, int precision, int opts, const char *defid)
+asx3d3_collection_buf(RTCTX *ctx, const RTCOLLECTION *col, char *srs, char *output, int precision, int opts, const char *defid)
 {
 	char *ptr;
 	int i;
@@ -756,35 +756,35 @@ asx3d3_collection_buf(const RTCOLLECTION *col, char *srs, char *output, int prec
 		ptr += sprintf(ptr, "<Shape%s>", defid);
 		if ( subgeom->type == RTPOINTTYPE )
 		{
-			ptr += asx3d3_point_buf((RTPOINT*)subgeom, 0, ptr, precision, opts, defid);
+			ptr += asx3d3_point_buf(ctx, (RTPOINT*)subgeom, 0, ptr, precision, opts, defid);
 		}
 		else if ( subgeom->type == RTLINETYPE )
 		{
-			ptr += asx3d3_line_buf((RTLINE*)subgeom, 0, ptr, precision, opts, defid);
+			ptr += asx3d3_line_buf(ctx, (RTLINE*)subgeom, 0, ptr, precision, opts, defid);
 		}
 		else if ( subgeom->type == RTPOLYGONTYPE )
 		{
-			ptr += asx3d3_poly_buf((RTPOLY*)subgeom, 0, ptr, precision, opts, 0, defid);
+			ptr += asx3d3_poly_buf(ctx, (RTPOLY*)subgeom, 0, ptr, precision, opts, 0, defid);
 		}
 		else if ( subgeom->type == RTTINTYPE )
 		{
-			ptr += asx3d3_tin_buf((RTTIN*)subgeom, srs, ptr, precision, opts,  defid);
+			ptr += asx3d3_tin_buf(ctx, (RTTIN*)subgeom, srs, ptr, precision, opts,  defid);
 			
 		}
 		else if ( subgeom->type == RTPOLYHEDRALSURFACETYPE )
 		{
-			ptr += asx3d3_psurface_buf((RTPSURFACE*)subgeom, srs, ptr, precision, opts,  defid);
+			ptr += asx3d3_psurface_buf(ctx, (RTPSURFACE*)subgeom, srs, ptr, precision, opts,  defid);
 			
 		}
-		else if ( rtgeom_is_collection(subgeom) )
+		else if ( rtgeom_is_collection(ctx, subgeom) )
 		{
 			if ( subgeom->type == RTCOLLECTIONTYPE )
-				ptr += asx3d3_collection_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, opts, defid);
+				ptr += asx3d3_collection_buf(ctx, (RTCOLLECTION*)subgeom, 0, ptr, precision, opts, defid);
 			else
-				ptr += asx3d3_multi_buf((RTCOLLECTION*)subgeom, 0, ptr, precision, opts, defid);
+				ptr += asx3d3_multi_buf(ctx, (RTCOLLECTION*)subgeom, 0, ptr, precision, opts, defid);
 		}
 		else
-			rterror("asx3d3_collection_buf: unknown geometry type");
+			rterror(ctx, "asx3d3_collection_buf: unknown geometry type");
 
 		ptr += printf(ptr, "</Shape>");
 	}
@@ -801,14 +801,14 @@ asx3d3_collection_buf(const RTCOLLECTION *col, char *srs, char *output, int prec
  * Don't call this with single-geoms inspected!
  */
 static char *
-asx3d3_collection(const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
+asx3d3_collection(RTCTX *ctx, const RTCOLLECTION *col, char *srs, int precision, int opts, const char *defid)
 {
 	char *x3d;
 	size_t size;
 
-	size = asx3d3_collection_size(col, srs, precision, opts, defid);
-	x3d = rtalloc(size);
-	asx3d3_collection_buf(col, srs, x3d, precision, opts, defid);
+	size = asx3d3_collection_size(ctx, col, srs, precision, opts, defid);
+	x3d = rtalloc(ctx, size);
+	asx3d3_collection_buf(ctx, col, srs, x3d, precision, opts, defid);
 	return x3d;
 }
 
@@ -816,7 +816,7 @@ asx3d3_collection(const RTCOLLECTION *col, char *srs, int precision, int opts, c
 /** In X3D3, coordinates are separated by a space separator
  */
 static size_t
-pointArray_toX3D3(RTPOINTARRAY *pa, char *output, int precision, int opts, int is_closed)
+pointArray_toX3D3(RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precision, int opts, int is_closed)
 {
 	int i;
 	char *ptr;
@@ -834,19 +834,19 @@ pointArray_toX3D3(RTPOINTARRAY *pa, char *output, int precision, int opts, int i
 			if ( !is_closed || i < (pa->npoints - 1) )
 			{
 				RTPOINT2D pt;
-				getPoint2d_p(pa, i, &pt);
+				getPoint2d_p(ctx, pa, i, &pt);
 
 				if (fabs(pt.x) < OUT_MAX_DOUBLE)
 					sprintf(x, "%.*f", precision, pt.x);
 				else
 					sprintf(x, "%g", pt.x);
-				trim_trailing_zeros(x);
+				trim_trailing_zeros(ctx, x);
 
 				if (fabs(pt.y) < OUT_MAX_DOUBLE)
 					sprintf(y, "%.*f", precision, pt.y);
 				else
 					sprintf(y, "%g", pt.y);
-				trim_trailing_zeros(y);
+				trim_trailing_zeros(ctx, y);
 
 				if ( i )
 					ptr += sprintf(ptr, " ");
@@ -866,25 +866,25 @@ pointArray_toX3D3(RTPOINTARRAY *pa, char *output, int precision, int opts, int i
 			if ( !is_closed || i < (pa->npoints - 1) )
 			{
 				RTPOINT4D pt;
-				getPoint4d_p(pa, i, &pt);
+				getPoint4d_p(ctx, pa, i, &pt);
 
 				if (fabs(pt.x) < OUT_MAX_DOUBLE)
 					sprintf(x, "%.*f", precision, pt.x);
 				else
 					sprintf(x, "%g", pt.x);
-				trim_trailing_zeros(x);
+				trim_trailing_zeros(ctx, x);
 
 				if (fabs(pt.y) < OUT_MAX_DOUBLE)
 					sprintf(y, "%.*f", precision, pt.y);
 				else
 					sprintf(y, "%g", pt.y);
-				trim_trailing_zeros(y);
+				trim_trailing_zeros(ctx, y);
 
 				if (fabs(pt.z) < OUT_MAX_DOUBLE)
 					sprintf(z, "%.*f", precision, pt.z);
 				else
 					sprintf(z, "%g", pt.z);
-				trim_trailing_zeros(z);
+				trim_trailing_zeros(ctx, z);
 
 				if ( i )
 					ptr += sprintf(ptr, " ");
@@ -906,7 +906,7 @@ pointArray_toX3D3(RTPOINTARRAY *pa, char *output, int precision, int opts, int i
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_X3Dsize(RTPOINTARRAY *pa, int precision)
+pointArray_X3Dsize(RTCTX *ctx, RTPOINTARRAY *pa, int precision)
 {
 	if (RTFLAGS_NDIMS(pa->flags) == 2)
 		return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(" "))

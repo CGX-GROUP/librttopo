@@ -18,7 +18,7 @@
 
 
 static inline int
-get_3dvector_from_points(RTPOINT3DZ *p1,RTPOINT3DZ *p2, VECTOR3D *v)
+get_3dvector_from_points(RTCTX *ctx, RTPOINT3DZ *p1,RTPOINT3DZ *p2, VECTOR3D *v)
 {
 	v->x=p2->x-p1->x;
 	v->y=p2->y-p1->y;
@@ -28,7 +28,7 @@ get_3dvector_from_points(RTPOINT3DZ *p1,RTPOINT3DZ *p2, VECTOR3D *v)
 }
 
 static inline int
-get_3dcross_product(VECTOR3D *v1,VECTOR3D *v2, VECTOR3D *v)
+get_3dcross_product(RTCTX *ctx, VECTOR3D *v1,VECTOR3D *v2, VECTOR3D *v)
 {
 	v->x=(v1->y*v2->z)-(v1->z*v2->y);
 	v->y=(v1->z*v2->x)-(v1->x*v2->z);
@@ -44,38 +44,38 @@ geometries lacks z-values. The vertical line crosses the 2d point that is closes
 and the z-range is from maxz to minz in the geoemtrie that has z values.
 */
 static 
-RTGEOM* create_v_line(const RTGEOM *rtgeom,double x, double y, int srid)
+RTGEOM* create_v_line(RTCTX *ctx, const RTGEOM *rtgeom,double x, double y, int srid)
 {
 	
 	RTPOINT *rtpoints[2];
 	RTGBOX gbox;
-	int rv = rtgeom_calculate_gbox(rtgeom, &gbox);
+	int rv = rtgeom_calculate_gbox(ctx, rtgeom, &gbox);
 	
 	if ( rv == RT_FAILURE )
 		return NULL;
 	
-	rtpoints[0] = rtpoint_make3dz(srid, x, y, gbox.zmin);
-	rtpoints[1] = rtpoint_make3dz(srid, x, y, gbox.zmax);
+	rtpoints[0] = rtpoint_make3dz(ctx, srid, x, y, gbox.zmin);
+	rtpoints[1] = rtpoint_make3dz(ctx, srid, x, y, gbox.zmax);
 	
-	 return (RTGEOM *)rtline_from_ptarray(srid, 2, rtpoints);		
+	 return (RTGEOM *)rtline_from_ptarray(ctx, srid, 2, rtpoints);		
 }
 
 RTGEOM * 
-rtgeom_closest_line_3d(const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_closest_line_3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
-	return rt_dist3d_distanceline(rt1, rt2, rt1->srid, DIST_MIN);
+	return rt_dist3d_distanceline(ctx, rt1, rt2, rt1->srid, DIST_MIN);
 }
 
 RTGEOM * 
-rtgeom_furthest_line_3d(RTGEOM *rt1, RTGEOM *rt2)
+rtgeom_furthest_line_3d(RTCTX *ctx, RTGEOM *rt1, RTGEOM *rt2)
 {
-	return rt_dist3d_distanceline(rt1, rt2, rt1->srid, DIST_MAX);
+	return rt_dist3d_distanceline(ctx, rt1, rt2, rt1->srid, DIST_MAX);
 }
 
 RTGEOM * 
-rtgeom_closest_point_3d(const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_closest_point_3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
-	return rt_dist3d_distancepoint(rt1, rt2, rt1->srid, DIST_MIN);
+	return rt_dist3d_distancepoint(ctx, rt1, rt2, rt1->srid, DIST_MIN);
 }
 
 
@@ -83,7 +83,7 @@ rtgeom_closest_point_3d(const RTGEOM *rt1, const RTGEOM *rt2)
 Function initializing 3dshortestline and 3dlongestline calculations.
 */
 RTGEOM *
-rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
+rt_dist3d_distanceline(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 {
 	RTDEBUG(2, "rt_dist3d_distanceline is called");
 	double x1,x2,y1,y2, z1, z2, x, y;
@@ -99,71 +99,71 @@ rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 	/*Check if we really have 3D geoemtries*/
 	/*If not, send it to 2D-calculations which will give the same result*/
 	/*as an infinite z-value at one or two of the geometries*/
-	if(!rtgeom_has_z(rt1) || !rtgeom_has_z(rt2))
+	if(!rtgeom_has_z(ctx, rt1) || !rtgeom_has_z(ctx, rt2))
 	{
 		
-		rtnotice("One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
+		rtnotice(ctx, "One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
 		
-		if(!rtgeom_has_z(rt1) && !rtgeom_has_z(rt2))
-			return rt_dist2d_distanceline(rt1, rt2, srid, mode);	
+		if(!rtgeom_has_z(ctx, rt1) && !rtgeom_has_z(ctx, rt2))
+			return rt_dist2d_distanceline(ctx, rt1, rt2, srid, mode);	
 		
 		DISTPTS thedl2d;
 		thedl2d.mode = mode;
 		thedl2d.distance = initdistance;
 		thedl2d.tolerance = 0.0;
-		if (!rt_dist2d_comp( rt1,rt2,&thedl2d))
+		if (!rt_dist2d_comp(ctx,  rt1,rt2,&thedl2d))
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
-			rterror("Some unspecified error.");
-			result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+			rterror(ctx, "Some unspecified error.");
+			result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 		RTGEOM *vertical_line;
-		if(!rtgeom_has_z(rt1))
+		if(!rtgeom_has_z(ctx, rt1))
 		{
 			x=thedl2d.p1.x;
 			y=thedl2d.p1.y;
 
-			vertical_line = create_v_line(rt2,x,y,srid);
-			if (!rt_dist3d_recursive(vertical_line, rt2, &thedl))
+			vertical_line = create_v_line(ctx, rt2,x,y,srid);
+			if (!rt_dist3d_recursive(ctx, vertical_line, rt2, &thedl))
 			{
 				/*should never get here. all cases ought to be error handled earlier*/
-				rtfree(vertical_line);
-				rterror("Some unspecified error.");
-				result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+				rtfree(ctx, vertical_line);
+				rterror(ctx, "Some unspecified error.");
+				result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 			}			
-			rtfree(vertical_line);	
+			rtfree(ctx, vertical_line);	
 		}	
-		if(!rtgeom_has_z(rt2))
+		if(!rtgeom_has_z(ctx, rt2))
 		{
 			x=thedl2d.p2.x;
 			y=thedl2d.p2.y;			
 			
-			vertical_line = create_v_line(rt1,x,y,srid);
-			if (!rt_dist3d_recursive(rt1, vertical_line, &thedl))
+			vertical_line = create_v_line(ctx, rt1,x,y,srid);
+			if (!rt_dist3d_recursive(ctx, rt1, vertical_line, &thedl))
 			{
 				/*should never get here. all cases ought to be error handled earlier*/
-				rtfree(vertical_line);
-				rterror("Some unspecified error.");
-				return (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+				rtfree(ctx, vertical_line);
+				rterror(ctx, "Some unspecified error.");
+				return (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 			}	
-			rtfree(vertical_line);		
+			rtfree(ctx, vertical_line);		
 		}			
 				
 	}
 	else
 	{		
-		if (!rt_dist3d_recursive(rt1, rt2, &thedl))
+		if (!rt_dist3d_recursive(ctx, rt1, rt2, &thedl))
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
-			rterror("Some unspecified error.");
-			result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+			rterror(ctx, "Some unspecified error.");
+			result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 	}
 	/*if thedl.distance is unchanged there where only empty geometries input*/
 	if (thedl.distance == initdistance)
 	{
 		RTDEBUG(3, "didn't find geometries to measure between, returning null");
-		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 	else
 	{
@@ -174,10 +174,10 @@ rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 		y2=thedl.p2.y;
 		z2=thedl.p2.z;
 
-		rtpoints[0] = rtpoint_make3dz(srid, x1, y1, z1);
-		rtpoints[1] = rtpoint_make3dz(srid, x2, y2, z2);
+		rtpoints[0] = rtpoint_make3dz(ctx, srid, x1, y1, z1);
+		rtpoints[1] = rtpoint_make3dz(ctx, srid, x2, y2, z2);
 
-		result = (RTGEOM *)rtline_from_ptarray(srid, 2, rtpoints);
+		result = (RTGEOM *)rtline_from_ptarray(ctx, srid, 2, rtpoints);
 	}
 
 	return result;
@@ -187,7 +187,7 @@ rt_dist3d_distanceline(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 Function initializing 3dclosestpoint calculations.
 */
 RTGEOM *
-rt_dist3d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
+rt_dist3d_distancepoint(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 {
 	
 	double x,y,z;
@@ -204,79 +204,79 @@ rt_dist3d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode
 	/*Check if we really have 3D geoemtries*/
 	/*If not, send it to 2D-calculations which will give the same result*/
 	/*as an infinite z-value at one or two of the geometries*/
-	if(!rtgeom_has_z(rt1) || !rtgeom_has_z(rt2))
+	if(!rtgeom_has_z(ctx, rt1) || !rtgeom_has_z(ctx, rt2))
 	{		
-		rtnotice("One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
+		rtnotice(ctx, "One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
 				
-		if(!rtgeom_has_z(rt1) && !rtgeom_has_z(rt2))
-			return rt_dist2d_distancepoint(rt1, rt2, srid, mode);
+		if(!rtgeom_has_z(ctx, rt1) && !rtgeom_has_z(ctx, rt2))
+			return rt_dist2d_distancepoint(ctx, rt1, rt2, srid, mode);
 			
 		
 		DISTPTS thedl2d;
 		thedl2d.mode = mode;
 		thedl2d.distance = initdistance;
 		thedl2d.tolerance = 0.0;
-		if (!rt_dist2d_comp( rt1,rt2,&thedl2d))
+		if (!rt_dist2d_comp(ctx,  rt1,rt2,&thedl2d))
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
-			rterror("Some unspecified error.");
-			return (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+			rterror(ctx, "Some unspecified error.");
+			return (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 		
 		RTGEOM *vertical_line;
-		if(!rtgeom_has_z(rt1))
+		if(!rtgeom_has_z(ctx, rt1))
 		{
 			x=thedl2d.p1.x;
 			y=thedl2d.p1.y;
 			
-			vertical_line = create_v_line(rt2,x,y,srid);	
-			if (!rt_dist3d_recursive(vertical_line, rt2, &thedl))
+			vertical_line = create_v_line(ctx, rt2,x,y,srid);	
+			if (!rt_dist3d_recursive(ctx, vertical_line, rt2, &thedl))
 			{
 				/*should never get here. all cases ought to be error handled earlier*/
-				rtfree(vertical_line);	
-				rterror("Some unspecified error.");
-				return (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+				rtfree(ctx, vertical_line);	
+				rterror(ctx, "Some unspecified error.");
+				return (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 			}		
-			rtfree(vertical_line);		
+			rtfree(ctx, vertical_line);		
 		}	
 				
-		if(!rtgeom_has_z(rt2))
+		if(!rtgeom_has_z(ctx, rt2))
 		{
 			x=thedl2d.p2.x;
 			y=thedl2d.p2.y;
 
-			vertical_line = create_v_line(rt1,x,y,srid);
-			if (!rt_dist3d_recursive(rt1, vertical_line, &thedl))
+			vertical_line = create_v_line(ctx, rt1,x,y,srid);
+			if (!rt_dist3d_recursive(ctx, rt1, vertical_line, &thedl))
 			{
 				/*should never get here. all cases ought to be error handled earlier*/
-				rtfree(vertical_line);	
-				rterror("Some unspecified error.");
-				result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+				rtfree(ctx, vertical_line);	
+				rterror(ctx, "Some unspecified error.");
+				result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 			}	
-			rtfree(vertical_line);			
+			rtfree(ctx, vertical_line);			
 		}	
 		
 	}
 	else
 	{
-		if (!rt_dist3d_recursive(rt1, rt2, &thedl))
+		if (!rt_dist3d_recursive(ctx, rt1, rt2, &thedl))
 		{
 			/*should never get here. all cases ought to be error handled earlier*/
-			rterror("Some unspecified error.");
-			result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+			rterror(ctx, "Some unspecified error.");
+			result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 		}
 	}
 	if (thedl.distance == initdistance)
 	{
 		RTDEBUG(3, "didn't find geometries to measure between, returning null");
-		result = (RTGEOM *)rtcollection_construct_empty(RTCOLLECTIONTYPE, srid, 0, 0);
+		result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
 	}
 	else
 	{
 		x=thedl.p1.x;
 		y=thedl.p1.y;
 		z=thedl.p1.z;
-		result = (RTGEOM *)rtpoint_make3dz(srid, x, y, z);
+		result = (RTGEOM *)rtpoint_make3dz(ctx, srid, x, y, z);
 	}
 
 	return result;
@@ -287,11 +287,11 @@ rt_dist3d_distancepoint(const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode
 Function initializing 3d max distance calculation
 */
 double
-rtgeom_maxdistance3d(const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_maxdistance3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	RTDEBUG(2, "rtgeom_maxdistance3d is called");
 
-	return rtgeom_maxdistance3d_tolerance( rt1, rt2, 0.0 );
+	return rtgeom_maxdistance3d_tolerance(ctx,  rt1, rt2, 0.0 );
 }
 
 /**
@@ -299,12 +299,12 @@ Function handling 3d max distance calculations and dfullywithin calculations.
 The difference is just the tolerance.
 */
 double
-rtgeom_maxdistance3d_tolerance(const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
+rtgeom_maxdistance3d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
 {
-	if(!rtgeom_has_z(rt1) || !rtgeom_has_z(rt2))
+	if(!rtgeom_has_z(ctx, rt1) || !rtgeom_has_z(ctx, rt2))
 	{
-		rtnotice("One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
-		return rtgeom_maxdistance2d_tolerance(rt1, rt2, tolerance);	
+		rtnotice(ctx, "One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
+		return rtgeom_maxdistance2d_tolerance(ctx, rt1, rt2, tolerance);	
 	}
 	/*double thedist;*/
 	DISTPTS3D thedl;
@@ -312,12 +312,12 @@ rtgeom_maxdistance3d_tolerance(const RTGEOM *rt1, const RTGEOM *rt2, double tole
 	thedl.mode = DIST_MAX;
 	thedl.distance= -1;
 	thedl.tolerance = tolerance;
-	if (rt_dist3d_recursive(rt1, rt2, &thedl))
+	if (rt_dist3d_recursive(ctx, rt1, rt2, &thedl))
 	{
 		return thedl.distance;
 	}
 	/*should never get here. all cases ought to be error handled earlier*/
-	rterror("Some unspecified error.");
+	rterror(ctx, "Some unspecified error.");
 	return -1;
 }
 
@@ -325,10 +325,10 @@ rtgeom_maxdistance3d_tolerance(const RTGEOM *rt1, const RTGEOM *rt2, double tole
 	Function initializing 3d min distance calculation
 */
 double
-rtgeom_mindistance3d(const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_mindistance3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	RTDEBUG(2, "rtgeom_mindistance3d is called");
-	return rtgeom_mindistance3d_tolerance( rt1, rt2, 0.0 );
+	return rtgeom_mindistance3d_tolerance(ctx,  rt1, rt2, 0.0 );
 }
 
 /**
@@ -336,25 +336,25 @@ rtgeom_mindistance3d(const RTGEOM *rt1, const RTGEOM *rt2)
 	The difference is just the tolerance.
 */
 double
-rtgeom_mindistance3d_tolerance(const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
+rtgeom_mindistance3d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
 {
-	if(!rtgeom_has_z(rt1) || !rtgeom_has_z(rt2))
+	if(!rtgeom_has_z(ctx, rt1) || !rtgeom_has_z(ctx, rt2))
 	{
-		rtnotice("One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
+		rtnotice(ctx, "One or both of the geometries is missing z-value. The unknown z-value will be regarded as \"any value\"");
 		
-		return rtgeom_mindistance2d_tolerance(rt1, rt2, tolerance);	
+		return rtgeom_mindistance2d_tolerance(ctx, rt1, rt2, tolerance);	
 	}
 	DISTPTS3D thedl;
 	RTDEBUG(2, "rtgeom_mindistance3d_tolerance is called");
 	thedl.mode = DIST_MIN;
 	thedl.distance= FLT_MAX;
 	thedl.tolerance = tolerance;
-	if (rt_dist3d_recursive(rt1, rt2, &thedl))
+	if (rt_dist3d_recursive(ctx, rt1, rt2, &thedl))
 	{
 		return thedl.distance;
 	}
 	/*should never get here. all cases ought to be error handled earlier*/
-	rterror("Some unspecified error.");
+	rterror(ctx, "Some unspecified error.");
 	return FLT_MAX;
 }
 
@@ -372,7 +372,7 @@ Functions preparing geometries for distance-calculations
 /**
 This is a recursive function delivering every possible combination of subgeometries
 */
-int rt_dist3d_recursive(const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
+int rt_dist3d_recursive(RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
 {
 	int i, j;
 	int n1=1;
@@ -384,23 +384,23 @@ int rt_dist3d_recursive(const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
 
 	RTDEBUGF(2, "rt_dist3d_recursive is called with type1=%d, type2=%d", rtg1->type, rtg2->type);
 
-	if (rtgeom_is_collection(rtg1))
+	if (rtgeom_is_collection(ctx, rtg1))
 	{
 		RTDEBUG(3, "First geometry is collection");
-		c1 = rtgeom_as_rtcollection(rtg1);
+		c1 = rtgeom_as_rtcollection(ctx, rtg1);
 		n1 = c1->ngeoms;
 	}
-	if (rtgeom_is_collection(rtg2))
+	if (rtgeom_is_collection(ctx, rtg2))
 	{
 		RTDEBUG(3, "Second geometry is collection");
-		c2 = rtgeom_as_rtcollection(rtg2);
+		c2 = rtgeom_as_rtcollection(ctx, rtg2);
 		n2 = c2->ngeoms;
 	}
 
 	for ( i = 0; i < n1; i++ )
 	{
 
-		if (rtgeom_is_collection(rtg1))
+		if (rtgeom_is_collection(ctx, rtg1))
 		{
 			g1 = c1->geoms[i];
 		}
@@ -409,17 +409,17 @@ int rt_dist3d_recursive(const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
 			g1 = (RTGEOM*)rtg1;
 		}
 
-		if (rtgeom_is_empty(g1)) return RT_TRUE;
+		if (rtgeom_is_empty(ctx, g1)) return RT_TRUE;
 
-		if (rtgeom_is_collection(g1))
+		if (rtgeom_is_collection(ctx, g1))
 		{
 			RTDEBUG(3, "Found collection inside first geometry collection, recursing");
-			if (!rt_dist3d_recursive(g1, rtg2, dl)) return RT_FALSE;
+			if (!rt_dist3d_recursive(ctx, g1, rtg2, dl)) return RT_FALSE;
 			continue;
 		}
 		for ( j = 0; j < n2; j++ )
 		{
-			if (rtgeom_is_collection(rtg2))
+			if (rtgeom_is_collection(ctx, rtg2))
 			{
 				g2 = c2->geoms[j];
 			}
@@ -427,19 +427,19 @@ int rt_dist3d_recursive(const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
 			{
 				g2 = (RTGEOM*)rtg2;
 			}
-			if (rtgeom_is_collection(g2))
+			if (rtgeom_is_collection(ctx, g2))
 			{
 				RTDEBUG(3, "Found collection inside second geometry collection, recursing");
-				if (!rt_dist3d_recursive(g1, g2, dl)) return RT_FALSE;
+				if (!rt_dist3d_recursive(ctx, g1, g2, dl)) return RT_FALSE;
 				continue;
 			}
 
 
 			/*If one of geometries is empty, return. True here only means continue searching. False would have stoped the process*/
-			if (rtgeom_is_empty(g1)||rtgeom_is_empty(g2)) return RT_TRUE;
+			if (rtgeom_is_empty(ctx, g1)||rtgeom_is_empty(ctx, g2)) return RT_TRUE;
 
 
-			if (!rt_dist3d_distribute_bruteforce(g1, g2, dl)) return RT_FALSE;
+			if (!rt_dist3d_distribute_bruteforce(ctx, g1, g2, dl)) return RT_FALSE;
 			if (dl->distance<=dl->tolerance && dl->mode == DIST_MIN) return RT_TRUE; /*just a check if  the answer is already given*/
 		}
 	}
@@ -453,7 +453,7 @@ int rt_dist3d_recursive(const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
 This function distributes the brute-force for 3D so far the only type, tasks depending on type
 */
 int
-rt_dist3d_distribute_bruteforce(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D *dl)
+rt_dist3d_distribute_bruteforce(RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D *dl)
 {
 
 	int	t1 = rtg1->type;
@@ -466,21 +466,21 @@ rt_dist3d_distribute_bruteforce(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3
 		if  ( t2 == RTPOINTTYPE )
 		{
 			dl->twisted=1;
-			return rt_dist3d_point_point((RTPOINT *)rtg1, (RTPOINT *)rtg2, dl);
+			return rt_dist3d_point_point(ctx, (RTPOINT *)rtg1, (RTPOINT *)rtg2, dl);
 		}
 		else if  ( t2 == RTLINETYPE )
 		{
 			dl->twisted=1;
-			return rt_dist3d_point_line((RTPOINT *)rtg1, (RTLINE *)rtg2, dl);
+			return rt_dist3d_point_line(ctx, (RTPOINT *)rtg1, (RTLINE *)rtg2, dl);
 		}
 		else if  ( t2 == RTPOLYGONTYPE )
 		{
 			dl->twisted=1;
-			return rt_dist3d_point_poly((RTPOINT *)rtg1, (RTPOLY *)rtg2,dl);
+			return rt_dist3d_point_poly(ctx, (RTPOINT *)rtg1, (RTPOLY *)rtg2,dl);
 		}
 		else
 		{
-			rterror("Unsupported geometry type: %s", rttype_name(t2));
+			rterror(ctx, "Unsupported geometry type: %s", rttype_name(ctx, t2));
 			return RT_FALSE;
 		}
 	}
@@ -489,21 +489,21 @@ rt_dist3d_distribute_bruteforce(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3
 		if ( t2 == RTPOINTTYPE )
 		{
 			dl->twisted=(-1);
-			return rt_dist3d_point_line((RTPOINT *)rtg2,(RTLINE *)rtg1,dl);
+			return rt_dist3d_point_line(ctx, (RTPOINT *)rtg2,(RTLINE *)rtg1,dl);
 		}
 		else if ( t2 == RTLINETYPE )
 		{
 			dl->twisted=1;
-			return rt_dist3d_line_line((RTLINE *)rtg1,(RTLINE *)rtg2,dl);
+			return rt_dist3d_line_line(ctx, (RTLINE *)rtg1,(RTLINE *)rtg2,dl);
 		}
 		else if ( t2 == RTPOLYGONTYPE )
 		{
 			dl->twisted=1;
-			return rt_dist3d_line_poly((RTLINE *)rtg1,(RTPOLY *)rtg2,dl);
+			return rt_dist3d_line_poly(ctx, (RTLINE *)rtg1,(RTPOLY *)rtg2,dl);
 		}
 		else
 		{
-			rterror("Unsupported geometry type: %s", rttype_name(t2));
+			rterror(ctx, "Unsupported geometry type: %s", rttype_name(ctx, t2));
 			return RT_FALSE;
 		}
 	}
@@ -512,31 +512,31 @@ rt_dist3d_distribute_bruteforce(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3
 		if ( t2 == RTPOLYGONTYPE )
 		{
 			dl->twisted=1;
-			return rt_dist3d_poly_poly((RTPOLY *)rtg1, (RTPOLY *)rtg2,dl);
+			return rt_dist3d_poly_poly(ctx, (RTPOLY *)rtg1, (RTPOLY *)rtg2,dl);
 		}
 		else if ( t2 == RTPOINTTYPE )
 		{
 			dl->twisted=-1;
-			return rt_dist3d_point_poly((RTPOINT *)rtg2, (RTPOLY *)rtg1,dl);
+			return rt_dist3d_point_poly(ctx, (RTPOINT *)rtg2, (RTPOLY *)rtg1,dl);
 		}
 		else if ( t2 == RTLINETYPE )
 		{
 			dl->twisted=-1;
-			return rt_dist3d_line_poly((RTLINE *)rtg2,(RTPOLY *)rtg1,dl);
+			return rt_dist3d_line_poly(ctx, (RTLINE *)rtg2,(RTPOLY *)rtg1,dl);
 		}
 		else
 		{
-			rterror("Unsupported geometry type: %s", rttype_name(t2));
+			rterror(ctx, "Unsupported geometry type: %s", rttype_name(ctx, t2));
 			return RT_FALSE;
 		}
 	}
 	else
 	{
-		rterror("Unsupported geometry type: %s", rttype_name(t1));
+		rterror(ctx, "Unsupported geometry type: %s", rttype_name(ctx, t1));
 		return RT_FALSE;
 	}
 	/*You shouldn't being able to get here*/
-	rterror("unspecified error in function rt_dist3d_distribute_bruteforce");
+	rterror(ctx, "unspecified error in function rt_dist3d_distribute_bruteforce");
 	return RT_FALSE;
 }
 
@@ -557,30 +557,30 @@ So far the only way to do 3D-calculations
 point to point calculation
 */
 int
-rt_dist3d_point_point(RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl)
+rt_dist3d_point_point(RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl)
 {
 	RTPOINT3DZ p1;
 	RTPOINT3DZ p2;
 	RTDEBUG(2, "rt_dist3d_point_point is called");
 
-	getPoint3dz_p(point1->point, 0, &p1);
-	getPoint3dz_p(point2->point, 0, &p2);
+	getPoint3dz_p(ctx, point1->point, 0, &p1);
+	getPoint3dz_p(ctx, point2->point, 0, &p2);
 
-	return rt_dist3d_pt_pt(&p1, &p2,dl);
+	return rt_dist3d_pt_pt(ctx, &p1, &p2,dl);
 }
 /**
 
 point to line calculation
 */
 int
-rt_dist3d_point_line(RTPOINT *point, RTLINE *line, DISTPTS3D *dl)
+rt_dist3d_point_line(RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS3D *dl)
 {
 	RTPOINT3DZ p;
 	RTPOINTARRAY *pa = line->points;
 	RTDEBUG(2, "rt_dist3d_point_line is called");
 
-	getPoint3dz_p(point->point, 0, &p);
-	return rt_dist3d_pt_ptarray(&p, pa, dl);
+	getPoint3dz_p(ctx, point->point, 0, &p);
+	return rt_dist3d_pt_ptarray(ctx, &p, pa, dl);
 }
 
 /**
@@ -595,28 +595,28 @@ for max distance it is artays point against boundary
 
 */
 int
-rt_dist3d_point_poly(RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl)
+rt_dist3d_point_poly(RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl)
 {
 	RTPOINT3DZ p, projp;/*projp is "point projected on plane"*/
 	PLANE3D plane;
 	RTDEBUG(2, "rt_dist3d_point_poly is called");
-	getPoint3dz_p(point->point, 0, &p);
+	getPoint3dz_p(ctx, point->point, 0, &p);
 	
 	/*If we are lookig for max distance, longestline or dfullywithin*/
 	if (dl->mode == DIST_MAX)
 	{
 		RTDEBUG(3, "looking for maxdistance");
-		return rt_dist3d_pt_ptarray(&p, poly->rings[0], dl);
+		return rt_dist3d_pt_ptarray(ctx, &p, poly->rings[0], dl);
 	}
 	
 	/*Find the plane of the polygon, the "holes" have to be on the same plane. so we only care about the boudary*/
-	if(!define_plane(poly->rings[0], &plane))
+	if(!define_plane(ctx, poly->rings[0], &plane))
 		return RT_FALSE;
 	
 	/*get our point projected on the plane of the polygon*/
-	project_point_on_plane(&p, &plane, &projp);
+	project_point_on_plane(ctx, &p, &plane, &projp);
 	
-	return rt_dist3d_pt_poly(&p, poly,&plane, &projp, dl);
+	return rt_dist3d_pt_poly(ctx, &p, poly,&plane, &projp, dl);
 }
 
 
@@ -625,63 +625,63 @@ rt_dist3d_point_poly(RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl)
 line to line calculation
 */
 int
-rt_dist3d_line_line(RTLINE *line1, RTLINE *line2, DISTPTS3D *dl)
+rt_dist3d_line_line(RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS3D *dl)
 {
 	RTPOINTARRAY *pa1 = line1->points;
 	RTPOINTARRAY *pa2 = line2->points;
 	RTDEBUG(2, "rt_dist3d_line_line is called");
 
-	return rt_dist3d_ptarray_ptarray(pa1, pa2, dl);
+	return rt_dist3d_ptarray_ptarray(ctx, pa1, pa2, dl);
 }
 
 /**
 
 line to polygon calculation
 */
-int rt_dist3d_line_poly(RTLINE *line, RTPOLY *poly, DISTPTS3D *dl)
+int rt_dist3d_line_poly(RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS3D *dl)
 {
 	PLANE3D plane;	
 	RTDEBUG(2, "rt_dist3d_line_poly is called");	
 		
 	if (dl->mode == DIST_MAX)
 	{
-		return rt_dist3d_ptarray_ptarray(line->points, poly->rings[0], dl);
+		return rt_dist3d_ptarray_ptarray(ctx, line->points, poly->rings[0], dl);
 	}
 	
-	if(!define_plane(poly->rings[0], &plane))
+	if(!define_plane(ctx, poly->rings[0], &plane))
 		return RT_FALSE;
 	
-	return rt_dist3d_ptarray_poly(line->points, poly,&plane, dl);
+	return rt_dist3d_ptarray_poly(ctx, line->points, poly,&plane, dl);
 }
 
 /**
 
 polygon to polygon calculation
 */
-int rt_dist3d_poly_poly(RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
+int rt_dist3d_poly_poly(RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
 {		
 	PLANE3D plane;		
 	RTDEBUG(2, "rt_dist3d_poly_poly is called");
 	if (dl->mode == DIST_MAX)
 	{
-		return rt_dist3d_ptarray_ptarray(poly1->rings[0], poly2->rings[0], dl);
+		return rt_dist3d_ptarray_ptarray(ctx, poly1->rings[0], poly2->rings[0], dl);
 	}
 	
-	if(!define_plane(poly2->rings[0], &plane))
+	if(!define_plane(ctx, poly2->rings[0], &plane))
 		return RT_FALSE;
 	
 	/*What we do here is to compare the bondary of one polygon with the other polygon 
 	and then take the second boudary comparing with the first polygon*/
 	dl->twisted=1;
-	if(!rt_dist3d_ptarray_poly(poly1->rings[0], poly2,&plane, dl))
+	if(!rt_dist3d_ptarray_poly(ctx, poly1->rings[0], poly2,&plane, dl))
 		return RT_FALSE;
 	if(dl->distance==0.0) /*Just check if the answer already is given*/
 		return RT_TRUE;
 	
-	if(!define_plane(poly1->rings[0], &plane))
+	if(!define_plane(ctx, poly1->rings[0], &plane))
 		return RT_FALSE;
 	dl->twisted=-1; /*because we swithc the order of geometries we swithch "twisted" to -1 which will give the right order of points in shortest line.*/
-	return rt_dist3d_ptarray_poly(poly2->rings[0], poly1,&plane, dl);
+	return rt_dist3d_ptarray_poly(ctx, poly2->rings[0], poly1,&plane, dl);
 }
 
 /**
@@ -690,7 +690,7 @@ int rt_dist3d_poly_poly(RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
  * Returns distance between point and pointarray
  */
 int
-rt_dist3d_pt_ptarray(RTPOINT3DZ *p, RTPOINTARRAY *pa,DISTPTS3D *dl)
+rt_dist3d_pt_ptarray(RTCTX *ctx, RTPOINT3DZ *p, RTPOINTARRAY *pa,DISTPTS3D *dl)
 {
 	int t;
 	RTPOINT3DZ	start, end;
@@ -698,13 +698,13 @@ rt_dist3d_pt_ptarray(RTPOINT3DZ *p, RTPOINTARRAY *pa,DISTPTS3D *dl)
 
 	RTDEBUG(2, "rt_dist3d_pt_ptarray is called");
 
-	getPoint3dz_p(pa, 0, &start);
+	getPoint3dz_p(ctx, pa, 0, &start);
 
 	for (t=1; t<pa->npoints; t++)
 	{
 		dl->twisted=twist;
-		getPoint3dz_p(pa, t, &end);
-		if (!rt_dist3d_pt_seg(p, &start, &end,dl)) return RT_FALSE;
+		getPoint3dz_p(ctx, pa, t, &end);
+		if (!rt_dist3d_pt_seg(ctx, p, &start, &end,dl)) return RT_FALSE;
 
 		if (dl->distance<=dl->tolerance && dl->mode == DIST_MIN) return RT_TRUE; /*just a check if  the answer is already given*/
 		start = end;
@@ -720,14 +720,14 @@ If searching for min distance, this one finds the closest point on segment A-B f
 if searching for max distance it just sends p-A and p-B to pt-pt calculation
 */
 int
-rt_dist3d_pt_seg(RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl)
+rt_dist3d_pt_seg(RTCTX *ctx, RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl)
 {
 	RTPOINT3DZ c;
 	double	r;
 	/*if start==end, then use pt distance */
 	if (  ( A->x == B->x) && (A->y == B->y) && (A->z == B->z)  )
 	{
-		return rt_dist3d_pt_pt(p,A,dl);
+		return rt_dist3d_pt_pt(ctx, p,A,dl);
 	}
 
 
@@ -741,21 +741,21 @@ rt_dist3d_pt_seg(RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl)
 	{
 		if (r>=0.5)
 		{
-			return rt_dist3d_pt_pt(p,A,dl);
+			return rt_dist3d_pt_pt(ctx, p,A,dl);
 		}
 		if (r<0.5)
 		{
-			return rt_dist3d_pt_pt(p,B,dl);
+			return rt_dist3d_pt_pt(ctx, p,B,dl);
 		}
 	}
 
 	if (r<0)	/*If the first vertex A is closest to the point p*/
 	{
-		return rt_dist3d_pt_pt(p,A,dl);
+		return rt_dist3d_pt_pt(ctx, p,A,dl);
 	}
 	if (r>1)	/*If the second vertex B is closest to the point p*/
 	{
-		return rt_dist3d_pt_pt(p,B,dl);
+		return rt_dist3d_pt_pt(ctx, p,B,dl);
 	}
 
 	/*else if the point p is closer to some point between a and b
@@ -764,11 +764,11 @@ rt_dist3d_pt_seg(RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl)
 	c.y=A->y + r * (B->y-A->y);
 	c.z=A->z + r * (B->z-A->z);
 
-	return rt_dist3d_pt_pt(p,&c,dl);
+	return rt_dist3d_pt_pt(ctx, p,&c,dl);
 }
 
 double
-distance3d_pt_pt(const POINT3D *p1, const POINT3D *p2)
+distance3d_pt_pt(RTCTX *ctx, const POINT3D *p1, const POINT3D *p2)
 {
   double dx = p2->x - p1->x;
   double dy = p2->y - p1->y;
@@ -785,7 +785,7 @@ or most far away from each other
 depending on dl->mode (max or min)
 */
 int
-rt_dist3d_pt_pt(RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
+rt_dist3d_pt_pt(RTCTX *ctx, RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
 {
 	double dx = thep2->x - thep1->x;
 	double dy = thep2->y - thep1->y;
@@ -817,7 +817,7 @@ rt_dist3d_pt_pt(RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
 Finds all combinationes of segments between two pointarrays
 */
 int
-rt_dist3d_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
+rt_dist3d_ptarray_ptarray(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
 {
 	int t,u;
 	RTPOINT3DZ	start, end;
@@ -831,11 +831,11 @@ rt_dist3d_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
 	{
 		for (t=0; t<l1->npoints; t++) /*for each segment in L1 */
 		{
-			getPoint3dz_p(l1, t, &start);
+			getPoint3dz_p(ctx, l1, t, &start);
 			for (u=0; u<l2->npoints; u++) /*for each segment in L2 */
 			{
-				getPoint3dz_p(l2, u, &start2);
-				rt_dist3d_pt_pt(&start,&start2,dl);
+				getPoint3dz_p(ctx, l2, u, &start2);
+				rt_dist3d_pt_pt(ctx, &start,&start2,dl);
 				RTDEBUGF(4, "maxdist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
 				RTDEBUGF(3, " seg%d-seg%d dist: %f, mindist: %f",
 				         t, u, dl->distance, dl->tolerance);
@@ -844,16 +844,16 @@ rt_dist3d_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
 	}
 	else
 	{
-		getPoint3dz_p(l1, 0, &start);
+		getPoint3dz_p(ctx, l1, 0, &start);
 		for (t=1; t<l1->npoints; t++) /*for each segment in L1 */
 		{
-			getPoint3dz_p(l1, t, &end);
-			getPoint3dz_p(l2, 0, &start2);
+			getPoint3dz_p(ctx, l1, t, &end);
+			getPoint3dz_p(ctx, l2, 0, &start2);
 			for (u=1; u<l2->npoints; u++) /*for each segment in L2 */
 			{
-				getPoint3dz_p(l2, u, &end2);
+				getPoint3dz_p(ctx, l2, u, &end2);
 				dl->twisted=twist;
-				rt_dist3d_seg_seg(&start, &end, &start2, &end2,dl);
+				rt_dist3d_seg_seg(ctx, &start, &end, &start2, &end2,dl);
 				RTDEBUGF(4, "mindist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
 				RTDEBUGF(3, " seg%d-seg%d dist: %f, mindist: %f",
 				         t, u, dl->distance, dl->tolerance);
@@ -871,7 +871,7 @@ rt_dist3d_ptarray_ptarray(RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
 Finds the two closest points on two linesegments
 */
 int 
-rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3DZ *s2p2, DISTPTS3D *dl)
+rt_dist3d_seg_seg(RTCTX *ctx, RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3DZ *s2p2, DISTPTS3D *dl)
 {
 	VECTOR3D v1, v2, vl;
 	double s1k, s2k; /*two variables representing where on Line 1 (s1k) and where on Line 2 (s2k) a connecting line between the two lines is perpendicular to both lines*/
@@ -881,13 +881,13 @@ rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3
 	/*s1p1 and s1p2 are the same point */
 	if (  ( s1p1->x == s1p2->x) && (s1p1->y == s1p2->y) && (s1p1->z == s1p2->z) )
 	{
-		return rt_dist3d_pt_seg(s1p1,s2p1,s2p2,dl);
+		return rt_dist3d_pt_seg(ctx, s1p1,s2p1,s2p2,dl);
 	}
 	/*s2p1 and s2p2 are the same point */
 	if (  ( s2p1->x == s2p2->x) && (s2p1->y == s2p2->y) && (s2p1->z == s2p2->z) )
 	{
 		dl->twisted= ((dl->twisted) * (-1));
-		return rt_dist3d_pt_seg(s2p1,s1p1,s1p2,dl);
+		return rt_dist3d_pt_seg(ctx, s2p1,s1p1,s1p2,dl);
 	}
 		
 /*
@@ -896,13 +896,13 @@ rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3
 	http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm
 */
 	
-	if (!get_3dvector_from_points(s1p1, s1p2, &v1))
+	if (!get_3dvector_from_points(ctx, s1p1, s1p2, &v1))
 		return RT_FALSE;	
 
-	if (!get_3dvector_from_points(s2p1, s2p2, &v2))
+	if (!get_3dvector_from_points(ctx, s2p1, s2p2, &v2))
 		return RT_FALSE;	
 
-	if (!get_3dvector_from_points(s2p1, s1p1, &vl))
+	if (!get_3dvector_from_points(ctx, s2p1, s1p1, &vl))
 		return RT_FALSE;	
 
 	a = DOT(v1,v1);
@@ -937,7 +937,7 @@ rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3
 		if(s1k<0.0) 
 		{
 
-			if (!rt_dist3d_pt_seg(s1p1, s2p1, s2p2, dl))
+			if (!rt_dist3d_pt_seg(ctx, s1p1, s2p1, s2p2, dl))
 			{
 				return RT_FALSE;
 			}
@@ -945,7 +945,7 @@ rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3
 		if(s1k>1.0)
 		{
 
-			if (!rt_dist3d_pt_seg(s1p2, s2p1, s2p2, dl))
+			if (!rt_dist3d_pt_seg(ctx, s1p2, s2p1, s2p2, dl))
 			{
 				return RT_FALSE;
 			}
@@ -953,7 +953,7 @@ rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3
 		if(s2k<0.0)
 		{
 			dl->twisted= ((dl->twisted) * (-1));
-			if (!rt_dist3d_pt_seg(s2p1, s1p1, s1p2, dl))
+			if (!rt_dist3d_pt_seg(ctx, s2p1, s1p1, s1p2, dl))
 			{
 				return RT_FALSE;
 			}
@@ -961,7 +961,7 @@ rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3
 		if(s2k>1.0)
 		{
 			dl->twisted= ((dl->twisted) * (-1));
-			if (!rt_dist3d_pt_seg(s2p2, s1p1, s1p2, dl))
+			if (!rt_dist3d_pt_seg(ctx, s2p2, s1p1, s1p2, dl))
 			{
 				return RT_FALSE;
 			}
@@ -977,7 +977,7 @@ rt_dist3d_seg_seg(RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3
 		p2.y=s2p1->y+s2k*(s2p2->y-s2p1->y);
 		p2.z=s2p1->z+s2k*(s2p2->z-s2p1->z);
 
-		if (!rt_dist3d_pt_pt(&p1,&p2,dl))/* Send the closest points to point-point calculation*/
+		if (!rt_dist3d_pt_pt(ctx, &p1,&p2,dl))/* Send the closest points to point-point calculation*/
 		{
 			return RT_FALSE;
 		}
@@ -993,30 +993,30 @@ If not we check from original point to the bounadary.
 If the projected point is inside a hole of the polygon we check the distance to the boudary of that hole.
 */
 int
-rt_dist3d_pt_poly(RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp, DISTPTS3D *dl)
+rt_dist3d_pt_poly(RTCTX *ctx, RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp, DISTPTS3D *dl)
 {	
 	int i;
 	
 	RTDEBUG(2, "rt_dist3d_point_poly called");
 
 	
-	if(pt_in_ring_3d(projp, poly->rings[0], plane))
+	if(pt_in_ring_3d(ctx, projp, poly->rings[0], plane))
 	{
 		for (i=1; i<poly->nrings; i++)
 		{
 			/* Inside a hole. Distance = pt -> ring */
-			if ( pt_in_ring_3d(projp, poly->rings[i], plane ))
+			if ( pt_in_ring_3d(ctx, projp, poly->rings[i], plane ))
 			{
 				RTDEBUG(3, " inside an hole");
-				return rt_dist3d_pt_ptarray(p, poly->rings[i], dl);
+				return rt_dist3d_pt_ptarray(ctx, p, poly->rings[i], dl);
 			}
 		}		
 		
-		return rt_dist3d_pt_pt(p,projp,dl);/* If the projected point is inside the polygon the shortest distance is between that point and the inputed point*/
+		return rt_dist3d_pt_pt(ctx, p,projp,dl);/* If the projected point is inside the polygon the shortest distance is between that point and the inputed point*/
 	}
 	else
 	{
-		return rt_dist3d_pt_ptarray(p, poly->rings[0], dl); /*If the projected point is outside the polygon we search for the closest distance against the boundarry instead*/
+		return rt_dist3d_pt_ptarray(ctx, p, poly->rings[0], dl); /*If the projected point is outside the polygon we search for the closest distance against the boundarry instead*/
 	}	
 	
 	return RT_TRUE;
@@ -1027,7 +1027,7 @@ rt_dist3d_pt_poly(RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp,
 
 Computes pointarray to polygon distance
 */
-int rt_dist3d_ptarray_poly(RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPTS3D *dl)
+int rt_dist3d_ptarray_poly(RTCTX *ctx, RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPTS3D *dl)
 {
 	
 
@@ -1036,24 +1036,24 @@ int rt_dist3d_ptarray_poly(RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPT
 	VECTOR3D projp1_projp2;
 	RTPOINT3DZ p1, p2,projp1, projp2, intersectionp;
 	
-	getPoint3dz_p(pa, 0, &p1);
+	getPoint3dz_p(ctx, pa, 0, &p1);
 	
-	s1=project_point_on_plane(&p1, plane, &projp1); /*the sign of s1 tells us on which side of the plane the point is. */
-	rt_dist3d_pt_poly(&p1, poly, plane,&projp1, dl);	
+	s1=project_point_on_plane(ctx, &p1, plane, &projp1); /*the sign of s1 tells us on which side of the plane the point is. */
+	rt_dist3d_pt_poly(ctx, &p1, poly, plane,&projp1, dl);	
 	
 	for (i=1;i<pa->npoints;i++)
 	{		
 		int intersects;
-		getPoint3dz_p(pa, i, &p2);
-		s2=project_point_on_plane(&p2, plane, &projp2);	
-		rt_dist3d_pt_poly(&p2, poly, plane,&projp2, dl);
+		getPoint3dz_p(ctx, pa, i, &p2);
+		s2=project_point_on_plane(ctx, &p2, plane, &projp2);	
+		rt_dist3d_pt_poly(ctx, &p2, poly, plane,&projp2, dl);
 		
 		/*If s1and s2 has different signs that means they are on different sides of the plane of the polygon.
 		That means that the edge between the points crosses the plane and might intersect with the polygon*/
 		if((s1*s2)<=0) 
 		{
 			f=fabs(s1)/(fabs(s1)+fabs(s2)); /*The size of s1 and s2 is the distance from the point to the plane.*/
-			get_3dvector_from_points(&projp1, &projp2,&projp1_projp2);
+			get_3dvector_from_points(ctx, &projp1, &projp2,&projp1_projp2);
 			
 			/*get the point where the line segment crosses the plane*/
 			intersectionp.x=projp1.x+f*projp1_projp2.x;
@@ -1062,12 +1062,12 @@ int rt_dist3d_ptarray_poly(RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPT
 			
 			intersects = RT_TRUE; /*We set intersects to true until the opposite is proved*/
 			
-			if(pt_in_ring_3d(&intersectionp, poly->rings[0], plane)) /*Inside outer ring*/
+			if(pt_in_ring_3d(ctx, &intersectionp, poly->rings[0], plane)) /*Inside outer ring*/
 			{
 				for (k=1;k<poly->nrings; k++)
 				{
 					/* Inside a hole, so no intersection with the polygon*/
-					if ( pt_in_ring_3d(&intersectionp, poly->rings[k], plane ))
+					if ( pt_in_ring_3d(ctx, &intersectionp, poly->rings[k], plane ))
 					{
 						intersects=RT_FALSE;
 						break;
@@ -1097,7 +1097,7 @@ int rt_dist3d_ptarray_poly(RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPT
 	/*check or pointarray against boundary and inner boundaries of the polygon*/
 	for (j=0;j<poly->nrings;j++)
 	{
-		rt_dist3d_ptarray_ptarray(pa, poly->rings[j], dl);
+		rt_dist3d_ptarray_ptarray(ctx, pa, poly->rings[j], dl);
 	}
 	
 return RT_TRUE;
@@ -1110,7 +1110,7 @@ Here we define the plane of a polygon (boundary pointarray of a polygon)
 the plane is stored as a pont in plane (plane.pop) and a normal vector (plane.pv)
 */
 int
-define_plane(RTPOINTARRAY *pa, PLANE3D *pl)
+define_plane(RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl)
 {
 	int i,j, numberofvectors, pointsinslice;
 	RTPOINT3DZ p, p1, p2;
@@ -1134,7 +1134,7 @@ define_plane(RTPOINTARRAY *pa, PLANE3D *pl)
 	/*find the avg point*/
 	for (i=0;i<(pa->npoints-1);i++)
 	{
-		getPoint3dz_p(pa, i, &p);
+		getPoint3dz_p(ctx, pa, i, &p);
 		sumx+=p.x;
 		sumy+=p.y;
 		sumz+=p.z;		
@@ -1148,15 +1148,15 @@ define_plane(RTPOINTARRAY *pa, PLANE3D *pl)
 	sumz=0;
 	numberofvectors= floor((pa->npoints-1)/pointsinslice); /*the number of vectors we try can be 3, 4 or 5*/
 	
-	getPoint3dz_p(pa, 0, &p1);
+	getPoint3dz_p(ctx, pa, 0, &p1);
 	for (j=pointsinslice;j<pa->npoints;j+=pointsinslice)
 	{
-		getPoint3dz_p(pa, j, &p2);	
+		getPoint3dz_p(ctx, pa, j, &p2);	
 		
-		if (!get_3dvector_from_points(&(pl->pop), &p1, &v1) || !get_3dvector_from_points(&(pl->pop), &p2, &v2))
+		if (!get_3dvector_from_points(ctx, &(pl->pop), &p1, &v1) || !get_3dvector_from_points(ctx, &(pl->pop), &p2, &v2))
 			return RT_FALSE;	
 		/*perpendicular vector is cross product of v1 and v2*/
-		if (!get_3dcross_product(&v1,&v2, &v))
+		if (!get_3dcross_product(ctx, &v1,&v2, &v))
 			return RT_FALSE;		
 		vl=VECTORLENGTH(v);
 		sumx+=(v.x/vl);
@@ -1176,7 +1176,7 @@ define_plane(RTPOINTARRAY *pa, PLANE3D *pl)
 Finds a point on a plane from where the original point is perpendicular to the plane
 */
 double 
-project_point_on_plane(RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0)
+project_point_on_plane(RTCTX *ctx, RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0)
 {
 /*In our plane definition we have a point on the plane and a normal vektor (pl.pv), perpendicular to the plane
 this vector will be paralell to the line between our inputted point above the plane and the point we are searching for on the plane.
@@ -1186,7 +1186,7 @@ So, we already have a direction from p to find p0, but we don't know the distanc
 	VECTOR3D v1;
 	double f;
 	
-	if (!get_3dvector_from_points(&(pl->pop), p, &v1))
+	if (!get_3dvector_from_points(ctx, &(pl->pop), p, &v1))
 	return RT_FALSE;	
 	
 	f=-(DOT(pl->pv,v1)/DOT(pl->pv,pl->pv));
@@ -1202,7 +1202,7 @@ So, we already have a direction from p to find p0, but we don't know the distanc
 
 
 /**
- * pt_in_ring_3d(): crossing number test for a point in a polygon
+ * pt_in_ring_3d(ctx): crossing number test for a point in a polygon
  *      input:   p = a point,
  *               pa = vertex points of a ring V[n+1] with V[n]=V[0]
 *		plane=the plane that the vertex points are lying on
@@ -1214,7 +1214,7 @@ So, we already have a direction from p to find p0, but we don't know the distanc
 *	That is the dimension with the highest number in pv
  */
 int
-pt_in_ring_3d(const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
+pt_in_ring_3d(RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
 {
 	
 	int cn = 0;    /* the crossing number counter */
@@ -1223,20 +1223,20 @@ pt_in_ring_3d(const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
 
 	RTPOINT3DZ	first, last;
 
-	getPoint3dz_p(ring, 0, &first);
-	getPoint3dz_p(ring, ring->npoints-1, &last);
+	getPoint3dz_p(ctx, ring, 0, &first);
+	getPoint3dz_p(ctx, ring, ring->npoints-1, &last);
 	if ( memcmp(&first, &last, sizeof(RTPOINT3DZ)) )
 	{
-		rterror("pt_in_ring_3d: V[n] != V[0] (%g %g %g!= %g %g %g)",
+		rterror(ctx, "pt_in_ring_3d: V[n] != V[0] (%g %g %g!= %g %g %g)",
 		        first.x, first.y, first.z, last.x, last.y, last.z);
 		return RT_FALSE;
 	}
 
 	RTDEBUGF(2, "pt_in_ring_3d called with point: %g %g %g", p->x, p->y, p->z);
-	/* printPA(ring); */
+	/* printPA(ctx, ring); */
 
 	/* loop through all edges of the polygon */
-	getPoint3dz_p(ring, 0, &v1);
+	getPoint3dz_p(ctx, ring, 0, &v1);
 	
 	
 	if(fabs(plane->pv.z)>=fabs(plane->pv.x)&&fabs(plane->pv.z)>=fabs(plane->pv.y))	/*If the z vector of the normal vector to the plane is larger than x and y vector we project the ring to the xy-plane*/
@@ -1244,7 +1244,7 @@ pt_in_ring_3d(const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
 		for (i=0; i<ring->npoints-1; i++)
 		{
 			double vt;
-			getPoint3dz_p(ring, i+1, &v2);
+			getPoint3dz_p(ctx, ring, i+1, &v2);
 
 			/* edge from vertex i to vertex i+1 */
 			if
@@ -1273,7 +1273,7 @@ pt_in_ring_3d(const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
 		for (i=0; i<ring->npoints-1; i++)
 			{
 				double vt;
-				getPoint3dz_p(ring, i+1, &v2);
+				getPoint3dz_p(ctx, ring, i+1, &v2);
 
 				/* edge from vertex i to vertex i+1 */
 				if
@@ -1302,7 +1302,7 @@ pt_in_ring_3d(const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
 		for (i=0; i<ring->npoints-1; i++)
 			{
 				double vt;
-				getPoint3dz_p(ring, i+1, &v2);
+				getPoint3dz_p(ctx, ring, i+1, &v2);
 
 				/* edge from vertex i to vertex i+1 */
 				if

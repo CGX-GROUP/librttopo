@@ -58,7 +58,7 @@ static char *rtgeomTypeName[] =
  */
 
 void
-rtnotice(const char *fmt, ...)
+rtnotice(RTCTX *ctx, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -71,7 +71,7 @@ rtnotice(const char *fmt, ...)
 }
 
 void
-rterror(const char *fmt, ...)
+rterror(const RTCTX *ctx, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -84,7 +84,7 @@ rterror(const char *fmt, ...)
 }
 
 void
-rtdebug(int level, const char *fmt, ...)
+rtdebug(RTCTX *ctx, int level, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -166,7 +166,7 @@ default_errorreporter(const char *fmt, va_list ap)
  * Only non-NULL values change their respective handler
  */
 void
-rtgeom_set_handlers(rtallocator allocator, rtreallocator reallocator,
+rtgeom_set_handlers(RTCTX *ctx, rtallocator allocator, rtreallocator reallocator,
 	        rtfreeor freeor, rtreporter errorreporter,
 	        rtreporter noticereporter) {
 
@@ -179,13 +179,13 @@ rtgeom_set_handlers(rtallocator allocator, rtreallocator reallocator,
 }
 
 void
-rtgeom_set_debuglogger(rtdebuglogger debuglogger) {
+rtgeom_set_debuglogger(RTCTX *ctx, rtdebuglogger debuglogger) {
 
 	if ( debuglogger ) rtdebug_var = debuglogger;
 }
 
 const char* 
-rttype_name(uint8_t type)
+rttype_name(RTCTX *ctx, uint8_t type)
 {
 	if ( type > 15 )
 	{
@@ -196,7 +196,7 @@ rttype_name(uint8_t type)
 }
 
 void *
-rtalloc(size_t size)
+rtalloc(const RTCTX *ctx, size_t size)
 {
 	void *mem = rtalloc_var(size);
 	RTDEBUGF(5, "rtalloc: %d@%p", size, mem);
@@ -204,14 +204,14 @@ rtalloc(size_t size)
 }
 
 void *
-rtrealloc(void *mem, size_t size)
+rtrealloc(const RTCTX *ctx, void *mem, size_t size)
 {
 	RTDEBUGF(5, "rtrealloc: %d@%p", size, mem);
 	return rtrealloc_var(mem, size);
 }
 
 void
-rtfree(void *mem)
+rtfree(const RTCTX *ctx, void *mem)
 {
 	rtfree_var(mem);
 }
@@ -221,7 +221,7 @@ rtfree(void *mem)
  * Modifies input.
  */
 void
-trim_trailing_zeros(char *str)
+trim_trailing_zeros(RTCTX *ctx, char *str)
 {
 	char *ptr, *totrim=NULL;
 	int len;
@@ -261,13 +261,13 @@ trim_trailing_zeros(char *str)
  *    1 - end trunctation (i.e. characters are removed from the end)
  */
 
-char *rtmessage_truncate(char *str, int startpos, int endpos, int maxlength, int truncdirection)
+char * rtmessage_truncate(RTCTX *ctx, char *str, int startpos, int endpos, int maxlength, int truncdirection)
 {
 	char *output;
 	char *outstart;
 
 	/* Allocate space for new string */
-	output = rtalloc(maxlength + 4);
+	output = rtalloc(ctx, maxlength + 4);
 	output[0] = '\0';
 
 	/* Start truncation */
@@ -327,7 +327,7 @@ char *rtmessage_truncate(char *str, int startpos, int endpos, int maxlength, int
 
 
 char
-getMachineEndian(void)
+getMachineEndian(RTCTX *ctx)
 {
 	static int endian_check_int = 1; /* dont modify this!!! */
 
@@ -338,30 +338,30 @@ getMachineEndian(void)
 
 
 void
-error_if_srid_mismatch(int srid1, int srid2)
+error_if_srid_mismatch(RTCTX *ctx, int srid1, int srid2)
 {
 	if ( srid1 != srid2 )
 	{
-		rterror("Operation on mixed SRID geometries");
+		rterror(ctx, "Operation on mixed SRID geometries");
 	}
 }
 
 int
-clamp_srid(int srid)
+clamp_srid(RTCTX *ctx, int srid)
 {
 	int newsrid = srid;
 
 	if ( newsrid <= 0 ) {
 		if ( newsrid != SRID_UNKNOWN ) {
 			newsrid = SRID_UNKNOWN;
-			rtnotice("SRID value %d converted to the officially unknown SRID value %d", srid, newsrid);
+			rtnotice(ctx, "SRID value %d converted to the officially unknown SRID value %d", srid, newsrid);
 		}
 	} else if ( srid > SRID_MAXIMUM ) {
     newsrid = SRID_USER_MAXIMUM + 1 +
       /* -1 is to reduce likelyhood of clashes */
       /* NOTE: must match implementation in postgis_restore.pl */
       ( srid % ( SRID_MAXIMUM - SRID_USER_MAXIMUM - 1 ) );
-		rtnotice("SRID value %d > SRID_MAXIMUM converted to %d", srid, newsrid);
+		rtnotice(ctx, "SRID value %d > SRID_MAXIMUM converted to %d", srid, newsrid);
 	}
 	
 	return newsrid;

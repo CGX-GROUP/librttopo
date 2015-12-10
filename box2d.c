@@ -14,9 +14,9 @@
 
 
 RTGBOX *
-box2d_clone(const RTGBOX *in)
+box2d_clone(RTCTX *ctx, const RTGBOX *in)
 {
-	RTGBOX *ret = rtalloc(sizeof(RTGBOX));
+	RTGBOX *ret = rtalloc(ctx, sizeof(RTGBOX));
 	memcpy(ret, in, sizeof(RTGBOX));
 	return ret;
 }

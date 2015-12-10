@@ -20,7 +20,7 @@ typedef struct {
 } HomogenizeBuffer;
 
 static void
-init_homogenizebuffer(HomogenizeBuffer *buffer)
+init_homogenizebuffer(RTCTX *ctx, HomogenizeBuffer *buffer)
 {
 	int i;
 	for ( i = 0; i < RTNUMTYPES; i++ )
@@ -39,7 +39,7 @@ free_homogenizebuffer(HomogenizeBuffer *buffer)
 	{
 		if ( buffer->buf[i] )
 		{
-			rtcollection_free(buffer->buf[i]);
+			rtcollection_free(ctx, buffer->buf[i]);
 		}
 	}
 }
@@ -59,12 +59,12 @@ free_homogenizebuffer(HomogenizeBuffer *buffer)
 ** typed collections.
 */
 static void
-rtcollection_build_buffer(const RTCOLLECTION *col, HomogenizeBuffer *buffer)
+rtcollection_build_buffer(RTCTX *ctx, const RTCOLLECTION *col, HomogenizeBuffer *buffer)
 {
 	int i;
 	
 	if ( ! col ) return;
-	if ( rtgeom_is_empty(rtcollection_as_rtgeom(col)) ) return;
+	if ( rtgeom_is_empty(ctx, rtcollection_as_rtgeom(ctx, col)) ) return;
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
 		RTGEOM *geom = col->geoms[i];
@@ -81,18 +81,18 @@ rtcollection_build_buffer(const RTCOLLECTION *col, HomogenizeBuffer *buffer)
 				/* Init if necessary */
 				if ( ! buffer->buf[geom->type] )
 				{
-					RTCOLLECTION *bufcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
-					bufcol->type = rttype_get_collectiontype(geom->type);
+					RTCOLLECTION *bufcol = rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
+					bufcol->type = rttype_get_collectiontype(ctx, geom->type);
 					buffer->buf[geom->type] = bufcol;
 				}
 				/* Add sub-geom to buffer */
-				rtcollection_add_rtgeom(buffer->buf[geom->type], rtgeom_clone(geom));
+				rtcollection_add_rtgeom(ctx, buffer->buf[geom->type], rtgeom_clone(ctx, geom));
 				/* Increment count for this singleton type */
 				buffer->cnt[geom->type] = buffer->cnt[geom->type] + 1;
 			}
 			default:
 			{
-				rtcollection_build_buffer(rtgeom_as_rtcollection(geom), buffer);
+				rtcollection_build_buffer(ctx, rtgeom_as_rtcollection(ctx, geom), buffer);
 			}
 		}
 	}
@@ -100,7 +100,7 @@ rtcollection_build_buffer(const RTCOLLECTION *col, HomogenizeBuffer *buffer)
 }
 
 static RTGEOM*
-rtcollection_homogenize(const RTCOLLECTION *col)
+rtcollection_homogenize(RTCTX *ctx, const RTCOLLECTION *col)
 {
 	int i;
 	int ntypes = 0;
@@ -110,8 +110,8 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	HomogenizeBuffer buffer;
 
 	/* Sort all the parts into a buffer */
-	init_homogenizebuffer(&buffer);
-	rtcollection_build_buffer(col, &buffer);
+	init_homogenizebuffer(ctx, &buffer);
+	rtcollection_build_buffer(ctx, col, &buffer);
 	
 	/* Check for homogeneity */
 	for ( i = 0; i < RTNUMTYPES; i++ )
@@ -127,8 +127,8 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	if ( ntypes == 0 )
 	{
 		RTCOLLECTION *outcol;
-		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
-		outgeom = rtcollection_as_rtgeom(outcol);
+		outcol = rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
+		outgeom = rtcollection_as_rtgeom(ctx, outcol);
 	}
 	/* One type, return homogeneous collection */
 	else if ( ntypes == 1 )
@@ -138,11 +138,11 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 		if ( outcol->ngeoms == 1 )
 		{
 			outgeom = outcol->geoms[0];
-			outcol->ngeoms=0; rtcollection_free(outcol);
+			outcol->ngeoms=0; rtcollection_free(ctx, outcol);
 		}
 		else
 		{
-			outgeom = rtcollection_as_rtgeom(outcol);
+			outgeom = rtcollection_as_rtgeom(ctx, outcol);
 		}
 		outgeom->srid = col->srid;
 	}
@@ -151,7 +151,7 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 	{
 		int j;
 		RTCOLLECTION *outcol;
-		outcol = rtcollection_construct_empty(RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
+		outcol = rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
 		for ( j = 0; j < RTNUMTYPES; j++ )
 		{
 			if ( buffer.buf[j] )
@@ -159,16 +159,16 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 				RTCOLLECTION *bcol = buffer.buf[j];
 				if ( bcol->ngeoms == 1 )
 				{
-					rtcollection_add_rtgeom(outcol, bcol->geoms[0]);
-					bcol->ngeoms=0; rtcollection_free(bcol);
+					rtcollection_add_rtgeom(ctx, outcol, bcol->geoms[0]);
+					bcol->ngeoms=0; rtcollection_free(ctx, bcol);
 				}
 				else 
 				{
-					rtcollection_add_rtgeom(outcol, rtcollection_as_rtgeom(bcol));
+					rtcollection_add_rtgeom(ctx, outcol, rtcollection_as_rtgeom(ctx, bcol));
 				}
 			}
 		}
-		outgeom = rtcollection_as_rtgeom(outcol);
+		outgeom = rtcollection_as_rtgeom(ctx, outcol);
 	}
 
 	return outgeom;
@@ -192,19 +192,19 @@ rtcollection_homogenize(const RTCOLLECTION *col)
 **      => GEOMETRYCOLLECTION(MULTILINESTRING(), POINT())
 */
 RTGEOM *
-rtgeom_homogenize(const RTGEOM *geom)
+rtgeom_homogenize(RTCTX *ctx, const RTGEOM *geom)
 {
 	RTGEOM *hgeom;
 
 	/* EMPTY Geometry */
-	if (rtgeom_is_empty(geom)) 
+	if (rtgeom_is_empty(ctx, geom)) 
 	{
-		if( rtgeom_is_collection(geom) )
+		if( rtgeom_is_collection(ctx, geom) )
 		{
-			return rtcollection_as_rtgeom(rtcollection_construct_empty(geom->type, geom->srid, rtgeom_has_z(geom), rtgeom_has_m(geom)));
+			return rtcollection_as_rtgeom(ctx, rtcollection_construct_empty(ctx, geom->type, geom->srid, rtgeom_has_z(ctx, geom), rtgeom_has_m(ctx, geom)));
 		}
 		
-		return rtgeom_clone(geom);
+		return rtgeom_clone(ctx, geom);
 	}
 
 	switch (geom->type)
@@ -218,7 +218,7 @@ rtgeom_homogenize(const RTGEOM *geom)
 		case RTTRIANGLETYPE:
 		case RTCURVEPOLYTYPE:
 		case RTPOLYGONTYPE:
-			return rtgeom_clone(geom);
+			return rtgeom_clone(ctx, geom);
 
 		/* Process homogeneous geometries lightly */
 		case RTMULTIPOINTTYPE:
@@ -234,25 +234,25 @@ rtgeom_homogenize(const RTGEOM *geom)
 			/* Strip single-entry multi-geometries down to singletons */
 			if ( col->ngeoms == 1 )
 			{
-				hgeom = rtgeom_clone((RTGEOM*)(col->geoms[0]));
+				hgeom = rtgeom_clone(ctx, (RTGEOM*)(col->geoms[0]));
 				hgeom->srid = geom->srid;
 				if (geom->bbox)
-					hgeom->bbox = gbox_copy(geom->bbox);
+					hgeom->bbox = gbox_copy(ctx, geom->bbox);
 				return hgeom;
 			}
 
 			/* Return proper multigeometry untouched */
-			return rtgeom_clone(geom);
+			return rtgeom_clone(ctx, geom);
 		}
 	
 		/* Work on anonymous collections separately */
 		case RTCOLLECTIONTYPE: 
-			return rtcollection_homogenize((RTCOLLECTION *) geom);
+			return rtcollection_homogenize(ctx, (RTCOLLECTION *) geom);
 	}
 
 	/* Unknown type */
-	rterror("rtgeom_homogenize: Geometry Type not supported (%i)",
-	        rttype_name(geom->type));
+	rterror(ctx, "rtgeom_homogenize: Geometry Type not supported (%i)",
+	        rttype_name(ctx, geom->type));
 
 	return NULL; /* Never get here! */
 }

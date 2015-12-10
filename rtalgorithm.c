@@ -17,7 +17,7 @@
 /**
 * Returns -1 if n < 0.0 and 1 if n > 0.0
 */
-int signum(double n)
+int signum(RTCTX *ctx, double n)
 {
 	if( n < 0 ) return -1;
 	if( n > 0 ) return 1;
@@ -25,7 +25,7 @@ int signum(double n)
 }
 
 int
-p4d_same(const RTPOINT4D *p1, const RTPOINT4D *p2)
+p4d_same(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) && FP_EQUALS(p1->z,p2->z) && FP_EQUALS(p1->m,p2->m) )
 		return RT_TRUE;
@@ -34,7 +34,7 @@ p4d_same(const RTPOINT4D *p1, const RTPOINT4D *p2)
 }
 
 int
-p3d_same(const POINT3D *p1, const POINT3D *p2)
+p3d_same(RTCTX *ctx, const POINT3D *p1, const POINT3D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) && FP_EQUALS(p1->z,p2->z) )
 		return RT_TRUE;
@@ -43,7 +43,7 @@ p3d_same(const POINT3D *p1, const POINT3D *p2)
 }
 
 int
-p2d_same(const RTPOINT2D *p1, const RTPOINT2D *p2)
+p2d_same(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) )
 		return RT_TRUE;
@@ -52,26 +52,26 @@ p2d_same(const RTPOINT2D *p1, const RTPOINT2D *p2)
 }
 
 /**
-* rt_segment_side()
+* rt_segment_side(ctx)
 *
 * Return -1  if point Q is left of segment P
 * Return  1  if point Q is right of segment P
 * Return  0  if point Q in on segment P
 */
-int rt_segment_side(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q)
+int rt_segment_side(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q)
 {
 	double side = ( (q->x - p1->x) * (p2->y - p1->y) - (p2->x - p1->x) * (q->y - p1->y) );
 	if ( side == 0.0 )
 		return 0;
 	else
-		return signum(side);
+		return signum(ctx, side);
 }
 
 /**
 * Returns the length of a linear segment
 */
 double
-rt_seg_length(const RTPOINT2D *A1, const RTPOINT2D *A2)
+rt_seg_length(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2)
 {
 	return sqrt((A1->x-A2->x)*(A1->x-A2->x)+(A1->y-A2->y)*(A1->y-A2->y));
 }
@@ -82,9 +82,9 @@ rt_seg_length(const RTPOINT2D *A1, const RTPOINT2D *A2)
 * determined to be on the circle defined by A1/A2/A3.
 */
 int
-rt_pt_in_arc(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
+rt_pt_in_arc(RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
-	return rt_segment_side(A1, A3, A2) == rt_segment_side(A1, A3, P);
+	return rt_segment_side(ctx, A1, A3, A2) == rt_segment_side(ctx, A1, A3, P);
 }
 
 /**
@@ -92,7 +92,7 @@ rt_pt_in_arc(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, const
 * deterined to be on the line defined by A1/A2.
 */
 int
-rt_pt_in_seg(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2)
+rt_pt_in_seg(RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2)
 {
 	return ((A1->x <= P->x && P->x < A2->x) || (A1->x >= P->x && P->x > A2->x)) ||
 	       ((A1->y <= P->y && P->y < A2->y) || (A1->y >= P->y && P->y > A2->y));
@@ -102,7 +102,7 @@ rt_pt_in_seg(const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2)
 * Returns true if arc A is actually a point (all vertices are the same) .
 */
 int
-rt_arc_is_pt(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
+rt_arc_is_pt(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
 	if ( A1->x == A2->x && A2->x == A3->x && 
 	     A1->y == A2->y && A2->y == A3->y )
@@ -115,7 +115,7 @@ rt_arc_is_pt(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 * Returns the length of a circular arc segment
 */
 double
-rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
+rt_arc_length(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
 	RTPOINT2D C;
 	double radius_A, circumference_A;
@@ -123,10 +123,10 @@ rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 	double a1, a3;
 	double angle;
 	
-	if ( rt_arc_is_pt(A1, A2, A3) )
+	if ( rt_arc_is_pt(ctx, A1, A2, A3) )
 		return 0.0;
 	
-	radius_A = rt_arc_center(A1, A2, A3, &C);
+	radius_A = rt_arc_center(ctx, A1, A2, A3, &C);
 
 	/* Co-linear! Return linear distance! */
 	if ( radius_A < 0 ) 
@@ -138,11 +138,11 @@ rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 	
 	/* Closed circle! Return the circumference! */
 	circumference_A = M_PI * 2 * radius_A;
-	if ( p2d_same(A1, A3) )
+	if ( p2d_same(ctx, A1, A3) )
 		return circumference_A;
 	
 	/* Determine the orientation of the arc */
-	a2_side = rt_segment_side(A1, A3, A2);
+	a2_side = rt_segment_side(ctx, A1, A3, A2);
 
 	/* The side of the A1/A3 line that A2 falls on dictates the sweep  
 	   direction from A1 to A3. */
@@ -175,22 +175,22 @@ rt_arc_length(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 	return circumference_A * (angle / (2*M_PI));
 }
 
-int rt_arc_side(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, const RTPOINT2D *Q)
+int rt_arc_side(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, const RTPOINT2D *Q)
 {
 	RTPOINT2D C;
 	double radius_A;
 	double side_Q, side_A2;
 	double d;
 	
-	side_Q = rt_segment_side(A1, A3, Q);
-	radius_A = rt_arc_center(A1, A2, A3, &C);
-	side_A2 = rt_segment_side(A1, A3, A2);
+	side_Q = rt_segment_side(ctx, A1, A3, Q);
+	radius_A = rt_arc_center(ctx, A1, A2, A3, &C);
+	side_A2 = rt_segment_side(ctx, A1, A3, A2);
 	
 	/* Linear case */
 	if ( radius_A < 0 )
 		return side_Q;
 		
-	d = distance2d_pt_pt(Q, &C);
+	d = distance2d_pt_pt(ctx, Q, &C);
 	
 	/* Q is on the arc boundary */
 	if ( d == radius_A && side_Q == side_A2 )
@@ -224,7 +224,7 @@ int rt_arc_side(const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, c
 * point is coincident with either end point, they are taken as colinear.
 */
 double
-rt_arc_center(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTPOINT2D *result)	
+rt_arc_center(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTPOINT2D *result)	
 {
 	RTPOINT2D c;
 	double cx, cy, cr;
@@ -277,32 +277,32 @@ rt_arc_center(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTP
 }
 
 int
-pt_in_ring_2d(const RTPOINT2D *p, const RTPOINTARRAY *ring)
+pt_in_ring_2d(RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
 {
 	int cn = 0;    /* the crossing number counter */
 	int i;
 	const RTPOINT2D *v1, *v2;
 	const RTPOINT2D *first, *last;
 
-	first = getPoint2d_cp(ring, 0);
-	last = getPoint2d_cp(ring, ring->npoints-1);
+	first = getPoint2d_cp(ctx, ring, 0);
+	last = getPoint2d_cp(ctx, ring, ring->npoints-1);
 	if ( memcmp(first, last, sizeof(RTPOINT2D)) )
 	{
-		rterror("pt_in_ring_2d: V[n] != V[0] (%g %g != %g %g)",
+		rterror(ctx, "pt_in_ring_2d: V[n] != V[0] (%g %g != %g %g)",
 		        first->x, first->y, last->x, last->y);
 		return RT_FALSE;
 
 	}
 
 	RTDEBUGF(2, "pt_in_ring_2d called with point: %g %g", p->x, p->y);
-	/* printPA(ring); */
+	/* printPA(ctx, ring); */
 
 	/* loop through all edges of the polygon */
-	v1 = getPoint2d_cp(ring, 0);
+	v1 = getPoint2d_cp(ctx, ring, 0);
 	for (i=0; i<ring->npoints-1; i++)
 	{
 		double vt;
-		v2 = getPoint2d_cp(ring, i+1);
+		v2 = getPoint2d_cp(ctx, ring, i+1);
 
 		/* edge from vertex i to vertex i+1 */
 		if
@@ -333,7 +333,7 @@ pt_in_ring_2d(const RTPOINT2D *p, const RTPOINTARRAY *ring)
 
 
 static int 
-rt_seg_interact(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
+rt_seg_interact(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
 {
 	double minq=FP_MIN(q1->x,q2->x);
 	double maxq=FP_MAX(q1->x,q2->x);
@@ -368,28 +368,28 @@ rt_seg_interact(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, c
 **		SEG_CROSS_LEFT = 2,
 **		SEG_CROSS_RIGHT = 3,
 */
-int rt_segment_intersects(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
+int rt_segment_intersects(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
 {
 
 	int pq1, pq2, qp1, qp2;
 
 	/* No envelope interaction => we are done. */
-	if (!rt_seg_interact(p1, p2, q1, p2))
+	if (!rt_seg_interact(ctx, p1, p2, q1, p2))
 	{
 		return SEG_NO_INTERSECTION;
 	}
 
 	/* Are the start and end points of q on the same side of p? */
-	pq1=rt_segment_side(p1,p2,q1);
-	pq2=rt_segment_side(p1,p2,q2);
+	pq1=rt_segment_side(ctx, p1,p2,q1);
+	pq2=rt_segment_side(ctx, p1,p2,q2);
 	if ((pq1>0 && pq2>0) || (pq1<0 && pq2<0))
 	{
 		return SEG_NO_INTERSECTION;
 	}
 
 	/* Are the start and end points of p on the same side of q? */
-	qp1=rt_segment_side(q1,q2,p1);
-	qp2=rt_segment_side(q1,q2,p2);
+	qp1=rt_segment_side(ctx, q1,q2,p1);
+	qp2=rt_segment_side(ctx, q1,q2,p2);
 	if ( (qp1 > 0.0 && qp2 > 0.0) || (qp1 < 0.0 && qp2 < 0.0) )
 	{
 		return SEG_NO_INTERSECTION;
@@ -457,7 +457,7 @@ int rt_segment_intersects(const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOIN
 **   LINE_MULTICROSS_END_SAME_FIRST_RIGHT = 3
 **
 */
-int rtline_crossing_direction(const RTLINE *l1, const RTLINE *l2)
+int rtline_crossing_direction(RTCTX *ctx, const RTLINE *l1, const RTLINE *l2)
 {
 	int i = 0, j = 0;
 	const RTPOINT2D *p1, *p2, *q1, *q2;
@@ -474,28 +474,28 @@ int rtline_crossing_direction(const RTLINE *l1, const RTLINE *l2)
 	if ( pa1->npoints < 2 || pa2->npoints < 2 )
 		return LINE_NO_CROSS;
 
-	RTDEBUGF(4, "l1 = %s", rtgeom_to_ewkt((RTGEOM*)l1));
-	RTDEBUGF(4, "l2 = %s", rtgeom_to_ewkt((RTGEOM*)l2));
+	RTDEBUGF(4, "l1 = %s", rtgeom_to_ewkt(ctx, (RTGEOM*)l1));
+	RTDEBUGF(4, "l2 = %s", rtgeom_to_ewkt(ctx, (RTGEOM*)l2));
 
 	/* Initialize first point of q */
-	q1 = getPoint2d_cp(pa2, 0);
+	q1 = getPoint2d_cp(ctx, pa2, 0);
 
 	for ( i = 1; i < pa2->npoints; i++ )
 	{
 
 		/* Update second point of q to next value */
-		q2 = getPoint2d_cp(pa2, i);
+		q2 = getPoint2d_cp(ctx, pa2, i);
 
 		/* Initialize first point of p */
-		p1 = getPoint2d_cp(pa1, 0);
+		p1 = getPoint2d_cp(ctx, pa1, 0);
 
 		for ( j = 1; j < pa1->npoints; j++ )
 		{
 
 			/* Update second point of p to next value */
-			p2 = getPoint2d_cp(pa1, j);
+			p2 = getPoint2d_cp(ctx, pa1, j);
 
-			this_cross = rt_segment_intersects(p1, p2, q1, q2);
+			this_cross = rt_segment_intersects(ctx, p1, p2, q1, q2);
 
 			RTDEBUGF(4, "i=%d, j=%d (%.8g %.8g, %.8g %.8g)", this_cross, i, j, p1->x, p1->y, p2->x, p2->y);
 
@@ -578,7 +578,7 @@ static char *base32 = "0123456789bcdefghjkmnpqrstuvwxyz";
 ** From geohash-native.c, (c) 2008 David Troy <dave@roundhousetech.com>
 ** Released under the MIT License.
 */
-char *geohash_point(double longitude, double latitude, int precision)
+char * geohash_point(RTCTX *ctx, double longitude, double latitude, int precision)
 {
 	int is_even=1, i=0;
 	double lat[2], lon[2], mid;
@@ -586,7 +586,7 @@ char *geohash_point(double longitude, double latitude, int precision)
 	int bit=0, ch=0;
 	char *geohash = NULL;
 
-	geohash = rtalloc(precision + 1);
+	geohash = rtalloc(ctx, precision + 1);
 
 	lat[0] = -90.0;
 	lat[1] = 90.0;
@@ -644,7 +644,7 @@ char *geohash_point(double longitude, double latitude, int precision)
 ** From geohash-native.c, (c) 2008 David Troy <dave@roundhousetech.com>
 ** Released under the MIT License.
 */
-unsigned int geohash_point_as_int(RTPOINT2D *pt)
+unsigned int geohash_point_as_int(RTCTX *ctx, RTPOINT2D *pt)
 {
 	int is_even=1;
 	double lat[2], lon[2], mid;
@@ -700,7 +700,7 @@ unsigned int geohash_point_as_int(RTPOINT2D *pt)
 ** box accordingly. A precision less than 0 indicates that the entire length
 ** of the GeoHash should be used.
 */
-void decode_geohash_bbox(char *geohash, double *lat, double *lon, int precision)
+void decode_geohash_bbox(RTCTX *ctx, char *geohash, double *lat, double *lon, int precision)
 {
 	int i, j, hashlen;
 	char c, cd, mask, is_even = 1;
@@ -739,7 +739,7 @@ void decode_geohash_bbox(char *geohash, double *lat, double *lon, int precision)
 	}
 }
 
-int rtgeom_geohash_precision(RTGBOX bbox, RTGBOX *bounds)
+int rtgeom_geohash_precision(RTCTX *ctx, RTGBOX bbox, RTGBOX *bounds)
 {
 	double minx, miny, maxx, maxy;
 	double latmax, latmin, lonmax, lonmin;
@@ -824,23 +824,23 @@ int rtgeom_geohash_precision(RTGBOX bbox, RTGBOX *bounds)
 ** bounds of the feature. Big features have loose precision.
 ** Small features have tight precision.
 */
-char *rtgeom_geohash(const RTGEOM *rtgeom, int precision)
+char * rtgeom_geohash(RTCTX *ctx, const RTGEOM *rtgeom, int precision)
 {
 	RTGBOX gbox;
 	RTGBOX gbox_bounds;
 	double lat, lon;
 	int result;
 
-	gbox_init(&gbox);
-	gbox_init(&gbox_bounds);
+	gbox_init(ctx, &gbox);
+	gbox_init(ctx, &gbox_bounds);
 
-	result = rtgeom_calculate_gbox_cartesian(rtgeom, &gbox);	
+	result = rtgeom_calculate_gbox_cartesian(ctx, rtgeom, &gbox);	
 	if ( result == RT_FAILURE ) return NULL;
 
 	/* Return error if we are being fed something outside our working bounds */
 	if ( gbox.xmin < -180 || gbox.ymin < -90 || gbox.xmax > 180 || gbox.ymax > 90 )
 	{
-		rterror("Geohash requires inputs in decimal degrees, got (%g %g, %g %g).",
+		rterror(ctx, "Geohash requires inputs in decimal degrees, got (%g %g, %g %g).",
 			 gbox.xmin, gbox.ymin,
 			 gbox.xmax, gbox.ymax);
 		return NULL;
@@ -853,7 +853,7 @@ char *rtgeom_geohash(const RTGEOM *rtgeom, int precision)
 
 	if ( precision <= 0 )
 	{
-		precision = rtgeom_geohash_precision(gbox, &gbox_bounds);
+		precision = rtgeom_geohash_precision(ctx, gbox, &gbox_bounds);
 	}
 
 	/*
@@ -861,7 +861,7 @@ char *rtgeom_geohash(const RTGEOM *rtgeom, int precision)
 	** extent of the bounds.
 	** Possible change: return the point at the center of the precision bounds?
 	*/
-	return geohash_point(lon, lat, precision);
+	return geohash_point(ctx, lon, lat, precision);
 }
 
 

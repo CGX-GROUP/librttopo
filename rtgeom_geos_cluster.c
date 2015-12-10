@@ -46,16 +46,16 @@ struct STRTree
 	uint32_t num_geoms;
 };
 
-static struct STRTree make_strtree(void** geoms, uint32_t num_geoms, char is_rtgeom);
-static void destroy_strtree(struct STRTree tree);
-static void union_if_intersecting(void* item, void* userdata);
-static void union_if_dwithin(void* item, void* userdata);
-static int union_intersecting_pairs(GEOSGeometry** geoms, uint32_t num_geoms, UNIONFIND* uf);
-static int combine_geometries(UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clustersGeoms, uint32_t* num_clusters, char is_rtgeom);
+static struct STRTree make_strtree(RTCTX *ctx, void** geoms, uint32_t num_geoms, char is_rtgeom);
+static void destroy_strtree(RTCTX *ctx, struct STRTree tree);
+static void union_if_intersecting(RTCTX *ctx, void* item, void* userdata);
+static void union_if_dwithin(RTCTX *ctx, void* item, void* userdata);
+static int union_intersecting_pairs(RTCTX *ctx, GEOSGeometry** geoms, uint32_t num_geoms, UNIONFIND* uf);
+static int combine_geometries(RTCTX *ctx, UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clustersGeoms, uint32_t* num_clusters, char is_rtgeom);
 
 /** Make a GEOSSTRtree of either GEOSGeometry* or RTGEOM* pointers */
 static struct STRTree
-make_strtree(void** geoms, uint32_t num_geoms, char is_rtgeom)
+make_strtree(RTCTX *ctx, void** geoms, uint32_t num_geoms, char is_rtgeom)
 {
 	struct STRTree tree;
 	tree.tree = GEOSSTRtree_create(num_geoms);
@@ -63,8 +63,8 @@ make_strtree(void** geoms, uint32_t num_geoms, char is_rtgeom)
 	{
 		return tree;
 	}
-	tree.envelopes = rtalloc(num_geoms * sizeof(GEOSGeometry*));
-	tree.geom_ids  = rtalloc(num_geoms * sizeof(uint32_t));
+	tree.envelopes = rtalloc(ctx, num_geoms * sizeof(GEOSGeometry*));
+	tree.geom_ids  = rtalloc(ctx, num_geoms * sizeof(uint32_t));
 	tree.num_geoms = num_geoms;
 
 	size_t i;
@@ -77,10 +77,10 @@ make_strtree(void** geoms, uint32_t num_geoms, char is_rtgeom)
 		}
 		else
 		{
-            const RTGBOX* box = rtgeom_get_bbox(geoms[i]);
+            const RTGBOX* box = rtgeom_get_bbox(ctx, geoms[i]);
             if (box)
             {
-                tree.envelopes[i] = GBOX2GEOS(box);
+                tree.envelopes[i] = GBOX2GEOS(ctx, box);
             } 
             else
             {
@@ -95,7 +95,7 @@ make_strtree(void** geoms, uint32_t num_geoms, char is_rtgeom)
 
 /** Clean up STRTree after use */
 static void
-destroy_strtree(struct STRTree tree)
+destroy_strtree(RTCTX *ctx, struct STRTree tree)
 {
 	size_t i;
 	GEOSSTRtree_destroy(tree.tree);
@@ -104,13 +104,13 @@ destroy_strtree(struct STRTree tree)
 	{
 		GEOSGeom_destroy(tree.envelopes[i]);
 	}
-	rtfree(tree.geom_ids);
-	rtfree(tree.envelopes);
+	rtfree(ctx, tree.geom_ids);
+	rtfree(ctx, tree.envelopes);
 }
 
 /* Callback function for GEOSSTRtree_query */
 static void
-union_if_intersecting(void* item, void* userdata)
+union_if_intersecting(RTCTX *ctx, void* item, void* userdata)
 {
 	struct UnionIfIntersectingContext *cxt = userdata;
 	if (cxt->error)
@@ -120,7 +120,7 @@ union_if_intersecting(void* item, void* userdata)
 	uint32_t q = *((uint32_t*) item);
 	uint32_t p = *(cxt->p);
 
-	if (p != q && UF_find(cxt->uf, p) != UF_find(cxt->uf, q))
+	if (p != q && UF_find(ctx, cxt->uf, p) != UF_find(ctx, cxt->uf, q))
 	{
 		/* Lazy initialize prepared geometry */
 		if (cxt->prep == NULL)
@@ -135,14 +135,14 @@ union_if_intersecting(void* item, void* userdata)
 		}
 		if (geos_result)
 		{
-			UF_union(cxt->uf, p, q);
+			UF_union(ctx, cxt->uf, p, q);
 		}
 	}
 }
 
 /* Callback function for GEOSSTRtree_query */
 static void
-union_if_dwithin(void* item, void* userdata)
+union_if_dwithin(RTCTX *ctx, void* item, void* userdata)
 {
 	struct UnionIfDWithinContext *cxt = userdata;
 	if (cxt->error)
@@ -152,9 +152,9 @@ union_if_dwithin(void* item, void* userdata)
 	uint32_t q = *((uint32_t*) item);
 	uint32_t p = *(cxt->p);
 
-	if (p != q && UF_find(cxt->uf, p) != UF_find(cxt->uf, q))
+	if (p != q && UF_find(ctx, cxt->uf, p) != UF_find(ctx, cxt->uf, q))
 	{
-		double mindist = rtgeom_mindistance2d_tolerance(cxt->geoms[p], cxt->geoms[q], cxt->tolerance);
+		double mindist = rtgeom_mindistance2d_tolerance(ctx, cxt->geoms[p], cxt->geoms[q], cxt->tolerance);
 		if (mindist == FLT_MAX)
 		{
 			cxt->error = 1;
@@ -163,14 +163,14 @@ union_if_dwithin(void* item, void* userdata)
 
 		if (mindist <= cxt->tolerance)
 		{
-			UF_union(cxt->uf, p, q);
+			UF_union(ctx, cxt->uf, p, q);
 		}
 	}
 }
 
 /* Identify intersecting geometries and mark them as being in the same set */
 static int
-union_intersecting_pairs(GEOSGeometry** geoms, uint32_t num_geoms, UNIONFIND* uf)
+union_intersecting_pairs(RTCTX *ctx, GEOSGeometry** geoms, uint32_t num_geoms, UNIONFIND* uf)
 {
 	uint32_t i;
 
@@ -179,10 +179,10 @@ union_intersecting_pairs(GEOSGeometry** geoms, uint32_t num_geoms, UNIONFIND* uf
 		return RT_SUCCESS;
 	}
 
-	struct STRTree tree = make_strtree((void**) geoms, num_geoms, 0);
+	struct STRTree tree = make_strtree(ctx, (void**) geoms, num_geoms, 0);
 	if (tree.tree == NULL)
 	{
-		destroy_strtree(tree);
+		destroy_strtree(ctx, tree);
 		return RT_FAILURE;
 	}
 	for (i = 0; i < num_geoms; i++)
@@ -211,13 +211,13 @@ union_intersecting_pairs(GEOSGeometry** geoms, uint32_t num_geoms, UNIONFIND* uf
 		}
 	}
 
-	destroy_strtree(tree);
+	destroy_strtree(ctx, tree);
 	return RT_SUCCESS;
 }
 
 /* Identify geometries within a distance tolerance and mark them as being in the same set */
 static int
-union_pairs_within_distance(RTGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, double tolerance)
+union_pairs_within_distance(RTCTX *ctx, RTGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, double tolerance)
 {
 	uint32_t i;
 
@@ -226,10 +226,10 @@ union_pairs_within_distance(RTGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, d
 		return RT_SUCCESS;
 	}
 
-	struct STRTree tree = make_strtree((void**) geoms, num_geoms, 1);
+	struct STRTree tree = make_strtree(ctx, (void**) geoms, num_geoms, 1);
 	if (tree.tree == NULL)
 	{
-		destroy_strtree(tree);
+		destroy_strtree(ctx, tree);
 		return RT_FAILURE;
 	}
 
@@ -244,25 +244,25 @@ union_pairs_within_distance(RTGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, d
 			.tolerance = tolerance
 		};
 
-        const RTGBOX* geom_extent = rtgeom_get_bbox(geoms[i]);
+        const RTGBOX* geom_extent = rtgeom_get_bbox(ctx, geoms[i]);
         if (!geom_extent)
         {
             /* Empty geometry */
             continue;
         }
-		RTGBOX* query_extent = gbox_clone(geom_extent);
-		gbox_expand(query_extent, tolerance);
-		GEOSGeometry* query_envelope = GBOX2GEOS(query_extent);
+		RTGBOX* query_extent = gbox_clone(ctx, geom_extent);
+		gbox_expand(ctx, query_extent, tolerance);
+		GEOSGeometry* query_envelope = GBOX2GEOS(ctx, query_extent);
 
 		if (!query_envelope)
 		{
-			destroy_strtree(tree);
+			destroy_strtree(ctx, tree);
 			return RT_FAILURE;
 		}
 
 		GEOSSTRtree_query(tree.tree, query_envelope, &union_if_dwithin, &cxt);
 
-		rtfree(query_extent);
+		rtfree(ctx, query_extent);
 		GEOSGeom_destroy(query_envelope);
 		if (cxt.error)
 		{
@@ -270,7 +270,7 @@ union_pairs_within_distance(RTGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, d
 		}
 	}
 
-	destroy_strtree(tree);
+	destroy_strtree(ctx, tree);
 	return RT_SUCCESS;
 }
 
@@ -278,19 +278,19 @@ union_pairs_within_distance(RTGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, d
  *  array is a GeometryCollection representing a set of interconnected geometries. Caller is responsible for
  *  freeing the input array, but not for destroying the GEOSGeometry* items inside it.  */
 int
-cluster_intersecting(GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** clusterGeoms, uint32_t* num_clusters)
+cluster_intersecting(RTCTX *ctx, GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** clusterGeoms, uint32_t* num_clusters)
 {
 	int cluster_success;
-	UNIONFIND* uf = UF_create(num_geoms);
+	UNIONFIND* uf = UF_create(ctx, num_geoms);
 
-	if (union_intersecting_pairs(geoms, num_geoms, uf) == RT_FAILURE)
+	if (union_intersecting_pairs(ctx, geoms, num_geoms, uf) == RT_FAILURE)
 	{
-		UF_destroy(uf);
+		UF_destroy(ctx, uf);
 		return RT_FAILURE;
 	}
 
-	cluster_success = combine_geometries(uf, (void**) geoms, num_geoms, (void***) clusterGeoms, num_clusters, 0);
-	UF_destroy(uf);
+	cluster_success = combine_geometries(ctx, uf, (void**) geoms, num_geoms, (void***) clusterGeoms, num_clusters, 0);
+	UF_destroy(ctx, uf);
 	return cluster_success;
 }
 
@@ -298,19 +298,19 @@ cluster_intersecting(GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** c
  *  GeometryCollection representing a set of geometries separated by no more than the specified tolerance. Caller is
  *  responsible for freeing the input array, but not the RTGEOM* items inside it. */
 int
-cluster_within_distance(RTGEOM** geoms, uint32_t num_geoms, double tolerance, RTGEOM*** clusterGeoms, uint32_t* num_clusters)
+cluster_within_distance(RTCTX *ctx, RTGEOM** geoms, uint32_t num_geoms, double tolerance, RTGEOM*** clusterGeoms, uint32_t* num_clusters)
 {
 	int cluster_success;
-	UNIONFIND* uf = UF_create(num_geoms);
+	UNIONFIND* uf = UF_create(ctx, num_geoms);
 
-	if (union_pairs_within_distance(geoms, num_geoms, uf, tolerance) == RT_FAILURE)
+	if (union_pairs_within_distance(ctx, geoms, num_geoms, uf, tolerance) == RT_FAILURE)
 	{
-		UF_destroy(uf);
+		UF_destroy(ctx, uf);
 		return RT_FAILURE;
 	}
 
-	cluster_success = combine_geometries(uf, (void**) geoms, num_geoms, (void***) clusterGeoms, num_clusters, 1);
-	UF_destroy(uf);
+	cluster_success = combine_geometries(ctx, uf, (void**) geoms, num_geoms, (void***) clusterGeoms, num_clusters, 1);
+	UF_destroy(ctx, uf);
 	return cluster_success;
 }
 
@@ -318,29 +318,29 @@ cluster_within_distance(RTGEOM** geoms, uint32_t num_geoms, double tolerance, RT
  *  GeometryCollections.  Supplied geometry array may be of either RTGEOM* or GEOSGeometry*; is_rtgeom is used to
  *  identify which. Caller is responsible for freeing input geometry array but not the items contained within it. */
 static int
-combine_geometries(UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clusterGeoms, uint32_t* num_clusters, char is_rtgeom)
+combine_geometries(RTCTX *ctx, UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clusterGeoms, uint32_t* num_clusters, char is_rtgeom)
 {
 	size_t i, j, k;
 
 	/* Combine components of each cluster into their own GeometryCollection */
 	*num_clusters = uf->num_clusters;
-	*clusterGeoms = rtalloc(*num_clusters * sizeof(void*));
+	*clusterGeoms = rtalloc(ctx, *num_clusters * sizeof(void*));
 
-	void** geoms_in_cluster = rtalloc(num_geoms * sizeof(void*));
-	uint32_t* ordered_components = UF_ordered_by_cluster(uf);
+	void** geoms_in_cluster = rtalloc(ctx, num_geoms * sizeof(void*));
+	uint32_t* ordered_components = UF_ordered_by_cluster(ctx, uf);
 	for (i = 0, j = 0, k = 0; i < num_geoms; i++)
 	{
 		geoms_in_cluster[j++] = geoms[ordered_components[i]];
 
 		/* Is this the last geometry in the component? */
 		if ((i == num_geoms - 1) ||
-		        (UF_find(uf, ordered_components[i]) != UF_find(uf, ordered_components[i+1])))
+		        (UF_find(ctx, uf, ordered_components[i]) != UF_find(ctx, uf, ordered_components[i+1])))
 		{
 			if (is_rtgeom)
 			{
-				RTGEOM** components = rtalloc(num_geoms * sizeof(RTGEOM*));
+				RTGEOM** components = rtalloc(ctx, num_geoms * sizeof(RTGEOM*));
 				memcpy(components, geoms_in_cluster, num_geoms * sizeof(RTGEOM*));
-				(*clusterGeoms)[k++] = rtcollection_construct(RTCOLLECTIONTYPE, components[0]->srid, NULL, j, (RTGEOM**) components);
+				(*clusterGeoms)[k++] = rtcollection_construct(ctx, RTCOLLECTIONTYPE, components[0]->srid, NULL, j, (RTGEOM**) components);
 			}
 			else
 			{
@@ -350,8 +350,8 @@ combine_geometries(UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clus
 		}
 	}
 
-	rtfree(geoms_in_cluster);
-	rtfree(ordered_components);
+	rtfree(ctx, geoms_in_cluster);
+	rtfree(ctx, ordered_components);
 
 	return RT_SUCCESS;
 }

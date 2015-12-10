@@ -15,23 +15,23 @@
 #include "librtgeom_internal.h"
 
 void
-rtmline_release(RTMLINE *rtmline)
+rtmline_release(RTCTX *ctx, RTMLINE *rtmline)
 {
-	rtgeom_release(rtmline_as_rtgeom(rtmline));
+	rtgeom_release(ctx, rtmline_as_rtgeom(ctx, rtmline));
 }
 
 RTMLINE *
-rtmline_construct_empty(int srid, char hasz, char hasm)
+rtmline_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 {
-	RTMLINE *ret = (RTMLINE*)rtcollection_construct_empty(RTMULTILINETYPE, srid, hasz, hasm);
+	RTMLINE *ret = (RTMLINE*)rtcollection_construct_empty(ctx, RTMULTILINETYPE, srid, hasz, hasm);
 	return ret;
 }
 
 
 
-RTMLINE* rtmline_add_rtline(RTMLINE *mobj, const RTLINE *obj)
+RTMLINE* rtmline_add_rtline(RTCTX *ctx, RTMLINE *mobj, const RTLINE *obj)
 {
-	return (RTMLINE*)rtcollection_add_rtgeom((RTCOLLECTION*)mobj, (RTGEOM*)obj);
+	return (RTMLINE*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
 /**
@@ -39,7 +39,7 @@ RTMLINE* rtmline_add_rtline(RTMLINE *mobj, const RTLINE *obj)
 * the measure between the supplied start and end values.
 */
 RTMLINE*
-rtmline_measured_from_rtmline(const RTMLINE *rtmline, double m_start, double m_end)
+rtmline_measured_from_rtmline(RTCTX *ctx, const RTMLINE *rtmline, double m_start, double m_end)
 {
 	int i = 0;
 	int hasm = 0, hasz = 0;
@@ -49,7 +49,7 @@ rtmline_measured_from_rtmline(const RTMLINE *rtmline, double m_start, double m_e
 
 	if ( rtmline->type != RTMULTILINETYPE )
 	{
-		rterror("rtmline_measured_from_lmwline: only multiline types supported");
+		rterror(ctx, "rtmline_measured_from_lmwline: only multiline types supported");
 		return NULL;
 	}
 
@@ -62,16 +62,16 @@ rtmline_measured_from_rtmline(const RTMLINE *rtmline, double m_start, double m_e
 		RTLINE *rtline = (RTLINE*)rtmline->geoms[i];
 		if ( rtline->points && rtline->points->npoints > 1 )
 		{
-			length += ptarray_length_2d(rtline->points);
+			length += ptarray_length_2d(ctx, rtline->points);
 		}
 	}
 
-	if ( rtgeom_is_empty((RTGEOM*)rtmline) )
+	if ( rtgeom_is_empty(ctx, (RTGEOM*)rtmline) )
 	{
-		return (RTMLINE*)rtcollection_construct_empty(RTMULTILINETYPE, rtmline->srid, hasz, hasm);
+		return (RTMLINE*)rtcollection_construct_empty(ctx, RTMULTILINETYPE, rtmline->srid, hasz, hasm);
 	}
 
-	geoms = rtalloc(sizeof(RTGEOM*) * rtmline->ngeoms);
+	geoms = rtalloc(ctx, sizeof(RTGEOM*) * rtmline->ngeoms);
 
 	for ( i = 0; i < rtmline->ngeoms; i++ )
 	{
@@ -81,34 +81,34 @@ rtmline_measured_from_rtmline(const RTMLINE *rtmline, double m_start, double m_e
 
 		if ( rtline->points && rtline->points->npoints > 1 )
 		{
-			sub_length = ptarray_length_2d(rtline->points);
+			sub_length = ptarray_length_2d(ctx, rtline->points);
 		}
 
 		sub_m_start = (m_start + m_range * length_so_far / length);
 		sub_m_end = (m_start + m_range * (length_so_far + sub_length) / length);
 
-		geoms[i] = (RTGEOM*)rtline_measured_from_rtline(rtline, sub_m_start, sub_m_end);
+		geoms[i] = (RTGEOM*)rtline_measured_from_rtline(ctx, rtline, sub_m_start, sub_m_end);
 
 		length_so_far += sub_length;
 	}
 
-	return (RTMLINE*)rtcollection_construct(rtmline->type, rtmline->srid, NULL, rtmline->ngeoms, geoms);
+	return (RTMLINE*)rtcollection_construct(ctx, rtmline->type, rtmline->srid, NULL, rtmline->ngeoms, geoms);
 }
 
-void rtmline_free(RTMLINE *mline)
+void rtmline_free(RTCTX *ctx, RTMLINE *mline)
 {
 	int i;
 	if ( ! mline ) return;
 	
 	if ( mline->bbox )
-		rtfree(mline->bbox);
+		rtfree(ctx, mline->bbox);
 
 	for ( i = 0; i < mline->ngeoms; i++ )
 		if ( mline->geoms && mline->geoms[i] )
-			rtline_free(mline->geoms[i]);
+			rtline_free(ctx, mline->geoms[i]);
 
 	if ( mline->geoms )
-		rtfree(mline->geoms);
+		rtfree(ctx, mline->geoms);
 
-	rtfree(mline);
+	rtfree(ctx, mline);
 }

@@ -20,14 +20,14 @@
 #define CHECK_RTGEOM_ZM 1
 
 void
-rtcollection_release(RTCOLLECTION *rtcollection)
+rtcollection_release(RTCTX *ctx, RTCOLLECTION *rtcollection)
 {
-	rtgeom_release(rtcollection_as_rtgeom(rtcollection));
+	rtgeom_release(ctx, rtcollection_as_rtgeom(ctx, rtcollection));
 }
 
 
 RTCOLLECTION *
-rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
+rtcollection_construct(RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox,
                        uint32_t ngeoms, RTGEOM **geoms)
 {
 	RTCOLLECTION *ret;
@@ -39,8 +39,8 @@ rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
 
 	RTDEBUGF(2, "rtcollection_construct called with %d, %d, %p, %d, %p.", type, srid, bbox, ngeoms, geoms);
 
-	if( ! rttype_is_collection(type) )
-		rterror("Non-collection type specified in collection constructor!");
+	if( ! rttype_is_collection(ctx, type) )
+		rterror(ctx, "Non-collection type specified in collection constructor!");
 
 	hasz = 0;
 	hasm = 0;
@@ -58,15 +58,15 @@ rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
 			RTDEBUGF(3, "rtcollection_construct type=[%d]=%d", i, geoms[i]->type);
 
 			if ( zm != RTFLAGS_GET_ZM(geoms[i]->flags) )
-				rterror("rtcollection_construct: mixed dimension geometries: %d/%d", zm, RTFLAGS_GET_ZM(geoms[i]->flags));
+				rterror(ctx, "rtcollection_construct: mixed dimension geometries: %d/%d", zm, RTFLAGS_GET_ZM(geoms[i]->flags));
 		}
 #endif
 	}
 
 
-	ret = rtalloc(sizeof(RTCOLLECTION));
+	ret = rtalloc(ctx, sizeof(RTCOLLECTION));
 	ret->type = type;
-	ret->flags = gflags(hasz,hasm,0);
+	ret->flags = gflags(ctx, hasz,hasm,0);
 	RTFLAGS_SET_BBOX(ret->flags, bbox?1:0);
 	ret->srid = srid;
 	ret->ngeoms = ngeoms;
@@ -78,26 +78,26 @@ rtcollection_construct(uint8_t type, int srid, RTGBOX *bbox,
 }
 
 RTCOLLECTION *
-rtcollection_construct_empty(uint8_t type, int srid, char hasz, char hasm)
+rtcollection_construct_empty(RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm)
 {
 	RTCOLLECTION *ret;
-	if( ! rttype_is_collection(type) )
-		rterror("Non-collection type specified in collection constructor!");
+	if( ! rttype_is_collection(ctx, type) )
+		rterror(ctx, "Non-collection type specified in collection constructor!");
 
-	ret = rtalloc(sizeof(RTCOLLECTION));
+	ret = rtalloc(ctx, sizeof(RTCOLLECTION));
 	ret->type = type;
-	ret->flags = gflags(hasz,hasm,0);
+	ret->flags = gflags(ctx, hasz,hasm,0);
 	ret->srid = srid;
 	ret->ngeoms = 0;
 	ret->maxgeoms = 1; /* Allocate room for sub-members, just in case. */
-	ret->geoms = rtalloc(ret->maxgeoms * sizeof(RTGEOM*));
+	ret->geoms = rtalloc(ctx, ret->maxgeoms * sizeof(RTGEOM*));
 	ret->bbox = NULL;
 
 	return ret;
 }
 
 RTGEOM *
-rtcollection_getsubgeom(RTCOLLECTION *col, int gnum)
+rtcollection_getsubgeom(RTCTX *ctx, RTCOLLECTION *col, int gnum)
 {
 	return (RTGEOM *)col->geoms[gnum];
 }
@@ -107,19 +107,19 @@ rtcollection_getsubgeom(RTCOLLECTION *col, int gnum)
  * 			Bbox is cloned if present in input.
  */
 RTCOLLECTION *
-rtcollection_clone(const RTCOLLECTION *g)
+rtcollection_clone(RTCTX *ctx, const RTCOLLECTION *g)
 {
 	uint32_t i;
-	RTCOLLECTION *ret = rtalloc(sizeof(RTCOLLECTION));
+	RTCOLLECTION *ret = rtalloc(ctx, sizeof(RTCOLLECTION));
 	memcpy(ret, g, sizeof(RTCOLLECTION));
 	if ( g->ngeoms > 0 )
 	{
-		ret->geoms = rtalloc(sizeof(RTGEOM *)*g->ngeoms);
+		ret->geoms = rtalloc(ctx, sizeof(RTGEOM *)*g->ngeoms);
 		for (i=0; i<g->ngeoms; i++)
 		{
-			ret->geoms[i] = rtgeom_clone(g->geoms[i]);
+			ret->geoms[i] = rtgeom_clone(ctx, g->geoms[i]);
 		}
-		if ( g->bbox ) ret->bbox = gbox_copy(g->bbox);
+		if ( g->bbox ) ret->bbox = gbox_copy(ctx, g->bbox);
 	}
 	else
 	{
@@ -133,19 +133,19 @@ rtcollection_clone(const RTCOLLECTION *g)
 * @brief Deep clone #RTCOLLECTION object. #RTPOINTARRAY are copied.
 */
 RTCOLLECTION *
-rtcollection_clone_deep(const RTCOLLECTION *g)
+rtcollection_clone_deep(RTCTX *ctx, const RTCOLLECTION *g)
 {
 	uint32_t i;
-	RTCOLLECTION *ret = rtalloc(sizeof(RTCOLLECTION));
+	RTCOLLECTION *ret = rtalloc(ctx, sizeof(RTCOLLECTION));
 	memcpy(ret, g, sizeof(RTCOLLECTION));
 	if ( g->ngeoms > 0 )
 	{
-		ret->geoms = rtalloc(sizeof(RTGEOM *)*g->ngeoms);
+		ret->geoms = rtalloc(ctx, sizeof(RTGEOM *)*g->ngeoms);
 		for (i=0; i<g->ngeoms; i++)
 		{
-			ret->geoms[i] = rtgeom_clone_deep(g->geoms[i]);
+			ret->geoms[i] = rtgeom_clone_deep(ctx, g->geoms[i]);
 		}
-		if ( g->bbox ) ret->bbox = gbox_copy(g->bbox);
+		if ( g->bbox ) ret->bbox = gbox_copy(ctx, g->bbox);
 	}
 	else
 	{
@@ -158,31 +158,31 @@ rtcollection_clone_deep(const RTCOLLECTION *g)
 /**
  * Ensure the collection can hold up at least ngeoms
  */
-void rtcollection_reserve(RTCOLLECTION *col, int ngeoms)
+void rtcollection_reserve(RTCTX *ctx, RTCOLLECTION *col, int ngeoms)
 {
 	if ( ngeoms <= col->maxgeoms ) return;
 
 	/* Allocate more space if we need it */
 	do { col->maxgeoms *= 2; } while ( col->maxgeoms < ngeoms );
-	col->geoms = rtrealloc(col->geoms, sizeof(RTGEOM*) * col->maxgeoms);
+	col->geoms = rtrealloc(ctx, col->geoms, sizeof(RTGEOM*) * col->maxgeoms);
 }
 
 /**
 * Appends geom to the collection managed by col. Does not copy or
 * clone, simply takes a reference on the passed geom.
 */
-RTCOLLECTION* rtcollection_add_rtgeom(RTCOLLECTION *col, const RTGEOM *geom)
+RTCOLLECTION* rtcollection_add_rtgeom(RTCTX *ctx, RTCOLLECTION *col, const RTGEOM *geom)
 {
 	if ( col == NULL || geom == NULL ) return NULL;
 
 	if ( col->geoms == NULL && (col->ngeoms || col->maxgeoms) ) {
-		rterror("Collection is in inconsistent state. Null memory but non-zero collection counts.");
+		rterror(ctx, "Collection is in inconsistent state. Null memory but non-zero collection counts.");
 		return NULL;
 	}
 
 	/* Check type compatibility */
-	if ( ! rtcollection_allows_subtype(col->type, geom->type) ) {
-		rterror("%s cannot contain %s element", rttype_name(col->type), rttype_name(geom->type));
+	if ( ! rtcollection_allows_subtype(ctx, col->type, geom->type) ) {
+		rterror(ctx, "%s cannot contain %s element", rttype_name(ctx, col->type), rttype_name(ctx, geom->type));
 		return NULL;
 	}
 
@@ -191,11 +191,11 @@ RTCOLLECTION* rtcollection_add_rtgeom(RTCOLLECTION *col, const RTGEOM *geom)
 	{
 		col->maxgeoms = 2;
 		col->ngeoms = 0;
-		col->geoms = rtalloc(col->maxgeoms * sizeof(RTGEOM*));
+		col->geoms = rtalloc(ctx, col->maxgeoms * sizeof(RTGEOM*));
 	}
 
 	/* Allocate more space if we need it */
-	rtcollection_reserve(col, col->ngeoms + 1);
+	rtcollection_reserve(ctx, col, col->ngeoms + 1);
 
 #if PARANOIA_LEVEL > 1
 	/* See http://trac.osgeo.org/postgis/ticket/2933 */
@@ -220,32 +220,32 @@ RTCOLLECTION* rtcollection_add_rtgeom(RTCOLLECTION *col, const RTGEOM *geom)
 
 
 RTCOLLECTION *
-rtcollection_segmentize2d(RTCOLLECTION *col, double dist)
+rtcollection_segmentize2d(RTCTX *ctx, RTCOLLECTION *col, double dist)
 {
 	uint32_t i;
 	RTGEOM **newgeoms;
 
-	if ( ! col->ngeoms ) return rtcollection_clone(col);
+	if ( ! col->ngeoms ) return rtcollection_clone(ctx, col);
 
-	newgeoms = rtalloc(sizeof(RTGEOM *)*col->ngeoms);
+	newgeoms = rtalloc(ctx, sizeof(RTGEOM *)*col->ngeoms);
 	for (i=0; i<col->ngeoms; i++)
 	{
-		newgeoms[i] = rtgeom_segmentize2d(col->geoms[i], dist);
+		newgeoms[i] = rtgeom_segmentize2d(ctx, col->geoms[i], dist);
 		if ( ! newgeoms[i] ) {
-			while (i--) rtgeom_free(newgeoms[i]);
-			rtfree(newgeoms);
+			while (i--) rtgeom_free(ctx, newgeoms[i]);
+			rtfree(ctx, newgeoms);
 			return NULL;
 		}
 	}
 
-	return rtcollection_construct(col->type, col->srid, NULL, col->ngeoms, newgeoms);
+	return rtcollection_construct(ctx, col->type, col->srid, NULL, col->ngeoms, newgeoms);
 }
 
 /** @brief check for same geometry composition
  *
  */
 char
-rtcollection_same(const RTCOLLECTION *c1, const RTCOLLECTION *c2)
+rtcollection_same(RTCTX *ctx, const RTCOLLECTION *c1, const RTCOLLECTION *c2)
 {
 	uint32_t i;
 
@@ -256,13 +256,13 @@ rtcollection_same(const RTCOLLECTION *c1, const RTCOLLECTION *c2)
 
 	for ( i = 0; i < c1->ngeoms; i++ )
 	{
-		if ( ! rtgeom_same(c1->geoms[i], c2->geoms[i]) )
+		if ( ! rtgeom_same(ctx, c1->geoms[i], c2->geoms[i]) )
 			return RT_FALSE;
 	}
 
 	/* Former method allowed out-of-order equality between collections
 
-		hit = rtalloc(sizeof(uint32_t)*c1->ngeoms);
+		hit = rtalloc(ctx, sizeof(uint32_t)*c1->ngeoms);
 		memset(hit, 0, sizeof(uint32_t)*c1->ngeoms);
 
 		for (i=0; i<c1->ngeoms; i++)
@@ -271,7 +271,7 @@ rtcollection_same(const RTCOLLECTION *c1, const RTCOLLECTION *c2)
 			for (j=0; j<c2->ngeoms; j++)
 			{
 				if ( hit[j] ) continue;
-				if ( rtgeom_same(c1->geoms[i], c2->geoms[j]) )
+				if ( rtgeom_same(ctx, c1->geoms[i], c2->geoms[j]) )
 				{
 					hit[j] = 1;
 					found=1;
@@ -285,14 +285,14 @@ rtcollection_same(const RTCOLLECTION *c1, const RTCOLLECTION *c2)
 	return RT_TRUE;
 }
 
-int rtcollection_ngeoms(const RTCOLLECTION *col)
+int rtcollection_ngeoms(RTCTX *ctx, const RTCOLLECTION *col)
 {
 	int i;
 	int ngeoms = 0;
 
 	if ( ! col )
 	{
-		rterror("Null input geometry.");
+		rterror(ctx, "Null input geometry.");
 		return 0;
 	}
 
@@ -315,7 +315,7 @@ int rtcollection_ngeoms(const RTCOLLECTION *col)
 				ngeoms += col->ngeoms;
 				break;
 			case RTCOLLECTIONTYPE:
-				ngeoms += rtcollection_ngeoms((RTCOLLECTION*)col->geoms[i]);
+				ngeoms += rtcollection_ngeoms(ctx, (RTCOLLECTION*)col->geoms[i]);
 				break;
 			}
 		}
@@ -323,26 +323,26 @@ int rtcollection_ngeoms(const RTCOLLECTION *col)
 	return ngeoms;
 }
 
-void rtcollection_free(RTCOLLECTION *col)
+void rtcollection_free(RTCTX *ctx, RTCOLLECTION *col)
 {
 	int i;
 	if ( ! col ) return;
 	
 	if ( col->bbox )
 	{
-		rtfree(col->bbox);
+		rtfree(ctx, col->bbox);
 	}
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
 		RTDEBUGF(4,"freeing geom[%d]", i);
 		if ( col->geoms && col->geoms[i] )
-			rtgeom_free(col->geoms[i]);
+			rtgeom_free(ctx, col->geoms[i]);
 	}
 	if ( col->geoms )
 	{
-		rtfree(col->geoms);
+		rtfree(ctx, col->geoms);
 	}
-	rtfree(col);
+	rtfree(ctx, col);
 }
 
 
@@ -350,7 +350,7 @@ void rtcollection_free(RTCOLLECTION *col)
 * Takes a potentially heterogeneous collection and returns a homogeneous
 * collection consisting only of the specified type.
 */
-RTCOLLECTION* rtcollection_extract(RTCOLLECTION *col, int type)
+RTCOLLECTION* rtcollection_extract(RTCTX *ctx, RTCOLLECTION *col, int type)
 {
 	int i = 0;
 	RTGEOM **geomlist;
@@ -373,18 +373,18 @@ RTCOLLECTION* rtcollection_extract(RTCOLLECTION *col, int type)
 		outtype = RTMULTIPOLYGONTYPE;
 		break;
 	default:
-		rterror("Only POLYGON, LINESTRING and POINT are supported by rtcollection_extract. %s requested.", rttype_name(type));
+		rterror(ctx, "Only POLYGON, LINESTRING and POINT are supported by rtcollection_extract. %s requested.", rttype_name(ctx, type));
 		return NULL;
 	}
 
-	geomlist = rtalloc(sizeof(RTGEOM*) * geomlistsize);
+	geomlist = rtalloc(ctx, sizeof(RTGEOM*) * geomlistsize);
 
 	/* Process each sub-geometry */
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
 		int subtype = col->geoms[i]->type;
 		/* Don't bother adding empty sub-geometries */
-		if ( rtgeom_is_empty(col->geoms[i]) )
+		if ( rtgeom_is_empty(ctx, col->geoms[i]) )
 		{
 			continue;
 		}
@@ -395,132 +395,132 @@ RTCOLLECTION* rtcollection_extract(RTCOLLECTION *col, int type)
 			if ( geomlistlen == geomlistsize )
 			{
 				geomlistsize *= 2;
-				geomlist = rtrealloc(geomlist, sizeof(RTGEOM*) * geomlistsize);
+				geomlist = rtrealloc(ctx, geomlist, sizeof(RTGEOM*) * geomlistsize);
 			}
-			geomlist[geomlistlen] = rtgeom_clone(col->geoms[i]);
+			geomlist[geomlistlen] = rtgeom_clone(ctx, col->geoms[i]);
 			geomlistlen++;
 		}
 		/* Recurse into sub-collections */
-		if ( rttype_is_collection( subtype ) )
+		if ( rttype_is_collection(ctx,  subtype ) )
 		{
 			int j = 0;
-			RTCOLLECTION *tmpcol = rtcollection_extract((RTCOLLECTION*)col->geoms[i], type);
+			RTCOLLECTION *tmpcol = rtcollection_extract(ctx, (RTCOLLECTION*)col->geoms[i], type);
 			for ( j = 0; j < tmpcol->ngeoms; j++ )
 			{
 				/* We've over-run our buffer, double the memory segment */
 				if ( geomlistlen == geomlistsize )
 				{
 					geomlistsize *= 2;
-					geomlist = rtrealloc(geomlist, sizeof(RTGEOM*) * geomlistsize);
+					geomlist = rtrealloc(ctx, geomlist, sizeof(RTGEOM*) * geomlistsize);
 				}
 				geomlist[geomlistlen] = tmpcol->geoms[j];
 				geomlistlen++;
 			}
-			rtfree(tmpcol);
+			rtfree(ctx, tmpcol);
 		}
 	}
 
 	if ( geomlistlen > 0 )
 	{
 		RTGBOX gbox;
-		outcol = rtcollection_construct(outtype, col->srid, NULL, geomlistlen, geomlist);
-		rtgeom_calculate_gbox((RTGEOM *) outcol, &gbox);
-		outcol->bbox = gbox_copy(&gbox);
+		outcol = rtcollection_construct(ctx, outtype, col->srid, NULL, geomlistlen, geomlist);
+		rtgeom_calculate_gbox(ctx, (RTGEOM *) outcol, &gbox);
+		outcol->bbox = gbox_copy(ctx, &gbox);
 	}
 	else
 	{
-		rtfree(geomlist);
-		outcol = rtcollection_construct_empty(outtype, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
+		rtfree(ctx, geomlist);
+		outcol = rtcollection_construct_empty(ctx, outtype, col->srid, RTFLAGS_GET_Z(col->flags), RTFLAGS_GET_M(col->flags));
 	}
 
 	return outcol;
 }
 
 RTGEOM*
-rtcollection_remove_repeated_points(const RTCOLLECTION *coll, double tolerance)
+rtcollection_remove_repeated_points(RTCTX *ctx, const RTCOLLECTION *coll, double tolerance)
 {
 	uint32_t i;
 	RTGEOM **newgeoms;
 
-	newgeoms = rtalloc(sizeof(RTGEOM *)*coll->ngeoms);
+	newgeoms = rtalloc(ctx, sizeof(RTGEOM *)*coll->ngeoms);
 	for (i=0; i<coll->ngeoms; i++)
 	{
-		newgeoms[i] = rtgeom_remove_repeated_points(coll->geoms[i], tolerance);
+		newgeoms[i] = rtgeom_remove_repeated_points(ctx, coll->geoms[i], tolerance);
 	}
 
-	return (RTGEOM*)rtcollection_construct(coll->type,
-	                                       coll->srid, coll->bbox ? gbox_copy(coll->bbox) : NULL,
+	return (RTGEOM*)rtcollection_construct(ctx, coll->type,
+	                                       coll->srid, coll->bbox ? gbox_copy(ctx, coll->bbox) : NULL,
 	                                       coll->ngeoms, newgeoms);
 }
 
 
 RTCOLLECTION*
-rtcollection_force_dims(const RTCOLLECTION *col, int hasz, int hasm)
+rtcollection_force_dims(RTCTX *ctx, const RTCOLLECTION *col, int hasz, int hasm)
 {
 	RTCOLLECTION *colout;
 	
 	/* Return 2D empty */
-	if( rtcollection_is_empty(col) )
+	if( rtcollection_is_empty(ctx, col) )
 	{
-		colout = rtcollection_construct_empty(col->type, col->srid, hasz, hasm);
+		colout = rtcollection_construct_empty(ctx, col->type, col->srid, hasz, hasm);
 	}
 	else
 	{
 		int i;
 		RTGEOM **geoms = NULL;
-		geoms = rtalloc(sizeof(RTGEOM*) * col->ngeoms);
+		geoms = rtalloc(ctx, sizeof(RTGEOM*) * col->ngeoms);
 		for( i = 0; i < col->ngeoms; i++ )
 		{
-			geoms[i] = rtgeom_force_dims(col->geoms[i], hasz, hasm);
+			geoms[i] = rtgeom_force_dims(ctx, col->geoms[i], hasz, hasm);
 		}
-		colout = rtcollection_construct(col->type, col->srid, NULL, col->ngeoms, geoms);
+		colout = rtcollection_construct(ctx, col->type, col->srid, NULL, col->ngeoms, geoms);
 	}
 	return colout;
 }
 
-int rtcollection_is_empty(const RTCOLLECTION *col)
+int rtcollection_is_empty(RTCTX *ctx, const RTCOLLECTION *col)
 {
 	int i;
 	if ( (col->ngeoms == 0) || (!col->geoms) )
 		return RT_TRUE;
 	for( i = 0; i < col->ngeoms; i++ )
 	{
-		if ( ! rtgeom_is_empty(col->geoms[i]) ) return RT_FALSE;
+		if ( ! rtgeom_is_empty(ctx, col->geoms[i]) ) return RT_FALSE;
 	}
 	return RT_TRUE;
 }
 
 
-int rtcollection_count_vertices(RTCOLLECTION *col)
+int rtcollection_count_vertices(RTCTX *ctx, RTCOLLECTION *col)
 {
 	int i = 0;
 	int v = 0; /* vertices */
 	assert(col);
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
-		v += rtgeom_count_vertices(col->geoms[i]);
+		v += rtgeom_count_vertices(ctx, col->geoms[i]);
 	}
 	return v;
 }
 
-RTCOLLECTION* rtcollection_simplify(const RTCOLLECTION *igeom, double dist, int preserve_collapsed)
+RTCOLLECTION* rtcollection_simplify(RTCTX *ctx, const RTCOLLECTION *igeom, double dist, int preserve_collapsed)
 {
  	int i;
-	RTCOLLECTION *out = rtcollection_construct_empty(igeom->type, igeom->srid, RTFLAGS_GET_Z(igeom->flags), RTFLAGS_GET_M(igeom->flags));
+	RTCOLLECTION *out = rtcollection_construct_empty(ctx, igeom->type, igeom->srid, RTFLAGS_GET_Z(igeom->flags), RTFLAGS_GET_M(igeom->flags));
 
-	if( rtcollection_is_empty(igeom) )
+	if( rtcollection_is_empty(ctx, igeom) )
 		return out; /* should we return NULL instead ? */
 
 	for( i = 0; i < igeom->ngeoms; i++ )
 	{
-		RTGEOM *ngeom = rtgeom_simplify(igeom->geoms[i], dist, preserve_collapsed);
-		if ( ngeom ) out = rtcollection_add_rtgeom(out, ngeom);
+		RTGEOM *ngeom = rtgeom_simplify(ctx, igeom->geoms[i], dist, preserve_collapsed);
+		if ( ngeom ) out = rtcollection_add_rtgeom(ctx, out, ngeom);
 	}
 
 	return out;
 }
 
-int rtcollection_allows_subtype(int collectiontype, int subtype)
+int rtcollection_allows_subtype(RTCTX *ctx, int collectiontype, int subtype)
 {
 	if ( collectiontype == RTCOLLECTIONTYPE )
 		return RT_TRUE;
@@ -557,27 +557,27 @@ int rtcollection_allows_subtype(int collectiontype, int subtype)
 }
 
 int
-rtcollection_startpoint(const RTCOLLECTION* col, RTPOINT4D* pt)
+rtcollection_startpoint(RTCTX *ctx, const RTCOLLECTION* col, RTPOINT4D* pt)
 {
 	if ( col->ngeoms < 1 )
 		return RT_FAILURE;
 		
-	return rtgeom_startpoint(col->geoms[0], pt);
+	return rtgeom_startpoint(ctx, col->geoms[0], pt);
 }
 
 
-RTCOLLECTION* rtcollection_grid(const RTCOLLECTION *coll, const gridspec *grid)
+RTCOLLECTION* rtcollection_grid(RTCTX *ctx, const RTCOLLECTION *coll, const gridspec *grid)
 {
 	uint32_t i;
 	RTCOLLECTION *newcoll;
 	
-	newcoll = rtcollection_construct_empty(coll->type, coll->srid, rtgeom_has_z((RTGEOM*)coll), rtgeom_has_m((RTGEOM*)coll));
+	newcoll = rtcollection_construct_empty(ctx, coll->type, coll->srid, rtgeom_has_z(ctx, (RTGEOM*)coll), rtgeom_has_m(ctx, (RTGEOM*)coll));
 
 	for (i=0; i<coll->ngeoms; i++)
 	{
-		RTGEOM *g = rtgeom_grid(coll->geoms[i], grid);
+		RTGEOM *g = rtgeom_grid(ctx, coll->geoms[i], grid);
 		if ( g ) 
-			rtcollection_add_rtgeom(newcoll, g);
+			rtcollection_add_rtgeom(ctx, newcoll, g);
 	}
 
 	return newcoll;

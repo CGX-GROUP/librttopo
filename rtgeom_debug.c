@@ -20,7 +20,7 @@
 static char tflags[6];
 
 static char *
-rtgeom_flagchars(RTGEOM *rtg)
+rtgeom_flagchars(RTCTX *ctx, RTGEOM *rtg)
 {
 	int flagno = 0;
 	if ( RTFLAGS_GET_Z(rtg->flags) ) tflags[flagno++] = 'Z';
@@ -39,31 +39,31 @@ rtgeom_flagchars(RTGEOM *rtg)
  * Returns an alloced string containing summary for the RTGEOM object
  */
 static char *
-rtpoint_summary(RTPOINT *point, int offset)
+rtpoint_summary(RTCTX *ctx, RTPOINT *point, int offset)
 {
 	char *result;
 	char *pad="";
-	char *zmflags = rtgeom_flagchars((RTGEOM*)point);
+	char *zmflags = rtgeom_flagchars(ctx, (RTGEOM*)point);
 
-	result = (char *)rtalloc(128+offset);
+	result = (char *)rtalloc(ctx, 128+offset);
 
 	sprintf(result, "%*.s%s[%s]",
-	        offset, pad, rttype_name(point->type),
+	        offset, pad, rttype_name(ctx, point->type),
 	        zmflags);
 	return result;
 }
 
 static char *
-rtline_summary(RTLINE *line, int offset)
+rtline_summary(RTCTX *ctx, RTLINE *line, int offset)
 {
 	char *result;
 	char *pad="";
-	char *zmflags = rtgeom_flagchars((RTGEOM*)line);
+	char *zmflags = rtgeom_flagchars(ctx, (RTGEOM*)line);
 
-	result = (char *)rtalloc(128+offset);
+	result = (char *)rtalloc(ctx, 128+offset);
 
 	sprintf(result, "%*.s%s[%s] with %d points",
-	        offset, pad, rttype_name(line->type),
+	        offset, pad, rttype_name(ctx, line->type),
 	        zmflags,
 	        line->points->npoints);
 	return result;
@@ -71,7 +71,7 @@ rtline_summary(RTLINE *line, int offset)
 
 
 static char *
-rtcollection_summary(RTCOLLECTION *col, int offset)
+rtcollection_summary(RTCTX *ctx, RTCOLLECTION *col, int offset)
 {
 	size_t size = 128;
 	char *result;
@@ -79,28 +79,28 @@ rtcollection_summary(RTCOLLECTION *col, int offset)
 	int i;
 	static char *nl = "\n";
 	char *pad="";
-	char *zmflags = rtgeom_flagchars((RTGEOM*)col);
+	char *zmflags = rtgeom_flagchars(ctx, (RTGEOM*)col);
 
 	RTDEBUG(2, "rtcollection_summary called");
 
-	result = (char *)rtalloc(size);
+	result = (char *)rtalloc(ctx, size);
 
 	sprintf(result, "%*.s%s[%s] with %d elements\n",
-	        offset, pad, rttype_name(col->type),
+	        offset, pad, rttype_name(ctx, col->type),
 	        zmflags,
 	        col->ngeoms);
 
 	for (i=0; i<col->ngeoms; i++)
 	{
-		tmp = rtgeom_summary(col->geoms[i], offset+2);
+		tmp = rtgeom_summary(ctx, col->geoms[i], offset+2);
 		size += strlen(tmp)+1;
-		result = rtrealloc(result, size);
+		result = rtrealloc(ctx, result, size);
 
 		RTDEBUGF(4, "Reallocated %d bytes for result", size);
 		if ( i > 0 ) strcat(result,nl);
 
 		strcat(result, tmp);
-		rtfree(tmp);
+		rtfree(ctx, tmp);
 	}
 
 	RTDEBUG(3, "rtcollection_summary returning");
@@ -109,7 +109,7 @@ rtcollection_summary(RTCOLLECTION *col, int offset)
 }
 
 static char *
-rtpoly_summary(RTPOLY *poly, int offset)
+rtpoly_summary(RTCTX *ctx, RTPOLY *poly, int offset)
 {
 	char tmp[256];
 	size_t size = 64*(poly->nrings+1)+128;
@@ -117,14 +117,14 @@ rtpoly_summary(RTPOLY *poly, int offset)
 	int i;
 	char *pad="";
 	static char *nl = "\n";
-	char *zmflags = rtgeom_flagchars((RTGEOM*)poly);
+	char *zmflags = rtgeom_flagchars(ctx, (RTGEOM*)poly);
 
 	RTDEBUG(2, "rtpoly_summary called");
 
-	result = (char *)rtalloc(size);
+	result = (char *)rtalloc(ctx, size);
 
 	sprintf(result, "%*.s%s[%s] with %i rings\n",
-	        offset, pad, rttype_name(poly->type),
+	        offset, pad, rttype_name(ctx, poly->type),
 	        zmflags,
 	        poly->nrings);
 
@@ -142,22 +142,22 @@ rtpoly_summary(RTPOLY *poly, int offset)
 }
 
 char *
-rtgeom_summary(const RTGEOM *rtgeom, int offset)
+rtgeom_summary(RTCTX *ctx, const RTGEOM *rtgeom, int offset)
 {
 	char *result;
 
 	switch (rtgeom->type)
 	{
 	case RTPOINTTYPE:
-		return rtpoint_summary((RTPOINT *)rtgeom, offset);
+		return rtpoint_summary(ctx, (RTPOINT *)rtgeom, offset);
 
 	case RTCIRCSTRINGTYPE:
 	case RTTRIANGLETYPE:
 	case RTLINETYPE:
-		return rtline_summary((RTLINE *)rtgeom, offset);
+		return rtline_summary(ctx, (RTLINE *)rtgeom, offset);
 
 	case RTPOLYGONTYPE:
-		return rtpoly_summary((RTPOLY *)rtgeom, offset);
+		return rtpoly_summary(ctx, (RTPOLY *)rtgeom, offset);
 
 	case RTTINTYPE:
 	case RTMULTISURFACETYPE:
@@ -168,9 +168,9 @@ rtgeom_summary(const RTGEOM *rtgeom, int offset)
 	case RTMULTILINETYPE:
 	case RTMULTIPOLYGONTYPE:
 	case RTCOLLECTIONTYPE:
-		return rtcollection_summary((RTCOLLECTION *)rtgeom, offset);
+		return rtcollection_summary(ctx, (RTCOLLECTION *)rtgeom, offset);
 	default:
-		result = (char *)rtalloc(256);
+		result = (char *)rtalloc(ctx, 256);
 		sprintf(result, "Object is of unknown type: %d",
 		        rtgeom->type);
 		return result;

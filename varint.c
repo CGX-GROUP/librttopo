@@ -23,7 +23,7 @@
 /* -------------------------------------------------------------------------------- */
 
 static size_t 
-_varint_u64_encode_buf(uint64_t val, uint8_t *buf)
+_varint_u64_encode_buf(RTCTX *ctx, uint64_t val, uint8_t *buf)
 {
 	uint8_t grp;	
 	uint64_t q = val;
@@ -59,46 +59,46 @@ _varint_u64_encode_buf(uint64_t val, uint8_t *buf)
 		}
 	}
 	/* This cannot happen */
-	rterror("%s: Got out of infinite loop. Consciousness achieved.", __func__);
+	rterror(ctx, "%s: Got out of infinite loop. Consciousness achieved.", __func__);
 	return (size_t)0;
 }
 
 
 size_t
-varint_u64_encode_buf(uint64_t val, uint8_t *buf)
+varint_u64_encode_buf(RTCTX *ctx, uint64_t val, uint8_t *buf)
 {
-	return _varint_u64_encode_buf(val, buf);
+	return _varint_u64_encode_buf(ctx, val, buf);
 }
 
 
 size_t
-varint_u32_encode_buf(uint32_t val, uint8_t *buf)
+varint_u32_encode_buf(RTCTX *ctx, uint32_t val, uint8_t *buf)
 {
-	return _varint_u64_encode_buf((uint64_t)val, buf);
+	return _varint_u64_encode_buf(ctx, (uint64_t)val, buf);
 }
 
 size_t
-varint_s64_encode_buf(int64_t val, uint8_t *buf)
+varint_s64_encode_buf(RTCTX *ctx, int64_t val, uint8_t *buf)
 {
-	return _varint_u64_encode_buf(zigzag64(val), buf);
+	return _varint_u64_encode_buf(ctx, zigzag64(ctx, val), buf);
 }
 
 size_t
-varint_s32_encode_buf(int32_t val, uint8_t *buf)
+varint_s32_encode_buf(RTCTX *ctx, int32_t val, uint8_t *buf)
 {
-	return _varint_u64_encode_buf((uint64_t)zigzag32(val), buf);
+	return _varint_u64_encode_buf(ctx, (uint64_t)zigzag32(ctx, val), buf);
 }
 
 /* Read from signed 64bit varint */
 int64_t 
-varint_s64_decode(const uint8_t *the_start, const uint8_t *the_end, size_t *size)
+varint_s64_decode(RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end, size_t *size)
 {	
-	return unzigzag64(varint_u64_decode(the_start, the_end, size));
+	return unzigzag64(ctx, varint_u64_decode(ctx, the_start, the_end, size));
 }
 
 /* Read from unsigned 64bit varint */
 uint64_t 
-varint_u64_decode(const uint8_t *the_start, const uint8_t *the_end, size_t *size)
+varint_u64_decode(RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end, size_t *size)
 {
 	uint64_t nVal = 0;
 	int nShift = 0;
@@ -131,12 +131,12 @@ varint_u64_decode(const uint8_t *the_start, const uint8_t *the_end, size_t *size
 			return nVal | ((uint64_t)nByte << nShift);
 		}
 	}
-	rterror("%s: varint extends past end of buffer", __func__);
+	rterror(ctx, "%s: varint extends past end of buffer", __func__);
 	return 0;
 }
 
 size_t 
-varint_size(const uint8_t *the_start, const uint8_t *the_end)
+varint_size(RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end)
 {
 	const uint8_t *ptr = the_start;
 
@@ -157,22 +157,22 @@ varint_size(const uint8_t *the_start, const uint8_t *the_end)
 	return 0;
 }
 
-uint64_t zigzag64(int64_t val)
+uint64_t zigzag64(RTCTX *ctx, int64_t val)
 {
 	return (val << 1) ^ (val >> 63);
 }
 
-uint32_t zigzag32(int32_t val)
+uint32_t zigzag32(RTCTX *ctx, int32_t val)
 {
 	return (val << 1) ^ (val >> 31);
 }
 	
-uint8_t zigzag8(int8_t val)
+uint8_t zigzag8(RTCTX *ctx, int8_t val)
 {
 	return (val << 1) ^ (val >> 7);
 }
 	
-int64_t unzigzag64(uint64_t val)
+int64_t unzigzag64(RTCTX *ctx, uint64_t val)
 {
         if ( val & 0x01 ) 
             return -1 * (int64_t)((val+1) >> 1);
@@ -180,7 +180,7 @@ int64_t unzigzag64(uint64_t val)
             return (int64_t)(val >> 1);
 }
 	
-int32_t unzigzag32(uint32_t val)
+int32_t unzigzag32(RTCTX *ctx, uint32_t val)
 {
         if ( val & 0x01 ) 
             return -1 * (int32_t)((val+1) >> 1);
@@ -188,7 +188,7 @@ int32_t unzigzag32(uint32_t val)
             return (int32_t)(val >> 1);
 }
 	
-int8_t unzigzag8(uint8_t val)
+int8_t unzigzag8(RTCTX *ctx, uint8_t val)
 {
         if ( val & 0x01 ) 
             return -1 * (int8_t)((val+1) >> 1);

@@ -20,34 +20,34 @@
 
 #include "librtgeom_internal.h"
 
-static char * assvg_point(const RTPOINT *point, int relative, int precision);
-static char * assvg_line(const RTLINE *line, int relative, int precision);
-static char * assvg_polygon(const RTPOLY *poly, int relative, int precision);
-static char * assvg_multipoint(const RTMPOINT *mpoint, int relative, int precision);
-static char * assvg_multiline(const RTMLINE *mline, int relative, int precision);
-static char * assvg_multipolygon(const RTMPOLY *mpoly, int relative, int precision);
-static char * assvg_collection(const RTCOLLECTION *col, int relative, int precision);
+static char * assvg_point(RTCTX *ctx, const RTPOINT *point, int relative, int precision);
+static char * assvg_line(RTCTX *ctx, const RTLINE *line, int relative, int precision);
+static char * assvg_polygon(RTCTX *ctx, const RTPOLY *poly, int relative, int precision);
+static char * assvg_multipoint(RTCTX *ctx, const RTMPOINT *mpoint, int relative, int precision);
+static char * assvg_multiline(RTCTX *ctx, const RTMLINE *mline, int relative, int precision);
+static char * assvg_multipolygon(RTCTX *ctx, const RTMPOLY *mpoly, int relative, int precision);
+static char * assvg_collection(RTCTX *ctx, const RTCOLLECTION *col, int relative, int precision);
 
-static size_t assvg_geom_size(const RTGEOM *geom, int relative, int precision);
-static size_t assvg_geom_buf(const RTGEOM *geom, char *output, int relative, int precision);
-static size_t pointArray_svg_size(RTPOINTARRAY *pa, int precision);
-static size_t pointArray_svg_rel(RTPOINTARRAY *pa, char * output, int close_ring, int precision);
-static size_t pointArray_svg_abs(RTPOINTARRAY *pa, char * output, int close_ring, int precision);
+static size_t assvg_geom_size(RTCTX *ctx, const RTGEOM *geom, int relative, int precision);
+static size_t assvg_geom_buf(RTCTX *ctx, const RTGEOM *geom, char *output, int relative, int precision);
+static size_t pointArray_svg_size(RTCTX *ctx, RTPOINTARRAY *pa, int precision);
+static size_t pointArray_svg_rel(RTCTX *ctx, RTPOINTARRAY *pa, char * output, int close_ring, int precision);
+static size_t pointArray_svg_abs(RTCTX *ctx, RTPOINTARRAY *pa, char * output, int close_ring, int precision);
 
 
 /**
  * Takes a GEOMETRY and returns a SVG representation
  */
 char *
-rtgeom_to_svg(const RTGEOM *geom, int precision, int relative)
+rtgeom_to_svg(RTCTX *ctx, const RTGEOM *geom, int precision, int relative)
 {
 	char *ret = NULL;
 	int type = geom->type;
 
 	/* Empty string for empties */
-	if( rtgeom_is_empty(geom) )
+	if( rtgeom_is_empty(ctx, geom) )
 	{
-		ret = rtalloc(1);
+		ret = rtalloc(ctx, 1);
 		ret[0] = '\0';
 		return ret;
 	}
@@ -55,30 +55,30 @@ rtgeom_to_svg(const RTGEOM *geom, int precision, int relative)
 	switch (type)
 	{
 	case RTPOINTTYPE:
-		ret = assvg_point((RTPOINT*)geom, relative, precision);
+		ret = assvg_point(ctx, (RTPOINT*)geom, relative, precision);
 		break;
 	case RTLINETYPE:
-		ret = assvg_line((RTLINE*)geom, relative, precision);
+		ret = assvg_line(ctx, (RTLINE*)geom, relative, precision);
 		break;
 	case RTPOLYGONTYPE:
-		ret = assvg_polygon((RTPOLY*)geom, relative, precision);
+		ret = assvg_polygon(ctx, (RTPOLY*)geom, relative, precision);
 		break;
 	case RTMULTIPOINTTYPE:
-		ret = assvg_multipoint((RTMPOINT*)geom, relative, precision);
+		ret = assvg_multipoint(ctx, (RTMPOINT*)geom, relative, precision);
 		break;
 	case RTMULTILINETYPE:
-		ret = assvg_multiline((RTMLINE*)geom, relative, precision);
+		ret = assvg_multiline(ctx, (RTMLINE*)geom, relative, precision);
 		break;
 	case RTMULTIPOLYGONTYPE:
-		ret = assvg_multipolygon((RTMPOLY*)geom, relative, precision);
+		ret = assvg_multipolygon(ctx, (RTMPOLY*)geom, relative, precision);
 		break;
 	case RTCOLLECTIONTYPE:
-		ret = assvg_collection((RTCOLLECTION*)geom, relative, precision);
+		ret = assvg_collection(ctx, (RTCOLLECTION*)geom, relative, precision);
 		break;
 
 	default:
-		rterror("rtgeom_to_svg: '%s' geometry type not supported",
-		        rttype_name(type));
+		rterror(ctx, "rtgeom_to_svg: '%s' geometry type not supported",
+		        rttype_name(ctx, type));
 	}
 
 	return ret;
@@ -90,7 +90,7 @@ rtgeom_to_svg(const RTGEOM *geom, int precision, int relative)
  */
 
 static size_t
-assvg_point_size(const RTPOINT *point, int circle, int precision)
+assvg_point_size(RTCTX *ctx, const RTPOINT *point, int circle, int precision)
 {
 	size_t size;
 
@@ -102,27 +102,27 @@ assvg_point_size(const RTPOINT *point, int circle, int precision)
 }
 
 static size_t
-assvg_point_buf(const RTPOINT *point, char * output, int circle, int precision)
+assvg_point_buf(RTCTX *ctx, const RTPOINT *point, char * output, int circle, int precision)
 {
 	char *ptr=output;
 	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
 	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
 	RTPOINT2D pt;
 
-	getPoint2d_p(point->point, 0, &pt);
+	getPoint2d_p(ctx, point->point, 0, &pt);
 
 	if (fabs(pt.x) < OUT_MAX_DOUBLE)
 		sprintf(x, "%.*f", precision, pt.x);
 	else
 		sprintf(x, "%g", pt.x);
-	trim_trailing_zeros(x);
+	trim_trailing_zeros(ctx, x);
 
 	/* SVG Y axis is reversed, an no need to transform 0 into -0 */
 	if (fabs(pt.y) < OUT_MAX_DOUBLE)
 		sprintf(y, "%.*f", precision, fabs(pt.y) ? pt.y * -1 : pt.y);
 	else
 		sprintf(y, "%g", fabs(pt.y) ? pt.y * -1 : pt.y);
-	trim_trailing_zeros(y);
+	trim_trailing_zeros(ctx, y);
 
 	if (circle) ptr += sprintf(ptr, "x=\"%s\" y=\"%s\"", x, y);
 	else ptr += sprintf(ptr, "cx=\"%s\" cy=\"%s\"", x, y);
@@ -131,14 +131,14 @@ assvg_point_buf(const RTPOINT *point, char * output, int circle, int precision)
 }
 
 static char *
-assvg_point(const RTPOINT *point, int circle, int precision)
+assvg_point(RTCTX *ctx, const RTPOINT *point, int circle, int precision)
 {
 	char *output;
 	int size;
 
-	size = assvg_point_size(point, circle, precision);
-	output = rtalloc(size);
-	assvg_point_buf(point, output, circle, precision);
+	size = assvg_point_size(ctx, point, circle, precision);
+	output = rtalloc(ctx, size);
+	assvg_point_buf(ctx, point, output, circle, precision);
 
 	return output;
 }
@@ -149,40 +149,40 @@ assvg_point(const RTPOINT *point, int circle, int precision)
  */
 
 static size_t
-assvg_line_size(const RTLINE *line, int relative, int precision)
+assvg_line_size(RTCTX *ctx, const RTLINE *line, int relative, int precision)
 {
 	size_t size;
 
 	size = sizeof("M ");
-	size += pointArray_svg_size(line->points, precision);
+	size += pointArray_svg_size(ctx, line->points, precision);
 
 	return size;
 }
 
 static size_t
-assvg_line_buf(const RTLINE *line, char * output, int relative, int precision)
+assvg_line_buf(RTCTX *ctx, const RTLINE *line, char * output, int relative, int precision)
 {
 	char *ptr=output;
 
 	/* Start path with SVG MoveTo */
 	ptr += sprintf(ptr, "M ");
 	if (relative)
-		ptr += pointArray_svg_rel(line->points, ptr, 1, precision);
+		ptr += pointArray_svg_rel(ctx, line->points, ptr, 1, precision);
 	else
-		ptr += pointArray_svg_abs(line->points, ptr, 1, precision);
+		ptr += pointArray_svg_abs(ctx, line->points, ptr, 1, precision);
 
 	return (ptr-output);
 }
 
 static char *
-assvg_line(const RTLINE *line, int relative, int precision)
+assvg_line(RTCTX *ctx, const RTLINE *line, int relative, int precision)
 {
 	char *output;
 	int size;
 
-	size = assvg_line_size(line, relative, precision);
-	output = rtalloc(size);
-	assvg_line_buf(line, output, relative, precision);
+	size = assvg_line_size(ctx, line, relative, precision);
+	output = rtalloc(ctx, size);
+	assvg_line_buf(ctx, line, output, relative, precision);
 
 	return output;
 }
@@ -193,20 +193,20 @@ assvg_line(const RTLINE *line, int relative, int precision)
  */
 
 static size_t
-assvg_polygon_size(const RTPOLY *poly, int relative, int precision)
+assvg_polygon_size(RTCTX *ctx, const RTPOLY *poly, int relative, int precision)
 {
 	int i;
 	size_t size=0;
 
 	for (i=0; i<poly->nrings; i++)
-		size += pointArray_svg_size(poly->rings[i], precision) + sizeof(" ");
+		size += pointArray_svg_size(ctx, poly->rings[i], precision) + sizeof(" ");
 	size += sizeof("M  Z") * poly->nrings;
 
 	return size;
 }
 
 static size_t
-assvg_polygon_buf(const RTPOLY *poly, char * output, int relative, int precision)
+assvg_polygon_buf(RTCTX *ctx, const RTPOLY *poly, char * output, int relative, int precision)
 {
 	int i;
 	char *ptr=output;
@@ -218,12 +218,12 @@ assvg_polygon_buf(const RTPOLY *poly, char * output, int relative, int precision
 
 		if (relative)
 		{
-			ptr += pointArray_svg_rel(poly->rings[i], ptr, 0, precision);
+			ptr += pointArray_svg_rel(ctx, poly->rings[i], ptr, 0, precision);
 			ptr += sprintf(ptr, " z");	/* SVG closepath */
 		}
 		else
 		{
-			ptr += pointArray_svg_abs(poly->rings[i], ptr, 0, precision);
+			ptr += pointArray_svg_abs(ctx, poly->rings[i], ptr, 0, precision);
 			ptr += sprintf(ptr, " Z");	/* SVG closepath */
 		}
 	}
@@ -232,14 +232,14 @@ assvg_polygon_buf(const RTPOLY *poly, char * output, int relative, int precision
 }
 
 static char *
-assvg_polygon(const RTPOLY *poly, int relative, int precision)
+assvg_polygon(RTCTX *ctx, const RTPOLY *poly, int relative, int precision)
 {
 	char *output;
 	int size;
 
-	size = assvg_polygon_size(poly, relative, precision);
-	output = rtalloc(size);
-	assvg_polygon_buf(poly, output, relative, precision);
+	size = assvg_polygon_size(ctx, poly, relative, precision);
+	output = rtalloc(ctx, size);
+	assvg_polygon_buf(ctx, poly, output, relative, precision);
 
 	return output;
 }
@@ -250,7 +250,7 @@ assvg_polygon(const RTPOLY *poly, int relative, int precision)
  */
 
 static size_t
-assvg_multipoint_size(const RTMPOINT *mpoint, int relative, int precision)
+assvg_multipoint_size(RTCTX *ctx, const RTMPOINT *mpoint, int relative, int precision)
 {
 	const RTPOINT *point;
 	size_t size=0;
@@ -259,7 +259,7 @@ assvg_multipoint_size(const RTMPOINT *mpoint, int relative, int precision)
 	for (i=0 ; i<mpoint->ngeoms ; i++)
 	{
 		point = mpoint->geoms[i];
-		size += assvg_point_size(point, relative, precision);
+		size += assvg_point_size(ctx, point, relative, precision);
 	}
 	size += sizeof(",") * --i;  /* Arbitrary comma separator */
 
@@ -267,7 +267,7 @@ assvg_multipoint_size(const RTMPOINT *mpoint, int relative, int precision)
 }
 
 static size_t
-assvg_multipoint_buf(const RTMPOINT *mpoint, char *output, int relative, int precision)
+assvg_multipoint_buf(RTCTX *ctx, const RTMPOINT *mpoint, char *output, int relative, int precision)
 {
 	const RTPOINT *point;
 	int i;
@@ -277,21 +277,21 @@ assvg_multipoint_buf(const RTMPOINT *mpoint, char *output, int relative, int pre
 	{
 		if (i) ptr += sprintf(ptr, ",");  /* Arbitrary comma separator */
 		point = mpoint->geoms[i];
-		ptr += assvg_point_buf(point, ptr, relative, precision);
+		ptr += assvg_point_buf(ctx, point, ptr, relative, precision);
 	}
 
 	return (ptr-output);
 }
 
 static char *
-assvg_multipoint(const RTMPOINT *mpoint, int relative, int precision)
+assvg_multipoint(RTCTX *ctx, const RTMPOINT *mpoint, int relative, int precision)
 {
 	char *output;
 	int size;
 
-	size = assvg_multipoint_size(mpoint, relative, precision);
-	output = rtalloc(size);
-	assvg_multipoint_buf(mpoint, output, relative, precision);
+	size = assvg_multipoint_size(ctx, mpoint, relative, precision);
+	output = rtalloc(ctx, size);
+	assvg_multipoint_buf(ctx, mpoint, output, relative, precision);
 
 	return output;
 }
@@ -302,7 +302,7 @@ assvg_multipoint(const RTMPOINT *mpoint, int relative, int precision)
  */
 
 static size_t
-assvg_multiline_size(const RTMLINE *mline, int relative, int precision)
+assvg_multiline_size(RTCTX *ctx, const RTMLINE *mline, int relative, int precision)
 {
 	const RTLINE *line;
 	size_t size=0;
@@ -311,7 +311,7 @@ assvg_multiline_size(const RTMLINE *mline, int relative, int precision)
 	for (i=0 ; i<mline->ngeoms ; i++)
 	{
 		line = mline->geoms[i];
-		size += assvg_line_size(line, relative, precision);
+		size += assvg_line_size(ctx, line, relative, precision);
 	}
 	size += sizeof(" ") * --i;   /* SVG whitespace Separator */
 
@@ -319,7 +319,7 @@ assvg_multiline_size(const RTMLINE *mline, int relative, int precision)
 }
 
 static size_t
-assvg_multiline_buf(const RTMLINE *mline, char *output, int relative, int precision)
+assvg_multiline_buf(RTCTX *ctx, const RTMLINE *mline, char *output, int relative, int precision)
 {
 	const RTLINE *line;
 	int i;
@@ -329,21 +329,21 @@ assvg_multiline_buf(const RTMLINE *mline, char *output, int relative, int precis
 	{
 		if (i) ptr += sprintf(ptr, " ");  /* SVG whitespace Separator */
 		line = mline->geoms[i];
-		ptr += assvg_line_buf(line, ptr, relative, precision);
+		ptr += assvg_line_buf(ctx, line, ptr, relative, precision);
 	}
 
 	return (ptr-output);
 }
 
 static char *
-assvg_multiline(const RTMLINE *mline, int relative, int precision)
+assvg_multiline(RTCTX *ctx, const RTMLINE *mline, int relative, int precision)
 {
 	char *output;
 	int size;
 
-	size = assvg_multiline_size(mline, relative, precision);
-	output = rtalloc(size);
-	assvg_multiline_buf(mline, output, relative, precision);
+	size = assvg_multiline_size(ctx, mline, relative, precision);
+	output = rtalloc(ctx, size);
+	assvg_multiline_buf(ctx, mline, output, relative, precision);
 
 	return output;
 }
@@ -354,7 +354,7 @@ assvg_multiline(const RTMLINE *mline, int relative, int precision)
  */
 
 static size_t
-assvg_multipolygon_size(const RTMPOLY *mpoly, int relative, int precision)
+assvg_multipolygon_size(RTCTX *ctx, const RTMPOLY *mpoly, int relative, int precision)
 {
 	const RTPOLY *poly;
 	size_t size=0;
@@ -363,7 +363,7 @@ assvg_multipolygon_size(const RTMPOLY *mpoly, int relative, int precision)
 	for (i=0 ; i<mpoly->ngeoms ; i++)
 	{
 		poly = mpoly->geoms[i];
-		size += assvg_polygon_size(poly, relative, precision);
+		size += assvg_polygon_size(ctx, poly, relative, precision);
 	}
 	size += sizeof(" ") * --i;   /* SVG whitespace Separator */
 
@@ -371,7 +371,7 @@ assvg_multipolygon_size(const RTMPOLY *mpoly, int relative, int precision)
 }
 
 static size_t
-assvg_multipolygon_buf(const RTMPOLY *mpoly, char *output, int relative, int precision)
+assvg_multipolygon_buf(RTCTX *ctx, const RTMPOLY *mpoly, char *output, int relative, int precision)
 {
 	const RTPOLY *poly;
 	int i;
@@ -381,21 +381,21 @@ assvg_multipolygon_buf(const RTMPOLY *mpoly, char *output, int relative, int pre
 	{
 		if (i) ptr += sprintf(ptr, " ");  /* SVG whitespace Separator */
 		poly = mpoly->geoms[i];
-		ptr += assvg_polygon_buf(poly, ptr, relative, precision);
+		ptr += assvg_polygon_buf(ctx, poly, ptr, relative, precision);
 	}
 
 	return (ptr-output);
 }
 
 static char *
-assvg_multipolygon(const RTMPOLY *mpoly, int relative, int precision)
+assvg_multipolygon(RTCTX *ctx, const RTMPOLY *mpoly, int relative, int precision)
 {
 	char *output;
 	int size;
 
-	size = assvg_multipolygon_size(mpoly, relative, precision);
-	output = rtalloc(size);
-	assvg_multipolygon_buf(mpoly, output, relative, precision);
+	size = assvg_multipolygon_size(ctx, mpoly, relative, precision);
+	output = rtalloc(ctx, size);
+	assvg_multipolygon_buf(ctx, mpoly, output, relative, precision);
 
 	return output;
 }
@@ -406,7 +406,7 @@ assvg_multipolygon(const RTMPOLY *mpoly, int relative, int precision)
 */
 
 static size_t
-assvg_collection_size(const RTCOLLECTION *col, int relative, int precision)
+assvg_collection_size(RTCTX *ctx, const RTCOLLECTION *col, int relative, int precision)
 {
 	int i = 0;
 	size_t size=0;
@@ -415,7 +415,7 @@ assvg_collection_size(const RTCOLLECTION *col, int relative, int precision)
 	for (i=0; i<col->ngeoms; i++)
 	{
 		subgeom = col->geoms[i];
-		size += assvg_geom_size(subgeom, relative, precision);
+		size += assvg_geom_size(ctx, subgeom, relative, precision);
 	}
 
 	if ( i ) /* We have some geometries, so add space for delimiters. */
@@ -427,7 +427,7 @@ assvg_collection_size(const RTCOLLECTION *col, int relative, int precision)
 }
 
 static size_t
-assvg_collection_buf(const RTCOLLECTION *col, char *output, int relative, int precision)
+assvg_collection_buf(RTCTX *ctx, const RTCOLLECTION *col, char *output, int relative, int precision)
 {
 	int i;
 	char *ptr=output;
@@ -440,28 +440,28 @@ assvg_collection_buf(const RTCOLLECTION *col, char *output, int relative, int pr
 	{
 		if (i) ptr += sprintf(ptr, ";");
 		subgeom = col->geoms[i];
-		ptr += assvg_geom_buf(subgeom, ptr, relative, precision);
+		ptr += assvg_geom_buf(ctx, subgeom, ptr, relative, precision);
 	}
 
 	return (ptr - output);
 }
 
 static char *
-assvg_collection(const RTCOLLECTION *col, int relative, int precision)
+assvg_collection(RTCTX *ctx, const RTCOLLECTION *col, int relative, int precision)
 {
 	char *output;
 	int size;
 
-	size = assvg_collection_size(col, relative, precision);
-	output = rtalloc(size);
-	assvg_collection_buf(col, output, relative, precision);
+	size = assvg_collection_size(ctx, col, relative, precision);
+	output = rtalloc(ctx, size);
+	assvg_collection_buf(ctx, col, output, relative, precision);
 
 	return output;
 }
 
 
 static size_t
-assvg_geom_buf(const RTGEOM *geom, char *output, int relative, int precision)
+assvg_geom_buf(RTCTX *ctx, const RTGEOM *geom, char *output, int relative, int precision)
 {
     int type = geom->type;
 	char *ptr=output;
@@ -469,32 +469,32 @@ assvg_geom_buf(const RTGEOM *geom, char *output, int relative, int precision)
 	switch (type)
 	{
 	case RTPOINTTYPE:
-		ptr += assvg_point_buf((RTPOINT*)geom, ptr, relative, precision);
+		ptr += assvg_point_buf(ctx, (RTPOINT*)geom, ptr, relative, precision);
 		break;
 
 	case RTLINETYPE:
-		ptr += assvg_line_buf((RTLINE*)geom, ptr, relative, precision);
+		ptr += assvg_line_buf(ctx, (RTLINE*)geom, ptr, relative, precision);
 		break;
 
 	case RTPOLYGONTYPE:
-		ptr += assvg_polygon_buf((RTPOLY*)geom, ptr, relative, precision);
+		ptr += assvg_polygon_buf(ctx, (RTPOLY*)geom, ptr, relative, precision);
 		break;
 
 	case RTMULTIPOINTTYPE:
-		ptr += assvg_multipoint_buf((RTMPOINT*)geom, ptr, relative, precision);
+		ptr += assvg_multipoint_buf(ctx, (RTMPOINT*)geom, ptr, relative, precision);
 		break;
 
 	case RTMULTILINETYPE:
-		ptr += assvg_multiline_buf((RTMLINE*)geom, ptr, relative, precision);
+		ptr += assvg_multiline_buf(ctx, (RTMLINE*)geom, ptr, relative, precision);
 		break;
 
 	case RTMULTIPOLYGONTYPE:
-		ptr += assvg_multipolygon_buf((RTMPOLY*)geom, ptr, relative, precision);
+		ptr += assvg_multipolygon_buf(ctx, (RTMPOLY*)geom, ptr, relative, precision);
 		break;
 
 	default:
-		rterror("assvg_geom_buf: '%s' geometry type not supported.",
-		        rttype_name(type));
+		rterror(ctx, "assvg_geom_buf: '%s' geometry type not supported.",
+		        rttype_name(ctx, type));
 	}
 
 	return (ptr-output);
@@ -502,7 +502,7 @@ assvg_geom_buf(const RTGEOM *geom, char *output, int relative, int precision)
 
 
 static size_t
-assvg_geom_size(const RTGEOM *geom, int relative, int precision)
+assvg_geom_size(RTCTX *ctx, const RTGEOM *geom, int relative, int precision)
 {
     int type = geom->type;
 	size_t size = 0;
@@ -510,32 +510,32 @@ assvg_geom_size(const RTGEOM *geom, int relative, int precision)
 	switch (type)
 	{
 	case RTPOINTTYPE:
-		size = assvg_point_size((RTPOINT*)geom, relative, precision);
+		size = assvg_point_size(ctx, (RTPOINT*)geom, relative, precision);
 		break;
 
 	case RTLINETYPE:
-		size = assvg_line_size((RTLINE*)geom, relative, precision);
+		size = assvg_line_size(ctx, (RTLINE*)geom, relative, precision);
 		break;
 
 	case RTPOLYGONTYPE:
-		size = assvg_polygon_size((RTPOLY*)geom, relative, precision);
+		size = assvg_polygon_size(ctx, (RTPOLY*)geom, relative, precision);
 		break;
 
 	case RTMULTIPOINTTYPE:
-		size = assvg_multipoint_size((RTMPOINT*)geom, relative, precision);
+		size = assvg_multipoint_size(ctx, (RTMPOINT*)geom, relative, precision);
 		break;
 
 	case RTMULTILINETYPE:
-		size = assvg_multiline_size((RTMLINE*)geom, relative, precision);
+		size = assvg_multiline_size(ctx, (RTMLINE*)geom, relative, precision);
 		break;
 
 	case RTMULTIPOLYGONTYPE:
-		size = assvg_multipolygon_size((RTMPOLY*)geom, relative, precision);
+		size = assvg_multipolygon_size(ctx, (RTMPOLY*)geom, relative, precision);
 		break;
 
 	default:
-		rterror("assvg_geom_size: '%s' geometry type not supported.",
-		        rttype_name(type));
+		rterror(ctx, "assvg_geom_size: '%s' geometry type not supported.",
+		        rttype_name(ctx, type));
 	}
 
 	return size;
@@ -543,7 +543,7 @@ assvg_geom_size(const RTGEOM *geom, int relative, int precision)
 
 
 static size_t
-pointArray_svg_rel(RTPOINTARRAY *pa, char *output, int close_ring, int precision)
+pointArray_svg_rel(RTCTX *ctx, RTPOINTARRAY *pa, char *output, int close_ring, int precision)
 {
 	int i, end;
 	char *ptr;
@@ -557,19 +557,19 @@ pointArray_svg_rel(RTPOINTARRAY *pa, char *output, int close_ring, int precision
 	else end = pa->npoints - 1;
 
 	/* Starting point */
-	getPoint2d_p(pa, 0, &pt);
+	getPoint2d_p(ctx, pa, 0, &pt);
 
 	if (fabs(pt.x) < OUT_MAX_DOUBLE)
 		sprintf(x, "%.*f", precision, pt.x);
 	else
 		sprintf(x, "%g", pt.x);
-	trim_trailing_zeros(x);
+	trim_trailing_zeros(ctx, x);
 
 	if (fabs(pt.y) < OUT_MAX_DOUBLE)
 		sprintf(y, "%.*f", precision, fabs(pt.y) ? pt.y * -1 : pt.y);
 	else
 		sprintf(y, "%g", fabs(pt.y) ? pt.y * -1 : pt.y);
-	trim_trailing_zeros(y);
+	trim_trailing_zeros(ctx, y);
 
 	ptr += sprintf(ptr,"%s %s l", x, y);
 
@@ -578,12 +578,12 @@ pointArray_svg_rel(RTPOINTARRAY *pa, char *output, int close_ring, int precision
 	{
 		lpt = pt;
 
-		getPoint2d_p(pa, i, &pt);
+		getPoint2d_p(ctx, pa, i, &pt);
 		if (fabs(pt.x -lpt.x) < OUT_MAX_DOUBLE)
 			sprintf(x, "%.*f", precision, pt.x -lpt.x);
 		else
 			sprintf(x, "%g", pt.x -lpt.x);
-		trim_trailing_zeros(x);
+		trim_trailing_zeros(ctx, x);
 
 		/* SVG Y axis is reversed, an no need to transform 0 into -0 */
 		if (fabs(pt.y -lpt.y) < OUT_MAX_DOUBLE)
@@ -592,7 +592,7 @@ pointArray_svg_rel(RTPOINTARRAY *pa, char *output, int close_ring, int precision
 		else
 			sprintf(y, "%g",
 			        fabs(pt.y -lpt.y) ? (pt.y - lpt.y) * -1: (pt.y - lpt.y));
-		trim_trailing_zeros(y);
+		trim_trailing_zeros(ctx, y);
 
 		ptr += sprintf(ptr," %s %s", x, y);
 	}
@@ -605,7 +605,7 @@ pointArray_svg_rel(RTPOINTARRAY *pa, char *output, int close_ring, int precision
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_svg_abs(RTPOINTARRAY *pa, char *output, int close_ring, int precision)
+pointArray_svg_abs(RTCTX *ctx, RTPOINTARRAY *pa, char *output, int close_ring, int precision)
 {
 	int i, end;
 	char *ptr;
@@ -620,20 +620,20 @@ pointArray_svg_abs(RTPOINTARRAY *pa, char *output, int close_ring, int precision
 
 	for (i=0 ; i < end ; i++)
 	{
-		getPoint2d_p(pa, i, &pt);
+		getPoint2d_p(ctx, pa, i, &pt);
 
 		if (fabs(pt.x) < OUT_MAX_DOUBLE)
 			sprintf(x, "%.*f", precision, pt.x);
 		else
 			sprintf(x, "%g", pt.x);
-		trim_trailing_zeros(x);
+		trim_trailing_zeros(ctx, x);
 
 		/* SVG Y axis is reversed, an no need to transform 0 into -0 */
 		if (fabs(pt.y) < OUT_MAX_DOUBLE)
 			sprintf(y, "%.*f", precision, fabs(pt.y) ? pt.y * -1:pt.y);
 		else
 			sprintf(y, "%g", fabs(pt.y) ? pt.y * -1:pt.y);
-		trim_trailing_zeros(y);
+		trim_trailing_zeros(ctx, y);
 
 		if (i == 1) ptr += sprintf(ptr, " L ");
 		else if (i) ptr += sprintf(ptr, " ");
@@ -648,7 +648,7 @@ pointArray_svg_abs(RTPOINTARRAY *pa, char *output, int close_ring, int precision
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_svg_size(RTPOINTARRAY *pa, int precision)
+pointArray_svg_size(RTCTX *ctx, RTPOINTARRAY *pa, int precision)
 {
 	return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(" "))
 	       * 2 * pa->npoints + sizeof(" L ");

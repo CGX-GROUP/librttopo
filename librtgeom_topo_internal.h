@@ -28,6 +28,7 @@ struct RTT_BE_IFACE_T
 {
   const RTT_BE_DATA *data;
   const RTT_BE_CALLBACKS *cb;
+  const RTCTX *ctx;
 };
 
 const char* rtt_be_lastErrorMessage(const RTT_BE_IFACE* be);

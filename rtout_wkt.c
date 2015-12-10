@@ -13,7 +13,7 @@
 #include "rtgeom_log.h"
 #include "stringbuffer.h"
 
-static void rtgeom_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant);
+static void rtgeom_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant);
 
 
 /*
@@ -22,7 +22,7 @@ static void rtgeom_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *sb, int precisi
 * clear what the third dimension represents.
 * SFSQL format never has more than two dimensions, so no qualifiers.
 */
-static void dimension_qualifiers_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *sb, uint8_t variant)
+static void dimension_qualifiers_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, uint8_t variant)
 {
 
 	/* Extended RTWKT: POINTM(0 0 0) */
@@ -32,19 +32,19 @@ static void dimension_qualifiers_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *s
 	if ( (variant & RTWKT_EXTENDED) && RTFLAGS_GET_M(geom->flags) && (!RTFLAGS_GET_Z(geom->flags)) )
 #endif
 	{
-		stringbuffer_append(sb, "M"); /* "M" */
+		stringbuffer_append(ctx, sb, "M"); /* "M" */
 		return;
 	}
 
 	/* ISO RTWKT: POINT ZM (0 0 0 0) */
 	if ( (variant & RTWKT_ISO) && (RTFLAGS_NDIMS(geom->flags) > 2) )
 	{
-		stringbuffer_append(sb, " ");
+		stringbuffer_append(ctx, sb, " ");
 		if ( RTFLAGS_GET_Z(geom->flags) )
-			stringbuffer_append(sb, "Z");
+			stringbuffer_append(ctx, sb, "Z");
 		if ( RTFLAGS_GET_M(geom->flags) )
-			stringbuffer_append(sb, "M");
-		stringbuffer_append(sb, " ");
+			stringbuffer_append(ctx, sb, "M");
+		stringbuffer_append(ctx, sb, " ");
 	}
 }
 
@@ -52,13 +52,13 @@ static void dimension_qualifiers_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *s
 * Write an empty token out, padding with a space if
 * necessary. 
 */
-static void empty_to_wkt_sb(stringbuffer_t *sb)
+static void empty_to_wkt_sb(RTCTX *ctx, stringbuffer_t *sb)
 {
-	if ( ! strchr(" ,(", stringbuffer_lastchar(sb)) ) /* "EMPTY" */
+	if ( ! strchr(" ,(", stringbuffer_lastchar(ctx, sb)) ) /* "EMPTY" */
 	{ 
-		stringbuffer_append(sb, " "); 
+		stringbuffer_append(ctx, sb, " "); 
 	}
-	stringbuffer_append(sb, "EMPTY"); 
+	stringbuffer_append(ctx, sb, "EMPTY"); 
 }
 
 /*
@@ -66,7 +66,7 @@ static void empty_to_wkt_sb(stringbuffer_t *sb)
 * we may suppress some dimensions. ISO and Extended formats include
 * all dimensions. Standard OGC output only includes X/Y coordinates.
 */
-static void ptarray_to_wkt_sb(const RTPOINTARRAY *ptarray, stringbuffer_t *sb, int precision, uint8_t variant)
+static void ptarray_to_wkt_sb(RTCTX *ctx, const RTPOINTARRAY *ptarray, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	/* OGC only includes X/Y */
 	int dimensions = 2;
@@ -78,29 +78,29 @@ static void ptarray_to_wkt_sb(const RTPOINTARRAY *ptarray, stringbuffer_t *sb, i
 
 	/* Opening paren? */
 	if ( ! (variant & RTWKT_NO_PARENS) )
-		stringbuffer_append(sb, "(");
+		stringbuffer_append(ctx, sb, "(");
 
 	/* Digits and commas */
 	for (i = 0; i < ptarray->npoints; i++)
 	{
-		double *dbl_ptr = (double*)getPoint_internal(ptarray, i);
+		double *dbl_ptr = (double*)getPoint_internal(ctx, ptarray, i);
 
 		/* Commas before ever coord but the first */
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 
 		for (j = 0; j < dimensions; j++)
 		{
 			/* Spaces before every ordinate but the first */
 			if ( j > 0 )
-				stringbuffer_append(sb, " ");
-			stringbuffer_aprintf(sb, "%.*g", precision, dbl_ptr[j]);
+				stringbuffer_append(ctx, sb, " ");
+			stringbuffer_aprintf(ctx, sb, "%.*g", precision, dbl_ptr[j]);
 		}
 	}
 
 	/* Closing paren? */
 	if ( ! (variant & RTWKT_NO_PARENS) )
-		stringbuffer_append(sb, ")");
+		stringbuffer_append(ctx, sb, ")");
 }
 
 /*
@@ -113,85 +113,85 @@ static void ptarray_to_wkt_sb(const RTPOINTARRAY *ptarray, stringbuffer_t *sb, i
 *   Extended: POINTM(0 0 0)
 *   OGC: POINT(0 0)
 */
-static void rtpoint_to_wkt_sb(const RTPOINT *pt, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtpoint_to_wkt_sb(RTCTX *ctx, const RTPOINT *pt, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "POINT"); /* "POINT" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)pt, sb, variant);
+		stringbuffer_append(ctx, sb, "POINT"); /* "POINT" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)pt, sb, variant);
 	}
 
-	if ( rtpoint_is_empty(pt) )
+	if ( rtpoint_is_empty(ctx, pt) )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	ptarray_to_wkt_sb(pt->point, sb, precision, variant);
+	ptarray_to_wkt_sb(ctx, pt->point, sb, precision, variant);
 }
 
 /*
 * LINESTRING(0 0 0, 1 1 1)
 */
-static void rtline_to_wkt_sb(const RTLINE *line, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtline_to_wkt_sb(RTCTX *ctx, const RTLINE *line, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "LINESTRING"); /* "LINESTRING" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)line, sb, variant);
+		stringbuffer_append(ctx, sb, "LINESTRING"); /* "LINESTRING" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)line, sb, variant);
 	}
-	if ( rtline_is_empty(line) )
+	if ( rtline_is_empty(ctx, line) )
 	{  
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	ptarray_to_wkt_sb(line->points, sb, precision, variant);
+	ptarray_to_wkt_sb(ctx, line->points, sb, precision, variant);
 }
 
 /*
 * POLYGON(0 0 1, 1 0 1, 1 1 1, 0 1 1, 0 0 1)
 */
-static void rtpoly_to_wkt_sb(const RTPOLY *poly, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtpoly_to_wkt_sb(RTCTX *ctx, const RTPOLY *poly, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "POLYGON"); /* "POLYGON" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)poly, sb, variant);
+		stringbuffer_append(ctx, sb, "POLYGON"); /* "POLYGON" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)poly, sb, variant);
 	}
-	if ( rtpoly_is_empty(poly) )
+	if ( rtpoly_is_empty(ctx, poly) )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	for ( i = 0; i < poly->nrings; i++ )
 	{
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
-		ptarray_to_wkt_sb(poly->rings[i], sb, precision, variant);
+			stringbuffer_append(ctx, sb, ",");
+		ptarray_to_wkt_sb(ctx, poly->rings[i], sb, precision, variant);
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
 * CIRCULARSTRING
 */
-static void rtcircstring_to_wkt_sb(const RTCIRCSTRING *circ, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcircstring_to_wkt_sb(RTCTX *ctx, const RTCIRCSTRING *circ, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "CIRCULARSTRING"); /* "CIRCULARSTRING" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)circ, sb, variant);
+		stringbuffer_append(ctx, sb, "CIRCULARSTRING"); /* "CIRCULARSTRING" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)circ, sb, variant);
 	}
-	if ( rtcircstring_is_empty(circ) )
+	if ( rtcircstring_is_empty(ctx, circ) )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
-	ptarray_to_wkt_sb(circ->points, sb, precision, variant);
+	ptarray_to_wkt_sb(ctx, circ->points, sb, precision, variant);
 }
 
 
@@ -199,89 +199,89 @@ static void rtcircstring_to_wkt_sb(const RTCIRCSTRING *circ, stringbuffer_t *sb,
 * Multi-points do not wrap their sub-members in parens, unlike other multi-geometries.
 *   MULTPOINT(0 0, 1 1) instead of MULTIPOINT((0 0),(1 1))
 */
-static void rtmpoint_to_wkt_sb(const RTMPOINT *mpoint, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmpoint_to_wkt_sb(RTCTX *ctx, const RTMPOINT *mpoint, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "MULTIPOINT"); /* "MULTIPOINT" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)mpoint, sb, variant);
+		stringbuffer_append(ctx, sb, "MULTIPOINT"); /* "MULTIPOINT" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)mpoint, sb, variant);
 	}
 	if ( mpoint->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 	for ( i = 0; i < mpoint->ngeoms; i++ )
 	{
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		/* We don't want type strings or parens on our subgeoms */
-		rtpoint_to_wkt_sb(mpoint->geoms[i], sb, precision, variant | RTWKT_NO_PARENS | RTWKT_NO_TYPE );
+		rtpoint_to_wkt_sb(ctx, mpoint->geoms[i], sb, precision, variant | RTWKT_NO_PARENS | RTWKT_NO_TYPE );
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
 * MULTILINESTRING
 */
-static void rtmline_to_wkt_sb(const RTMLINE *mline, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmline_to_wkt_sb(RTCTX *ctx, const RTMLINE *mline, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "MULTILINESTRING"); /* "MULTILINESTRING" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)mline, sb, variant);
+		stringbuffer_append(ctx, sb, "MULTILINESTRING"); /* "MULTILINESTRING" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)mline, sb, variant);
 	}
 	if ( mline->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 	for ( i = 0; i < mline->ngeoms; i++ )
 	{
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		/* We don't want type strings on our subgeoms */
-		rtline_to_wkt_sb(mline->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
+		rtline_to_wkt_sb(ctx, mline->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
 * MULTIPOLYGON
 */
-static void rtmpoly_to_wkt_sb(const RTMPOLY *mpoly, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmpoly_to_wkt_sb(RTCTX *ctx, const RTMPOLY *mpoly, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "MULTIPOLYGON"); /* "MULTIPOLYGON" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)mpoly, sb, variant);
+		stringbuffer_append(ctx, sb, "MULTIPOLYGON"); /* "MULTIPOLYGON" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)mpoly, sb, variant);
 	}
 	if ( mpoly->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 	for ( i = 0; i < mpoly->ngeoms; i++ )
 	{
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		/* We don't want type strings on our subgeoms */
-		rtpoly_to_wkt_sb(mpoly->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
+		rtpoly_to_wkt_sb(ctx, mpoly->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
@@ -289,44 +289,44 @@ static void rtmpoly_to_wkt_sb(const RTMPOLY *mpoly, stringbuffer_t *sb, int prec
 * but not their linestring sub-geometries.
 *   COMPOUNDCURVE((0 0, 1 1), CURVESTRING(1 1, 2 2, 3 3))
 */
-static void rtcompound_to_wkt_sb(const RTCOMPOUND *comp, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcompound_to_wkt_sb(RTCTX *ctx, const RTCOMPOUND *comp, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "COMPOUNDCURVE"); /* "COMPOUNDCURVE" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)comp, sb, variant);
+		stringbuffer_append(ctx, sb, "COMPOUNDCURVE"); /* "COMPOUNDCURVE" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)comp, sb, variant);
 	}
 	if ( comp->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 	for ( i = 0; i < comp->ngeoms; i++ )
 	{
 		int type = comp->geoms[i]->type;
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		/* Linestring subgeoms don't get type identifiers */
 		if ( type == RTLINETYPE )
 		{
-			rtline_to_wkt_sb((RTLINE*)comp->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
+			rtline_to_wkt_sb(ctx, (RTLINE*)comp->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
 		}
 		/* But circstring subgeoms *do* get type identifiers */
 		else if ( type == RTCIRCSTRINGTYPE )
 		{
-			rtcircstring_to_wkt_sb((RTCIRCSTRING*)comp->geoms[i], sb, precision, variant );
+			rtcircstring_to_wkt_sb(ctx, (RTCIRCSTRING*)comp->geoms[i], sb, precision, variant );
 		}
 		else
 		{
-			rterror("rtcompound_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(type));
+			rterror(ctx, "rtcompound_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(ctx, type));
 		}
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
@@ -334,46 +334,46 @@ static void rtcompound_to_wkt_sb(const RTCOMPOUND *comp, stringbuffer_t *sb, int
 * but not their linestring rings.
 *   CURVEPOLYGON((0 0, 1 1, 0 1, 0 0), CURVESTRING(0 0, 1 1, 0 1, 0.5 1, 0 0))
 */
-static void rtcurvepoly_to_wkt_sb(const RTCURVEPOLY *cpoly, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcurvepoly_to_wkt_sb(RTCTX *ctx, const RTCURVEPOLY *cpoly, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "CURVEPOLYGON"); /* "CURVEPOLYGON" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)cpoly, sb, variant);
+		stringbuffer_append(ctx, sb, "CURVEPOLYGON"); /* "CURVEPOLYGON" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)cpoly, sb, variant);
 	}
 	if ( cpoly->nrings < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 	for ( i = 0; i < cpoly->nrings; i++ )
 	{
 		int type = cpoly->rings[i]->type;
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		switch (type)
 		{
 		case RTLINETYPE:
 			/* Linestring subgeoms don't get type identifiers */
-			rtline_to_wkt_sb((RTLINE*)cpoly->rings[i], sb, precision, variant | RTWKT_NO_TYPE );
+			rtline_to_wkt_sb(ctx, (RTLINE*)cpoly->rings[i], sb, precision, variant | RTWKT_NO_TYPE );
 			break;
 		case RTCIRCSTRINGTYPE:
 			/* But circstring subgeoms *do* get type identifiers */
-			rtcircstring_to_wkt_sb((RTCIRCSTRING*)cpoly->rings[i], sb, precision, variant );
+			rtcircstring_to_wkt_sb(ctx, (RTCIRCSTRING*)cpoly->rings[i], sb, precision, variant );
 			break;
 		case RTCOMPOUNDTYPE:
 			/* And compoundcurve subgeoms *do* get type identifiers */
-			rtcompound_to_wkt_sb((RTCOMPOUND*)cpoly->rings[i], sb, precision, variant );
+			rtcompound_to_wkt_sb(ctx, (RTCOMPOUND*)cpoly->rings[i], sb, precision, variant );
 			break;
 		default:
-			rterror("rtcurvepoly_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(type));
+			rterror(ctx, "rtcurvepoly_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(ctx, type));
 		}
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 
@@ -382,46 +382,46 @@ static void rtcurvepoly_to_wkt_sb(const RTCURVEPOLY *cpoly, stringbuffer_t *sb, 
 * but not their linear sub-geometries.
 *   MULTICURVE((0 0, 1 1), CURVESTRING(0 0, 1 1, 2 2))
 */
-static void rtmcurve_to_wkt_sb(const RTMCURVE *mcurv, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmcurve_to_wkt_sb(RTCTX *ctx, const RTMCURVE *mcurv, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "MULTICURVE"); /* "MULTICURVE" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)mcurv, sb, variant);
+		stringbuffer_append(ctx, sb, "MULTICURVE"); /* "MULTICURVE" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)mcurv, sb, variant);
 	}
 	if ( mcurv->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 	for ( i = 0; i < mcurv->ngeoms; i++ )
 	{
 		int type = mcurv->geoms[i]->type;
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		switch (type)
 		{
 		case RTLINETYPE:
 			/* Linestring subgeoms don't get type identifiers */
-			rtline_to_wkt_sb((RTLINE*)mcurv->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
+			rtline_to_wkt_sb(ctx, (RTLINE*)mcurv->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
 			break;
 		case RTCIRCSTRINGTYPE:
 			/* But circstring subgeoms *do* get type identifiers */
-			rtcircstring_to_wkt_sb((RTCIRCSTRING*)mcurv->geoms[i], sb, precision, variant );
+			rtcircstring_to_wkt_sb(ctx, (RTCIRCSTRING*)mcurv->geoms[i], sb, precision, variant );
 			break;
 		case RTCOMPOUNDTYPE:
 			/* And compoundcurve subgeoms *do* get type identifiers */
-			rtcompound_to_wkt_sb((RTCOMPOUND*)mcurv->geoms[i], sb, precision, variant );
+			rtcompound_to_wkt_sb(ctx, (RTCOMPOUND*)mcurv->geoms[i], sb, precision, variant );
 			break;
 		default:
-			rterror("rtmcurve_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(type));
+			rterror(ctx, "rtmcurve_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(ctx, type));
 		}
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 
@@ -430,42 +430,42 @@ static void rtmcurve_to_wkt_sb(const RTMCURVE *mcurv, stringbuffer_t *sb, int pr
 * but not their linear sub-geometries.
 *   MULTISURFACE(((0 0, 1 1, 1 0, 0 0)), CURVEPOLYGON(CURVESTRING(0 0, 1 1, 2 2, 0 1, 0 0)))
 */
-static void rtmsurface_to_wkt_sb(const RTMSURFACE *msurf, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmsurface_to_wkt_sb(RTCTX *ctx, const RTMSURFACE *msurf, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "MULTISURFACE"); /* "MULTISURFACE" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)msurf, sb, variant);
+		stringbuffer_append(ctx, sb, "MULTISURFACE"); /* "MULTISURFACE" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)msurf, sb, variant);
 	}
 	if ( msurf->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 	for ( i = 0; i < msurf->ngeoms; i++ )
 	{
 		int type = msurf->geoms[i]->type;
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		switch (type)
 		{
 		case RTPOLYGONTYPE:
 			/* Linestring subgeoms don't get type identifiers */
-			rtpoly_to_wkt_sb((RTPOLY*)msurf->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
+			rtpoly_to_wkt_sb(ctx, (RTPOLY*)msurf->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
 			break;
 		case RTCURVEPOLYTYPE:
 			/* But circstring subgeoms *do* get type identifiers */
-			rtcurvepoly_to_wkt_sb((RTCURVEPOLY*)msurf->geoms[i], sb, precision, variant);
+			rtcurvepoly_to_wkt_sb(ctx, (RTCURVEPOLY*)msurf->geoms[i], sb, precision, variant);
 			break;
 		default:
-			rterror("rtmsurface_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(type));
+			rterror(ctx, "rtmsurface_to_wkt_sb: Unknown type received %d - %s", type, rttype_name(ctx, type));
 		}
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
@@ -473,172 +473,172 @@ static void rtmsurface_to_wkt_sb(const RTMSURFACE *msurf, stringbuffer_t *sb, in
 * but not their linear sub-geometries.
 *   GEOMETRYCOLLECTION(POLYGON((0 0, 1 1, 1 0, 0 0)), CURVEPOLYGON(CURVESTRING(0 0, 1 1, 2 2, 0 1, 0 0)))
 */
-static void rtcollection_to_wkt_sb(const RTCOLLECTION *collection, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcollection_to_wkt_sb(RTCTX *ctx, const RTCOLLECTION *collection, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "GEOMETRYCOLLECTION"); /* "GEOMETRYCOLLECTION" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)collection, sb, variant);
+		stringbuffer_append(ctx, sb, "GEOMETRYCOLLECTION"); /* "GEOMETRYCOLLECTION" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)collection, sb, variant);
 	}
 	if ( collection->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are children */
 	for ( i = 0; i < collection->ngeoms; i++ )
 	{
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
-		rtgeom_to_wkt_sb((RTGEOM*)collection->geoms[i], sb, precision, variant );
+			stringbuffer_append(ctx, sb, ",");
+		rtgeom_to_wkt_sb(ctx, (RTGEOM*)collection->geoms[i], sb, precision, variant );
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
 * TRIANGLE 
 */
-static void rttriangle_to_wkt_sb(const RTTRIANGLE *tri, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rttriangle_to_wkt_sb(RTCTX *ctx, const RTTRIANGLE *tri, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "TRIANGLE"); /* "TRIANGLE" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)tri, sb, variant);
+		stringbuffer_append(ctx, sb, "TRIANGLE"); /* "TRIANGLE" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)tri, sb, variant);
 	}
-	if ( rttriangle_is_empty(tri) )
+	if ( rttriangle_is_empty(ctx, tri) )
 	{  
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	stringbuffer_append(sb, "("); /* Triangles have extraneous brackets */
-	ptarray_to_wkt_sb(tri->points, sb, precision, variant);
-	stringbuffer_append(sb, ")"); 
+	stringbuffer_append(ctx, sb, "("); /* Triangles have extraneous brackets */
+	ptarray_to_wkt_sb(ctx, tri->points, sb, precision, variant);
+	stringbuffer_append(ctx, sb, ")"); 
 }
 
 /*
 * TIN
 */
-static void rttin_to_wkt_sb(const RTTIN *tin, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rttin_to_wkt_sb(RTCTX *ctx, const RTTIN *tin, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "TIN"); /* "TIN" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)tin, sb, variant);
+		stringbuffer_append(ctx, sb, "TIN"); /* "TIN" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)tin, sb, variant);
 	}
 	if ( tin->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	for ( i = 0; i < tin->ngeoms; i++ )
 	{
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		/* We don't want type strings on our subgeoms */
-		rttriangle_to_wkt_sb(tin->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
+		rttriangle_to_wkt_sb(ctx, tin->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
 	}
-	stringbuffer_append(sb, ")");
+	stringbuffer_append(ctx, sb, ")");
 }
 
 /*
 * POLYHEDRALSURFACE
 */
-static void rtpsurface_to_wkt_sb(const RTPSURFACE *psurf, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtpsurface_to_wkt_sb(RTCTX *ctx, const RTPSURFACE *psurf, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
-		stringbuffer_append(sb, "POLYHEDRALSURFACE"); /* "POLYHEDRALSURFACE" */
-		dimension_qualifiers_to_wkt_sb((RTGEOM*)psurf, sb, variant);
+		stringbuffer_append(ctx, sb, "POLYHEDRALSURFACE"); /* "POLYHEDRALSURFACE" */
+		dimension_qualifiers_to_wkt_sb(ctx, (RTGEOM*)psurf, sb, variant);
 	}
 	if ( psurf->ngeoms < 1 )
 	{
-		empty_to_wkt_sb(sb);
+		empty_to_wkt_sb(ctx, sb);
 		return;
 	}
 
 	variant = variant | RTWKT_IS_CHILD; /* Inform the sub-geometries they are childre */
 
-	stringbuffer_append(sb, "(");
+	stringbuffer_append(ctx, sb, "(");
 	for ( i = 0; i < psurf->ngeoms; i++ )
 	{
 		if ( i > 0 )
-			stringbuffer_append(sb, ",");
+			stringbuffer_append(ctx, sb, ",");
 		/* We don't want type strings on our subgeoms */
-		rtpoly_to_wkt_sb(psurf->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
+		rtpoly_to_wkt_sb(ctx, psurf->geoms[i], sb, precision, variant | RTWKT_NO_TYPE );
 	}
-	stringbuffer_append(sb, ")");	
+	stringbuffer_append(ctx, sb, ")");	
 }
 
 
 /*
 * Generic GEOMETRY
 */
-static void rtgeom_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtgeom_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	RTDEBUGF(4, "rtgeom_to_wkt_sb: type %s, hasz %d, hasm %d",
-		rttype_name(geom->type), (geom->type),
+		rttype_name(ctx, geom->type), (geom->type),
 		RTFLAGS_GET_Z(geom->flags)?1:0, RTFLAGS_GET_M(geom->flags)?1:0);
 
 	switch (geom->type)
 	{
 	case RTPOINTTYPE:
-		rtpoint_to_wkt_sb((RTPOINT*)geom, sb, precision, variant);
+		rtpoint_to_wkt_sb(ctx, (RTPOINT*)geom, sb, precision, variant);
 		break;
 	case RTLINETYPE:
-		rtline_to_wkt_sb((RTLINE*)geom, sb, precision, variant);
+		rtline_to_wkt_sb(ctx, (RTLINE*)geom, sb, precision, variant);
 		break;
 	case RTPOLYGONTYPE:
-		rtpoly_to_wkt_sb((RTPOLY*)geom, sb, precision, variant);
+		rtpoly_to_wkt_sb(ctx, (RTPOLY*)geom, sb, precision, variant);
 		break;
 	case RTMULTIPOINTTYPE:
-		rtmpoint_to_wkt_sb((RTMPOINT*)geom, sb, precision, variant);
+		rtmpoint_to_wkt_sb(ctx, (RTMPOINT*)geom, sb, precision, variant);
 		break;
 	case RTMULTILINETYPE:
-		rtmline_to_wkt_sb((RTMLINE*)geom, sb, precision, variant);
+		rtmline_to_wkt_sb(ctx, (RTMLINE*)geom, sb, precision, variant);
 		break;
 	case RTMULTIPOLYGONTYPE:
-		rtmpoly_to_wkt_sb((RTMPOLY*)geom, sb, precision, variant);
+		rtmpoly_to_wkt_sb(ctx, (RTMPOLY*)geom, sb, precision, variant);
 		break;
 	case RTCOLLECTIONTYPE:
-		rtcollection_to_wkt_sb((RTCOLLECTION*)geom, sb, precision, variant);
+		rtcollection_to_wkt_sb(ctx, (RTCOLLECTION*)geom, sb, precision, variant);
 		break;
 	case RTCIRCSTRINGTYPE:
-		rtcircstring_to_wkt_sb((RTCIRCSTRING*)geom, sb, precision, variant);
+		rtcircstring_to_wkt_sb(ctx, (RTCIRCSTRING*)geom, sb, precision, variant);
 		break;
 	case RTCOMPOUNDTYPE:
-		rtcompound_to_wkt_sb((RTCOMPOUND*)geom, sb, precision, variant);
+		rtcompound_to_wkt_sb(ctx, (RTCOMPOUND*)geom, sb, precision, variant);
 		break;
 	case RTCURVEPOLYTYPE:
-		rtcurvepoly_to_wkt_sb((RTCURVEPOLY*)geom, sb, precision, variant);
+		rtcurvepoly_to_wkt_sb(ctx, (RTCURVEPOLY*)geom, sb, precision, variant);
 		break;
 	case RTMULTICURVETYPE:
-		rtmcurve_to_wkt_sb((RTMCURVE*)geom, sb, precision, variant);
+		rtmcurve_to_wkt_sb(ctx, (RTMCURVE*)geom, sb, precision, variant);
 		break;
 	case RTMULTISURFACETYPE:
-		rtmsurface_to_wkt_sb((RTMSURFACE*)geom, sb, precision, variant);
+		rtmsurface_to_wkt_sb(ctx, (RTMSURFACE*)geom, sb, precision, variant);
 		break;
 	case RTTRIANGLETYPE:
-		rttriangle_to_wkt_sb((RTTRIANGLE*)geom, sb, precision, variant);
+		rttriangle_to_wkt_sb(ctx, (RTTRIANGLE*)geom, sb, precision, variant);
 		break;
 	case RTTINTYPE:
-		rttin_to_wkt_sb((RTTIN*)geom, sb, precision, variant);
+		rttin_to_wkt_sb(ctx, (RTTIN*)geom, sb, precision, variant);
 		break;
 	case RTPOLYHEDRALSURFACETYPE:
-		rtpsurface_to_wkt_sb((RTPSURFACE*)geom, sb, precision, variant);
+		rtpsurface_to_wkt_sb(ctx, (RTPSURFACE*)geom, sb, precision, variant);
 		break;
 	default:
-		rterror("rtgeom_to_wkt_sb: Type %d - %s unsupported.",
-		        geom->type, rttype_name(geom->type));
+		rterror(ctx, "rtgeom_to_wkt_sb: Type %d - %s unsupported.",
+		        geom->type, rttype_name(ctx, geom->type));
 	}
 }
 
@@ -652,28 +652,28 @@ static void rtgeom_to_wkt_sb(const RTGEOM *geom, stringbuffer_t *sb, int precisi
 * @param size_out If supplied, will return the size of the returned string,
 * including the null terminator.
 */
-char* rtgeom_to_wkt(const RTGEOM *geom, uint8_t variant, int precision, size_t *size_out)
+char* rtgeom_to_wkt(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, int precision, size_t *size_out)
 {
 	stringbuffer_t *sb;
 	char *str = NULL;
 	if ( geom == NULL )
 		return NULL;
-	sb = stringbuffer_create();
+	sb = stringbuffer_create(ctx);
 	/* Extended mode starts with an "SRID=" section for geoms that have one */
-	if ( (variant & RTWKT_EXTENDED) && rtgeom_has_srid(geom) )
+	if ( (variant & RTWKT_EXTENDED) && rtgeom_has_srid(ctx, geom) )
 	{
-		stringbuffer_aprintf(sb, "SRID=%d;", geom->srid);
+		stringbuffer_aprintf(ctx, sb, "SRID=%d;", geom->srid);
 	}
-	rtgeom_to_wkt_sb(geom, sb, precision, variant);
-	if ( stringbuffer_getstring(sb) == NULL )
+	rtgeom_to_wkt_sb(ctx, geom, sb, precision, variant);
+	if ( stringbuffer_getstring(ctx, sb) == NULL )
 	{
-		rterror("Uh oh");
+		rterror(ctx, "Uh oh");
 		return NULL;
 	}
-	str = stringbuffer_getstringcopy(sb);
+	str = stringbuffer_getstringcopy(ctx, sb);
 	if ( size_out )
-		*size_out = stringbuffer_getlength(sb) + 1;
-	stringbuffer_destroy(sb);
+		*size_out = stringbuffer_getlength(ctx, sb) + 1;
+	stringbuffer_destroy(ctx, sb);
 	return str;
 }
 

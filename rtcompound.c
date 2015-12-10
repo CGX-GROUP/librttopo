@@ -19,12 +19,12 @@
 
 
 int
-rtcompound_is_closed(const RTCOMPOUND *compound)
+rtcompound_is_closed(RTCTX *ctx, const RTCOMPOUND *compound)
 {
 	size_t size;
 	int npoints=0;
 
-	if ( rtgeom_has_z((RTGEOM*)compound) )
+	if ( rtgeom_has_z(ctx, (RTGEOM*)compound) )
 	{
 		size = sizeof(POINT3D);
 	}
@@ -42,8 +42,8 @@ rtcompound_is_closed(const RTCOMPOUND *compound)
 		npoints = ((RTLINE *)compound->geoms[compound->ngeoms - 1])->points->npoints;
 	}
 
-	if ( memcmp(getPoint_internal( (RTPOINTARRAY *)compound->geoms[0]->data, 0),
-	            getPoint_internal( (RTPOINTARRAY *)compound->geoms[compound->ngeoms - 1]->data,
+	if ( memcmp(getPoint_internal(ctx,  (RTPOINTARRAY *)compound->geoms[0]->data, 0),
+	            getPoint_internal(ctx,  (RTPOINTARRAY *)compound->geoms[compound->ngeoms - 1]->data,
 	                               npoints - 1),
 	            size) ) 
 	{
@@ -53,36 +53,36 @@ rtcompound_is_closed(const RTCOMPOUND *compound)
 	return RT_TRUE;
 }
 
-double rtcompound_length(const RTCOMPOUND *comp)
+double rtcompound_length(RTCTX *ctx, const RTCOMPOUND *comp)
 {
 	double length = 0.0;
 	RTLINE *line;
-	if ( rtgeom_is_empty((RTGEOM*)comp) )
+	if ( rtgeom_is_empty(ctx, (RTGEOM*)comp) )
 		return 0.0;
-	line = rtcompound_stroke(comp, 32);
-	length = rtline_length(line);
-	rtline_free(line);
+	line = rtcompound_stroke(ctx, comp, 32);
+	length = rtline_length(ctx, line);
+	rtline_free(ctx, line);
 	return length;
 }
 
-double rtcompound_length_2d(const RTCOMPOUND *comp)
+double rtcompound_length_2d(RTCTX *ctx, const RTCOMPOUND *comp)
 {
 	double length = 0.0;
 	RTLINE *line;
-	if ( rtgeom_is_empty((RTGEOM*)comp) )
+	if ( rtgeom_is_empty(ctx, (RTGEOM*)comp) )
 		return 0.0;
-	line = rtcompound_stroke(comp, 32);
-	length = rtline_length_2d(line);
-	rtline_free(line);
+	line = rtcompound_stroke(ctx, comp, 32);
+	length = rtline_length_2d(ctx, line);
+	rtline_free(ctx, line);
 	return length;
 }
 
-int rtcompound_add_rtgeom(RTCOMPOUND *comp, RTGEOM *geom)
+int rtcompound_add_rtgeom(RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom)
 {
 	RTCOLLECTION *col = (RTCOLLECTION*)comp;
 	
 	/* Empty things can't continuously join up with other things */
-	if ( rtgeom_is_empty(geom) )
+	if ( rtgeom_is_empty(ctx, geom) )
 	{
 		RTDEBUG(4, "Got an empty component for a compound curve!");
 		return RT_FAILURE;
@@ -96,8 +96,8 @@ int rtcompound_add_rtgeom(RTCOMPOUND *comp, RTGEOM *geom)
 		/* Last point of the previous component */
 		RTLINE *prevline = (RTLINE*)(col->geoms[col->ngeoms-1]);
 
-		getPoint4d_p(newline->points, 0, &first);
-		getPoint4d_p(prevline->points, prevline->points->npoints-1, &last);
+		getPoint4d_p(ctx, newline->points, 0, &first);
+		getPoint4d_p(ctx, prevline->points, prevline->points->npoints-1, &last);
 		
 		if ( !(FP_EQUALS(first.x,last.x) && FP_EQUALS(first.y,last.y)) )
 		{
@@ -107,34 +107,34 @@ int rtcompound_add_rtgeom(RTCOMPOUND *comp, RTGEOM *geom)
 		}
 	}
 	
-	col = rtcollection_add_rtgeom(col, geom);
+	col = rtcollection_add_rtgeom(ctx, col, geom);
 	return RT_SUCCESS;
 }
 
 RTCOMPOUND *
-rtcompound_construct_empty(int srid, char hasz, char hasm)
+rtcompound_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 {
-	RTCOMPOUND *ret = (RTCOMPOUND*)rtcollection_construct_empty(RTCOMPOUNDTYPE, srid, hasz, hasm);
+	RTCOMPOUND *ret = (RTCOMPOUND*)rtcollection_construct_empty(ctx, RTCOMPOUNDTYPE, srid, hasz, hasm);
 	return ret;
 }
 
-int rtgeom_contains_point(const RTGEOM *geom, const RTPOINT2D *pt)
+int rtgeom_contains_point(RTCTX *ctx, const RTGEOM *geom, const RTPOINT2D *pt)
 {
 	switch( geom->type )
 	{
 		case RTLINETYPE:
-			return ptarray_contains_point(((RTLINE*)geom)->points, pt);
+			return ptarray_contains_point(ctx, ((RTLINE*)geom)->points, pt);
 		case RTCIRCSTRINGTYPE:
-			return ptarrayarc_contains_point(((RTCIRCSTRING*)geom)->points, pt);
+			return ptarrayarc_contains_point(ctx, ((RTCIRCSTRING*)geom)->points, pt);
 		case RTCOMPOUNDTYPE:
-			return rtcompound_contains_point((RTCOMPOUND*)geom, pt);
+			return rtcompound_contains_point(ctx, (RTCOMPOUND*)geom, pt);
 	}
-	rterror("rtgeom_contains_point failed");
+	rterror(ctx, "rtgeom_contains_point failed");
 	return RT_FAILURE;
 }
 
 int 
-rtcompound_contains_point(const RTCOMPOUND *comp, const RTPOINT2D *pt)
+rtcompound_contains_point(RTCTX *ctx, const RTCOMPOUND *comp, const RTPOINT2D *pt)
 {
 	int i;
 	RTLINE *rtline;
@@ -148,32 +148,32 @@ rtcompound_contains_point(const RTCOMPOUND *comp, const RTPOINT2D *pt)
 		RTGEOM *rtgeom = comp->geoms[i];
 		if ( rtgeom->type == RTLINETYPE )
 		{
-			rtline = rtgeom_as_rtline(rtgeom);
+			rtline = rtgeom_as_rtline(ctx, rtgeom);
 			if ( comp->ngeoms == 1 )
 			{
-				return ptarray_contains_point(rtline->points, pt); 
+				return ptarray_contains_point(ctx, rtline->points, pt); 
 			}
 			else
 			{
 				/* Don't check closure while doing p-i-p test */
-				result = ptarray_contains_point_partial(rtline->points, pt, RT_FALSE, &winding_number);
+				result = ptarray_contains_point_partial(ctx, rtline->points, pt, RT_FALSE, &winding_number);
 			}
 		}
 		else
 		{
-			rtcirc = rtgeom_as_rtcircstring(rtgeom);
+			rtcirc = rtgeom_as_rtcircstring(ctx, rtgeom);
 			if ( ! rtcirc ) {
-				rterror("Unexpected component of type %s in compound curve", rttype_name(rtgeom->type));
+				rterror(ctx, "Unexpected component of type %s in compound curve", rttype_name(ctx, rtgeom->type));
 				return 0;
 			}
 			if ( comp->ngeoms == 1 )
 			{
-				return ptarrayarc_contains_point(rtcirc->points, pt); 				
+				return ptarrayarc_contains_point(ctx, rtcirc->points, pt); 				
 			}
 			else
 			{
 				/* Don't check closure while doing p-i-p test */
-				result = ptarrayarc_contains_point_partial(rtcirc->points, pt, RT_FALSE, &winding_number);
+				result = ptarrayarc_contains_point_partial(ctx, rtcirc->points, pt, RT_FALSE, &winding_number);
 			}
 		}
 
@@ -193,37 +193,37 @@ rtcompound_contains_point(const RTCOMPOUND *comp, const RTPOINT2D *pt)
 }	
 
 RTCOMPOUND *
-rtcompound_construct_from_rtline(const RTLINE *rtline)
+rtcompound_construct_from_rtline(RTCTX *ctx, const RTLINE *rtline)
 {
-  RTCOMPOUND* ogeom = rtcompound_construct_empty(rtline->srid, RTFLAGS_GET_Z(rtline->flags), RTFLAGS_GET_M(rtline->flags));
-  rtcompound_add_rtgeom(ogeom, rtgeom_clone((RTGEOM*)rtline));
+  RTCOMPOUND* ogeom = rtcompound_construct_empty(ctx, rtline->srid, RTFLAGS_GET_Z(rtline->flags), RTFLAGS_GET_M(rtline->flags));
+  rtcompound_add_rtgeom(ctx, ogeom, rtgeom_clone(ctx, (RTGEOM*)rtline));
 	/* ogeom->bbox = rtline->bbox; */
   return ogeom;
 }
 
 RTPOINT* 
-rtcompound_get_rtpoint(const RTCOMPOUND *rtcmp, int where)
+rtcompound_get_rtpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp, int where)
 {
 	int i;
 	int count = 0;
 	int npoints = 0;
-	if ( rtgeom_is_empty((RTGEOM*)rtcmp) )
+	if ( rtgeom_is_empty(ctx, (RTGEOM*)rtcmp) )
 		return NULL;
 	
-	npoints = rtgeom_count_vertices((RTGEOM*)rtcmp);
+	npoints = rtgeom_count_vertices(ctx, (RTGEOM*)rtcmp);
 	if ( where < 0 || where >= npoints )
 	{
-		rterror("%s: index %d is not in range of number of vertices (%d) in input", __func__, where, npoints);
+		rterror(ctx, "%s: index %d is not in range of number of vertices (%d) in input", __func__, where, npoints);
 		return NULL;
 	}
 	
 	for ( i = 0; i < rtcmp->ngeoms; i++ )
 	{
 		RTGEOM* part = rtcmp->geoms[i];
-		int npoints_part = rtgeom_count_vertices(part);
+		int npoints_part = rtgeom_count_vertices(ctx, part);
 		if ( where >= count && where < count + npoints_part )
 		{
-			return rtline_get_rtpoint((RTLINE*)part, where - count);
+			return rtline_get_rtpoint(ctx, (RTLINE*)part, where - count);
 		}
 		else
 		{
@@ -237,13 +237,13 @@ rtcompound_get_rtpoint(const RTCOMPOUND *rtcmp, int where)
 
 
 RTPOINT *
-rtcompound_get_startpoint(const RTCOMPOUND *rtcmp)
+rtcompound_get_startpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp)
 {
-	return rtcompound_get_rtpoint(rtcmp, 0);
+	return rtcompound_get_rtpoint(ctx, rtcmp, 0);
 }
 
 RTPOINT *
-rtcompound_get_endpoint(const RTCOMPOUND *rtcmp)
+rtcompound_get_endpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp)
 {
 	RTLINE *rtline;
 	if ( rtcmp->ngeoms < 1 )
@@ -258,6 +258,6 @@ rtcompound_get_endpoint(const RTCOMPOUND *rtcmp)
 		return NULL;
 	}
 	
-	return rtline_get_rtpoint(rtline, rtline->points->npoints-1);
+	return rtline_get_rtpoint(ctx, rtline, rtline->points->npoints-1);
 }
 

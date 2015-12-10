@@ -32,7 +32,7 @@
 #define RTDEBUG(level, msg) \
         do { \
             if (RTGEOM_DEBUG_LEVEL >= level) \
-              rtdebug(level, "[%s:%s:%d] " msg, __FILE__, __func__, __LINE__); \
+              rtdebug(RTCTX *ctx, level, "[%s:%s:%d] " msg, __FILE__, __func__, __LINE__); \
         } while (0);
 
 /* Display a formatted notice at the given debug level
@@ -40,7 +40,7 @@
 #define RTDEBUGF(level, msg, ...) \
         do { \
             if (RTGEOM_DEBUG_LEVEL >= level) \
-              rtdebug(level, "[%s:%s:%d] " msg, \
+              rtdebug(RTCTX *ctx, level, "[%s:%s:%d] " msg, \
                 __FILE__, __func__, __LINE__, __VA_ARGS__); \
         } while (0);
 
@@ -66,7 +66,7 @@
  * For debugging, use RTDEBUG() or RTDEBUGF().
  * @ingroup logging
  */
-void rtnotice(const char *fmt, ...);
+void rtnotice(RTCTX *ctx, const char *fmt, ...);
 
 /**
  * Write a notice out to the error handler.
@@ -76,7 +76,7 @@ void rtnotice(const char *fmt, ...);
  * For debugging, use RTDEBUG() or RTDEBUGF().
  * @ingroup logging
  */
-void rterror(const char *fmt, ...);
+void rterror(const RTCTX *ctx, const char *fmt, ...);
 
 /**
  * Write a debug message out. 
@@ -85,7 +85,7 @@ void rterror(const char *fmt, ...);
  * efficiency.
  * @ingroup logging
  */
-void rtdebug(int level, const char *fmt, ...);
+void rtdebug(RTCTX *ctx, int level, const char *fmt, ...);
 
 
 

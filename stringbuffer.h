@@ -54,19 +54,19 @@ typedef struct
 }
 stringbuffer_t;
 
-extern stringbuffer_t *stringbuffer_create_with_size(size_t size);
-extern stringbuffer_t *stringbuffer_create(void);
-extern void stringbuffer_destroy(stringbuffer_t *sb);
-extern void stringbuffer_clear(stringbuffer_t *sb);
-void stringbuffer_set(stringbuffer_t *sb, const char *s);
-void stringbuffer_copy(stringbuffer_t *sb, stringbuffer_t *src);
-extern void stringbuffer_append(stringbuffer_t *sb, const char *s);
-extern int stringbuffer_aprintf(stringbuffer_t *sb, const char *fmt, ...);
-extern const char *stringbuffer_getstring(stringbuffer_t *sb);
-extern char *stringbuffer_getstringcopy(stringbuffer_t *sb);
-extern int stringbuffer_getlength(stringbuffer_t *sb);
-extern char stringbuffer_lastchar(stringbuffer_t *s);
-extern int stringbuffer_trim_trailing_white(stringbuffer_t *s);
-extern int stringbuffer_trim_trailing_zeroes(stringbuffer_t *s);
+extern stringbuffer_t *stringbuffer_create_with_size(RTCTX *ctx, size_t size);
+extern stringbuffer_t *stringbuffer_create(RTCTX *ctx);
+extern void stringbuffer_destroy(RTCTX *ctx, stringbuffer_t *sb);
+extern void stringbuffer_clear(RTCTX *ctx, stringbuffer_t *sb);
+void stringbuffer_set(RTCTX *ctx, stringbuffer_t *sb, const char *s);
+void stringbuffer_copy(RTCTX *ctx, stringbuffer_t *sb, stringbuffer_t *src);
+extern void stringbuffer_append(RTCTX *ctx, stringbuffer_t *sb, const char *s);
+extern int stringbuffer_aprintf(RTCTX *ctx, stringbuffer_t *sb, const char *fmt, ...);
+extern const char *stringbuffer_getstring(RTCTX *ctx, stringbuffer_t *sb);
+extern char *stringbuffer_getstringcopy(RTCTX *ctx, stringbuffer_t *sb);
+extern int stringbuffer_getlength(RTCTX *ctx, stringbuffer_t *sb);
+extern char stringbuffer_lastchar(RTCTX *ctx, stringbuffer_t *s);
+extern int stringbuffer_trim_trailing_white(RTCTX *ctx, stringbuffer_t *s);
+extern int stringbuffer_trim_trailing_zeroes(RTCTX *ctx, stringbuffer_t *s);
 
 #endif /* _STRINGBUFFER_H */

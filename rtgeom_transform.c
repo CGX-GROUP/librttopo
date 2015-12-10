@@ -19,7 +19,7 @@
 
 /** convert decimal degress to radians */
 static void
-to_rad(RTPOINT4D *pt)
+to_rad(RTCTX *ctx, RTPOINT4D *pt)
 {
 	pt->x *= M_PI/180.0;
 	pt->y *= M_PI/180.0;
@@ -27,7 +27,7 @@ to_rad(RTPOINT4D *pt)
 
 /** convert radians to decimal degress */
 static void
-to_dec(RTPOINT4D *pt)
+to_dec(RTCTX *ctx, RTPOINT4D *pt)
 {
 	pt->x *= 180.0/M_PI;
 	pt->y *= 180.0/M_PI;
@@ -38,16 +38,16 @@ to_dec(RTPOINT4D *pt)
  * from inpj projection to outpj projection
  */
 int
-ptarray_transform(RTPOINTARRAY *pa, projPJ inpj, projPJ outpj)
+ptarray_transform(RTCTX *ctx, RTPOINTARRAY *pa, projPJ inpj, projPJ outpj)
 {
   int i;
 	RTPOINT4D p;
 
   for ( i = 0; i < pa->npoints; i++ )
   {
-    getPoint4d_p(pa, i, &p);
-    if ( ! point4d_transform(&p, inpj, outpj) ) return RT_FAILURE;
-    ptarray_set_point4d(pa, i, &p);
+    getPoint4d_p(ctx, pa, i, &p);
+    if ( ! point4d_transform(ctx, &p, inpj, outpj) ) return RT_FAILURE;
+    ptarray_set_point4d(ctx, pa, i, &p);
   }
 
 	return RT_SUCCESS;
@@ -59,12 +59,12 @@ ptarray_transform(RTPOINTARRAY *pa, projPJ inpj, projPJ outpj)
  * from inpj projection to outpj projection
  */
 int
-rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
+rtgeom_transform(RTCTX *ctx, RTGEOM *geom, projPJ inpj, projPJ outpj)
 {
 	int i;
 
 	/* No points to transform in an empty! */
-	if ( rtgeom_is_empty(geom) )
+	if ( rtgeom_is_empty(ctx, geom) )
 		return RT_SUCCESS;
 
 	switch(geom->type)
@@ -75,7 +75,7 @@ rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
 		case RTTRIANGLETYPE:
 		{
 			RTLINE *g = (RTLINE*)geom;
-      if ( ! ptarray_transform(g->points, inpj, outpj) ) return RT_FAILURE;
+      if ( ! ptarray_transform(ctx, g->points, inpj, outpj) ) return RT_FAILURE;
 			break;
 		}
 		case RTPOLYGONTYPE:
@@ -83,7 +83,7 @@ rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
 			RTPOLY *g = (RTPOLY*)geom;
 			for ( i = 0; i < g->nrings; i++ )
 			{
-        if ( ! ptarray_transform(g->rings[i], inpj, outpj) ) return RT_FAILURE;
+        if ( ! ptarray_transform(ctx, g->rings[i], inpj, outpj) ) return RT_FAILURE;
 			}
 			break;
 		}
@@ -101,14 +101,14 @@ rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
 			RTCOLLECTION *g = (RTCOLLECTION*)geom;
 			for ( i = 0; i < g->ngeoms; i++ )
 			{
-				if ( ! rtgeom_transform(g->geoms[i], inpj, outpj) ) return RT_FAILURE;
+				if ( ! rtgeom_transform(ctx, g->geoms[i], inpj, outpj) ) return RT_FAILURE;
 			}
 			break;
 		}
 		default:
 		{
-			rterror("rtgeom_transform: Cannot handle type '%s'",
-			          rttype_name(geom->type));
+			rterror(ctx, "rtgeom_transform: Cannot handle type '%s'",
+			          rttype_name(ctx, geom->type));
 			return RT_FAILURE;
 		}
 	}
@@ -116,7 +116,7 @@ rtgeom_transform(RTGEOM *geom, projPJ inpj, projPJ outpj)
 }
 
 int
-point4d_transform(RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
+point4d_transform(RTCTX *ctx, RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
 {
 	int* pj_errno_ref;
 	RTPOINT4D orig_pt;
@@ -126,7 +126,7 @@ point4d_transform(RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
 	orig_pt.y = pt->y;
 	orig_pt.z = pt->z;
 
-	if (pj_is_latlong(srcpj)) to_rad(pt) ;
+	if (pj_is_latlong(srcpj)) to_rad(ctx, pt) ;
 
 	RTDEBUGF(4, "transforming POINT(%f %f) from '%s' to '%s'", orig_pt.x, orig_pt.y, pj_get_def(srcpj,0), pj_get_def(dstpj,0));
 
@@ -140,25 +140,25 @@ point4d_transform(RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
 	{
 		if (*pj_errno_ref == -38)
 		{
-			rtnotice("PostGIS was unable to transform the point because either no grid shift files were found, or the point does not lie within the range for which the grid shift is defined. Refer to the ST_Transform() section of the PostGIS manual for details on how to configure PostGIS to alter this behaviour.");
-			rterror("transform: couldn't project point (%g %g %g): %s (%d)", 
+			rtnotice(ctx, "PostGIS was unable to transform the point because either no grid shift files were found, or the point does not lie within the range for which the grid shift is defined. Refer to the ST_Transform() section of the PostGIS manual for details on how to configure PostGIS to alter this behaviour.");
+			rterror(ctx, "transform: couldn't project point (%g %g %g): %s (%d)", 
 			        orig_pt.x, orig_pt.y, orig_pt.z, pj_strerrno(*pj_errno_ref), *pj_errno_ref);
 			return 0;
 		}
 		else
 		{
-			rterror("transform: couldn't project point (%g %g %g): %s (%d)",
+			rterror(ctx, "transform: couldn't project point (%g %g %g): %s (%d)",
 			        orig_pt.x, orig_pt.y, orig_pt.z, pj_strerrno(*pj_errno_ref), *pj_errno_ref);
 			return 0;
 		}
 	}
 
-	if (pj_is_latlong(dstpj)) to_dec(pt);
+	if (pj_is_latlong(dstpj)) to_dec(ctx, pt);
 	return 1;
 }
 
 projPJ
-rtproj_from_string(const char *str1)
+rtproj_from_string(RTCTX *ctx, const char *str1)
 {
 	int t;
 	char *params[1024];  /* one for each parameter */
@@ -174,7 +174,7 @@ rtproj_from_string(const char *str1)
 
 	if (slen == 0) return NULL;
 
-	str = rtalloc(slen+1);
+	str = rtalloc(ctx, slen+1);
 	strcpy(str, str1);
 
 	/*
@@ -200,10 +200,10 @@ rtproj_from_string(const char *str1)
 
 	if (!(result=pj_init(t, params)))
 	{
-		rtfree(str);
+		rtfree(ctx, str);
 		return NULL;
 	}
-	rtfree(str);
+	rtfree(ctx, str);
 	return result;
 }
 

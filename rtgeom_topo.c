@@ -41,10 +41,10 @@
   if (RTGEOM_DEBUG_LEVEL >= level) \
   do { \
     size_t sz; \
-    char *wkt1 = rtgeom_to_wkt(geom, RTWKT_EXTENDED, 15, &sz); \
-    /* char *wkt1 = rtgeom_to_hexwkb(geom, RTWKT_EXTENDED, &sz); */ \
+    char *wkt1 = rtgeom_to_wkt(iface->ctx, geom, RTWKT_EXTENDED, 15, &sz); \
+    /* char *wkt1 = rtgeom_to_hexwkb(iface->ctx, geom, RTWKT_EXTENDED, &sz); */ \
     RTDEBUGF(level, msg ": %s", wkt1); \
-    rtfree(wkt1); \
+    rtfree(iface->ctx, wkt1); \
   } while (0);
 
 
@@ -56,9 +56,11 @@
 
 RTT_BE_IFACE* rtt_CreateBackendIface(const RTT_BE_DATA *data)
 {
-  RTT_BE_IFACE *iface = rtalloc(sizeof(RTT_BE_IFACE));
+  RTCTX *ctx = NULL; /* TODO: create one */
+  RTT_BE_IFACE *iface = rtalloc(iface->ctx, sizeof(RTT_BE_IFACE));
   iface->data = data;
   iface->cb = NULL;
+  iface->ctx = ctx;
   return iface;
 }
 
@@ -70,7 +72,7 @@ void rtt_BackendIfaceRegisterCallbacks(RTT_BE_IFACE *iface,
 
 void rtt_FreeBackendIface(RTT_BE_IFACE* iface)
 {
-  rtfree(iface);
+  rtfree(iface->ctx, iface);
 }
 
 /*********************************************************************
@@ -81,7 +83,7 @@ void rtt_FreeBackendIface(RTT_BE_IFACE* iface)
 
 #define CHECKCB(be, method) do { \
   if ( ! (be)->cb || ! (be)->cb->method ) \
-  rterror("Callback " # method " not registered by backend"); \
+  rterror((be)->ctx, "Callback " # method " not registered by backend"); \
 } while (0)
 
 #define CB0(be, method) \
@@ -396,7 +398,7 @@ rtt_be_ExistsCoincidentNode(RTT_TOPOLOGY* topo, RTPOINT* pt)
   int exists = 0;
   rtt_be_getNodeWithinDistance2D(topo, pt, 0, &exists, 0, -1);
   if ( exists == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(topo->be_iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return 0;
   }
   return exists;
@@ -408,7 +410,7 @@ rtt_be_ExistsEdgeIntersectingPoint(RTT_TOPOLOGY* topo, RTPOINT* pt)
   int exists = 0;
   rtt_be_getEdgeWithinDistance2D(topo, pt, 0, &exists, 0, -1);
   if ( exists == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(topo->be_iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return 0;
   }
   return exists;
@@ -421,33 +423,33 @@ rtt_be_ExistsEdgeIntersectingPoint(RTT_TOPOLOGY* topo, RTPOINT* pt)
  ************************************************************************/
 
 static void
-_rtt_release_faces(RTT_ISO_FACE *faces, int num_faces)
+_rtt_release_faces(RTCTX *ctx, RTT_ISO_FACE *faces, int num_faces)
 {
   int i;
   for ( i=0; i<num_faces; ++i ) {
-    if ( faces[i].mbr ) rtfree(faces[i].mbr);
+    if ( faces[i].mbr ) rtfree(ctx, faces[i].mbr);
   }
-  rtfree(faces);
+  rtfree(ctx, faces);
 }
 
 static void
-_rtt_release_edges(RTT_ISO_EDGE *edges, int num_edges)
+_rtt_release_edges(RTCTX *ctx, RTT_ISO_EDGE *edges, int num_edges)
 {
   int i;
   for ( i=0; i<num_edges; ++i ) {
-    if ( edges[i].geom ) rtline_free(edges[i].geom);
+    if ( edges[i].geom ) rtline_free(ctx, edges[i].geom);
   }
-  rtfree(edges);
+  rtfree(ctx, edges);
 }
 
 static void
-_rtt_release_nodes(RTT_ISO_NODE *nodes, int num_nodes)
+_rtt_release_nodes(RTCTX *ctx, RTT_ISO_NODE *nodes, int num_nodes)
 {
   int i;
   for ( i=0; i<num_nodes; ++i ) {
-    if ( nodes[i].geom ) rtpoint_free(nodes[i].geom);
+    if ( nodes[i].geom ) rtpoint_free(ctx, nodes[i].geom);
   }
-  rtfree(nodes);
+  rtfree(ctx, nodes);
 }
 
 /************************************************************************
@@ -464,11 +466,11 @@ rtt_LoadTopology( RTT_BE_IFACE *iface, const char *name )
 
   be_topo = rtt_be_loadTopologyByName(iface, name);
   if ( ! be_topo ) {
-    //rterror("Could not load topology from backend: %s",
-    rterror("%s", rtt_be_lastErrorMessage(iface));
+    //rterror(iface->ctx, "Could not load topology from backend: %s",
+    rterror(iface->ctx, "%s", rtt_be_lastErrorMessage(iface));
     return NULL;
   }
-  topo = rtalloc(sizeof(RTT_TOPOLOGY));
+  topo = rtalloc(iface->ctx, sizeof(RTT_TOPOLOGY));
   topo->be_iface = iface;
   topo->be_topo = be_topo;
   topo->srid = rtt_be_topoGetSRID(topo);
@@ -481,11 +483,13 @@ rtt_LoadTopology( RTT_BE_IFACE *iface, const char *name )
 void
 rtt_FreeTopology( RTT_TOPOLOGY* topo )
 {
+  RTT_BE_IFACE *iface = topo->be_iface;
+
   if ( ! rtt_be_freeTopology(topo) ) {
-    rtnotice("Could not release backend topology memory: %s",
+    rtnotice(topo->be_iface->ctx, "Could not release backend topology memory: %s",
             rtt_be_lastErrorMessage(topo->be_iface));
   }
-  rtfree(topo);
+  rtfree(iface->ctx, topo);
 }
 
 RTT_ELEMID
@@ -493,17 +497,18 @@ rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
                 RTPOINT* pt, int skipISOChecks )
 {
   RTT_ELEMID foundInFace = -1;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( ! skipISOChecks )
   {
     if ( rtt_be_ExistsCoincidentNode(topo, pt) ) /*x*/
     {
-      rterror("SQL/MM Spatial exception - coincident node");
+      rterror(iface->ctx, "SQL/MM Spatial exception - coincident node");
       return -1;
     }
     if ( rtt_be_ExistsEdgeIntersectingPoint(topo, pt) ) /*x*/
     {
-      rterror("SQL/MM Spatial exception - edge crosses node.");
+      rterror(iface->ctx, "SQL/MM Spatial exception - edge crosses node.");
       return -1;
     }
   }
@@ -512,7 +517,7 @@ rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
   {
     foundInFace = rtt_be_getFaceContainingPoint(topo, pt); /*x*/
     if ( foundInFace == -2 ) {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(topo->be_iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
     if ( foundInFace == -1 ) foundInFace = 0;
@@ -523,10 +528,10 @@ rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
   }
   else if ( ! skipISOChecks && foundInFace != face ) {
 #if 0
-    rterror("SQL/MM Spatial exception - within face %d (not %d)",
+    rterror(iface->ctx, "SQL/MM Spatial exception - within face %d (not %d)",
             foundInFace, face);
 #else
-    rterror("SQL/MM Spatial exception - not within face");
+    rterror(topo->be_iface->ctx, "SQL/MM Spatial exception - not within face");
 #endif
     return -1;
   }
@@ -537,7 +542,7 @@ rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
   node.geom = pt;
   if ( ! rtt_be_insertNodes(topo, &node, 1) )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(topo->be_iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -563,20 +568,21 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   const RTGBOX *edgebox;
   GEOSGeometry *edgegg;
   const GEOSPreparedGeometry* prepared_edge;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   initGEOS(rtnotice, rtgeom_geos_error);
 
-  edgegg = RTGEOM2GEOS( rtline_as_rtgeom(geom), 0);
+  edgegg = RTGEOM2GEOS(iface->ctx,  rtline_as_rtgeom(iface->ctx, geom), 0);
   if ( ! edgegg ) {
-    rterror("Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
+    rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
     return -1;
   }
   prepared_edge = GEOSPrepare( edgegg );
   if ( ! prepared_edge ) {
-    rterror("Could not prepare edge geometry: %s", rtgeom_geos_errmsg);
+    rterror(iface->ctx, "Could not prepare edge geometry: %s", rtgeom_geos_errmsg);
     return -1;
   }
-  edgebox = rtgeom_get_bbox( rtline_as_rtgeom(geom) );
+  edgebox = rtgeom_get_bbox(iface->ctx,  rtline_as_rtgeom(iface->ctx, geom) );
 
   /* loop over each node within the edge's gbox */
   nodes = rtt_be_getNodeWithinBox2D( topo, edgebox, &num_nodes,
@@ -585,7 +591,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   if ( num_nodes == -1 ) {
     GEOSPreparedGeom_destroy(prepared_edge);
     GEOSGeom_destroy(edgegg);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   for ( i=0; i<num_nodes; ++i )
@@ -596,7 +602,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
     if ( node->node_id == start_node ) continue;
     if ( node->node_id == end_node ) continue;
     /* check if the edge contains this node (not on boundary) */
-    nodegg = RTGEOM2GEOS( rtpoint_as_rtgeom(node->geom) , 0);
+    nodegg = RTGEOM2GEOS(iface->ctx,  rtpoint_as_rtgeom(iface->ctx, node->geom) , 0);
     /* ST_RelateMatch(rec.relate, 'T********') */
     contains = GEOSPreparedContains( prepared_edge, nodegg );
     GEOSGeom_destroy(nodegg);
@@ -604,20 +610,20 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
     {
       GEOSPreparedGeom_destroy(prepared_edge);
       GEOSGeom_destroy(edgegg);
-      _rtt_release_nodes(nodes, num_nodes);
-      rterror("GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
+      _rtt_release_nodes(iface->ctx, nodes, num_nodes);
+      rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
       return -1;
     }
     if ( contains )
     {
       GEOSPreparedGeom_destroy(prepared_edge);
       GEOSGeom_destroy(edgegg);
-      _rtt_release_nodes(nodes, num_nodes);
-      rterror("SQL/MM Spatial exception - geometry crosses a node");
+      _rtt_release_nodes(iface->ctx, nodes, num_nodes);
+      rterror(iface->ctx, "SQL/MM Spatial exception - geometry crosses a node");
       return -1;
     }
   }
-  if ( nodes ) _rtt_release_nodes(nodes, num_nodes);
+  if ( nodes ) _rtt_release_nodes(iface->ctx, nodes, num_nodes);
                /* may be NULL if num_nodes == 0 */
 
   /* loop over each edge within the edge's gbox */
@@ -626,7 +632,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   if ( num_edges == -1 ) {
     GEOSPreparedGeom_destroy(prepared_edge);
     GEOSGeom_destroy(edgegg);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   for ( i=0; i<num_edges; ++i )
@@ -640,17 +646,17 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
     if ( edge_id == myself ) continue;
 
     if ( ! edge->geom ) {
-      _rtt_release_edges(edges, num_edges);
-      rterror("Edge %d has NULL geometry!", edge_id);
+      _rtt_release_edges(iface->ctx, edges, num_edges);
+      rterror(iface->ctx, "Edge %d has NULL geometry!", edge_id);
       return -1;
     }
 
-    eegg = RTGEOM2GEOS( rtline_as_rtgeom(edge->geom), 0 );
+    eegg = RTGEOM2GEOS(iface->ctx,  rtline_as_rtgeom(iface->ctx, edge->geom), 0 );
     if ( ! eegg ) {
       GEOSPreparedGeom_destroy(prepared_edge);
       GEOSGeom_destroy(edgegg);
-      _rtt_release_edges(edges, num_edges);
-      rterror("Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
+      _rtt_release_edges(iface->ctx, edges, num_edges);
+      rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
       return -1;
     }
 
@@ -663,8 +669,8 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
       GEOSGeom_destroy(eegg);
       GEOSPreparedGeom_destroy(prepared_edge);
       GEOSGeom_destroy(edgegg);
-      _rtt_release_edges(edges, num_edges);
-      rterror("GEOSRelateBoundaryNodeRule error: %s", rtgeom_geos_errmsg);
+      _rtt_release_edges(iface->ctx, edges, num_edges);
+      rterror(iface->ctx, "GEOSRelateBoundaryNodeRule error: %s", rtgeom_geos_errmsg);
       return -1;
     }
 
@@ -676,10 +682,10 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
       GEOSGeom_destroy(eegg);
       GEOSFree(relate);
       if ( match == 2 ) {
-        _rtt_release_edges(edges, num_edges);
+        _rtt_release_edges(iface->ctx, edges, num_edges);
         GEOSPreparedGeom_destroy(prepared_edge);
         GEOSGeom_destroy(edgegg);
-        rterror("GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
+        rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
         return -1;
       }
       else continue; /* no interior intersection */
@@ -687,15 +693,15 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
     match = GEOSRelatePatternMatch(relate, "1FFF*FFF2");
     if ( match ) {
-      _rtt_release_edges(edges, num_edges);
+      _rtt_release_edges(iface->ctx, edges, num_edges);
       GEOSPreparedGeom_destroy(prepared_edge);
       GEOSGeom_destroy(edgegg);
       GEOSGeom_destroy(eegg);
       GEOSFree(relate);
       if ( match == 2 ) {
-        rterror("GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
+        rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
       } else {
-        rterror("SQL/MM Spatial exception - coincident edge %" RTTFMT_ELEMID,
+        rterror(iface->ctx, "SQL/MM Spatial exception - coincident edge %" RTTFMT_ELEMID,
                 edge_id);
       }
       return -1;
@@ -703,15 +709,15 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
     match = GEOSRelatePatternMatch(relate, "1********");
     if ( match ) {
-      _rtt_release_edges(edges, num_edges);
+      _rtt_release_edges(iface->ctx, edges, num_edges);
       GEOSPreparedGeom_destroy(prepared_edge);
       GEOSGeom_destroy(edgegg);
       GEOSGeom_destroy(eegg);
       GEOSFree(relate);
       if ( match == 2 ) {
-        rterror("GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
+        rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
       } else {
-        rterror("Spatial exception - geometry intersects edge %"
+        rterror(iface->ctx, "Spatial exception - geometry intersects edge %"
                 RTTFMT_ELEMID, edge_id);
       }
       return -1;
@@ -719,15 +725,15 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
     match = GEOSRelatePatternMatch(relate, "T********");
     if ( match ) {
-      _rtt_release_edges(edges, num_edges);
+      _rtt_release_edges(iface->ctx, edges, num_edges);
       GEOSPreparedGeom_destroy(prepared_edge);
       GEOSGeom_destroy(edgegg);
       GEOSGeom_destroy(eegg);
       GEOSFree(relate);
       if ( match == 2 ) {
-        rterror("GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
+        rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
       } else {
-        rterror("SQL/MM Spatial exception - geometry crosses edge %"
+        rterror(iface->ctx, "SQL/MM Spatial exception - geometry crosses edge %"
                 RTTFMT_ELEMID, edge_id);
       }
       return -1;
@@ -738,7 +744,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
     GEOSFree(relate);
     GEOSGeom_destroy(eegg);
   }
-  if ( edges ) _rtt_release_edges(edges, num_edges);
+  if ( edges ) _rtt_release_edges(iface->ctx, edges, num_edges);
               /* would be NULL if num_edges was 0 */
 
   GEOSPreparedGeom_destroy(prepared_edge);
@@ -761,22 +767,23 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
   RTT_ISO_NODE updated_nodes[2];
   int skipISOChecks = 0;
   RTPOINT2D p1, p2;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   /* NOT IN THE SPECS:
    * A closed edge is never isolated (as it forms a face)
    */
   if ( startNode == endNode )
   {
-    rterror("Closed edges would not be isolated, try rtt_AddEdgeNewFaces");
+    rterror(iface->ctx, "Closed edges would not be isolated, try rtt_AddEdgeNewFaces");
     return -1;
   }
 
   if ( ! skipISOChecks )
   {
     /* Acurve must be simple */
-    if ( ! rtgeom_is_simple(rtline_as_rtgeom(geom)) )
+    if ( ! rtgeom_is_simple(iface->ctx, rtline_as_rtgeom(iface->ctx, geom)) )
     {
-      rterror("SQL/MM Spatial exception - curve not simple");
+      rterror(iface->ctx, "SQL/MM Spatial exception - curve not simple");
       return -1;
     }
   }
@@ -796,13 +803,13 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
                                              RTT_COL_NODE_ALL );
   if ( num_nodes < 0 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   else if ( num_nodes < 2 )
   {
-    if ( num_nodes ) _rtt_release_nodes(endpoints, num_nodes);
-    rterror("SQL/MM Spatial exception - non-existent node");
+    if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+    rterror(iface->ctx, "SQL/MM Spatial exception - non-existent node");
     return -1;
   }
   for ( i=0; i<num_nodes; ++i )
@@ -810,15 +817,15 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
     const RTT_ISO_NODE *n = &(endpoints[i]);
     if ( n->containing_face == -1 )
     {
-      _rtt_release_nodes(endpoints, num_nodes);
-      rterror("SQL/MM Spatial exception - not isolated node");
+      _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+      rterror(iface->ctx, "SQL/MM Spatial exception - not isolated node");
       return -1;
     }
     if ( containing_face == -1 ) containing_face = n->containing_face;
     else if ( containing_face != n->containing_face )
     {
-      _rtt_release_nodes(endpoints, num_nodes);
-      rterror("SQL/MM Spatial exception - nodes in different faces");
+      _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+      rterror(iface->ctx, "SQL/MM Spatial exception - nodes in different faces");
       return -1;
     }
 
@@ -827,12 +834,12 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
       if ( n->node_id == startNode )
       {
         /* l) Check that start point of acurve match start node geoms. */
-        getPoint2d_p(geom->points, 0, &p1);
-        getPoint2d_p(n->geom->point, 0, &p2);
-        if ( ! p2d_same(&p1, &p2) )
+        getPoint2d_p(iface->ctx, geom->points, 0, &p1);
+        getPoint2d_p(iface->ctx, n->geom->point, 0, &p2);
+        if ( ! p2d_same(iface->ctx, &p1, &p2) )
         {
-          _rtt_release_nodes(endpoints, num_nodes);
-          rterror("SQL/MM Spatial exception - "
+          _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+          rterror(iface->ctx, "SQL/MM Spatial exception - "
                   "start node not geometry start point.");
           return -1;
         }
@@ -840,12 +847,12 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
       else
       {
         /* m) Check that end point of acurve match end node geoms. */
-        getPoint2d_p(geom->points, geom->points->npoints-1, &p1);
-        getPoint2d_p(n->geom->point, 0, &p2);
-        if ( ! p2d_same(&p1, &p2) )
+        getPoint2d_p(iface->ctx, geom->points, geom->points->npoints-1, &p1);
+        getPoint2d_p(iface->ctx, n->geom->point, 0, &p2);
+        if ( ! p2d_same(iface->ctx, &p1, &p2) )
         {
-          _rtt_release_nodes(endpoints, num_nodes);
-          rterror("SQL/MM Spatial exception - "
+          _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+          rterror(iface->ctx, "SQL/MM Spatial exception - "
                   "end node not geometry end point.");
           return -1;
         }
@@ -853,7 +860,7 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
     }
   }
 
-  if ( num_nodes ) _rtt_release_nodes(endpoints, num_nodes);
+  if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
 
   if ( ! skipISOChecks )
   {
@@ -870,7 +877,7 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
 
   newedge.edge_id = rtt_be_getNextEdgeId( topo );
   if ( newedge.edge_id == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -886,10 +893,10 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
 
   int ret = rtt_be_insertEdges(topo, &newedge, 1);
   if ( ret == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   } else if ( ret == 0 ) {
-    rterror("Insertion of split edge failed (no reason)");
+    rterror(iface->ctx, "Insertion of split edge failed (no reason)");
     return -1;
   }
 
@@ -906,7 +913,7 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
   ret = rtt_be_updateNodesById(topo, updated_nodes, 2,
                                RTT_COL_NODE_CONTAINING_FACE);
   if ( ret == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -919,6 +926,7 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
   RTGEOM *split;
   RTCOLLECTION *split_col;
   int i;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   /* Get edge */
   i = 1;
@@ -930,17 +938,17 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
     RTDEBUGF(1, "rtt_be_getEdgeById returned NULL and set i=%d", i);
     if ( i == -1 )
     {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return NULL;
     }
     else if ( i == 0 )
     {
-      rterror("SQL/MM Spatial exception - non-existent edge");
+      rterror(iface->ctx, "SQL/MM Spatial exception - non-existent edge");
       return NULL;
     }
     else
     {
-      rterror("Backend coding error: getEdgeById callback returned NULL "
+      rterror(iface->ctx, "Backend coding error: getEdgeById callback returned NULL "
               "but numelements output parameter has value %d "
               "(expected 0 or 1)", i);
       return NULL;
@@ -957,41 +965,41 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
     if ( rtt_be_ExistsCoincidentNode(topo, pt) ) /*x*/
     {
       RTDEBUG(1, "rtt_be_ExistsCoincidentNode returned");
-      _rtt_release_edges(*oldedge, 1);
-      rterror("SQL/MM Spatial exception - coincident node");
+      _rtt_release_edges(iface->ctx, *oldedge, 1);
+      rterror(iface->ctx, "SQL/MM Spatial exception - coincident node");
       return NULL;
     }
     RTDEBUG(1, "rtt_be_ExistsCoincidentNode returned");
   }
 
   /* Split edge */
-  split = rtgeom_split((RTGEOM*)(*oldedge)->geom, (RTGEOM*)pt);
+  split = rtgeom_split(iface->ctx, (RTGEOM*)(*oldedge)->geom, (RTGEOM*)pt);
   if ( ! split )
   {
-    _rtt_release_edges(*oldedge, 1);
-    rterror("could not split edge by point ?");
+    _rtt_release_edges(iface->ctx, *oldedge, 1);
+    rterror(iface->ctx, "could not split edge by point ?");
     return NULL;
   }
-  split_col = rtgeom_as_rtcollection(split);
+  split_col = rtgeom_as_rtcollection(iface->ctx, split);
   if ( ! split_col ) {
-    _rtt_release_edges(*oldedge, 1);
-    rtgeom_free(split);
-    rterror("rtgeom_as_rtcollection returned NULL");
+    _rtt_release_edges(iface->ctx, *oldedge, 1);
+    rtgeom_free(iface->ctx, split);
+    rterror(iface->ctx, "rtgeom_as_rtcollection returned NULL");
     return NULL;
   }
   if (split_col->ngeoms < 2) {
-    _rtt_release_edges(*oldedge, 1);
-    rtgeom_free(split);
-    rterror("SQL/MM Spatial exception - point not on edge");
+    _rtt_release_edges(iface->ctx, *oldedge, 1);
+    rtgeom_free(iface->ctx, split);
+    rterror(iface->ctx, "SQL/MM Spatial exception - point not on edge");
     return NULL;
   }
 
 #if 0
   {
   size_t sz;
-  char *wkt = rtgeom_to_wkt((RTGEOM*)split_col, RTWKT_EXTENDED, 2, &sz);
+  char *wkt = rtgeom_to_wkt(iface->ctx, (RTGEOM*)split_col, RTWKT_EXTENDED, 2, &sz);
   RTDEBUGF(1, "returning split col: %s", wkt);
-  rtfree(wkt);
+  rtfree(iface->ctx, wkt);
   }
 #endif
   return split_col;
@@ -1009,6 +1017,7 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   RTT_ISO_EDGE newedge1;
   RTT_ISO_EDGE seledge, updedge, excedge;
   int ret;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   split_col = _rtt_EdgeSplit( topo, edge, pt, skipISOChecks, &oldedge );
   if ( ! split_col ) return -1; /* should have raised an exception */
@@ -1024,16 +1033,16 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   node.geom = pt;
   if ( ! rtt_be_insertNodes(topo, &node, 1) )
   {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if (node.node_id == -1) {
     /* should have been set by backend */
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend coding error: "
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend coding error: "
             "insertNodes callback did not return node_id");
     return -1;
   }
@@ -1041,9 +1050,9 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   /* Insert the new edge */
   newedge1.edge_id = rtt_be_getNextEdgeId(topo);
   if ( newedge1.edge_id == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   newedge1.start_node = node.node_id;
@@ -1053,34 +1062,34 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   newedge1.next_left = oldedge->next_left == -oldedge->edge_id ?
       -newedge1.edge_id : oldedge->next_left;
   newedge1.next_right = -oldedge->edge_id;
-  newedge1.geom = rtgeom_as_rtline(newedge_geom);
+  newedge1.geom = rtgeom_as_rtline(iface->ctx, newedge_geom);
   /* rtgeom_split of a line should only return lines ... */
   if ( ! newedge1.geom ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("first geometry in rtgeom_split output is not a line");
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "first geometry in rtgeom_split output is not a line");
     return -1;
   }
   ret = rtt_be_insertEdges(topo, &newedge1, 1);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   } else if ( ret == 0 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Insertion of split edge failed (no reason)");
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Insertion of split edge failed (no reason)");
     return -1;
   }
 
   /* Update the old edge */
-  updedge.geom = rtgeom_as_rtline(oldedge_geom);
+  updedge.geom = rtgeom_as_rtline(iface->ctx, oldedge_geom);
   /* rtgeom_split of a line should only return lines ... */
   if ( ! updedge.geom ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("second geometry in rtgeom_split output is not a line");
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "second geometry in rtgeom_split output is not a line");
     return -1;
   }
   updedge.next_left = newedge1.edge_id;
@@ -1090,19 +1099,19 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
       &updedge, RTT_COL_EDGE_GEOM|RTT_COL_EDGE_NEXT_LEFT|RTT_COL_EDGE_END_NODE,
       NULL, 0);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   } else if ( ret == 0 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Edge being split (%d) disappeared during operations?", oldedge->edge_id);
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Edge being split (%d) disappeared during operations?", oldedge->edge_id);
     return -1;
   } else if ( ret > 1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("More than a single edge found with id %d !", oldedge->edge_id);
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "More than a single edge found with id %d !", oldedge->edge_id);
     return -1;
   }
 
@@ -1117,9 +1126,9 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
       &updedge, RTT_COL_EDGE_NEXT_RIGHT,
       &excedge, RTT_COL_EDGE_EDGE_ID);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -1132,23 +1141,23 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
       &updedge, RTT_COL_EDGE_NEXT_LEFT,
       &excedge, RTT_COL_EDGE_EDGE_ID);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
   /* Update TopoGeometries composition */
   ret = rtt_be_updateTopoGeomEdgeSplit(topo, oldedge->edge_id, newedge1.edge_id, -1);
   if ( ! ret ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
-  _rtt_release_edges(oldedge, 1);
-  rtcollection_free(split_col);
+  _rtt_release_edges(iface->ctx, oldedge, 1);
+  rtcollection_free(iface->ctx, split_col);
 
   /* return new node id */
   return node.node_id;
@@ -1166,6 +1175,7 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   RTT_ISO_EDGE newedges[2];
   RTT_ISO_EDGE seledge, updedge;
   int ret;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   split_col = _rtt_EdgeSplit( topo, edge, pt, skipISOChecks, &oldedge );
   if ( ! split_col ) return -1; /* should have raised an exception */
@@ -1181,16 +1191,16 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   node.geom = pt;
   if ( ! rtt_be_insertNodes(topo, &node, 1) )
   {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if (node.node_id == -1) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
     /* should have been set by backend */
-    rterror("Backend coding error: "
+    rterror(iface->ctx, "Backend coding error: "
             "insertNodes callback did not return node_id");
     return -1;
   }
@@ -1199,25 +1209,25 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   seledge.edge_id = edge;
   ret = rtt_be_deleteEdges(topo, &seledge, RTT_COL_EDGE_EDGE_ID);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
   /* Get new edges identifiers */
   newedges[0].edge_id = rtt_be_getNextEdgeId(topo);
   if ( newedges[0].edge_id == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   newedges[1].edge_id = rtt_be_getNextEdgeId(topo);
   if ( newedges[1].edge_id == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -1233,12 +1243,12 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
     newedges[0].next_right = -newedges[1].edge_id;
   else
     newedges[0].next_right = oldedge->next_right;
-  newedges[0].geom = rtgeom_as_rtline(oldedge_geom);
+  newedges[0].geom = rtgeom_as_rtline(iface->ctx, oldedge_geom);
   /* rtgeom_split of a line should only return lines ... */
   if ( ! newedges[0].geom ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("first geometry in rtgeom_split output is not a line");
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "first geometry in rtgeom_split output is not a line");
     return -1;
   }
 
@@ -1254,25 +1264,25 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
     newedges[1].next_left = newedges[0].edge_id;
   else
     newedges[1].next_left = oldedge->next_left;
-  newedges[1].geom = rtgeom_as_rtline(newedge_geom);
+  newedges[1].geom = rtgeom_as_rtline(iface->ctx, newedge_geom);
   /* rtgeom_split of a line should only return lines ... */
   if ( ! newedges[1].geom ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("second geometry in rtgeom_split output is not a line");
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "second geometry in rtgeom_split output is not a line");
     return -1;
   }
 
   /* Insert both new edges */
   ret = rtt_be_insertEdges(topo, newedges, 2);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   } else if ( ret == 0 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Insertion of split edge failed (no reason)");
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Insertion of split edge failed (no reason)");
     return -1;
   }
 
@@ -1286,9 +1296,9 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
       &updedge, RTT_COL_EDGE_NEXT_RIGHT,
       NULL, 0);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -1300,9 +1310,9 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
       &updedge, RTT_COL_EDGE_NEXT_RIGHT,
       NULL, 0);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -1314,9 +1324,9 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
       &updedge, RTT_COL_EDGE_NEXT_LEFT,
       NULL, 0);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -1328,23 +1338,23 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
       &updedge, RTT_COL_EDGE_NEXT_LEFT,
       NULL, 0);
   if ( ret == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_release(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_release(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
   /* Update TopoGeometries composition */
   ret = rtt_be_updateTopoGeomEdgeSplit(topo, oldedge->edge_id, newedges[0].edge_id, newedges[1].edge_id);
   if ( ! ret ) {
-    _rtt_release_edges(oldedge, 1);
-    rtcollection_free(split_col);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rtcollection_free(iface->ctx, split_col);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
-  _rtt_release_edges(oldedge, 1);
-  rtcollection_free(split_col);
+  _rtt_release_edges(iface->ctx, oldedge, 1);
+  rtcollection_free(iface->ctx, split_col);
 
   /* return new node id */
   return node.node_id;
@@ -1374,7 +1384,7 @@ typedef struct edgeend_t {
  * @return 0 if edge is collapsed (no distinct points)
  */
 static int
-_rtt_FirstDistinctVertex2D(const RTPOINTARRAY* pa, RTPOINT2D *ref, int from, int dir, RTPOINT2D *op)
+_rtt_FirstDistinctVertex2D(const RTCTX *ctx, const RTPOINTARRAY* pa, RTPOINT2D *ref, int from, int dir, RTPOINT2D *op)
 {
   int i, toofar, inc;
   RTPOINT2D fp;
@@ -1391,12 +1401,12 @@ _rtt_FirstDistinctVertex2D(const RTPOINTARRAY* pa, RTPOINT2D *ref, int from, int
   }
 
   RTDEBUGF(1, "first point is index %d", from);
-  fp = *ref; /* getPoint2d_p(pa, from, &fp); */
+  fp = *ref; /* getPoint2d_p(ctx, pa, from, &fp); */
   for ( i = from+inc; i != toofar; i += inc )
   {
     RTDEBUGF(1, "testing point %d", i);
-    getPoint2d_p(pa, i, op); /* pick next point */
-    if ( p2d_same(op, &fp) ) continue; /* equal to startpoint */
+    getPoint2d_p(ctx, pa, i, op); /* pick next point */
+    if ( p2d_same(ctx, op, &fp) ) continue; /* equal to startpoint */
     /* this is a good one, neither same of start nor of end point */
     return 1; /* found */
   }
@@ -1413,7 +1423,7 @@ _rtt_FirstDistinctVertex2D(const RTPOINTARRAY* pa, RTPOINT2D *ref, int from, int
  *  -2 azimuth computation failed for first edge end
  */
 static int
-_rtt_InitEdgeEndByLine(edgeend *fee, edgeend *lee, RTLINE *edge,
+_rtt_InitEdgeEndByLine(const RTCTX *ctx, edgeend *fee, edgeend *lee, RTLINE *edge,
                                             RTPOINT2D *fp, RTPOINT2D *lp)
 {
   RTPOINTARRAY *pa = edge->points;
@@ -1426,13 +1436,13 @@ _rtt_InitEdgeEndByLine(edgeend *fee, edgeend *lee, RTLINE *edge,
 
   /* Compute azimuth of first edge end */
   RTDEBUG(1, "computing azimuth of first edge end");
-  if ( ! _rtt_FirstDistinctVertex2D(pa, fp, 0, 1, &pt) )
+  if ( ! _rtt_FirstDistinctVertex2D(ctx, pa, fp, 0, 1, &pt) )
   {
-    rterror("Invalid edge (no two distinct vertices exist)");
+    rterror(ctx, "Invalid edge (no two distinct vertices exist)");
     return -1;
   }
-  if ( ! azimuth_pt_pt(fp, &pt, &(fee->myaz)) ) {
-    rterror("error computing azimuth of first edgeend [%g %g,%g %g]",
+  if ( ! azimuth_pt_pt(ctx, fp, &pt, &(fee->myaz)) ) {
+    rterror(ctx, "error computing azimuth of first edgeend [%g %g,%g %g]",
             fp->x, fp->y, pt.x, pt.y);
     return -2;
   }
@@ -1441,13 +1451,13 @@ _rtt_InitEdgeEndByLine(edgeend *fee, edgeend *lee, RTLINE *edge,
 
   /* Compute azimuth of second edge end */
   RTDEBUG(1, "computing azimuth of second edge end");
-  if ( ! _rtt_FirstDistinctVertex2D(pa, lp, pa->npoints-1, -1, &pt) )
+  if ( ! _rtt_FirstDistinctVertex2D(ctx, pa, lp, pa->npoints-1, -1, &pt) )
   {
-    rterror("Invalid edge (no two distinct vertices exist)");
+    rterror(ctx, "Invalid edge (no two distinct vertices exist)");
     return -1;
   }
-  if ( ! azimuth_pt_pt(lp, &pt, &(lee->myaz)) ) {
-    rterror("error computing azimuth of last edgeend [%g %g,%g %g]",
+  if ( ! azimuth_pt_pt(ctx, lp, &pt, &(lee->myaz)) ) {
+    rterror(ctx, "error computing azimuth of last edgeend [%g %g,%g %g]",
             lp->x, lp->y, pt.x, pt.y);
     return -2;
   }
@@ -1479,6 +1489,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
   int i;
   double minaz, maxaz;
   double az, azdif;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   data->nextCW = data->nextCCW = 0;
   data->cwFace = data->ccwFace = -1;
@@ -1500,7 +1511,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
   /* Get incident edges */
   edges = rtt_be_getEdgeByNode( topo, &node, &numedges, RTT_COL_EDGE_ALL );
   if ( numedges == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return 0;
   }
 
@@ -1520,33 +1531,33 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
 
     if ( edge->edge_id == myedge_id ) continue;
 
-    g = rtline_as_rtgeom(edge->geom);
+    g = rtline_as_rtgeom(iface->ctx, edge->geom);
     /* NOTE: remove_repeated_points call could be replaced by
      * some other mean to pick two distinct points for endpoints */
-    cleangeom = rtgeom_remove_repeated_points( g, 0 );
-    pa = rtgeom_as_rtline(cleangeom)->points;
+    cleangeom = rtgeom_remove_repeated_points(iface->ctx,  g, 0 );
+    pa = rtgeom_as_rtline(iface->ctx, cleangeom)->points;
 
     if ( pa->npoints < 2 ) {{
       RTT_ELEMID id = edge->edge_id;
-      _rtt_release_edges(edges, numedges);
-      rtgeom_free(cleangeom);
-      rterror("corrupted topology: edge %" RTTFMT_ELEMID
+      _rtt_release_edges(iface->ctx, edges, numedges);
+      rtgeom_free(iface->ctx, cleangeom);
+      rterror(iface->ctx, "corrupted topology: edge %" RTTFMT_ELEMID
               " does not have two distinct points", id);
       return -1;
     }}
 
     if ( edge->start_node == node ) {
-      getPoint2d_p(pa, 0, &p1);
-      getPoint2d_p(pa, 1, &p2);
+      getPoint2d_p(iface->ctx, pa, 0, &p1);
+      getPoint2d_p(iface->ctx, pa, 1, &p2);
       RTDEBUGF(1, "edge %" RTTFMT_ELEMID
                   " starts on node %" RTTFMT_ELEMID
                   ", edgeend is %g,%g-%g,%g",
                   edge->edge_id, node, p1.x, p1.y, p2.x, p2.y);
-      if ( ! azimuth_pt_pt(&p1, &p2, &az) ) {{
+      if ( ! azimuth_pt_pt(iface->ctx, &p1, &p2, &az) ) {{
         RTT_ELEMID id = edge->edge_id;
-        _rtt_release_edges(edges, numedges);
-        rtgeom_free(cleangeom);
-        rterror("error computing azimuth of edge %d first edgeend [%g,%g-%g,%g]",
+        _rtt_release_edges(iface->ctx, edges, numedges);
+        rtgeom_free(iface->ctx, cleangeom);
+        rterror(iface->ctx, "error computing azimuth of edge %d first edgeend [%g,%g-%g,%g]",
                 id, p1.x, p1.y, p2.x, p2.y);
         return -1;
       }}
@@ -1593,16 +1604,16 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     }
 
     if ( edge->end_node == node ) {
-      getPoint2d_p(pa, pa->npoints-1, &p1);
-      getPoint2d_p(pa, pa->npoints-2, &p2);
+      getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p1);
+      getPoint2d_p(iface->ctx, pa, pa->npoints-2, &p2);
       RTDEBUGF(1, "edge %" RTTFMT_ELEMID " ends on node %" RTTFMT_ELEMID
                   ", edgeend is %g,%g-%g,%g",
                   edge->edge_id, node, p1.x, p1.y, p2.x, p2.y);
-      if ( ! azimuth_pt_pt(&p1, &p2, &az) ) {{
+      if ( ! azimuth_pt_pt(iface->ctx, &p1, &p2, &az) ) {{
         RTT_ELEMID id = edge->edge_id;
-        _rtt_release_edges(edges, numedges);
-        rtgeom_free(cleangeom);
-        rterror("error computing azimuth of edge %d last edgeend [%g,%g-%g,%g]",
+        _rtt_release_edges(iface->ctx, edges, numedges);
+        rtgeom_free(iface->ctx, cleangeom);
+        rterror(iface->ctx, "error computing azimuth of edge %d last edgeend [%g,%g-%g,%g]",
                 id, p1.x, p1.y, p2.x, p2.y);
         return -1;
       }}
@@ -1647,9 +1658,9 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
       }
     }
 
-    rtgeom_free(cleangeom);
+    rtgeom_free(iface->ctx, cleangeom);
   }
-  if ( numedges ) _rtt_release_edges(edges, numedges);
+  if ( numedges ) _rtt_release_edges(iface->ctx, edges, numedges);
 
   RTDEBUGF(1, "edges adjacent to azimuth %g"
               " (incident to node %" RTTFMT_ELEMID ")"
@@ -1660,7 +1671,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
   if ( myedge_id < 1 && numedges && data->cwFace != data->ccwFace )
   {
     if ( data->cwFace != -1 && data->ccwFace != -1 ) {
-      rterror("Corrupted topology: adjacent edges %" RTTFMT_ELEMID " and %" RTTFMT_ELEMID
+      rterror(iface->ctx, "Corrupted topology: adjacent edges %" RTTFMT_ELEMID " and %" RTTFMT_ELEMID
               " bind different face (%" RTTFMT_ELEMID " and %" RTTFMT_ELEMID ")",
               data->nextCW, data->nextCCW,
               data->cwFace, data->ccwFace);
@@ -1679,7 +1690,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
  * return 0 on failure (line is empty or collapsed), 1 otherwise
  */
 static int
-_rtt_GetInteriorEdgePoint(const RTLINE* edge, RTPOINT2D* ip)
+_rtt_GetInteriorEdgePoint(const RTCTX *ctx, const RTLINE* edge, RTPOINT2D* ip)
 {
   int i;
   RTPOINT2D fp, lp, tp;
@@ -1687,13 +1698,13 @@ _rtt_GetInteriorEdgePoint(const RTLINE* edge, RTPOINT2D* ip)
 
   if ( pa->npoints < 2 ) return 0; /* empty or structurally collapsed */
 
-  getPoint2d_p(pa, 0, &fp); /* save first point */
-  getPoint2d_p(pa, pa->npoints-1, &lp); /* save last point */
+  getPoint2d_p(ctx, pa, 0, &fp); /* save first point */
+  getPoint2d_p(ctx, pa, pa->npoints-1, &lp); /* save last point */
   for (i=1; i<pa->npoints-1; ++i)
   {
-    getPoint2d_p(pa, i, &tp); /* pick next point */
-    if ( p2d_same(&tp, &fp) ) continue; /* equal to startpoint */
-    if ( p2d_same(&tp, &lp) ) continue; /* equal to endpoint */
+    getPoint2d_p(ctx, pa, i, &tp); /* pick next point */
+    if ( p2d_same(ctx, &tp, &fp) ) continue; /* equal to startpoint */
+    if ( p2d_same(ctx, &tp, &lp) ) continue; /* equal to endpoint */
     /* this is a good one, neither same of start nor of end point */
     *ip = tp;
     return 1; /* found */
@@ -1703,7 +1714,7 @@ _rtt_GetInteriorEdgePoint(const RTLINE* edge, RTPOINT2D* ip)
 
   /* interpolate if start point != end point */
 
-  if ( p2d_same(&fp, &lp) ) return 0; /* no distinct points in edge */
+  if ( p2d_same(ctx, &fp, &lp) ) return 0; /* no distinct points in edge */
  
   ip->x = fp.x + ( (lp.x - fp.x) * 0.5 );
   ip->y = fp.y + ( (lp.y - fp.y) * 0.5 );
@@ -1744,11 +1755,12 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   int forward_edges_count = 0;
   RTT_ISO_EDGE *backward_edges = NULL;
   int backward_edges_count = 0;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   signed_edge_ids = rtt_be_getRingEdges(topo, sedge,
                                         &num_signed_edge_ids, 0);
   if ( ! signed_edge_ids ) {
-    rterror("Backend error (no ring edges for edge %" RTTFMT_ELEMID "): %s",
+    rterror(iface->ctx, "Backend error (no ring edges for edge %" RTTFMT_ELEMID "): %s",
             sedge, rtt_be_lastErrorMessage(topo->be_iface));
     return -2;
   }
@@ -1759,7 +1771,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
     if ( signed_edge_ids[i] == -sedge ) {
       /* No split here */
       RTDEBUG(1, "not a ring");
-      rtfree( signed_edge_ids );
+      rtfree(iface->ctx,  signed_edge_ids );
       return 0;
     }
   }
@@ -1769,7 +1781,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
 
   /* Construct a polygon using edges of the ring */
   numedges = 0;
-  edge_ids = rtalloc(sizeof(RTT_ELEMID)*num_signed_edge_ids);
+  edge_ids = rtalloc(iface->ctx, sizeof(RTT_ELEMID)*num_signed_edge_ids);
   for (i=0; i<num_signed_edge_ids; ++i) {
     int absid = llabs(signed_edge_ids[i]);
     int found = 0;
@@ -1785,19 +1797,19 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   i = numedges;
   ring_edges = rtt_be_getEdgeById(topo, edge_ids, &i,
                                   RTT_COL_EDGE_EDGE_ID|RTT_COL_EDGE_GEOM);
-  rtfree( edge_ids );
+  rtfree(iface->ctx,  edge_ids );
   if ( i == -1 )
   {
-    rtfree( signed_edge_ids );
+    rtfree(iface->ctx,  signed_edge_ids );
     /* ring_edges should be NULL */
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -2;
   }
   else if ( i != numedges )
   {
-    rtfree( signed_edge_ids );
-    _rtt_release_edges(ring_edges, numedges);
-    rterror("Unexpected error: %d edges found when expecting %d", i, numedges);
+    rtfree(iface->ctx,  signed_edge_ids );
+    _rtt_release_edges(iface->ctx, ring_edges, numedges);
+    rterror(iface->ctx, "Unexpected error: %d edges found when expecting %d", i, numedges);
     return -2;
   }
 
@@ -1822,53 +1834,53 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
     }
     if ( edge == NULL )
     {
-      rtfree( signed_edge_ids );
-      _rtt_release_edges(ring_edges, numedges);
-      rterror("missing edge that was found in ring edges loop");
+      rtfree(iface->ctx,  signed_edge_ids );
+      _rtt_release_edges(iface->ctx, ring_edges, numedges);
+      rterror(iface->ctx, "missing edge that was found in ring edges loop");
       return -2;
     }
 
     if ( pa == NULL )
     {
-      pa = ptarray_clone_deep(edge->geom->points);
-      if ( eid < 0 ) ptarray_reverse(pa);
+      pa = ptarray_clone_deep(iface->ctx, edge->geom->points);
+      if ( eid < 0 ) ptarray_reverse(iface->ctx, pa);
     }
     else
     {
       if ( eid < 0 )
       {
-        epa = ptarray_clone_deep(edge->geom->points);
-        ptarray_reverse(epa);
-        ptarray_append_ptarray(pa, epa, 0);
-        ptarray_free(epa);
+        epa = ptarray_clone_deep(iface->ctx, edge->geom->points);
+        ptarray_reverse(iface->ctx, epa);
+        ptarray_append_ptarray(iface->ctx, pa, epa, 0);
+        ptarray_free(iface->ctx, epa);
       }
       else
       {
         /* avoid a clone here */
-        ptarray_append_ptarray(pa, edge->geom->points, 0);
+        ptarray_append_ptarray(iface->ctx, pa, edge->geom->points, 0);
       }
     }
   }
-  RTPOINTARRAY **points = rtalloc(sizeof(RTPOINTARRAY*));
+  RTPOINTARRAY **points = rtalloc(iface->ctx, sizeof(RTPOINTARRAY*));
   points[0] = pa;
   /* NOTE: the ring may very well have collapsed components,
    *       which would make it topologically invalid
    */
-  RTPOLY* shell = rtpoly_construct(0, 0, 1, points);
+  RTPOLY* shell = rtpoly_construct(iface->ctx, 0, 0, 1, points);
 
-  int isccw = ptarray_isccw(pa);
+  int isccw = ptarray_isccw(iface->ctx, pa);
   RTDEBUGF(1, "Ring of edge %" RTTFMT_ELEMID " is %sclockwise",
               sedge, isccw ? "counter" : "");
-  const RTGBOX* shellbox = rtgeom_get_bbox(rtpoly_as_rtgeom(shell));
+  const RTGBOX* shellbox = rtgeom_get_bbox(iface->ctx, rtpoly_as_rtgeom(iface->ctx, shell));
 
   if ( face == 0 )
   {
     /* Edge split the universe face */
     if ( ! isccw )
     {
-      rtpoly_free(shell);
-      rtfree( signed_edge_ids );
-      _rtt_release_edges(ring_edges, numedges);
+      rtpoly_free(iface->ctx, shell);
+      rtfree(iface->ctx,  signed_edge_ids );
+      _rtt_release_edges(iface->ctx, ring_edges, numedges);
       /* Face on the left side of this ring is the universe face.
        * Next call (for the other side) should create the split face
        */
@@ -1888,24 +1900,24 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       int ret = rtt_be_updateFacesById( topo, &updface, 1 );
       if ( ret == -1 )
       {
-        rtfree( signed_edge_ids );
-        _rtt_release_edges(ring_edges, numedges);
-        rtpoly_free(shell); /* NOTE: owns shellbox above */
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        rtfree(iface->ctx,  signed_edge_ids );
+        _rtt_release_edges(iface->ctx, ring_edges, numedges);
+        rtpoly_free(iface->ctx, shell); /* NOTE: owns shellbox above */
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -2;
       }
       if ( ret != 1 )
       {
-        rtfree( signed_edge_ids );
-        _rtt_release_edges(ring_edges, numedges);
-        rtpoly_free(shell); /* NOTE: owns shellbox above */
-        rterror("Unexpected error: %d faces found when expecting 1", ret);
+        rtfree(iface->ctx,  signed_edge_ids );
+        _rtt_release_edges(iface->ctx, ring_edges, numedges);
+        rtpoly_free(iface->ctx, shell); /* NOTE: owns shellbox above */
+        rterror(iface->ctx, "Unexpected error: %d faces found when expecting 1", ret);
         return -2;
       }
     }}
-    rtfree( signed_edge_ids );
-    _rtt_release_edges(ring_edges, numedges);
-    rtpoly_free(shell); /* NOTE: owns shellbox above */
+    rtfree(iface->ctx,  signed_edge_ids );
+    _rtt_release_edges(iface->ctx, ring_edges, numedges);
+    rtpoly_free(iface->ctx, shell); /* NOTE: owns shellbox above */
     return -1; /* mbr only was requested */
   }
 
@@ -1919,18 +1931,18 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
     oldface = rtt_be_getFaceById(topo, &face, &nfaces, RTT_COL_FACE_ALL);
     if ( nfaces == -1 )
     {
-      rtfree( signed_edge_ids );
-      rtpoly_free(shell); /* NOTE: owns shellbox */
-      _rtt_release_edges(ring_edges, numedges);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rtfree(iface->ctx,  signed_edge_ids );
+      rtpoly_free(iface->ctx, shell); /* NOTE: owns shellbox */
+      _rtt_release_edges(iface->ctx, ring_edges, numedges);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -2;
     }
     if ( nfaces != 1 )
     {
-      rtfree( signed_edge_ids );
-      rtpoly_free(shell); /* NOTE: owns shellbox */
-      _rtt_release_edges(ring_edges, numedges);
-      rterror("Unexpected error: %d faces found when expecting 1", nfaces);
+      rtfree(iface->ctx,  signed_edge_ids );
+      rtpoly_free(iface->ctx, shell); /* NOTE: owns shellbox */
+      _rtt_release_edges(iface->ctx, ring_edges, numedges);
+      rterror(iface->ctx, "Unexpected error: %d faces found when expecting 1", nfaces);
       return -2;
     }
     newface.mbr = oldface->mbr;
@@ -1944,23 +1956,23 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   int ret = rtt_be_insertFaces( topo, &newface, 1 );
   if ( ret == -1 )
   {
-    rtfree( signed_edge_ids );
-    rtpoly_free(shell); /* NOTE: owns shellbox */
-    _rtt_release_edges(ring_edges, numedges);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtfree(iface->ctx,  signed_edge_ids );
+    rtpoly_free(iface->ctx, shell); /* NOTE: owns shellbox */
+    _rtt_release_edges(iface->ctx, ring_edges, numedges);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -2;
   }
   if ( ret != 1 )
   {
-    rtfree( signed_edge_ids );
-    rtpoly_free(shell); /* NOTE: owns shellbox */
-    _rtt_release_edges(ring_edges, numedges);
-    rterror("Unexpected error: %d faces inserted when expecting 1", ret);
+    rtfree(iface->ctx,  signed_edge_ids );
+    rtpoly_free(iface->ctx, shell); /* NOTE: owns shellbox */
+    _rtt_release_edges(iface->ctx, ring_edges, numedges);
+    rterror(iface->ctx, "Unexpected error: %d faces inserted when expecting 1", ret);
     return -2;
   }
   if ( oldface ) {
     newface.mbr = NULL; /* it is a reference to oldface mbr... */
-    _rtt_release_faces(oldface, 1);
+    _rtt_release_faces(iface->ctx, oldface, 1);
   }
 
   /* Update side location of new face edges */
@@ -1987,39 +1999,39 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   numfaceedges = 1;
   edges = rtt_be_getEdgeByFace( topo, &face, &numfaceedges, fields, newface.mbr );
   if ( numfaceedges == -1 ) {
-    rtfree( signed_edge_ids );
-    _rtt_release_edges(ring_edges, numedges);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtfree(iface->ctx,  signed_edge_ids );
+    _rtt_release_edges(iface->ctx, ring_edges, numedges);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -2;
   }
   RTDEBUGF(1, "rtt_be_getEdgeByFace returned %d edges", numfaceedges);
   GEOSGeometry *shellgg = 0;
   const GEOSPreparedGeometry* prepshell = 0;
-  shellgg = RTGEOM2GEOS( rtpoly_as_rtgeom(shell), 0);
+  shellgg = RTGEOM2GEOS(iface->ctx,  rtpoly_as_rtgeom(iface->ctx, shell), 0);
   if ( ! shellgg ) {
-    rtpoly_free(shell);
-    rtfree(signed_edge_ids);
-    _rtt_release_edges(ring_edges, numedges);
-    _rtt_release_edges(edges, numfaceedges);
-    rterror("Could not convert shell geometry to GEOS: %s", rtgeom_geos_errmsg);
+    rtpoly_free(iface->ctx, shell);
+    rtfree(iface->ctx, signed_edge_ids);
+    _rtt_release_edges(iface->ctx, ring_edges, numedges);
+    _rtt_release_edges(iface->ctx, edges, numfaceedges);
+    rterror(iface->ctx, "Could not convert shell geometry to GEOS: %s", rtgeom_geos_errmsg);
     return -2;
   }
   prepshell = GEOSPrepare( shellgg );
   if ( ! prepshell ) {
     GEOSGeom_destroy(shellgg);
-    rtpoly_free(shell);
-    rtfree(signed_edge_ids);
-    _rtt_release_edges(ring_edges, numedges);
-    _rtt_release_edges(edges, numfaceedges);
-    rterror("Could not prepare shell geometry: %s", rtgeom_geos_errmsg);
+    rtpoly_free(iface->ctx, shell);
+    rtfree(iface->ctx, signed_edge_ids);
+    _rtt_release_edges(iface->ctx, ring_edges, numedges);
+    _rtt_release_edges(iface->ctx, edges, numfaceedges);
+    rterror(iface->ctx, "Could not prepare shell geometry: %s", rtgeom_geos_errmsg);
     return -2;
   }
 
   if ( numfaceedges )
   {
-    forward_edges = rtalloc(sizeof(RTT_ISO_EDGE)*numfaceedges);
+    forward_edges = rtalloc(iface->ctx, sizeof(RTT_ISO_EDGE)*numfaceedges);
     forward_edges_count = 0;
-    backward_edges = rtalloc(sizeof(RTT_ISO_EDGE)*numfaceedges);
+    backward_edges = rtalloc(iface->ctx, sizeof(RTT_ISO_EDGE)*numfaceedges);
     backward_edges_count = 0;
 
     /* (2) loop over the results and: */
@@ -2062,34 +2074,34 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
        * giving false positive).
        * The point but must not be an endpoint.
        */
-      if ( ! _rtt_GetInteriorEdgePoint(e->geom, &ep) )
+      if ( ! _rtt_GetInteriorEdgePoint(iface->ctx, e->geom, &ep) )
       {
         GEOSPreparedGeom_destroy(prepshell);
         GEOSGeom_destroy(shellgg);
-        rtfree(signed_edge_ids);
-        rtpoly_free(shell);
-        rtfree(forward_edges); /* contents owned by ring_edges */
-        rtfree(backward_edges); /* contents owned by ring_edges */
-        _rtt_release_edges(ring_edges, numedges);
-        _rtt_release_edges(edges, numfaceedges);
-        rterror("Could not find interior point for edge %d: %s",
+        rtfree(iface->ctx, signed_edge_ids);
+        rtpoly_free(iface->ctx, shell);
+        rtfree(iface->ctx, forward_edges); /* contents owned by ring_edges */
+        rtfree(iface->ctx, backward_edges); /* contents owned by ring_edges */
+        _rtt_release_edges(iface->ctx, ring_edges, numedges);
+        _rtt_release_edges(iface->ctx, edges, numfaceedges);
+        rterror(iface->ctx, "Could not find interior point for edge %d: %s",
                 e->edge_id, rtgeom_geos_errmsg);
         return -2;
       }
 
-      epgeom = rtpoint_make2d(0, ep.x, ep.y);
-      egg = RTGEOM2GEOS( rtpoint_as_rtgeom(epgeom) , 0);
-      rtpoint_free(epgeom);
+      epgeom = rtpoint_make2d(iface->ctx, 0, ep.x, ep.y);
+      egg = RTGEOM2GEOS(iface->ctx,  rtpoint_as_rtgeom(iface->ctx, epgeom) , 0);
+      rtpoint_free(iface->ctx, epgeom);
       if ( ! egg ) {
         GEOSPreparedGeom_destroy(prepshell);
         GEOSGeom_destroy(shellgg);
-        rtfree(signed_edge_ids);
-        rtpoly_free(shell);
-        rtfree(forward_edges); /* contents owned by ring_edges */
-        rtfree(backward_edges); /* contents owned by ring_edges */
-        _rtt_release_edges(ring_edges, numedges);
-        _rtt_release_edges(edges, numfaceedges);
-        rterror("Could not convert edge geometry to GEOS: %s",
+        rtfree(iface->ctx, signed_edge_ids);
+        rtpoly_free(iface->ctx, shell);
+        rtfree(iface->ctx, forward_edges); /* contents owned by ring_edges */
+        rtfree(iface->ctx, backward_edges); /* contents owned by ring_edges */
+        _rtt_release_edges(iface->ctx, ring_edges, numedges);
+        _rtt_release_edges(iface->ctx, edges, numfaceedges);
+        rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s",
                 rtgeom_geos_errmsg);
         return -2;
       }
@@ -2103,13 +2115,13 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       {
         GEOSPreparedGeom_destroy(prepshell);
         GEOSGeom_destroy(shellgg);
-        rtfree(signed_edge_ids);
-        rtpoly_free(shell);
-        rtfree(forward_edges); /* contents owned by ring_edges */
-        rtfree(backward_edges); /* contents owned by ring_edges */
-        _rtt_release_edges(ring_edges, numedges);
-        _rtt_release_edges(edges, numfaceedges);
-        rterror("GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
+        rtfree(iface->ctx, signed_edge_ids);
+        rtpoly_free(iface->ctx, shell);
+        rtfree(iface->ctx, forward_edges); /* contents owned by ring_edges */
+        rtfree(iface->ctx, backward_edges); /* contents owned by ring_edges */
+        _rtt_release_edges(iface->ctx, ring_edges, numedges);
+        _rtt_release_edges(iface->ctx, edges, numfaceedges);
+        rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
         return -2;
       }
       RTDEBUGF(1, "Edge %d %scontained in new ring", e->edge_id,
@@ -2160,14 +2172,14 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
                                    RTT_COL_EDGE_FACE_LEFT);
       if ( ret == -1 )
       {
-        rtfree( signed_edge_ids );
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        rtfree(iface->ctx,  signed_edge_ids );
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -2;
       }
       if ( ret != forward_edges_count )
       {
-        rtfree( signed_edge_ids );
-        rterror("Unexpected error: %d edges updated when expecting %d",
+        rtfree(iface->ctx,  signed_edge_ids );
+        rterror(iface->ctx, "Unexpected error: %d edges updated when expecting %d",
                 ret, forward_edges_count);
         return -2;
       }
@@ -2181,26 +2193,26 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
                                    RTT_COL_EDGE_FACE_RIGHT);
       if ( ret == -1 )
       {
-        rtfree( signed_edge_ids );
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        rtfree(iface->ctx,  signed_edge_ids );
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -2;
       }
       if ( ret != backward_edges_count )
       {
-        rtfree( signed_edge_ids );
-        rterror("Unexpected error: %d edges updated when expecting %d",
+        rtfree(iface->ctx,  signed_edge_ids );
+        rterror(iface->ctx, "Unexpected error: %d edges updated when expecting %d",
                 ret, backward_edges_count);
         return -2;
       }
     }
 
-    rtfree(forward_edges);
-    rtfree(backward_edges);
+    rtfree(iface->ctx, forward_edges);
+    rtfree(iface->ctx, backward_edges);
 
   }
 
-  _rtt_release_edges(ring_edges, numedges);
-  _rtt_release_edges(edges, numfaceedges);
+  _rtt_release_edges(iface->ctx, ring_edges, numedges);
+  _rtt_release_edges(iface->ctx, edges, numfaceedges);
 
   /* Update isolated nodes which are now in new face */
   int numisonodes = 1;
@@ -2208,26 +2220,26 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   RTT_ISO_NODE *nodes = rtt_be_getNodeByFace(topo, &face,
                                              &numisonodes, fields, newface.mbr);
   if ( numisonodes == -1 ) {
-    rtfree( signed_edge_ids );
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtfree(iface->ctx,  signed_edge_ids );
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -2;
   }
   if ( numisonodes ) {
-    RTT_ISO_NODE *updated_nodes = rtalloc(sizeof(RTT_ISO_NODE)*numisonodes);
+    RTT_ISO_NODE *updated_nodes = rtalloc(iface->ctx, sizeof(RTT_ISO_NODE)*numisonodes);
     int nodes_to_update = 0;
     for (i=0; i<numisonodes; ++i)
     {
       RTT_ISO_NODE *n = &(nodes[i]);
       GEOSGeometry *ngg;
-      ngg = RTGEOM2GEOS( rtpoint_as_rtgeom(n->geom), 0 );
+      ngg = RTGEOM2GEOS(iface->ctx,  rtpoint_as_rtgeom(iface->ctx, n->geom), 0 );
       int contains;
       if ( ! ngg ) {
-        _rtt_release_nodes(nodes, numisonodes);
+        _rtt_release_nodes(iface->ctx, nodes, numisonodes);
         if ( prepshell ) GEOSPreparedGeom_destroy(prepshell);
         if ( shellgg ) GEOSGeom_destroy(shellgg);
-        rtfree(signed_edge_ids);
-        rtpoly_free(shell);
-        rterror("Could not convert node geometry to GEOS: %s",
+        rtfree(iface->ctx, signed_edge_ids);
+        rtpoly_free(iface->ctx, shell);
+        rterror(iface->ctx, "Could not convert node geometry to GEOS: %s",
                 rtgeom_geos_errmsg);
         return -2;
       }
@@ -2235,12 +2247,12 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       GEOSGeom_destroy(ngg);
       if ( contains == 2 )
       {
-        _rtt_release_nodes(nodes, numisonodes);
+        _rtt_release_nodes(iface->ctx, nodes, numisonodes);
         if ( prepshell ) GEOSPreparedGeom_destroy(prepshell);
         if ( shellgg ) GEOSGeom_destroy(shellgg);
-        rtfree(signed_edge_ids);
-        rtpoly_free(shell);
-        rterror("GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
+        rtfree(iface->ctx, signed_edge_ids);
+        rtpoly_free(iface->ctx, shell);
+        rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
         return -2;
       }
       RTDEBUGF(1, "Node %d is %scontained in new ring, newface is %s",
@@ -2269,25 +2281,25 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
                                        newface.face_id;
       RTDEBUGF(1, "Node %d will be updated", n->node_id);
     }
-    _rtt_release_nodes(nodes, numisonodes);
+    _rtt_release_nodes(iface->ctx, nodes, numisonodes);
     if ( nodes_to_update )
     {
       int ret = rtt_be_updateNodesById(topo, updated_nodes,
                                        nodes_to_update,
                                        RTT_COL_NODE_CONTAINING_FACE);
       if ( ret == -1 ) {
-        rtfree( signed_edge_ids );
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        rtfree(iface->ctx,  signed_edge_ids );
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -2;
       }
     }
-    rtfree(updated_nodes);
+    rtfree(iface->ctx, updated_nodes);
   }
 
   GEOSPreparedGeom_destroy(prepshell);
   GEOSGeom_destroy(shellgg);
-  rtfree(signed_edge_ids);
-  rtpoly_free(shell);
+  rtfree(iface->ctx, signed_edge_ids);
+  rtpoly_free(iface->ctx, shell);
 
   return newface.face_id;
 }
@@ -2313,13 +2325,14 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   int prev_right;
   RTT_ISO_EDGE seledge;
   RTT_ISO_EDGE updedge;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( ! skipChecks )
   {
     /* curve must be simple */
-    if ( ! rtgeom_is_simple(rtline_as_rtgeom(geom)) )
+    if ( ! rtgeom_is_simple(iface->ctx, rtline_as_rtgeom(iface->ctx, geom)) )
     {
-      rterror("SQL/MM Spatial exception - curve not simple");
+      rterror(iface->ctx, "SQL/MM Spatial exception - curve not simple");
       return -1;
     }
   }
@@ -2329,12 +2342,12 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   newedge.geom = geom;
   newedge.face_left = -1;
   newedge.face_right = -1;
-  cleangeom = rtgeom_remove_repeated_points( rtline_as_rtgeom(geom), 0 );
+  cleangeom = rtgeom_remove_repeated_points(iface->ctx,  rtline_as_rtgeom(iface->ctx, geom), 0 );
 
-  pa = rtgeom_as_rtline(cleangeom)->points;
+  pa = rtgeom_as_rtline(iface->ctx, cleangeom)->points;
   if ( pa->npoints < 2 ) {
-    rtgeom_free(cleangeom);
-    rterror("Invalid edge (no two distinct vertices exist)");
+    rtgeom_free(iface->ctx, cleangeom);
+    rterror(iface->ctx, "Invalid edge (no two distinct vertices exist)");
     return -1;
   }
 
@@ -2343,28 +2356,28 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   epan.cwFace = epan.ccwFace = -1;
 
   /* Compute azimut of first edge end on start node */
-  getPoint2d_p(pa, 0, &p1);
-  getPoint2d_p(pa, 1, &pn);
-  if ( p2d_same(&p1, &pn) ) {
-    rtgeom_free(cleangeom);
+  getPoint2d_p(iface->ctx, pa, 0, &p1);
+  getPoint2d_p(iface->ctx, pa, 1, &pn);
+  if ( p2d_same(iface->ctx, &p1, &pn) ) {
+    rtgeom_free(iface->ctx, cleangeom);
     /* Can still happen, for 2-point lines */
-    rterror("Invalid edge (no two distinct vertices exist)");
+    rterror(iface->ctx, "Invalid edge (no two distinct vertices exist)");
     return -1;
   }
-  if ( ! azimuth_pt_pt(&p1, &pn, &span.myaz) ) {
-    rtgeom_free(cleangeom);
-    rterror("error computing azimuth of first edgeend [%g,%g-%g,%g]",
+  if ( ! azimuth_pt_pt(iface->ctx, &p1, &pn, &span.myaz) ) {
+    rtgeom_free(iface->ctx, cleangeom);
+    rterror(iface->ctx, "error computing azimuth of first edgeend [%g,%g-%g,%g]",
             p1.x, p1.y, pn.x, pn.y);
     return -1;
   }
   RTDEBUGF(1, "edge's start node is %g,%g", p1.x, p1.y);
 
   /* Compute azimuth of last edge end on end node */
-  getPoint2d_p(pa, pa->npoints-1, &p2);
-  getPoint2d_p(pa, pa->npoints-2, &pn);
-  rtgeom_free(cleangeom);
-  if ( ! azimuth_pt_pt(&p2, &pn, &epan.myaz) ) {
-    rterror("error computing azimuth of last edgeend [%g,%g-%g,%g]",
+  getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p2);
+  getPoint2d_p(iface->ctx, pa, pa->npoints-2, &pn);
+  rtgeom_free(iface->ctx, cleangeom);
+  if ( ! azimuth_pt_pt(iface->ctx, &p2, &pn, &epan.myaz) ) {
+    rterror(iface->ctx, "error computing azimuth of last edgeend [%g,%g-%g,%g]",
             p2.x, p2.y, pn.x, pn.y);
     return -1;
   }
@@ -2386,7 +2399,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
 
   endpoints = rtt_be_getNodeById( topo, node_ids, &num_nodes, RTT_COL_NODE_ALL );
   if ( num_nodes < 0 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   for ( i=0; i<num_nodes; ++i )
@@ -2400,8 +2413,8 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
       }
       else if ( newedge.face_left != node->containing_face )
       {
-        _rtt_release_nodes(endpoints, num_nodes);
-        rterror("SQL/MM Spatial exception - geometry crosses an edge"
+        _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+        rterror(iface->ctx, "SQL/MM Spatial exception - geometry crosses an edge"
                 " (endnodes in faces %" RTTFMT_ELEMID " and %" RTTFMT_ELEMID ")",
                 newedge.face_left, node->containing_face);
       }
@@ -2421,18 +2434,18 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   {
     if ( ! start_node_geom )
     {
-      if ( num_nodes ) _rtt_release_nodes(endpoints, num_nodes);
-      rterror("SQL/MM Spatial exception - non-existent node");
+      if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+      rterror(iface->ctx, "SQL/MM Spatial exception - non-existent node");
       return -1;
     }
     else
     {
       pa = start_node_geom->point;
-      getPoint2d_p(pa, 0, &pn);
-      if ( ! p2d_same(&pn, &p1) )
+      getPoint2d_p(iface->ctx, pa, 0, &pn);
+      if ( ! p2d_same(iface->ctx, &pn, &p1) )
       {
-        if ( num_nodes ) _rtt_release_nodes(endpoints, num_nodes);
-        rterror("SQL/MM Spatial exception"
+        if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+        rterror(iface->ctx, "SQL/MM Spatial exception"
                 " - start node not geometry start point."
                 //" - start node not geometry start point (%g,%g != %g,%g).", pn.x, pn.y, p1.x, p1.y
         );
@@ -2442,18 +2455,18 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
 
     if ( ! end_node_geom )
     {
-      if ( num_nodes ) _rtt_release_nodes(endpoints, num_nodes);
-      rterror("SQL/MM Spatial exception - non-existent node");
+      if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+      rterror(iface->ctx, "SQL/MM Spatial exception - non-existent node");
       return -1;
     }
     else
     {
       pa = end_node_geom->point;
-      getPoint2d_p(pa, 0, &pn);
-      if ( ! p2d_same(&pn, &p2) )
+      getPoint2d_p(iface->ctx, pa, 0, &pn);
+      if ( ! p2d_same(iface->ctx, &pn, &p2) )
       {
-        if ( num_nodes ) _rtt_release_nodes(endpoints, num_nodes);
-        rterror("SQL/MM Spatial exception"
+        if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+        rterror(iface->ctx, "SQL/MM Spatial exception"
                 " - end node not geometry end point."
                 //" - end node not geometry end point (%g,%g != %g,%g).", pn.x, pn.y, p2.x, p2.y
         );
@@ -2461,7 +2474,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
       }
     }
 
-    if ( num_nodes ) _rtt_release_nodes(endpoints, num_nodes);
+    if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
 
     if ( _rtt_CheckEdgeCrossing( topo, start_node, end_node, geom, 0 ) )
       return -1;
@@ -2474,7 +2487,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
 
   newedge.edge_id = rtt_be_getNextEdgeId( topo );
   if ( newedge.edge_id == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -2536,14 +2549,14 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
    */
   if ( newedge.face_left != newedge.face_right )
   {
-    rterror("Left(%" RTTFMT_ELEMID ")/right(%" RTTFMT_ELEMID ")"
+    rterror(iface->ctx, "Left(%" RTTFMT_ELEMID ")/right(%" RTTFMT_ELEMID ")"
             "faces mismatch: invalid topology ?",
             newedge.face_left, newedge.face_right);
     return -1;
   }
   else if ( newedge.face_left == -1 )
   {
-    rterror("Could not derive edge face from linked primitives:"
+    rterror(iface->ctx, "Could not derive edge face from linked primitives:"
             " invalid topology ?");
     return -1;
   }
@@ -2554,10 +2567,10 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
 
   int ret = rtt_be_insertEdges(topo, &newedge, 1);
   if ( ret == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   } else if ( ret == 0 ) {
-    rterror("Insertion of split edge failed (no reason)");
+    rterror(iface->ctx, "Insertion of split edge failed (no reason)");
     return -1;
   }
 
@@ -2587,7 +2600,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
         &updedge, updfields,
         NULL, 0);
     if ( ret == -1 ) {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
@@ -2616,7 +2629,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
         &updedge, updfields,
         NULL, 0);
     if ( ret == -1 ) {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
@@ -2636,7 +2649,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
         &updnode, RTT_COL_NODE_CONTAINING_FACE,
         NULL, 0);
     if ( ret == -1 ) {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
@@ -2648,7 +2661,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
         &updnode, RTT_COL_NODE_CONTAINING_FACE,
         NULL, 0);
     if ( ret == -1 ) {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
@@ -2696,7 +2709,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     ret = rtt_be_updateTopoGeomFaceSplit(topo, newedge.face_left,
                                          newface, newface1);
     if ( ret == 0 ) {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
 
@@ -2705,7 +2718,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
       /* drop old face from the face table */
       ret = rtt_be_deleteFacesById(topo, &(newedge.face_left), 1);
       if ( ret == -1 ) {
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
     }
@@ -2735,7 +2748,8 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
 {
   RTGEOM *outg;
   RTCOLLECTION *bounds;
-  RTGEOM **geoms = rtalloc( sizeof(RTGEOM*) * numfaceedges );
+  RTT_BE_IFACE *iface = topo->be_iface;
+  RTGEOM **geoms = rtalloc(iface->ctx,  sizeof(RTGEOM*) * numfaceedges );
   int i, validedges = 0;
 
   for ( i=0; i<numfaceedges; ++i )
@@ -2746,32 +2760,32 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
      * TODO: update legacy tests expectances/unleash this skipping ?
      */
     /* if ( edges[i].face_left == edges[i].face_right ) continue; */
-    geoms[validedges++] = rtline_as_rtgeom(edges[i].geom);
+    geoms[validedges++] = rtline_as_rtgeom(iface->ctx, edges[i].geom);
   }
   if ( ! validedges )
   {
     /* Face has no valid boundary edges, we'll return EMPTY, see
      * https://trac.osgeo.org/postgis/ticket/3221 */
-    if ( numfaceedges ) rtfree(geoms);
+    if ( numfaceedges ) rtfree(iface->ctx, geoms);
     RTDEBUG(1, "_rtt_FaceByEdges returning empty polygon");
-    return rtpoly_as_rtgeom(
-            rtpoly_construct_empty(topo->srid, topo->hasZ, 0)
+    return rtpoly_as_rtgeom(iface->ctx, 
+            rtpoly_construct_empty(iface->ctx, topo->srid, topo->hasZ, 0)
            );
   }
-  bounds = rtcollection_construct(RTMULTILINETYPE,
+  bounds = rtcollection_construct(iface->ctx, RTMULTILINETYPE,
                                   topo->srid,
                                   NULL, /* gbox */
                                   validedges,
                                   geoms);
-  outg = rtgeom_buildarea( rtcollection_as_rtgeom(bounds) );
-  rtcollection_release(bounds);
-  rtfree(geoms);
+  outg = rtgeom_buildarea(iface->ctx,  rtcollection_as_rtgeom(iface->ctx, bounds) );
+  rtcollection_release(iface->ctx, bounds);
+  rtfree(iface->ctx, geoms);
 #if 0
   {
   size_t sz;
-  char *wkt = rtgeom_to_wkt(outg, RTWKT_EXTENDED, 2, &sz);
+  char *wkt = rtgeom_to_wkt(iface->ctx, outg, RTWKT_EXTENDED, 2, &sz);
   RTDEBUGF(1, "_rtt_FaceByEdges returning area: %s", wkt);
-  rtfree(wkt);
+  rtfree(iface->ctx, wkt);
   }
 #endif
   return outg;
@@ -2787,10 +2801,11 @@ rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID faceid)
   RTGEOM *outg;
   int i;
   int fields;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( faceid == 0 )
   {
-    rterror("SQL/MM Spatial exception - universal face has no geometry");
+    rterror(iface->ctx, "SQL/MM Spatial exception - universal face has no geometry");
     return NULL;
   }
 
@@ -2802,7 +2817,7 @@ rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID faceid)
            ;
   edges = rtt_be_getEdgeByFace( topo, &faceid, &numfaceedges, fields, NULL );
   if ( numfaceedges == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return NULL;
   }
 
@@ -2811,27 +2826,27 @@ rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID faceid)
     i = 1;
     face = rtt_be_getFaceById(topo, &faceid, &i, RTT_COL_FACE_FACE_ID);
     if ( i == -1 ) {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return NULL;
     }
     if ( i == 0 ) {
-      rterror("SQL/MM Spatial exception - non-existent face.");
+      rterror(iface->ctx, "SQL/MM Spatial exception - non-existent face.");
       return NULL;
     }
-    rtfree( face );
+    rtfree(iface->ctx,  face );
     if ( i > 1 ) {
-      rterror("Corrupted topology: multiple face records have face_id=%"
+      rterror(iface->ctx, "Corrupted topology: multiple face records have face_id=%"
               PRId64, faceid);
       return NULL;
     }
     /* Face has no boundary edges, we'll return EMPTY, see
      * https://trac.osgeo.org/postgis/ticket/3221 */
-    out = rtpoly_construct_empty(topo->srid, topo->hasZ, 0);
-    return rtpoly_as_rtgeom(out);
+    out = rtpoly_construct_empty(iface->ctx, topo->srid, topo->hasZ, 0);
+    return rtpoly_as_rtgeom(iface->ctx, out);
   }
 
   outg = _rtt_FaceByEdges( topo, edges, numfaceedges );
-  _rtt_release_edges(edges, numfaceedges);
+  _rtt_release_edges(iface->ctx, edges, numfaceedges);
 
   return outg;
 }
@@ -2851,14 +2866,14 @@ rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID faceid)
  *               -1 if no edge was found to be part of the ring
  */
 static int
-_rtt_FindNextRingEdge(const RTPOINTARRAY *ring, int from,
+_rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
                       const RTT_ISO_EDGE *edges, int numedges)
 {
   int i;
   RTPOINT2D p1;
 
   /* Get starting ring point */
-  getPoint2d_p(ring, from, &p1);
+  getPoint2d_p(ctx, ring, from, &p1);
 
   RTDEBUGF(1, "Ring's 'from' point (%d) is %g,%g", from, p1.x, p1.y);
 
@@ -2887,33 +2902,33 @@ _rtt_FindNextRingEdge(const RTPOINTARRAY *ring, int from,
     size_t sz;
     RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " is %s",
                 isoe->edge_id,
-                rtgeom_to_wkt(rtline_as_rtgeom(edge), RTWKT_EXTENDED, 2, &sz));
+                rtgeom_to_wkt(ctx, rtline_as_rtgeom(ctx, edge), RTWKT_EXTENDED, 2, &sz));
 #endif
 
     /* ptarray_remove_repeated_points ? */
 
-    getPoint2d_p(epa, 0, &p2);
+    getPoint2d_p(ctx, epa, 0, &p2);
     RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'first' point is %g,%g",
                 isoe->edge_id, p2.x, p2.y);
     RTDEBUGF(1, "Rings's 'from' point is still %g,%g", p1.x, p1.y);
-    if ( p2d_same(&p1, &p2) )
+    if ( p2d_same(ctx, &p1, &p2) )
     {
-      RTDEBUG(1, "p2d_same(p1,p2) returned true");
+      RTDEBUG(1, "p2d_same(ctx, p1,p2) returned true");
       RTDEBUGF(1, "First point of edge %" RTTFMT_ELEMID
                   " matches ring vertex %d", isoe->edge_id, from);
       /* first point matches, let's check next non-equal one */
       for ( j=1; j<epa->npoints; ++j )
       {
-        getPoint2d_p(epa, j, &p2);
+        getPoint2d_p(ctx, epa, j, &p2);
         RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'next' point %d is %g,%g",
                     isoe->edge_id, j, p2.x, p2.y);
         /* we won't check duplicated edge points */
-        if ( p2d_same(&p1, &p2) ) continue;
+        if ( p2d_same(ctx, &p1, &p2) ) continue;
         /* we assume there are no duplicated points in ring */
-        getPoint2d_p(ring, from+1, &pt);
+        getPoint2d_p(ctx, ring, from+1, &pt);
         RTDEBUGF(1, "Ring's point %d is %g,%g",
                     from+1, pt.x, pt.y);
-        match = p2d_same(&pt, &p2);
+        match = p2d_same(ctx, &pt, &p2);
         break; /* we want to check a single non-equal next vertex */
       }
 #if RTGEOM_DEBUG_LEVEL > 0
@@ -2931,26 +2946,26 @@ _rtt_FindNextRingEdge(const RTPOINTARRAY *ring, int from,
     {
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " did not match as forward",
                  isoe->edge_id);
-      getPoint2d_p(epa, epa->npoints-1, &p2);
+      getPoint2d_p(ctx, epa, epa->npoints-1, &p2);
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'last' point is %g,%g",
                   isoe->edge_id, p2.x, p2.y);
-      if ( p2d_same(&p1, &p2) )
+      if ( p2d_same(ctx, &p1, &p2) )
       {
         RTDEBUGF(1, "Last point of edge %" RTTFMT_ELEMID
                     " matches ring vertex %d", isoe->edge_id, from);
         /* last point matches, let's check next non-equal one */
         for ( j=epa->npoints-2; j>=0; --j )
         {
-          getPoint2d_p(epa, j, &p2);
+          getPoint2d_p(ctx, epa, j, &p2);
           RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'prev' point %d is %g,%g",
                       isoe->edge_id, j, p2.x, p2.y);
           /* we won't check duplicated edge points */
-          if ( p2d_same(&p1, &p2) ) continue;
+          if ( p2d_same(ctx, &p1, &p2) ) continue;
           /* we assume there are no duplicated points in ring */
-          getPoint2d_p(ring, from+1, &pt);
+          getPoint2d_p(ctx, ring, from+1, &pt);
           RTDEBUGF(1, "Ring's point %d is %g,%g",
                       from+1, pt.x, pt.y);
-          match = p2d_same(&pt, &p2);
+          match = p2d_same(ctx, &pt, &p2);
           break; /* we want to check a single non-equal next vertex */
         }
       }
@@ -3009,6 +3024,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
   int nseid = 0; /* number of signed edge ids */
   int prevseid;
   RTT_ELEMID *seid; /* signed edge ids */
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   /* Get list of face edges */
   numfaceedges = 1;
@@ -3019,7 +3035,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
            ;
   edges = rtt_be_getEdgeByFace( topo, &face_id, &numfaceedges, fields, NULL );
   if ( numfaceedges == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( ! numfaceedges ) return 0; /* no edges in output */
@@ -3030,44 +3046,44 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
   if ( ! face )
   {
     /* _rtt_FaceByEdges should have already invoked rterror in this case */
-    _rtt_release_edges(edges, numfaceedges);
+    _rtt_release_edges(iface->ctx, edges, numfaceedges);
     return -1;
   }
 
-  if ( rtgeom_is_empty(face) )
+  if ( rtgeom_is_empty(iface->ctx, face) )
   {
     /* no edges in output */
-    _rtt_release_edges(edges, numfaceedges);
-    rtgeom_free(face);
+    _rtt_release_edges(iface->ctx, edges, numfaceedges);
+    rtgeom_free(iface->ctx, face);
     return 0;
   }
 
   /* force_lhr, if the face is not the universe */
   /* _rtt_FaceByEdges seems to guaranteed RHR */
-  /* rtgeom_force_clockwise(face); */
-  if ( face_id ) rtgeom_reverse(face);
+  /* rtgeom_force_clockwise(iface->ctx, face); */
+  if ( face_id ) rtgeom_reverse(iface->ctx, face);
 
 #if 0
   {
   size_t sz;
-  char *wkt = rtgeom_to_wkt(face, RTWKT_EXTENDED, 6, &sz);
+  char *wkt = rtgeom_to_wkt(iface->ctx, face, RTWKT_EXTENDED, 6, &sz);
   RTDEBUGF(1, "Geometry of face %" RTTFMT_ELEMID " is: %s",
               face_id, wkt);
-  rtfree(wkt);
+  rtfree(iface->ctx, wkt);
   }
 #endif
 
-  facepoly = rtgeom_as_rtpoly(face);
+  facepoly = rtgeom_as_rtpoly(iface->ctx, face);
   if ( ! facepoly )
   {
-    _rtt_release_edges(edges, numfaceedges);
-    rtgeom_free(face);
-    rterror("Geometry of face %" RTTFMT_ELEMID " is not a polygon", face_id);
+    _rtt_release_edges(iface->ctx, edges, numfaceedges);
+    rtgeom_free(iface->ctx, face);
+    rterror(iface->ctx, "Geometry of face %" RTTFMT_ELEMID " is not a polygon", face_id);
     return -1;
   }
 
   nseid = prevseid = 0;
-  seid = rtalloc( sizeof(RTT_ELEMID) * numfaceedges );
+  seid = rtalloc(iface->ctx,  sizeof(RTT_ELEMID) * numfaceedges );
 
   /* for each ring of the face polygon... */
   for ( i=0; i<facepoly->nrings; ++i )
@@ -3084,14 +3100,14 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
       RTDEBUGF(1, "Looking for edge covering ring %d from vertex %d",
                   i, j);
 
-      int edgeno = _rtt_FindNextRingEdge(ring, j, edges, numfaceedges);
+      int edgeno = _rtt_FindNextRingEdge(iface->ctx, ring, j, edges, numfaceedges);
       if ( edgeno == -1 )
       {
         /* should never happen */
-        _rtt_release_edges(edges, numfaceedges);
-        rtgeom_free(face);
-        rtfree(seid);
-        rterror("No edge (among %d) found to be defining geometry of face %"
+        _rtt_release_edges(iface->ctx, edges, numfaceedges);
+        rtgeom_free(iface->ctx, face);
+        rtfree(iface->ctx, seid);
+        rterror(iface->ctx, "No edge (among %d) found to be defining geometry of face %"
                 RTTFMT_ELEMID, numfaceedges, face_id);
         return -1;
       }
@@ -3106,10 +3122,10 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
 #if 0
       {
       size_t sz;
-      char *wkt = rtgeom_to_wkt(rtline_as_rtgeom(nextline), RTWKT_EXTENDED, 6, &sz);
+      char *wkt = rtgeom_to_wkt(iface->ctx, rtline_as_rtgeom(iface->ctx, nextline), RTWKT_EXTENDED, 6, &sz);
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " is %s",
                   nextedge->edge_id, wkt);
-      rtfree(wkt);
+      rtfree(iface->ctx, wkt);
       }
 #endif
 
@@ -3154,15 +3170,15 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
     prevseid = nseid;
   }
 
-  rtgeom_free(face);
-  _rtt_release_edges(edges, numfaceedges);
+  rtgeom_free(iface->ctx, face);
+  _rtt_release_edges(iface->ctx, edges, numfaceedges);
 
   *out = seid;
   return nseid;
 }
 
 static GEOSGeometry *
-_rtt_EdgeMotionArea(RTLINE *geom, int isclosed)
+_rtt_EdgeMotionArea(const RTCTX *ctx, RTLINE *geom, int isclosed)
 {
   GEOSGeometry *gg;
   RTPOINT4D p4d;
@@ -3171,46 +3187,46 @@ _rtt_EdgeMotionArea(RTLINE *geom, int isclosed)
   RTPOLY *poly;
   RTGEOM *g;
 
-  pas = rtalloc(sizeof(RTPOINTARRAY*));
+  pas = rtalloc(ctx, sizeof(RTPOINTARRAY*));
 
   initGEOS(rtnotice, rtgeom_geos_error);
 
   if ( isclosed )
   {
-    pas[0] = ptarray_clone_deep( geom->points );
-    poly = rtpoly_construct(0, 0, 1, pas);
-    gg = RTGEOM2GEOS( rtpoly_as_rtgeom(poly), 0 );
-    rtpoly_free(poly); /* should also delete the pointarrays */
+    pas[0] = ptarray_clone_deep(ctx,  geom->points );
+    poly = rtpoly_construct(ctx, 0, 0, 1, pas);
+    gg = RTGEOM2GEOS(ctx,  rtpoly_as_rtgeom(ctx, poly), 0 );
+    rtpoly_free(ctx, poly); /* should also delete the pointarrays */
   }
   else
   {
     pa = geom->points;
-    getPoint4d_p(pa, 0, &p4d);
-    pas[0] = ptarray_clone_deep( pa );
+    getPoint4d_p(ctx, pa, 0, &p4d);
+    pas[0] = ptarray_clone_deep(ctx,  pa );
     /* don't bother dup check */
-    if ( RT_FAILURE == ptarray_append_point(pas[0], &p4d, RT_TRUE) )
+    if ( RT_FAILURE == ptarray_append_point(ctx, pas[0], &p4d, RT_TRUE) )
     {
-      ptarray_free(pas[0]);
-      rtfree(pas);
-      rterror("Could not append point to pointarray");
+      ptarray_free(ctx, pas[0]);
+      rtfree(ctx, pas);
+      rterror(ctx, "Could not append point to pointarray");
       return NULL;
     }
-    poly = rtpoly_construct(0, NULL, 1, pas);
+    poly = rtpoly_construct(ctx, 0, NULL, 1, pas);
     /* make valid, in case the edge self-intersects on its first-last
      * vertex segment */
-    g = rtgeom_make_valid(rtpoly_as_rtgeom(poly));
-    rtpoly_free(poly); /* should also delete the pointarrays */
+    g = rtgeom_make_valid(ctx, rtpoly_as_rtgeom(ctx, poly));
+    rtpoly_free(ctx, poly); /* should also delete the pointarrays */
     if ( ! g )
     {
-      rterror("Could not make edge motion area valid");
+      rterror(ctx, "Could not make edge motion area valid");
       return NULL;
     }
-    gg = RTGEOM2GEOS(g, 0);
-    rtgeom_free(g);
+    gg = RTGEOM2GEOS(ctx, g, 0);
+    rtgeom_free(ctx, g);
   }
   if ( ! gg )
   {
-    rterror("Could not convert old edge area geometry to GEOS: %s",
+    rterror(ctx, "Could not convert old edge area geometry to GEOS: %s",
             rtgeom_geos_errmsg);
     return NULL;
   }
@@ -3225,11 +3241,12 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   RTPOINT2D p1, p2, pt;
   int i;
   int isclosed = 0;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   /* curve must be simple */
-  if ( ! rtgeom_is_simple(rtline_as_rtgeom(geom)) )
+  if ( ! rtgeom_is_simple(iface->ctx, rtline_as_rtgeom(iface->ctx, geom)) )
   {
-    rterror("SQL/MM Spatial exception - curve not simple");
+    rterror(iface->ctx, "SQL/MM Spatial exception - curve not simple");
     return -1;
   }
 
@@ -3241,18 +3258,18 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
                 "rtt_be_getEdgeById returned NULL and set i=%d", i);
     if ( i == -1 )
     {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
     else if ( i == 0 )
     {
-      rterror("SQL/MM Spatial exception - non-existent edge %"
+      rterror(iface->ctx, "SQL/MM Spatial exception - non-existent edge %"
               RTTFMT_ELEMID, edge_id);
       return -1;
     }
     else
     {
-      rterror("Backend coding error: getEdgeById callback returned NULL "
+      rterror(iface->ctx, "Backend coding error: getEdgeById callback returned NULL "
               "but numelements output parameter has value %d "
               "(expected 0 or 1)", i);
       return -1;
@@ -3266,12 +3283,12 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   /*
    * e) Check StartPoint consistency
    */
-  getPoint2d_p(oldedge->geom->points, 0, &p1);
-  getPoint2d_p(geom->points, 0, &pt);
-  if ( ! p2d_same(&p1, &pt) )
+  getPoint2d_p(iface->ctx, oldedge->geom->points, 0, &p1);
+  getPoint2d_p(iface->ctx, geom->points, 0, &pt);
+  if ( ! p2d_same(iface->ctx, &p1, &pt) )
   {
-    _rtt_release_edges(oldedge, 1);
-    rterror("SQL/MM Spatial exception - "
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "SQL/MM Spatial exception - "
             "start node not geometry start point.");
     return -1;
   }
@@ -3281,23 +3298,23 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
    */
   if ( oldedge->geom->points->npoints < 2 )
   {
-    _rtt_release_edges(oldedge, 1);
-    rterror("Corrupted topology: edge %" RTTFMT_ELEMID
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Corrupted topology: edge %" RTTFMT_ELEMID
             " has less than 2 vertices", oldedge->edge_id);
     return -1;
   }
-  getPoint2d_p(oldedge->geom->points, oldedge->geom->points->npoints-1, &p2);
+  getPoint2d_p(iface->ctx, oldedge->geom->points, oldedge->geom->points->npoints-1, &p2);
   if ( geom->points->npoints < 2 )
   {
-    _rtt_release_edges(oldedge, 1);
-    rterror("Invalid edge: less than 2 vertices");
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Invalid edge: less than 2 vertices");
     return -1;
   }
-  getPoint2d_p(geom->points, geom->points->npoints-1, &pt);
-  if ( ! p2d_same(&pt, &p2) )
+  getPoint2d_p(iface->ctx, geom->points, geom->points->npoints-1, &pt);
+  if ( ! p2d_same(iface->ctx, &pt, &p2) )
   {
-    _rtt_release_edges(oldedge, 1);
-    rterror("SQL/MM Spatial exception - "
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "SQL/MM Spatial exception - "
             "end node not geometry end point.");
     return -1;
   }
@@ -3311,19 +3328,19 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     isclosed = 1;
 #if 1 /* TODO: this is actually bogus as a test */
     /* check for valid edge (distinct vertices must exist) */
-    if ( ! _rtt_GetInteriorEdgePoint(geom, &pt) )
+    if ( ! _rtt_GetInteriorEdgePoint(iface->ctx, geom, &pt) )
     {
-      _rtt_release_edges(oldedge, 1);
-      rterror("Invalid edge (no two distinct vertices exist)");
+      _rtt_release_edges(iface->ctx, oldedge, 1);
+      rterror(iface->ctx, "Invalid edge (no two distinct vertices exist)");
       return -1;
     }
 #endif
 
-    if ( ptarray_isccw(oldedge->geom->points) !=
-         ptarray_isccw(geom->points) )
+    if ( ptarray_isccw(iface->ctx, oldedge->geom->points) !=
+         ptarray_isccw(iface->ctx, geom->points) )
     {
-      _rtt_release_edges(oldedge, 1);
-      rterror("Edge twist at node POINT(%g %g)", p1.x, p1.y);
+      _rtt_release_edges(iface->ctx, oldedge, 1);
+      rterror(iface->ctx, "Edge twist at node POINT(%g %g)", p1.x, p1.y);
       return -1;
     }
   }
@@ -3332,7 +3349,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
                                     oldedge->end_node, geom, edge_id ) )
   {
     /* would have called rterror already, leaking :( */
-    _rtt_release_edges(oldedge, 1);
+    _rtt_release_edges(iface->ctx, oldedge, 1);
     return -1;
   }
 
@@ -3347,9 +3364,9 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   /* Check that the "motion range" doesn't include any node */
   // 1. compute combined bbox of old and new edge
   RTGBOX mbox; /* motion box */
-  rtgeom_add_bbox((RTGEOM*)oldedge->geom); /* just in case */
-  rtgeom_add_bbox((RTGEOM*)geom); /* just in case */
-  gbox_union(oldedge->geom->bbox, geom->bbox, &mbox);
+  rtgeom_add_bbox(iface->ctx, (RTGEOM*)oldedge->geom); /* just in case */
+  rtgeom_add_bbox(iface->ctx, (RTGEOM*)geom); /* just in case */
+  gbox_union(iface->ctx, oldedge->geom->bbox, geom->bbox, &mbox);
   // 2. fetch all nodes in the combined box
   RTT_ISO_NODE *nodes;
   int numnodes;
@@ -3357,8 +3374,8 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
                                           RTT_COL_NODE_ALL, 0);
   RTDEBUGF(1, "rtt_be_getNodeWithinBox2D returned %d nodes", numnodes);
   if ( numnodes == -1 ) {
-    _rtt_release_edges(oldedge, 1);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   // 3. if any node beside endnodes are found:
@@ -3369,20 +3386,20 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 
     initGEOS(rtnotice, rtgeom_geos_error);
 
-    oarea = _rtt_EdgeMotionArea(oldedge->geom, isclosed);
+    oarea = _rtt_EdgeMotionArea(iface->ctx, oldedge->geom, isclosed);
     if ( ! oarea )
     {
-      _rtt_release_edges(oldedge, 1);
-      rterror("Could not compute edge motion area for old edge");
+      _rtt_release_edges(iface->ctx, oldedge, 1);
+      rterror(iface->ctx, "Could not compute edge motion area for old edge");
       return -1;
     }
 
-    narea = _rtt_EdgeMotionArea(geom, isclosed);
+    narea = _rtt_EdgeMotionArea(iface->ctx, geom, isclosed);
     if ( ! narea )
     {
       GEOSGeom_destroy(oarea);
-      _rtt_release_edges(oldedge, 1);
-      rterror("Could not compute edge motion area for new edge");
+      _rtt_release_edges(iface->ctx, oldedge, 1);
+      rterror(iface->ctx, "Could not compute edge motion area for new edge");
       return -1;
     }
 
@@ -3398,18 +3415,18 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
       char *wkt;
       if ( n->node_id == oldedge->start_node ) continue;
       if ( n->node_id == oldedge->end_node ) continue;
-      ngg = RTGEOM2GEOS( rtpoint_as_rtgeom(n->geom) , 0);
+      ngg = RTGEOM2GEOS(iface->ctx,  rtpoint_as_rtgeom(iface->ctx, n->geom) , 0);
       ocont = GEOSPreparedContains( oareap, ngg );
       ncont = GEOSPreparedContains( nareap, ngg );
       GEOSGeom_destroy(ngg);
       if (ocont == 2 || ncont == 2)
       {
-        _rtt_release_nodes(nodes, numnodes);
+        _rtt_release_nodes(iface->ctx, nodes, numnodes);
         GEOSPreparedGeom_destroy(oareap);
         GEOSGeom_destroy(oarea);
         GEOSPreparedGeom_destroy(nareap);
         GEOSGeom_destroy(narea);
-        rterror("GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
+        rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
         return -1;
       }
       if (ocont != ncont)
@@ -3418,10 +3435,10 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
         GEOSGeom_destroy(oarea);
         GEOSPreparedGeom_destroy(nareap);
         GEOSGeom_destroy(narea);
-        wkt = rtgeom_to_wkt(rtpoint_as_rtgeom(n->geom), RTWKT_ISO, 6, &sz);
-        _rtt_release_nodes(nodes, numnodes);
-        rterror("Edge motion collision at %s", wkt);
-        rtfree(wkt); /* would not necessarely reach this point */
+        wkt = rtgeom_to_wkt(iface->ctx, rtpoint_as_rtgeom(iface->ctx, n->geom), RTWKT_ISO, 6, &sz);
+        _rtt_release_nodes(iface->ctx, nodes, numnodes);
+        rterror(iface->ctx, "Edge motion collision at %s", wkt);
+        rtfree(iface->ctx, wkt); /* would not necessarely reach this point */
         return -1;
       }
     }
@@ -3430,7 +3447,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     GEOSPreparedGeom_destroy(nareap);
     GEOSGeom_destroy(narea);
   }}
-  if ( numnodes ) _rtt_release_nodes(nodes, numnodes);
+  if ( numnodes ) _rtt_release_nodes(iface->ctx, nodes, numnodes);
 
   RTDEBUG(1, "nodes containment check passed");
 
@@ -3441,7 +3458,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 
   edgeend span_pre, epan_pre;
   /* initialize span_pre.myaz and epan_pre.myaz with existing edge */
-  i = _rtt_InitEdgeEndByLine(&span_pre, &epan_pre,
+  i = _rtt_InitEdgeEndByLine(iface->ctx, &span_pre, &epan_pre,
                              oldedge->geom, &p1, &p2);
   if ( i ) return -1; /* rterror should have been raised */
   _rtt_FindAdjacentEdges( topo, oldedge->start_node, &span_pre,
@@ -3461,14 +3478,14 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   i = rtt_be_updateEdgesById(topo, &newedge, 1, RTT_COL_EDGE_GEOM);
   if ( i == -1 )
   {
-    _rtt_release_edges(oldedge, 1);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( ! i )
   {
-    _rtt_release_edges(oldedge, 1);
-    rterror("Unexpected error: %d edges updated when expecting 1", i);
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Unexpected error: %d edges updated when expecting 1", i);
     return -1;
   }
 
@@ -3476,10 +3493,10 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
    * Check edge adjacency after
    */
   edgeend span_post, epan_post;
-  i = _rtt_InitEdgeEndByLine(&span_post, &epan_post, geom, &p1, &p2);
+  i = _rtt_InitEdgeEndByLine(iface->ctx, &span_post, &epan_post, geom, &p1, &p2);
   if ( i ) return -1; /* rterror should have been raised */
   /* initialize epan_post.myaz and epan_post.myaz */
-  i = _rtt_InitEdgeEndByLine(&span_post, &epan_post,
+  i = _rtt_InitEdgeEndByLine(iface->ctx, &span_post, &epan_post,
                              geom, &p1, &p2);
   if ( i ) return -1; /* rterror should have been raised */
   _rtt_FindAdjacentEdges( topo, oldedge->start_node, &span_post,
@@ -3500,8 +3517,8 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
        span_pre.nextCCW != span_post.nextCCW )
   {{
     RTT_ELEMID nid = oldedge->start_node;
-    _rtt_release_edges(oldedge, 1);
-    rterror("Edge changed disposition around start node %"
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Edge changed disposition around start node %"
             RTTFMT_ELEMID, nid);
     return -1;
   }}
@@ -3511,8 +3528,8 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
        epan_pre.nextCCW != epan_post.nextCCW )
   {{
     RTT_ELEMID nid = oldedge->end_node;
-    _rtt_release_edges(oldedge, 1);
-    rterror("Edge changed disposition around end node %"
+    _rtt_release_edges(iface->ctx, oldedge, 1);
+    rterror(iface->ctx, "Edge changed disposition around end node %"
             RTTFMT_ELEMID, nid);
     return -1;
   }}
@@ -3535,12 +3552,12 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 #if 0
     {
     size_t sz;
-    char *wkt = rtgeom_to_wkt(nface1, RTWKT_EXTENDED, 2, &sz);
+    char *wkt = rtgeom_to_wkt(iface->ctx, nface1, RTWKT_EXTENDED, 2, &sz);
     RTDEBUGF(1, "new geometry of face left (%d): %s", (int)oldedge->face_left, wkt);
-    rtfree(wkt);
+    rtfree(iface->ctx, wkt);
     }
 #endif
-    rtgeom_add_bbox(nface1);
+    rtgeom_add_bbox(iface->ctx, nface1);
     faces[facestoupdate].face_id = oldedge->face_left;
     /* ownership left to nface */
     faces[facestoupdate++].mbr = nface1->bbox;
@@ -3553,12 +3570,12 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
 #if 0
     {
     size_t sz;
-    char *wkt = rtgeom_to_wkt(nface2, RTWKT_EXTENDED, 2, &sz);
+    char *wkt = rtgeom_to_wkt(iface->ctx, nface2, RTWKT_EXTENDED, 2, &sz);
     RTDEBUGF(1, "new geometry of face right (%d): %s", (int)oldedge->face_right, wkt);
-    rtfree(wkt);
+    rtfree(iface->ctx, wkt);
     }
 #endif
-    rtgeom_add_bbox(nface2);
+    rtgeom_add_bbox(iface->ctx, nface2);
     faces[facestoupdate].face_id = oldedge->face_right;
     faces[facestoupdate++].mbr = nface2->bbox; /* ownership left to nface */
   }
@@ -3568,22 +3585,22 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     i = rtt_be_updateFacesById( topo, &(faces[0]), facestoupdate );
     if ( i != facestoupdate )
     {
-      if ( nface1 ) rtgeom_free(nface1);
-      if ( nface2 ) rtgeom_free(nface2);
-      _rtt_release_edges(oldedge, 1);
+      if ( nface1 ) rtgeom_free(iface->ctx, nface1);
+      if ( nface2 ) rtgeom_free(iface->ctx, nface2);
+      _rtt_release_edges(iface->ctx, oldedge, 1);
       if ( i == -1 )
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       else
-        rterror("Unexpected error: %d faces found when expecting 1", i);
+        rterror(iface->ctx, "Unexpected error: %d faces found when expecting 1", i);
       return -1;
     }
   }
-  if ( nface1 ) rtgeom_free(nface1);
-  if ( nface2 ) rtgeom_free(nface2);
+  if ( nface1 ) rtgeom_free(iface->ctx, nface1);
+  if ( nface2 ) rtgeom_free(iface->ctx, nface2);
 
   RTDEBUG(1, "all done, cleaning up edges");
 
-  _rtt_release_edges(oldedge, 1);
+  _rtt_release_edges(iface->ctx, oldedge, 1);
   return 0; /* success */
 }
 
@@ -3593,20 +3610,21 @@ _rtt_GetIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid)
 {
   RTT_ISO_NODE *node;
   int n = 1;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   node = rtt_be_getNodeById( topo, &nid, &n, RTT_COL_NODE_CONTAINING_FACE );
   if ( n < 0 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return 0;
   }
   if ( n < 1 ) {
-    rterror("SQL/MM Spatial exception - non-existent node");
+    rterror(iface->ctx, "SQL/MM Spatial exception - non-existent node");
     return 0;
   }
   if ( node->containing_face == -1 )
   {
-    rtfree(node);
-    rterror("SQL/MM Spatial exception - not isolated node");
+    rtfree(iface->ctx, node);
+    rterror(iface->ctx, "SQL/MM Spatial exception - not isolated node");
     return 0;
   }
 
@@ -3618,21 +3636,22 @@ rtt_MoveIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid, RTPOINT *pt)
 {
   RTT_ISO_NODE *node;
   int ret;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   node = _rtt_GetIsoNode( topo, nid );
   if ( ! node ) return -1;
 
   if ( rtt_be_ExistsCoincidentNode(topo, pt) )
   {
-    rtfree(node);
-    rterror("SQL/MM Spatial exception - coincident node");
+    rtfree(iface->ctx, node);
+    rterror(iface->ctx, "SQL/MM Spatial exception - coincident node");
     return -1;
   }
 
   if ( rtt_be_ExistsEdgeIntersectingPoint(topo, pt) )
   {
-    rtfree(node);
-    rterror("SQL/MM Spatial exception - edge crosses node.");
+    rtfree(iface->ctx, node);
+    rterror(iface->ctx, "SQL/MM Spatial exception - edge crosses node.");
     return -1;
   }
 
@@ -3645,12 +3664,12 @@ rtt_MoveIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid, RTPOINT *pt)
   ret = rtt_be_updateNodesById(topo, node, 1,
                                RTT_COL_NODE_GEOM);
   if ( ret == -1 ) {
-    rtfree(node);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtfree(iface->ctx, node);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
-  rtfree(node);
+  rtfree(iface->ctx, node);
   return 0;
 }
 
@@ -3659,6 +3678,7 @@ rtt_RemoveIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid)
 {
   RTT_ISO_NODE *node;
   int n = 1;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   node = _rtt_GetIsoNode( topo, nid );
   if ( ! node ) return -1;
@@ -3666,14 +3686,14 @@ rtt_RemoveIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid)
   n = rtt_be_deleteNodesById( topo, &nid, n );
   if ( n == -1 )
   {
-    rtfree(node);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtfree(iface->ctx, node);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( n != 1 )
   {
-    rtfree(node);
-    rterror("Unexpected error: %d nodes deleted when expecting 1", n);
+    rtfree(iface->ctx, node);
+    rterror(iface->ctx, "Unexpected error: %d nodes deleted when expecting 1", n);
     return -1;
   }
 
@@ -3681,7 +3701,7 @@ rtt_RemoveIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid)
    * See https://trac.osgeo.org/postgis/ticket/3231
    */
 
-  rtfree(node);
+  rtfree(iface->ctx, node);
   return 0; /* success */
 }
 
@@ -3695,6 +3715,7 @@ rtt_RemIsoEdge(RTT_TOPOLOGY* topo, RTT_ELEMID id)
   RTT_ELEMID containing_face;
   int n = 1;
   int i;
+  RTT_BE_IFACE *iface = topo->be_iface;
 
   edge = rtt_be_getEdgeById( topo, &id, &n, RTT_COL_EDGE_START_NODE|
                                             RTT_COL_EDGE_END_NODE |
@@ -3702,60 +3723,60 @@ rtt_RemIsoEdge(RTT_TOPOLOGY* topo, RTT_ELEMID id)
                                             RTT_COL_EDGE_FACE_RIGHT );
   if ( ! edge )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( ! n )
   {
-    rterror("SQL/MM Spatial exception - non-existent edge");
+    rterror(iface->ctx, "SQL/MM Spatial exception - non-existent edge");
     return -1;
   }
   if ( n > 1 )
   {
-    rtfree(edge);
-    rterror("Corrupted topology: more than a single edge have id %"
+    rtfree(iface->ctx, edge);
+    rterror(iface->ctx, "Corrupted topology: more than a single edge have id %"
             RTTFMT_ELEMID, id);
     return -1;
   }
 
   if ( edge[0].face_left != edge[0].face_right )
   {
-    rtfree(edge);
-    rterror("SQL/MM Spatial exception - not isolated edge");
+    rtfree(iface->ctx, edge);
+    rterror(iface->ctx, "SQL/MM Spatial exception - not isolated edge");
     return -1;
   }
   containing_face = edge[0].face_left;
 
   nid[0] = edge[0].start_node;
   nid[1] = edge[0].end_node;
-  rtfree(edge);
+  rtfree(iface->ctx, edge);
 
   n = 2;
   edge = rtt_be_getEdgeByNode( topo, nid, &n, RTT_COL_EDGE_EDGE_ID );
   if ( n == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   for ( i=0; i<n; ++i )
   {
     if ( edge[i].edge_id == id ) continue;
-    rtfree(edge);
-    rterror("SQL/MM Spatial exception - not isolated edge");
+    rtfree(iface->ctx, edge);
+    rterror(iface->ctx, "SQL/MM Spatial exception - not isolated edge");
     return -1;
   }
-  if ( edge ) rtfree(edge);
+  if ( edge ) rtfree(iface->ctx, edge);
 
   deledge.edge_id = id;
   n = rtt_be_deleteEdges( topo, &deledge, RTT_COL_EDGE_EDGE_ID );
   if ( n == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( n != 1 )
   {
-    rterror("Unexpected error: %d edges deleted when expecting 1", n);
+    rterror(iface->ctx, "Unexpected error: %d edges deleted when expecting 1", n);
     return -1;
   }
 
@@ -3771,7 +3792,7 @@ rtt_RemIsoEdge(RTT_TOPOLOGY* topo, RTT_ELEMID id)
                                RTT_COL_NODE_CONTAINING_FACE);
   if ( n == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -3847,8 +3868,9 @@ _rtt_UpdateNodeFaceRef( RTT_TOPOLOGY *topo, RTT_ELEMID of, RTT_ELEMID nf)
  * the created face (0 if none) if modFace is 0.
  */
 static RTT_ELEMID
-_rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
+_rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
 {
+  RTT_BE_IFACE *iface = topo->be_iface;
   int i, nedges, nfaces, fields;
   RTT_ISO_EDGE *edge = NULL;
   RTT_ISO_EDGE *upd_edge = NULL;
@@ -3876,18 +3898,18 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
     RTDEBUGF(1, "rtt_be_getEdgeById returned NULL and set i=%d", i);
     if ( i == -1 )
     {
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
     else if ( i == 0 )
     {
-      rterror("SQL/MM Spatial exception - non-existent edge %"
+      rterror(iface->ctx, "SQL/MM Spatial exception - non-existent edge %"
               RTTFMT_ELEMID, edge_id);
       return -1;
     }
     else
     {
-      rterror("Backend coding error: getEdgeById callback returned NULL "
+      rterror(iface->ctx, "Backend coding error: getEdgeById callback returned NULL "
               "but numelements output parameter has value %d "
               "(expected 0 or 1)", i);
       return -1;
@@ -3897,7 +3919,7 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
   if ( ! rtt_be_checkTopoGeomRemEdge(topo, edge_id,
                                      edge->face_left, edge->face_right) )
   {
-    rterror("%s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "%s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -3916,7 +3938,7 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
            RTT_COL_EDGE_NEXT_RIGHT;
   upd_edge = rtt_be_getEdgeByNode( topo, &(node_ids[0]), &nedges, fields );
   if ( nedges == -1 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   nedge_left = nedge_right = 0;
@@ -3967,9 +3989,9 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
                                RTT_COL_EDGE_NEXT_LEFT);
     if ( i == -1 )
     {
-      _rtt_release_edges(edge, 1);
-      rtfree(upd_edge);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edge, 1);
+      rtfree(iface->ctx, upd_edge);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
@@ -3981,14 +4003,14 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
                                RTT_COL_EDGE_NEXT_RIGHT);
     if ( i == -1 )
     {
-      _rtt_release_edges(edge, 1);
-      rtfree(upd_edge);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edge, 1);
+      rtfree(iface->ctx, upd_edge);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
   RTDEBUGF(1, "releasing %d updateable edges in %p", nedges, upd_edge);
-  rtfree(upd_edge);
+  rtfree(iface->ctx, upd_edge);
 
   /* Id of face that will take up all the space previously
    * taken by left and right faces of the edge */
@@ -4020,7 +4042,7 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
       fields = RTT_COL_FACE_ALL;
       faces = rtt_be_getFaceById(topo, face_ids, &nfaces, fields);
       if ( nfaces == -1 ) {
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
       RTGBOX *box1=NULL;
@@ -4033,9 +4055,9 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
           else
           {
             i = edge->face_left;
-            _rtt_release_edges(edge, 1);
-            _rtt_release_faces(faces, nfaces);
-            rterror("corrupted topology: more than 1 face have face_id=%"
+            _rtt_release_edges(iface->ctx, edge, 1);
+            _rtt_release_faces(iface->ctx, faces, nfaces);
+            rterror(iface->ctx, "corrupted topology: more than 1 face have face_id=%"
                     RTTFMT_ELEMID, i);
             return -1;
           }
@@ -4046,9 +4068,9 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
           else
           {
             i = edge->face_right;
-            _rtt_release_edges(edge, 1);
-            _rtt_release_faces(faces, nfaces);
-            rterror("corrupted topology: more than 1 face have face_id=%"
+            _rtt_release_edges(iface->ctx, edge, 1);
+            _rtt_release_faces(iface->ctx, faces, nfaces);
+            rterror(iface->ctx, "corrupted topology: more than 1 face have face_id=%"
                     RTTFMT_ELEMID, i);
             return -1;
           }
@@ -4056,48 +4078,48 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
         else
         {
           i = faces[i].face_id;
-          _rtt_release_edges(edge, 1);
-          _rtt_release_faces(faces, nfaces);
-          rterror("Backend coding error: getFaceById returned face "
+          _rtt_release_edges(iface->ctx, edge, 1);
+          _rtt_release_faces(iface->ctx, faces, nfaces);
+          rterror(iface->ctx, "Backend coding error: getFaceById returned face "
                   "with non-requested id %" RTTFMT_ELEMID, i);
           return -1;
         }
       }
       if ( ! box1 ) {
         i = edge->face_left;
-        _rtt_release_edges(edge, 1);
-        _rtt_release_faces(faces, nfaces);
-        rterror("corrupted topology: no face have face_id=%"
+        _rtt_release_edges(iface->ctx, edge, 1);
+        _rtt_release_faces(iface->ctx, faces, nfaces);
+        rterror(iface->ctx, "corrupted topology: no face have face_id=%"
                 RTTFMT_ELEMID " (left face for edge %"
                 RTTFMT_ELEMID ")", i, edge_id);
         return -1;
       }
       if ( ! box2 ) {
         i = edge->face_right;
-        _rtt_release_edges(edge, 1);
-        _rtt_release_faces(faces, nfaces);
-        rterror("corrupted topology: no face have face_id=%"
+        _rtt_release_edges(iface->ctx, edge, 1);
+        _rtt_release_faces(iface->ctx, faces, nfaces);
+        rterror(iface->ctx, "corrupted topology: no face have face_id=%"
                 RTTFMT_ELEMID " (right face for edge %"
                 RTTFMT_ELEMID ")", i, edge_id);
         return -1;
       }
-      gbox_merge(box2, box1); /* box1 is now the union of the two */
+      gbox_merge(iface->ctx, box2, box1); /* box1 is now the union of the two */
       newface.mbr = box1;
       if ( modFace )
       {
         newface.face_id = floodface;
         i = rtt_be_updateFacesById( topo, &newface, 1 );
-        _rtt_release_faces(faces, 2);
+        _rtt_release_faces(iface->ctx, faces, 2);
         if ( i == -1 )
         {
-          _rtt_release_edges(edge, 1);
-          rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+          _rtt_release_edges(iface->ctx, edge, 1);
+          rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
           return -1;
         }
         if ( i != 1 )
         {
-          _rtt_release_edges(edge, 1);
-          rterror("Unexpected error: %d faces updated when expecting 1", i);
+          _rtt_release_edges(iface->ctx, edge, 1);
+          rterror(iface->ctx, "Unexpected error: %d faces updated when expecting 1", i);
           return -1;
         }
       }
@@ -4106,17 +4128,17 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
         /* New face replaces the old two faces */
         newface.face_id = -1;
         i = rtt_be_insertFaces( topo, &newface, 1 );
-        _rtt_release_faces(faces, 2);
+        _rtt_release_faces(iface->ctx, faces, 2);
         if ( i == -1 )
         {
-          _rtt_release_edges(edge, 1);
-          rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+          _rtt_release_edges(iface->ctx, edge, 1);
+          rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
           return -1;
         }
         if ( i != 1 )
         {
-          _rtt_release_edges(edge, 1);
-          rterror("Unexpected error: %d faces inserted when expecting 1", i);
+          _rtt_release_edges(iface->ctx, edge, 1);
+          rterror(iface->ctx, "Unexpected error: %d faces inserted when expecting 1", i);
           return -1;
         }
         floodface = newface.face_id;
@@ -4130,14 +4152,14 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
     {
       if ( -1 == _rtt_UpdateEdgeFaceRef(topo, edge->face_left, floodface) )
       {
-        _rtt_release_edges(edge, 1);
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        _rtt_release_edges(iface->ctx, edge, 1);
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
       if ( -1 == _rtt_UpdateNodeFaceRef(topo, edge->face_left, floodface) )
       {
-        _rtt_release_edges(edge, 1);
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        _rtt_release_edges(iface->ctx, edge, 1);
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
     }
@@ -4146,14 +4168,14 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
     {
       if ( -1 == _rtt_UpdateEdgeFaceRef(topo, edge->face_right, floodface) )
       {
-        _rtt_release_edges(edge, 1);
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        _rtt_release_edges(iface->ctx, edge, 1);
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
       if ( -1 == _rtt_UpdateNodeFaceRef(topo, edge->face_right, floodface) )
       {
-        _rtt_release_edges(edge, 1);
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        _rtt_release_edges(iface->ctx, edge, 1);
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
     }
@@ -4163,8 +4185,8 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
                                   edge->face_right, edge->face_left,
                                   floodface) )
     {
-      _rtt_release_edges(edge, 1);
-      rterror("%s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edge, 1);
+      rterror(iface->ctx, "%s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   } /* two faces healed */
@@ -4172,8 +4194,8 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
   /* Delete the edge */
   i = rtt_be_deleteEdges(topo, edge, RTT_COL_EDGE_EDGE_ID);
   if ( i == -1 ) {
-    _rtt_release_edges(edge, 1);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, edge, 1);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -4197,8 +4219,8 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
     i = rtt_be_updateNodesById(topo, upd_node, nnode,
                                RTT_COL_NODE_CONTAINING_FACE);
     if ( i == -1 ) {
-      _rtt_release_edges(edge, 1);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edge, 1);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
@@ -4214,13 +4236,13 @@ _rtt_RemEdge( RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
       ids[nids++] = edge->face_left;
     i = rtt_be_deleteFacesById(topo, ids, nids);
     if ( i == -1 ) {
-      _rtt_release_edges(edge, 1);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edge, 1);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
 
-  _rtt_release_edges(edge, 1);
+  _rtt_release_edges(iface->ctx, edge, 1);
   return modFace ? floodface : newface.face_id;
 }
 
@@ -4240,6 +4262,7 @@ static RTT_ELEMID
 _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
                 int modEdge )
 {
+  RTT_BE_IFACE *iface = topo->be_iface;
   RTT_ELEMID ids[2];
   RTT_ELEMID commonnode = -1;
   int caseno = 0;
@@ -4262,7 +4285,7 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   /* NOT IN THE SPECS: see if the same edge is given twice.. */
   if ( eid1 == eid2 )
   {
-    rterror("Cannot heal edge %" RTTFMT_ELEMID
+    rterror(iface->ctx, "Cannot heal edge %" RTTFMT_ELEMID
             " with itself, try with another", eid1);
     return -1;
   }
@@ -4272,15 +4295,15 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   edges = rtt_be_getEdgeById(topo, ids, &nedges, RTT_COL_EDGE_ALL);
   if ( nedges == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   for ( i=0; i<nedges; ++i )
   {
     if ( edges[i].edge_id == eid1 ) {
       if ( e1 ) {
-        _rtt_release_edges(edges, nedges);
-        rterror("Corrupted topology: multiple edges have id %"
+        _rtt_release_edges(iface->ctx, edges, nedges);
+        rterror(iface->ctx, "Corrupted topology: multiple edges have id %"
                 RTTFMT_ELEMID, eid1);
         return -1;
       }
@@ -4288,8 +4311,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
     }
     else if ( edges[i].edge_id == eid2 ) {
       if ( e2 ) {
-        _rtt_release_edges(edges, nedges);
-        rterror("Corrupted topology: multiple edges have id %"
+        _rtt_release_edges(iface->ctx, edges, nedges);
+        rterror(iface->ctx, "Corrupted topology: multiple edges have id %"
                 RTTFMT_ELEMID, eid2);
         return -1;
       }
@@ -4298,15 +4321,15 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   }
   if ( ! e1 )
   {
-    if ( edges ) _rtt_release_edges(edges, nedges);
-    rterror("SQL/MM Spatial exception - non-existent edge %"
+    if ( edges ) _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "SQL/MM Spatial exception - non-existent edge %"
             RTTFMT_ELEMID, eid1);
     return -1;
   }
   if ( ! e2 )
   {
-    if ( edges ) _rtt_release_edges(edges, nedges);
-    rterror("SQL/MM Spatial exception - non-existent edge %"
+    if ( edges ) _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "SQL/MM Spatial exception - non-existent edge %"
             RTTFMT_ELEMID, eid2);
     return -1;
   }
@@ -4314,15 +4337,15 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   /* NOT IN THE SPECS: See if any of the two edges are closed. */
   if ( e1->start_node == e1->end_node )
   {
-    _rtt_release_edges(edges, nedges);
-    rterror("Edge %" RTTFMT_ELEMID " is closed, cannot heal to edge %"
+    _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "Edge %" RTTFMT_ELEMID " is closed, cannot heal to edge %"
             RTTFMT_ELEMID, eid1, eid2);
     return -1;
   }
   if ( e2->start_node == e2->end_node )
   {
-    _rtt_release_edges(edges, nedges);
-    rterror("Edge %" RTTFMT_ELEMID " is closed, cannot heal to edge %"
+    _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "Edge %" RTTFMT_ELEMID " is closed, cannot heal to edge %"
             RTTFMT_ELEMID, eid2, eid1);
     return -1;
   }
@@ -4346,8 +4369,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
     node_edges = rtt_be_getEdgeByNode( topo, &commonnode,
                                        &num_node_edges, RTT_COL_EDGE_EDGE_ID );
     if ( num_node_edges == -1 ) {
-      _rtt_release_edges(edges, nedges);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
     for (i=0; i<num_node_edges; ++i)
@@ -4375,7 +4398,7 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
         }
       }
     }
-    rtfree(node_edges);
+    rtfree(iface->ctx, node_edges);
   }
 
   if ( commonnode == -1 )
@@ -4397,8 +4420,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
       node_edges = rtt_be_getEdgeByNode( topo, &commonnode,
                                          &num_node_edges, RTT_COL_EDGE_EDGE_ID );
       if ( num_node_edges == -1 ) {
-        _rtt_release_edges(edges, nedges);
-        rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+        _rtt_release_edges(iface->ctx, edges, nedges);
+        rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
         return -1;
       }
       for (i=0; i<num_node_edges; ++i)
@@ -4426,21 +4449,21 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
           }
         }
       }
-      if ( num_node_edges ) rtfree(node_edges);
+      if ( num_node_edges ) rtfree(iface->ctx, node_edges);
     }
   }
 
   if ( commonnode == -1 )
   {
-    _rtt_release_edges(edges, nedges);
+    _rtt_release_edges(iface->ctx, edges, nedges);
     if ( ptr != buf )
     {
-      rterror("SQL/MM Spatial exception - other edges connected (%s)",
+      rterror(iface->ctx, "SQL/MM Spatial exception - other edges connected (%s)",
               buf);
     }
     else
     {
-      rterror("SQL/MM Spatial exception - non-connected edges");
+      rterror(iface->ctx, "SQL/MM Spatial exception - non-connected edges");
     }
     return -1;
   }
@@ -4448,8 +4471,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   if ( ! rtt_be_checkTopoGeomRemNode(topo, commonnode,
                                      eid1, eid2 ) )
   {
-    _rtt_release_edges(edges, nedges);
-    rterror("%s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "%s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -4457,9 +4480,9 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   switch (caseno)
   {
     case 1: /* e1.end = e2.start */
-      pa = ptarray_clone_deep(e1->geom->points);
-      //pa = ptarray_merge(pa, e2->geom->points);
-      ptarray_append_ptarray(pa, e2->geom->points, 0);
+      pa = ptarray_clone_deep(iface->ctx, e1->geom->points);
+      //pa = ptarray_merge(iface->ctx, pa, e2->geom->points);
+      ptarray_append_ptarray(iface->ctx, pa, e2->geom->points, 0);
       newedge.start_node = e1->start_node;
       newedge.end_node = e2->end_node;
       newedge.next_left = e2->next_left;
@@ -4471,12 +4494,12 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
     case 2: /* e1.end = e2.end */
     {
       RTPOINTARRAY *pa2;
-      pa2 = ptarray_clone_deep(e2->geom->points);
-      ptarray_reverse(pa2);
-      pa = ptarray_clone_deep(e1->geom->points);
-      //pa = ptarray_merge(e1->geom->points, pa);
-      ptarray_append_ptarray(pa, pa2, 0);
-      ptarray_free(pa2);
+      pa2 = ptarray_clone_deep(iface->ctx, e2->geom->points);
+      ptarray_reverse(iface->ctx, pa2);
+      pa = ptarray_clone_deep(iface->ctx, e1->geom->points);
+      //pa = ptarray_merge(iface->ctx, e1->geom->points, pa);
+      ptarray_append_ptarray(iface->ctx, pa, pa2, 0);
+      ptarray_free(iface->ctx, pa2);
       newedge.start_node = e1->start_node;
       newedge.end_node = e2->start_node;
       newedge.next_left = e2->next_right;
@@ -4487,10 +4510,10 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
       break;
     }
     case 3: /* e1.start = e2.start */
-      pa = ptarray_clone_deep(e2->geom->points);
-      ptarray_reverse(pa);
-      //pa = ptarray_merge(pa, e1->geom->points);
-      ptarray_append_ptarray(pa, e1->geom->points, 0);
+      pa = ptarray_clone_deep(iface->ctx, e2->geom->points);
+      ptarray_reverse(iface->ctx, pa);
+      //pa = ptarray_merge(iface->ctx, pa, e1->geom->points);
+      ptarray_append_ptarray(iface->ctx, pa, e1->geom->points, 0);
       newedge.end_node = e1->end_node;
       newedge.start_node = e2->end_node;
       newedge.next_left = e1->next_left;
@@ -4500,9 +4523,9 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
       e2sign = -1;
       break;
     case 4: /* e1.start = e2.end */
-      pa = ptarray_clone_deep(e2->geom->points);
-      //pa = ptarray_merge(pa, e1->geom->points);
-      ptarray_append_ptarray(pa, e1->geom->points, 0);
+      pa = ptarray_clone_deep(iface->ctx, e2->geom->points);
+      //pa = ptarray_merge(iface->ctx, pa, e1->geom->points);
+      ptarray_append_ptarray(iface->ctx, pa, e1->geom->points, 0);
       newedge.end_node = e1->end_node;
       newedge.start_node = e2->start_node;
       newedge.next_left = e1->next_left;
@@ -4516,11 +4539,11 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
       e1freenode = 0;
       e2freenode = 0;
       e2sign = 0;
-      _rtt_release_edges(edges, nedges);
-      rterror("Coding error: caseno=%d should never happen", caseno);
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Coding error: caseno=%d should never happen", caseno);
       break;
   }
-  newedge.geom = rtline_construct(topo->srid, NULL, pa);
+  newedge.geom = rtline_construct(iface->ctx, topo->srid, NULL, pa);
 
   if ( modEdge )
   {
@@ -4534,16 +4557,16 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
                                RTT_COL_EDGE_GEOM);
     if ( i == -1 )
     {
-      rtline_free(newedge.geom);
-      _rtt_release_edges(edges, nedges);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rtline_free(iface->ctx, newedge.geom);
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
     else if ( i != 1 )
     {
-      rtline_free(newedge.geom);
-      if ( edges ) _rtt_release_edges(edges, nedges);
-      rterror("Unexpected error: %d edges updated when expecting 1", i);
+      rtline_free(iface->ctx, newedge.geom);
+      if ( edges ) _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Unexpected error: %d edges updated when expecting 1", i);
       return -1;
     }
   }
@@ -4555,18 +4578,18 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
     newedge.face_right = e1->face_right;
     i = rtt_be_insertEdges(topo, &newedge, 1);
     if ( i == -1 ) {
-      rtline_free(newedge.geom);
-      _rtt_release_edges(edges, nedges);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      rtline_free(iface->ctx, newedge.geom);
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     } else if ( i == 0 ) {
-      rtline_free(newedge.geom);
-      _rtt_release_edges(edges, nedges);
-      rterror("Insertion of split edge failed (no reason)");
+      rtline_free(iface->ctx, newedge.geom);
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Insertion of split edge failed (no reason)");
       return -1;
     }
   }
-  rtline_free(newedge.geom);
+  rtline_free(iface->ctx, newedge.geom);
 
   /*
   -- Update next_left_edge/next_right_edge for
@@ -4590,8 +4613,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
                                NULL, 0);
   if ( i == -1 )
   {
-    _rtt_release_edges(edges, nedges);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -4603,8 +4626,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
                                NULL, 0);
   if ( i == -1 )
   {
-    _rtt_release_edges(edges, nedges);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -4618,8 +4641,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
                                  NULL, 0);
     if ( i == -1 )
     {
-      _rtt_release_edges(edges, nedges);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
 
@@ -4631,8 +4654,8 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
                                  NULL, 0);
     if ( i == -1 )
     {
-      _rtt_release_edges(edges, nedges);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
@@ -4641,27 +4664,27 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   i = rtt_be_deleteEdges(topo, e2, RTT_COL_EDGE_EDGE_ID);
   if ( i == -1 )
   {
-    _rtt_release_edges(edges, nedges);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    _rtt_release_edges(iface->ctx, edges, nedges);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( ! modEdge ) {
     i = rtt_be_deleteEdges(topo, e1, RTT_COL_EDGE_EDGE_ID);
     if ( i == -1 )
     {
-      _rtt_release_edges(edges, nedges);
-      rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      _rtt_release_edges(iface->ctx, edges, nedges);
+      rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
   }
 
-  _rtt_release_edges(edges, nedges);
+  _rtt_release_edges(iface->ctx, edges, nedges);
 
   /* delete the common node */
   i = rtt_be_deleteNodesById( topo, &commonnode, 1 );
   if ( i == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -4676,7 +4699,7 @@ _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
   if ( ! rtt_be_updateTopoGeomEdgeHeal(topo,
                                 eid1, eid2, newedge.edge_id) )
   {
-    rterror("%s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "%s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -4703,28 +4726,29 @@ rtt_GetNodeByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   int flds = RTT_COL_NODE_NODE_ID|RTT_COL_NODE_GEOM; /* geom not needed */
   RTT_ELEMID id = 0;
   RTPOINT2D qp; /* query point */
+  RTT_BE_IFACE *iface = topo->be_iface;
 
-  if ( ! getPoint2d_p(pt->point, 0, &qp) )
+  if ( ! getPoint2d_p(iface->ctx, pt->point, 0, &qp) )
   {
-    rterror("Empty query point");
+    rterror(iface->ctx, "Empty query point");
     return -1;
   }
   elem = rtt_be_getNodeWithinDistance2D(topo, pt, tol, &num, flds, 0);
   if ( num == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   else if ( num )
   {
     if ( num > 1 )
     {
-      _rtt_release_nodes(elem, num);
-      rterror("Two or more nodes found");
+      _rtt_release_nodes(iface->ctx, elem, num);
+      rterror(iface->ctx, "Two or more nodes found");
       return -1;
     }
     id = elem[0].node_id;
-    _rtt_release_nodes(elem, num);
+    _rtt_release_nodes(iface->ctx, elem, num);
   }
 
   return id;
@@ -4737,17 +4761,18 @@ rtt_GetEdgeByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   int num, i;
   int flds = RTT_COL_EDGE_EDGE_ID|RTT_COL_EDGE_GEOM; /* GEOM is not needed */
   RTT_ELEMID id = 0;
-  RTGEOM *qp = rtpoint_as_rtgeom(pt); /* query point */
+  RTT_BE_IFACE *iface = topo->be_iface;
+  RTGEOM *qp = rtpoint_as_rtgeom(iface->ctx, pt); /* query point */
 
-  if ( rtgeom_is_empty(qp) )
+  if ( rtgeom_is_empty(iface->ctx, qp) )
   {
-    rterror("Empty query point");
+    rterror(iface->ctx, "Empty query point");
     return -1;
   }
   elem = rtt_be_getEdgeWithinDistance2D(topo, pt, tol, &num, flds, 0);
   if ( num == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   for (i=0; i<num;++i)
@@ -4759,29 +4784,29 @@ rtt_GetEdgeByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
 
     if ( ! e->geom )
     {
-      _rtt_release_edges(elem, num);
-      rtnotice("Corrupted topology: edge %" RTTFMT_ELEMID
+      _rtt_release_edges(iface->ctx, elem, num);
+      rtnotice(iface->ctx, "Corrupted topology: edge %" RTTFMT_ELEMID
                " has null geometry", e->edge_id);
       continue;
     }
 
     /* Should we check for intersection not being on an endpoint
      * as documented ? */
-    geom = rtline_as_rtgeom(e->geom);
-    dist = rtgeom_mindistance2d_tolerance(geom, qp, tol);
+    geom = rtline_as_rtgeom(iface->ctx, e->geom);
+    dist = rtgeom_mindistance2d_tolerance(iface->ctx, geom, qp, tol);
     if ( dist > tol ) continue;
 #endif
 
     if ( id )
     {
-      _rtt_release_edges(elem, num);
-      rterror("Two or more edges found");
+      _rtt_release_edges(iface->ctx, elem, num);
+      rterror(iface->ctx, "Two or more edges found");
       return -1;
     }
     else id = e->edge_id;
   }
 
-  if ( num ) _rtt_release_edges(elem, num);
+  if ( num ) _rtt_release_edges(iface->ctx, elem, num);
 
   return id;
 }
@@ -4796,11 +4821,12 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
              RTT_COL_EDGE_GEOM |
              RTT_COL_EDGE_FACE_LEFT |
              RTT_COL_EDGE_FACE_RIGHT;
-  RTGEOM *qp = rtpoint_as_rtgeom(pt);
+  RTT_BE_IFACE *iface = topo->be_iface;
+  RTGEOM *qp = rtpoint_as_rtgeom(iface->ctx, pt);
 
   id = rtt_be_getFaceContainingPoint(topo, pt);
   if ( id == -2 ) {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
 
@@ -4820,7 +4846,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   elem = rtt_be_getEdgeWithinDistance2D(topo, pt, tol?tol:1e-5, &num, flds, 0);
   if ( num == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   for (i=0; i<num; ++i)
@@ -4832,8 +4858,8 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
 
     if ( ! e->geom )
     {
-      _rtt_release_edges(elem, num);
-      rtnotice("Corrupted topology: edge %" RTTFMT_ELEMID
+      _rtt_release_edges(iface->ctx, elem, num);
+      rtnotice(iface->ctx, "Corrupted topology: edge %" RTTFMT_ELEMID
                " has null geometry", e->edge_id);
       continue;
     }
@@ -4846,8 +4872,8 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
       continue;
     }
 
-    geom = rtline_as_rtgeom(e->geom);
-    dist = rtgeom_mindistance2d_tolerance(geom, qp, tol);
+    geom = rtline_as_rtgeom(iface->ctx, e->geom);
+    dist = rtgeom_mindistance2d_tolerance(iface->ctx, geom, qp, tol);
 
     RTDEBUGF(1, "Distance from edge %" RTTFMT_ELEMID
                 " is %g (tol=%g)", e->edge_id, dist, tol);
@@ -4861,15 +4887,15 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
       eface = e->face_left;
     }
     else {
-      _rtt_release_edges(elem, num);
-      rterror("Two or more faces found");
+      _rtt_release_edges(iface->ctx, elem, num);
+      rterror(iface->ctx, "Two or more faces found");
       return -1;
     }
 
     if ( id && id != eface )
     {
-      _rtt_release_edges(elem, num);
-      rterror("Two or more faces found"
+      _rtt_release_edges(iface->ctx, elem, num);
+      rterror(iface->ctx, "Two or more faces found"
 #if 0 /* debugging */
               " (%" RTTFMT_ELEMID
               " and %" RTTFMT_ELEMID ")", id, eface
@@ -4879,7 +4905,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
     }
     else id = eface;
   }
-  if ( num ) _rtt_release_edges(elem, num);
+  if ( num ) _rtt_release_edges(iface->ctx, elem, num);
 
   return id;
 }
@@ -4888,13 +4914,13 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
  * the maximum absolute value of a geometry ordinate
  */
 static double
-_rtt_minTolerance( RTGEOM *g )
+_rtt_minTolerance(RTCTX *ctx,  RTGEOM *g )
 {
   const RTGBOX* gbox;
   double max;
   double ret;
 
-  gbox = rtgeom_get_bbox(g);
+  gbox = rtgeom_get_bbox(ctx, g);
   if ( ! gbox ) return 0; /* empty */
   max = FP_ABS(gbox->xmin);
   if ( max < FP_ABS(gbox->xmax) ) max = FP_ABS(gbox->xmax);
@@ -4907,7 +4933,7 @@ _rtt_minTolerance( RTGEOM *g )
 }
 
 #define _RTT_MINTOLERANCE( topo, geom ) ( \
-  topo->precision ?  topo->precision : _rtt_minTolerance(geom) )
+  topo->precision ?  topo->precision : _rtt_minTolerance(topo->be_iface->ctx, geom) )
 
 typedef struct scored_pointer_t {
   void *ptr;
@@ -4934,7 +4960,8 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   double mindist = FLT_MAX;
   RTT_ISO_NODE *nodes, *nodes2;
   RTT_ISO_EDGE *edges, *edges2;
-  RTGEOM *pt = rtpoint_as_rtgeom(point);
+  RTT_BE_IFACE *iface = topo->be_iface;
+  RTGEOM *pt = rtpoint_as_rtgeom(iface->ctx, point);
   int flds;
   RTT_ELEMID id = 0;
   scored_pointer *sorted;
@@ -4953,7 +4980,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   nodes = rtt_be_getNodeWithinDistance2D(topo, point, tol, &num, flds, 0);
   if ( num == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( num )
@@ -4962,30 +4989,30 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     /* Order by distance if there are more than a single return */
     if ( num > 1 )
     {{
-      sorted= rtalloc(sizeof(scored_pointer)*num);
+      sorted= rtalloc(iface->ctx, sizeof(scored_pointer)*num);
       for (i=0; i<num; ++i)
       {
         sorted[i].ptr = nodes+i;
-        sorted[i].score = rtgeom_mindistance2d(rtpoint_as_rtgeom(nodes[i].geom), pt);
+        sorted[i].score = rtgeom_mindistance2d(iface->ctx, rtpoint_as_rtgeom(iface->ctx, nodes[i].geom), pt);
         RTDEBUGF(1, "Node %" RTTFMT_ELEMID " distance: %.15g",
           ((RTT_ISO_NODE*)(sorted[i].ptr))->node_id, sorted[i].score);
       }
       qsort(sorted, num, sizeof(scored_pointer), compare_scored_pointer);
-      nodes2 = rtalloc(sizeof(RTT_ISO_NODE)*num);
+      nodes2 = rtalloc(iface->ctx, sizeof(RTT_ISO_NODE)*num);
       for (i=0; i<num; ++i)
       {
         nodes2[i] = *((RTT_ISO_NODE*)sorted[i].ptr);
       }
-      rtfree(sorted);
-      rtfree(nodes);
+      rtfree(iface->ctx, sorted);
+      rtfree(iface->ctx, nodes);
       nodes = nodes2;
     }}
 
     for ( i=0; i<num; ++i )
     {
       RTT_ISO_NODE *n = &(nodes[i]);
-      RTGEOM *g = rtpoint_as_rtgeom(n->geom);
-      double dist = rtgeom_mindistance2d(g, pt);
+      RTGEOM *g = rtpoint_as_rtgeom(iface->ctx, n->geom);
+      double dist = rtgeom_mindistance2d(iface->ctx, g, pt);
       /* TODO: move this check in the previous sort scan ... */
       if ( dist >= tol ) continue; /* must be closer than tolerated */
       if ( ! id || dist < mindist )
@@ -4997,7 +5024,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     if ( id )
     {
       /* found an existing node */
-      if ( nodes ) _rtt_release_nodes(nodes, num);
+      if ( nodes ) _rtt_release_nodes(iface->ctx, nodes, num);
       return id;
     }
   }
@@ -5013,7 +5040,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   edges = rtt_be_getEdgeWithinDistance2D(topo, point, tol, &num, flds, 0);
   if ( num == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( num )
@@ -5024,16 +5051,16 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   if ( num > 1 )
   {{
     int j;
-    sorted = rtalloc(sizeof(scored_pointer)*num);
+    sorted = rtalloc(iface->ctx, sizeof(scored_pointer)*num);
     for (i=0; i<num; ++i)
     {
       sorted[i].ptr = edges+i;
-      sorted[i].score = rtgeom_mindistance2d(rtline_as_rtgeom(edges[i].geom), pt);
+      sorted[i].score = rtgeom_mindistance2d(iface->ctx, rtline_as_rtgeom(iface->ctx, edges[i].geom), pt);
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " distance: %.15g",
         ((RTT_ISO_EDGE*)(sorted[i].ptr))->edge_id, sorted[i].score);
     }
     qsort(sorted, num, sizeof(scored_pointer), compare_scored_pointer);
-    edges2 = rtalloc(sizeof(RTT_ISO_EDGE)*num);
+    edges2 = rtalloc(iface->ctx, sizeof(RTT_ISO_EDGE)*num);
     for (j=0, i=0; i<num; ++i)
     {
       if ( sorted[i].score == sorted[0].score )
@@ -5042,12 +5069,12 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       }
       else
       {
-        rtline_free(((RTT_ISO_EDGE*)sorted[i].ptr)->geom);
+        rtline_free(iface->ctx, ((RTT_ISO_EDGE*)sorted[i].ptr)->geom);
       }
     }
     num = j;
-    rtfree(sorted);
-    rtfree(edges);
+    rtfree(iface->ctx, sorted);
+    rtfree(iface->ctx, edges);
     edges = edges2;
   }}
 
@@ -5055,7 +5082,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   {
     /* The point is on or near an edge, split the edge */
     RTT_ISO_EDGE *e = &(edges[i]);
-    RTGEOM *g = rtline_as_rtgeom(e->geom);
+    RTGEOM *g = rtline_as_rtgeom(iface->ctx, e->geom);
     RTGEOM *prj;
     int contains;
     GEOSGeometry *prjg, *gg;
@@ -5063,8 +5090,8 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     RTDEBUGF(1, "Splitting edge %" RTTFMT_ELEMID, e->edge_id);
 
     /* project point to line, split edge by point */
-    prj = rtgeom_closest_point(g, pt);
-    if ( rtgeom_has_z(pt) )
+    prj = rtgeom_closest_point(iface->ctx, g, pt);
+    if ( rtgeom_has_z(iface->ctx, pt) )
     {{
       /*
       -- This is a workaround for ClosestPoint lack of Z support:
@@ -5075,29 +5102,29 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       RTPOINT4D p4d;
       RTPOINT *prjpt;
       /* add Z to "prj" */
-      tmp = rtgeom_force_3dz(prj);
-      prjpt = rtgeom_as_rtpoint(tmp);
-      getPoint4d_p(point->point, 0, &p4d);
+      tmp = rtgeom_force_3dz(iface->ctx, prj);
+      prjpt = rtgeom_as_rtpoint(iface->ctx, tmp);
+      getPoint4d_p(iface->ctx, point->point, 0, &p4d);
       z = p4d.z;
-      getPoint4d_p(prjpt->point, 0, &p4d);
+      getPoint4d_p(iface->ctx, prjpt->point, 0, &p4d);
       p4d.z = z;
-      ptarray_set_point4d(prjpt->point, 0, &p4d);
-      rtgeom_free(prj);
+      ptarray_set_point4d(iface->ctx, prjpt->point, 0, &p4d);
+      rtgeom_free(iface->ctx, prj);
       prj = tmp;
     }}
-    prjg = RTGEOM2GEOS(prj, 0);
+    prjg = RTGEOM2GEOS(iface->ctx, prj, 0);
     if ( ! prjg ) {
-      rtgeom_free(prj);
-      _rtt_release_edges(edges, num);
-      rterror("Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
+      rtgeom_free(iface->ctx, prj);
+      _rtt_release_edges(iface->ctx, edges, num);
+      rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
       return -1;
     }
-    gg = RTGEOM2GEOS(g, 0);
+    gg = RTGEOM2GEOS(iface->ctx, g, 0);
     if ( ! gg ) {
-      rtgeom_free(prj);
-      _rtt_release_edges(edges, num);
+      rtgeom_free(iface->ctx, prj);
+      _rtt_release_edges(iface->ctx, edges, num);
       GEOSGeom_destroy(prjg);
-      rterror("Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
+      rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
       return -1;
     }
     contains = GEOSContains(gg, prjg);
@@ -5105,9 +5132,9 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     GEOSGeom_destroy(gg);
     if ( contains == 2 )
     {
-      rtgeom_free(prj);
-      _rtt_release_edges(edges, num);
-      rterror("GEOS exception on Contains: %s", rtgeom_geos_errmsg);
+      rtgeom_free(iface->ctx, prj);
+      _rtt_release_edges(iface->ctx, edges, num);
+      rterror(iface->ctx, "GEOS exception on Contains: %s", rtgeom_geos_errmsg);
       return -1;
     } 
     if ( ! contains )
@@ -5126,7 +5153,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       if ( i+1 < num )
       {
         RTDEBUG(1, "But there's another to check");
-        rtgeom_free(prj);
+        rtgeom_free(iface->ctx, prj);
         continue;
       }
 
@@ -5136,9 +5163,9 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       -- Unfortunately ST_Distance returns 0 because it also uses
       -- a projected point internally, so we need another way.
       */
-      snaptol = _rtt_minTolerance(prj);
-      snapedge = rtgeom_snap(g, prj, snaptol);
-      snapline = rtgeom_as_rtline(snapedge);
+      snaptol = _rtt_minTolerance(iface->ctx, prj);
+      snapedge = rtgeom_snap(iface->ctx, g, prj, snaptol);
+      snapline = rtgeom_as_rtline(iface->ctx, snapedge);
 
       RTDEBUGF(1, "Edge snapped with tolerance %g", snaptol);
 
@@ -5146,11 +5173,11 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
 #if RTGEOM_DEBUG_LEVEL > 0
       {
       size_t sz;
-      char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
-      char *wkt2 = rtgeom_to_wkt(snapedge, RTWKT_EXTENDED, 15, &sz);
+      char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
+      char *wkt2 = rtgeom_to_wkt(iface->ctx, snapedge, RTWKT_EXTENDED, 15, &sz);
       RTDEBUGF(1, "Edge %s snapped became %s", wkt1, wkt2);
-      rtfree(wkt1);
-      rtfree(wkt2);
+      rtfree(iface->ctx, wkt1);
+      rtfree(iface->ctx, wkt2);
       }
 #endif
 
@@ -5159,28 +5186,28 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       -- Snapping currently snaps the first point below tolerance
       -- so may possibly move first point. See ticket #1631
       */
-      getPoint4d_p(e->geom->points, 0, &p1);
-      getPoint4d_p(snapline->points, 0, &p2);
+      getPoint4d_p(iface->ctx, e->geom->points, 0, &p1);
+      getPoint4d_p(iface->ctx, snapline->points, 0, &p2);
       RTDEBUGF(1, "Edge first point is %g %g, "
                   "snapline first point is %g %g",
                   p1.x, p1.y, p2.x, p2.y);
       if ( p1.x != p2.x || p1.y != p2.y )
       {
         RTDEBUG(1, "Snapping moved first point, re-adding it");
-        if ( RT_SUCCESS != ptarray_insert_point(snapline->points, &p1, 0) )
+        if ( RT_SUCCESS != ptarray_insert_point(iface->ctx, snapline->points, &p1, 0) )
         {
-          rtgeom_free(prj);
-          rtgeom_free(snapedge);
-          _rtt_release_edges(edges, num);
-          rterror("GEOS exception on Contains: %s", rtgeom_geos_errmsg);
+          rtgeom_free(iface->ctx, prj);
+          rtgeom_free(iface->ctx, snapedge);
+          _rtt_release_edges(iface->ctx, edges, num);
+          rterror(iface->ctx, "GEOS exception on Contains: %s", rtgeom_geos_errmsg);
           return -1;
         }
 #if RTGEOM_DEBUG_LEVEL > 0
         {
         size_t sz;
-        char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
+        char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
         RTDEBUGF(1, "Tweaked snapline became %s", wkt1);
-        rtfree(wkt1);
+        rtfree(iface->ctx, wkt1);
         }
 #endif
       }
@@ -5193,41 +5220,41 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       if ( -1 == rtt_ChangeEdgeGeom( topo, e->edge_id, snapline ) )
       {
         /* TODO: should have invoked rterror already, leaking memory */
-        rtgeom_free(prj);
-        rtgeom_free(snapedge);
-        _rtt_release_edges(edges, num);
-        rterror("rtt_ChangeEdgeGeom failed");
+        rtgeom_free(iface->ctx, prj);
+        rtgeom_free(iface->ctx, snapedge);
+        _rtt_release_edges(iface->ctx, edges, num);
+        rterror(iface->ctx, "rtt_ChangeEdgeGeom failed");
         return -1;
       }
-      rtgeom_free(snapedge);
+      rtgeom_free(iface->ctx, snapedge);
     }}
 #if RTGEOM_DEBUG_LEVEL > 0
     else
     {{
       size_t sz;
-      char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
-      char *wkt2 = rtgeom_to_wkt(prj, RTWKT_EXTENDED, 15, &sz);
+      char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
+      char *wkt2 = rtgeom_to_wkt(iface->ctx, prj, RTWKT_EXTENDED, 15, &sz);
       RTDEBUGF(1, "Edge %s contains projected point %s", wkt1, wkt2);
-      rtfree(wkt1);
-      rtfree(wkt2);
+      rtfree(iface->ctx, wkt1);
+      rtfree(iface->ctx, wkt2);
     }}
 #endif
 
     /* TODO: pass 1 as last argument (skipChecks) ? */
-    id = rtt_ModEdgeSplit( topo, e->edge_id, rtgeom_as_rtpoint(prj), 0 );
+    id = rtt_ModEdgeSplit( topo, e->edge_id, rtgeom_as_rtpoint(iface->ctx, prj), 0 );
     if ( -1 == id )
     {
       /* TODO: should have invoked rterror already, leaking memory */
-      rtgeom_free(prj);
-      _rtt_release_edges(edges, num);
-      rterror("rtt_ModEdgeSplit failed");
+      rtgeom_free(iface->ctx, prj);
+      _rtt_release_edges(iface->ctx, edges, num);
+      rterror(iface->ctx, "rtt_ModEdgeSplit failed");
       return -1;
     }
 
-    rtgeom_free(prj);
+    rtgeom_free(iface->ctx, prj);
     break; /* we only want to snap a single edge */
   }
-  _rtt_release_edges(edges, num);
+  _rtt_release_edges(iface->ctx, edges, num);
   }
   else
   {
@@ -5237,7 +5264,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     if ( -1 == id )
     {
       /* should have invoked rterror already, leaking memory */
-      rterror("rtt_AddIsoNode failed");
+      rterror(iface->ctx, "rtt_AddIsoNode failed");
       return -1;
     }
   }
@@ -5251,42 +5278,43 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
 static RTT_ELEMID
 _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
 {
+  RTT_BE_IFACE *iface = topo->be_iface;
   RTT_ELEMID id;
   RTT_ISO_EDGE *edges;
   int num, i;
-  const RTGBOX *qbox = rtgeom_get_bbox( rtline_as_rtgeom(edge) );
+  const RTGBOX *qbox = rtgeom_get_bbox(iface->ctx,  rtline_as_rtgeom(iface->ctx, edge) );
   GEOSGeometry *edgeg;
   const int flds = RTT_COL_EDGE_EDGE_ID|RTT_COL_EDGE_GEOM;
 
   edges = rtt_be_getEdgeWithinBox2D( topo, qbox, &num, flds, 0 );
   if ( num == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   if ( num )
   {
     initGEOS(rtnotice, rtgeom_geos_error);
 
-    edgeg = RTGEOM2GEOS( rtline_as_rtgeom(edge), 0 );
+    edgeg = RTGEOM2GEOS(iface->ctx,  rtline_as_rtgeom(iface->ctx, edge), 0 );
     if ( ! edgeg )
     {
-      _rtt_release_edges(edges, num);
-      rterror("Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
+      _rtt_release_edges(iface->ctx, edges, num);
+      rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
       return -1;
     }
     for (i=0; i<num; ++i)
     {
       RTT_ISO_EDGE *e = &(edges[i]);
-      RTGEOM *g = rtline_as_rtgeom(e->geom);
+      RTGEOM *g = rtline_as_rtgeom(iface->ctx, e->geom);
       GEOSGeometry *gg;
       int equals;
-      gg = RTGEOM2GEOS( g, 0 );
+      gg = RTGEOM2GEOS(iface->ctx,  g, 0 );
       if ( ! gg )
       {
         GEOSGeom_destroy(edgeg);
-        _rtt_release_edges(edges, num);
-        rterror("Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
+        _rtt_release_edges(iface->ctx, edges, num);
+        rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
         return -1;
       }
       equals = GEOSEquals(gg, edgeg);
@@ -5294,20 +5322,20 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
       if ( equals == 2 )
       {
         GEOSGeom_destroy(edgeg);
-        _rtt_release_edges(edges, num);
-        rterror("GEOSEquals exception: %s", rtgeom_geos_errmsg);
+        _rtt_release_edges(iface->ctx, edges, num);
+        rterror(iface->ctx, "GEOSEquals exception: %s", rtgeom_geos_errmsg);
         return -1;
       }
       if ( equals )
       {
         id = e->edge_id;
         GEOSGeom_destroy(edgeg);
-        _rtt_release_edges(edges, num);
+        _rtt_release_edges(iface->ctx, edges, num);
         return id;
       }
     }
     GEOSGeom_destroy(edgeg);
-    _rtt_release_edges(edges, num);
+    _rtt_release_edges(iface->ctx, edges, num);
   }
 
   return 0;
@@ -5320,6 +5348,7 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
 static RTT_ELEMID
 _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
 {
+  RTT_BE_IFACE *iface = topo->be_iface;
   RTCOLLECTION *col;
   RTPOINT *start_point, *end_point;
   RTGEOM *tmp;
@@ -5329,25 +5358,25 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   RTPOINT4D p4d;
   int nn, i;
 
-  start_point = rtline_get_rtpoint(edge, 0);
+  start_point = rtline_get_rtpoint(iface->ctx, edge, 0);
   if ( ! start_point )
   {
-    rtnotice("Empty component of noded line");
+    rtnotice(iface->ctx, "Empty component of noded line");
     return 0; /* must be empty */
   }
   nid[0] = rtt_AddPoint( topo, start_point, tol );
-  rtpoint_free(start_point); /* too late if rtt_AddPoint calls rterror */
+  rtpoint_free(iface->ctx, start_point); /* too late if rtt_AddPoint calls rterror */
   if ( nid[0] == -1 ) return -1; /* rterror should have been called */
 
-  end_point = rtline_get_rtpoint(edge, edge->points->npoints-1);
+  end_point = rtline_get_rtpoint(iface->ctx, edge, edge->points->npoints-1);
   if ( ! end_point )
   {
-    rterror("could not get last point of line "
+    rterror(iface->ctx, "could not get last point of line "
             "after successfully getting first point !?");
     return -1;
   }
   nid[1] = rtt_AddPoint( topo, end_point, tol );
-  rtpoint_free(end_point); /* too late if rtt_AddPoint calls rterror */
+  rtpoint_free(iface->ctx, end_point); /* too late if rtt_AddPoint calls rterror */
   if ( nid[1] == -1 ) return -1; /* rterror should have been called */
 
   /*
@@ -5360,7 +5389,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
                              RTT_COL_NODE_NODE_ID|RTT_COL_NODE_GEOM );
   if ( nn == -1 )
   {
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
   start_point = NULL; end_point = NULL;
@@ -5371,61 +5400,61 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   }
   if ( ! start_point  || ! end_point )
   {
-    if ( nn ) _rtt_release_nodes(node, nn);
-    rterror("Could not find just-added nodes % " RTTFMT_ELEMID
+    if ( nn ) _rtt_release_nodes(iface->ctx, node, nn);
+    rterror(iface->ctx, "Could not find just-added nodes % " RTTFMT_ELEMID
             " and %" RTTFMT_ELEMID, nid[0], nid[1]);
     return -1;
   }
 
   /* snap */
 
-  getPoint4d_p( start_point->point, 0, &p4d );
-  rtline_setPoint4d(edge, 0, &p4d);
+  getPoint4d_p(iface->ctx,  start_point->point, 0, &p4d );
+  rtline_setPoint4d(iface->ctx, edge, 0, &p4d);
 
-  getPoint4d_p( end_point->point, 0, &p4d );
-  rtline_setPoint4d(edge, edge->points->npoints-1, &p4d);
+  getPoint4d_p(iface->ctx,  end_point->point, 0, &p4d );
+  rtline_setPoint4d(iface->ctx, edge, edge->points->npoints-1, &p4d);
 
-  if ( nn ) _rtt_release_nodes(node, nn);
+  if ( nn ) _rtt_release_nodes(iface->ctx, node, nn);
 
   /* make valid, after snap (to handle collapses) */
-  tmp = rtgeom_make_valid(rtline_as_rtgeom(edge));
+  tmp = rtgeom_make_valid(iface->ctx, rtline_as_rtgeom(iface->ctx, edge));
 
-  col = rtgeom_as_rtcollection(tmp);
+  col = rtgeom_as_rtcollection(iface->ctx, tmp);
   if ( col )
   {{
     RTGEOM *tmp2;
 
-    col = rtcollection_extract(col, RTLINETYPE);
+    col = rtcollection_extract(iface->ctx, col, RTLINETYPE);
 
     /* Check if the so-snapped edge collapsed (see #1650) */
     if ( col->ngeoms == 0 )
     {
-      rtcollection_free(col);
-      rtgeom_free(tmp);
+      rtcollection_free(iface->ctx, col);
+      rtgeom_free(iface->ctx, tmp);
       RTDEBUG(1, "Made-valid snapped edge collapsed");
       return 0;
     }
 
-    tmp2 = rtgeom_clone_deep( col->geoms[0] );
-    rtgeom_free(tmp);
+    tmp2 = rtgeom_clone_deep(iface->ctx,  col->geoms[0] );
+    rtgeom_free(iface->ctx, tmp);
     tmp = tmp2;
-    edge = rtgeom_as_rtline(tmp);
-    rtcollection_free(col);
+    edge = rtgeom_as_rtline(iface->ctx, tmp);
+    rtcollection_free(iface->ctx, col);
     if ( ! edge )
     {
       /* should never happen */
-      rterror("rtcollection_extract(RTLINETYPE) returned a non-line?");
+      rterror(iface->ctx, "rtcollection_extract(iface->ctx, RTLINETYPE) returned a non-line?");
       return -1;
     }
   }}
   else
   {
-    edge = rtgeom_as_rtline(tmp);
+    edge = rtgeom_as_rtline(iface->ctx, tmp);
     if ( ! edge )
     {
       RTDEBUGF(1, "Made-valid snapped edge collapsed to %s",
-                  rttype_name(rtgeom_get_type(tmp)));
-      rtgeom_free(tmp);
+                  rttype_name(iface->ctx, rtgeom_get_type(iface->ctx, tmp)));
+      rtgeom_free(iface->ctx, tmp);
       return 0;
     }
   }
@@ -5435,12 +5464,12 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   RTDEBUGF(1, "_rtt_GetEqualEdge returned %" RTTFMT_ELEMID, id);
   if ( id == -1 )
   {
-    rtgeom_free(tmp); /* probably too late, due to internal rterror */
+    rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal rterror */
     return -1;
   }
   if ( id ) 
   {
-    rtgeom_free(tmp); /* possibly takes "edge" down with it */
+    rtgeom_free(iface->ctx, tmp); /* possibly takes "edge" down with it */
     return id;
   }
 
@@ -5450,10 +5479,10 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   RTDEBUGF(1, "rtt_AddEdgeModFace returned %" RTTFMT_ELEMID, id);
   if ( id == -1 )
   {
-    rtgeom_free(tmp); /* probably too late, due to internal rterror */
+    rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal rterror */
     return -1;
   }
-  rtgeom_free(tmp); /* possibly takes "edge" down with it */
+  rtgeom_free(iface->ctx, tmp); /* possibly takes "edge" down with it */
 
   return id;
 }
@@ -5461,20 +5490,20 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
 /* Simulate split-loop as it was implemented in pl/pgsql version
  * of TopoGeo_addLinestring */
 static RTGEOM *
-_rtt_split_by_nodes(const RTGEOM *g, const RTGEOM *nodes)
+_rtt_split_by_nodes(const RTCTX *ctx, const RTGEOM *g, const RTGEOM *nodes)
 {
-  RTCOLLECTION *col = rtgeom_as_rtcollection(nodes);
+  RTCOLLECTION *col = rtgeom_as_rtcollection(ctx, nodes);
   int i;
   RTGEOM *bg;
 
-  bg = rtgeom_clone_deep(g);
+  bg = rtgeom_clone_deep(ctx, g);
   if ( ! col->ngeoms ) return bg;
 
   for (i=0; i<col->ngeoms; ++i)
   {
     RTGEOM *g2;
-    g2 = rtgeom_split(bg, col->geoms[i]);
-    rtgeom_free(bg);
+    g2 = rtgeom_split(ctx, bg, col->geoms[i]);
+    rtgeom_free(ctx, bg);
     bg = g2;
   }
   bg->srid = nodes->srid;
@@ -5485,6 +5514,7 @@ _rtt_split_by_nodes(const RTGEOM *g, const RTGEOM *nodes)
 RTT_ELEMID*
 rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 {
+  RTT_BE_IFACE *iface = topo->be_iface;
   RTGEOM *geomsbuf[1];
   RTGEOM **geoms;
   int ngeoms;
@@ -5505,14 +5535,14 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   RTDEBUGF(1, "Input line has srid=%d", line->srid);
 
   /* 1. Self-node */
-  noded = rtgeom_node((RTGEOM*)line);
+  noded = rtgeom_node(iface->ctx, (RTGEOM*)line);
   if ( ! noded ) return NULL; /* should have called rterror already */
   RTDEBUGG(1, noded, "Noded");
 
-  qbox = *rtgeom_get_bbox( rtline_as_rtgeom(line) );
+  qbox = *rtgeom_get_bbox(iface->ctx,  rtline_as_rtgeom(iface->ctx, line) );
   RTDEBUGF(1, "Line BOX is %.15g %.15g, %.15g %.15g", qbox.xmin, qbox.ymin,
                                           qbox.xmax, qbox.ymax);
-  gbox_expand(&qbox, tol);
+  gbox_expand(iface->ctx, &qbox, tol);
   RTDEBUGF(1, "BOX expanded by %g is %.15g %.15g, %.15g %.15g",
               tol, qbox.xmin, qbox.ymin, qbox.xmax, qbox.ymax);
 
@@ -5520,21 +5550,21 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   edges = rtt_be_getEdgeWithinBox2D( topo, &qbox, &num, RTT_COL_EDGE_ALL, 0 );
   if ( num == -1 )
   {
-    rtgeom_free(noded);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtgeom_free(iface->ctx, noded);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return NULL;
   }
   RTDEBUGF(1, "Line bbox intersects %d edges bboxes", num);
   if ( num )
   {{
     /* collect those whose distance from us is < tol */
-    RTGEOM **nearby = rtalloc(sizeof(RTGEOM *)*num);
+    RTGEOM **nearby = rtalloc(iface->ctx, sizeof(RTGEOM *)*num);
     int nn=0;
     for (i=0; i<num; ++i)
     {
       RTT_ISO_EDGE *e = &(edges[i]);
-      RTGEOM *g = rtline_as_rtgeom(e->geom);
-      double dist = rtgeom_mindistance2d(g, noded);
+      RTGEOM *g = rtline_as_rtgeom(iface->ctx, e->geom);
+      double dist = rtgeom_mindistance2d(iface->ctx, g, noded);
       if ( dist >= tol ) continue; /* must be closer than tolerated */
       nearby[nn++] = g;
     }
@@ -5547,45 +5577,45 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
       RTDEBUGF(1, "Line intersects %d edges", nn);
 
-      col = rtcollection_construct(RTCOLLECTIONTYPE, topo->srid,
+      col = rtcollection_construct(iface->ctx, RTCOLLECTIONTYPE, topo->srid,
                                    NULL, nn, nearby);
-      iedges = rtcollection_as_rtgeom(col);
+      iedges = rtcollection_as_rtgeom(iface->ctx, col);
       RTDEBUGG(1, iedges, "Collected edges");
       RTDEBUGF(1, "Snapping noded, with srid=%d "
                   "to interesecting edges, with srid=%d",
                   noded->srid, iedges->srid);
-      snapped = rtgeom_snap(noded, iedges, tol);
-      rtgeom_free(noded);
+      snapped = rtgeom_snap(iface->ctx, noded, iedges, tol);
+      rtgeom_free(iface->ctx, noded);
       RTDEBUGG(1, snapped, "Snapped");
       RTDEBUGF(1, "Diffing snapped, with srid=%d "
                   "and interesecting edges, with srid=%d",
                   snapped->srid, iedges->srid);
-      noded = rtgeom_difference(snapped, iedges);
+      noded = rtgeom_difference(iface->ctx, snapped, iedges);
       RTDEBUGG(1, noded, "Differenced");
       RTDEBUGF(1, "Intersecting snapped, with srid=%d "
                   "and interesecting edges, with srid=%d",
                   snapped->srid, iedges->srid);
-      set1 = rtgeom_intersection(snapped, iedges);
+      set1 = rtgeom_intersection(iface->ctx, snapped, iedges);
       RTDEBUGG(1, set1, "Intersected");
-      rtgeom_free(snapped);
+      rtgeom_free(iface->ctx, snapped);
       RTDEBUGF(1, "Linemerging set1, with srid=%d", set1->srid);
-      set2 = rtgeom_linemerge(set1);
+      set2 = rtgeom_linemerge(iface->ctx, set1);
       RTDEBUGG(1, set2, "Linemerged");
       RTDEBUGG(1, noded, "Noded");
-      rtgeom_free(set1);
+      rtgeom_free(iface->ctx, set1);
       RTDEBUGF(1, "Unioning noded, with srid=%d "
                   "and set2, with srid=%d", noded->srid, set2->srid);
-      set1 = rtgeom_union(noded, set2);
-      rtgeom_free(set2);
-      rtgeom_free(noded);
+      set1 = rtgeom_union(iface->ctx, noded, set2);
+      rtgeom_free(iface->ctx, set2);
+      rtgeom_free(iface->ctx, noded);
       noded = set1;
       RTDEBUGG(1, set1, "Unioned");
 
       /* will not release the geoms array */
-      rtcollection_release(col);
+      rtcollection_release(iface->ctx, col);
     }}
-    rtfree(nearby);
-    _rtt_release_edges(edges, num);
+    rtfree(iface->ctx, nearby);
+    _rtt_release_edges(iface->ctx, edges, num);
   }}
 
   /* 2.1. Node with existing nodes within tol
@@ -5593,21 +5623,21 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   nodes = rtt_be_getNodeWithinBox2D( topo, &qbox, &num, RTT_COL_NODE_ALL, 0 );
   if ( num == -1 )
   {
-    rtgeom_free(noded);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtgeom_free(iface->ctx, noded);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return NULL;
   }
   RTDEBUGF(1, "Line bbox intersects %d nodes bboxes", num);
   if ( num )
   {{
     /* collect those whose distance from us is < tol */
-    RTGEOM **nearby = rtalloc(sizeof(RTGEOM *)*num);
+    RTGEOM **nearby = rtalloc(iface->ctx, sizeof(RTGEOM *)*num);
     int nn=0;
     for (i=0; i<num; ++i)
     {
       RTT_ISO_NODE *n = &(nodes[i]);
-      RTGEOM *g = rtpoint_as_rtgeom(n->geom);
-      double dist = rtgeom_mindistance2d(g, noded);
+      RTGEOM *g = rtpoint_as_rtgeom(iface->ctx, n->geom);
+      double dist = rtgeom_mindistance2d(iface->ctx, g, noded);
       if ( dist >= tol ) continue; /* must be closer than tolerated */
       nearby[nn++] = g;
     }
@@ -5619,47 +5649,47 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
       RTDEBUGF(1, "Line intersects %d nodes", nn);
 
-      col = rtcollection_construct(RTMULTIPOINTTYPE, topo->srid,
+      col = rtcollection_construct(iface->ctx, RTMULTIPOINTTYPE, topo->srid,
                                    NULL, nn, nearby);
-      inodes = rtcollection_as_rtgeom(col);
+      inodes = rtcollection_as_rtgeom(iface->ctx, col);
 
       RTDEBUGG(1, inodes, "Collected nodes");
 
       /* TODO: consider snapping once against all elements
        *      (rather than once with edges and once with nodes) */
-      tmp = rtgeom_snap(noded, inodes, tol);
-      rtgeom_free(noded);
+      tmp = rtgeom_snap(iface->ctx, noded, inodes, tol);
+      rtgeom_free(iface->ctx, noded);
       noded = tmp;
       RTDEBUGG(1, noded, "Node-snapped");
 
-      tmp = _rtt_split_by_nodes(noded, inodes);
-          /* rtgeom_split(noded, inodes); */
-      rtgeom_free(noded);
+      tmp = _rtt_split_by_nodes(iface->ctx, noded, inodes);
+          /* rtgeom_split(iface->ctx, noded, inodes); */
+      rtgeom_free(iface->ctx, noded);
       noded = tmp;
       RTDEBUGG(1, noded, "Node-split");
 
       /* will not release the geoms array */
-      rtcollection_release(col);
+      rtcollection_release(iface->ctx, col);
 
       /*
       -- re-node to account for ST_Snap introduced self-intersections
       -- See http://trac.osgeo.org/postgis/ticket/1714
       -- TODO: consider running UnaryUnion once after all noding
       */
-      tmp = rtgeom_unaryunion(noded);
-      rtgeom_free(noded);
+      tmp = rtgeom_unaryunion(iface->ctx, noded);
+      rtgeom_free(iface->ctx, noded);
       noded = tmp;
       RTDEBUGG(1, noded, "Unary-unioned");
 
     }}
-    rtfree(nearby);
-    _rtt_release_nodes(nodes, num);
+    rtfree(iface->ctx, nearby);
+    _rtt_release_nodes(iface->ctx, nodes, num);
   }}
 
   RTDEBUGG(1, noded, "Finally-noded");
 
   /* 3. For each (now-noded) segment, insert an edge */
-  col = rtgeom_as_rtcollection(noded);
+  col = rtgeom_as_rtcollection(iface->ctx, noded);
   if ( col )
   {
     RTDEBUG(1, "Noded line was a collection");
@@ -5680,7 +5710,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
    * needed) and then check all edges for existing already
    * ( so to save a DB scan for each edge to be added )
    */
-  ids = rtalloc(sizeof(RTT_ELEMID)*ngeoms);
+  ids = rtalloc(iface->ctx, sizeof(RTT_ELEMID)*ngeoms);
   num = 0;
   for ( i=0; i<ngeoms; ++i )
   {
@@ -5691,18 +5721,18 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 #if RTGEOM_DEBUG_LEVEL > 0
     {
       size_t sz;
-      char *wkt1 = rtgeom_to_wkt(g, RTWKT_EXTENDED, 15, &sz);
+      char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
       RTDEBUGF(1, "Component %d of split line is: %s", i, wkt1);
-      rtfree(wkt1);
+      rtfree(iface->ctx, wkt1);
     }
 #endif
 
-    id = _rtt_AddLineEdge( topo, rtgeom_as_rtline(g), tol );
+    id = _rtt_AddLineEdge( topo, rtgeom_as_rtline(iface->ctx, g), tol );
     RTDEBUGF(1, "_rtt_AddLineEdge returned %" RTTFMT_ELEMID, id);
     if ( id < 0 )
     {
-      rtgeom_free(noded);
-      rtfree(ids);
+      rtgeom_free(iface->ctx, noded);
+      rtfree(iface->ctx, ids);
       return NULL;
     }
     if ( ! id )
@@ -5717,7 +5747,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   }
 
   RTDEBUGG(1, noded, "Noded before free");
-  rtgeom_free(noded);
+  rtgeom_free(iface->ctx, noded);
 
   /* TODO: XXX remove duplicated ids if not done before */
 
@@ -5728,6 +5758,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 RTT_ELEMID*
 rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
 {
+  RTT_BE_IFACE *iface = topo->be_iface;
   int i;
   *nfaces = -1; /* error condition, by default */
   int num;
@@ -5750,46 +5781,46 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
     RTT_ELEMID *eids;
     int nedges;
 
-    pa = ptarray_clone(poly->rings[i]);
-    line = rtline_construct(topo->srid, NULL, pa);
+    pa = ptarray_clone(iface->ctx, poly->rings[i]);
+    line = rtline_construct(iface->ctx, topo->srid, NULL, pa);
     eids = rtt_AddLine( topo, line, tol, &nedges );
     if ( nedges < 0 ) {
       /* probably too late as rtt_AddLine invoked rterror */
-      rtline_free(line);
-      rterror("Error adding ring %d of polygon", i);
+      rtline_free(iface->ctx, line);
+      rterror(iface->ctx, "Error adding ring %d of polygon", i);
       return NULL;
     }
-    rtline_free(line);
-    rtfree(eids);
+    rtline_free(iface->ctx, line);
+    rtfree(iface->ctx, eids);
   }
 
   /*
   -- Find faces covered by input polygon
   -- NOTE: potential snapping changed polygon edges
   */
-  qbox = *rtgeom_get_bbox( rtpoly_as_rtgeom(poly) );
-  gbox_expand(&qbox, tol);
+  qbox = *rtgeom_get_bbox(iface->ctx,  rtpoly_as_rtgeom(iface->ctx, poly) );
+  gbox_expand(iface->ctx, &qbox, tol);
   faces = rtt_be_getFaceWithinBox2D( topo, &qbox, &nfacesinbox,
                                      RTT_COL_FACE_ALL, 0 );
   if ( nfacesinbox == -1 )
   {
-    rtfree(ids);
-    rterror("Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    rtfree(iface->ctx, ids);
+    rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return NULL;
   }
 
   num = 0;
   if ( nfacesinbox )
   {
-    polyg = RTGEOM2GEOS(rtpoly_as_rtgeom(poly), 0);
+    polyg = RTGEOM2GEOS(iface->ctx, rtpoly_as_rtgeom(iface->ctx, poly), 0);
     if ( ! polyg )
     {
-      _rtt_release_faces(faces, nfacesinbox);
-      rterror("Could not convert poly geometry to GEOS: %s", rtgeom_geos_errmsg);
+      _rtt_release_faces(iface->ctx, faces, nfacesinbox);
+      rterror(iface->ctx, "Could not convert poly geometry to GEOS: %s", rtgeom_geos_errmsg);
       return NULL;
     }
     ppoly = GEOSPrepare(polyg);
-    ids = rtalloc(sizeof(RTT_ELEMID)*nfacesinbox);
+    ids = rtalloc(iface->ctx, sizeof(RTT_ELEMID)*nfacesinbox);
     for ( i=0; i<nfacesinbox; ++i )
     {
       RTT_ISO_FACE *f = &(faces[i]);
@@ -5804,20 +5835,20 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
         i = f->face_id; /* so we can destroy faces */
         GEOSPreparedGeom_destroy(ppoly);
         GEOSGeom_destroy(polyg);
-        rtfree(ids);
-        _rtt_release_faces(faces, nfacesinbox);
-        rterror("Could not get geometry of face %" RTTFMT_ELEMID, i);
+        rtfree(iface->ctx, ids);
+        _rtt_release_faces(iface->ctx, faces, nfacesinbox);
+        rterror(iface->ctx, "Could not get geometry of face %" RTTFMT_ELEMID, i);
         return NULL;
       }
       /* check if a point on this face's surface is covered by our polygon */
-      fgg = RTGEOM2GEOS(fg, 0);
-      rtgeom_free(fg);
+      fgg = RTGEOM2GEOS(iface->ctx, fg, 0);
+      rtgeom_free(iface->ctx, fg);
       if ( ! fgg )
       {
         GEOSPreparedGeom_destroy(ppoly);
         GEOSGeom_destroy(polyg);
-        _rtt_release_faces(faces, nfacesinbox);
-        rterror("Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
+        _rtt_release_faces(iface->ctx, faces, nfacesinbox);
+        rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
         return NULL;
       }
       sp = GEOSPointOnSurface(fgg);
@@ -5826,8 +5857,8 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
       {
         GEOSPreparedGeom_destroy(ppoly);
         GEOSGeom_destroy(polyg);
-        _rtt_release_faces(faces, nfacesinbox);
-        rterror("Could not find point on face surface: %s", rtgeom_geos_errmsg);
+        _rtt_release_faces(iface->ctx, faces, nfacesinbox);
+        rterror(iface->ctx, "Could not find point on face surface: %s", rtgeom_geos_errmsg);
         return NULL;
       }
       covers = GEOSPreparedCovers( ppoly, sp );
@@ -5836,8 +5867,8 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
       {
         GEOSPreparedGeom_destroy(ppoly);
         GEOSGeom_destroy(polyg);
-        _rtt_release_faces(faces, nfacesinbox);
-        rterror("PreparedCovers error: %s", rtgeom_geos_errmsg);
+        _rtt_release_faces(iface->ctx, faces, nfacesinbox);
+        rterror(iface->ctx, "PreparedCovers error: %s", rtgeom_geos_errmsg);
         return NULL;
       }
       if ( ! covers )
@@ -5850,7 +5881,7 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
     }
     GEOSPreparedGeom_destroy(ppoly);
     GEOSGeom_destroy(polyg);
-    _rtt_release_faces(faces, nfacesinbox);
+    _rtt_release_faces(iface->ctx, faces, nfacesinbox);
   }
 
   /* possibly 0 if non face's surface point was found

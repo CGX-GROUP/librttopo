@@ -18,48 +18,48 @@
 #include "rtgeom_log.h"
 
 
-RTTIN* rttin_add_rttriangle(RTTIN *mobj, const RTTRIANGLE *obj)
+RTTIN* rttin_add_rttriangle(RTCTX *ctx, RTTIN *mobj, const RTTRIANGLE *obj)
 {
-	return (RTTIN*)rtcollection_add_rtgeom((RTCOLLECTION*)mobj, (RTGEOM*)obj);
+	return (RTTIN*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
-void rttin_free(RTTIN *tin)
+void rttin_free(RTCTX *ctx, RTTIN *tin)
 {
 	int i;
 	if ( ! tin ) return;
 	if ( tin->bbox )
-		rtfree(tin->bbox);
+		rtfree(ctx, tin->bbox);
 
 	for ( i = 0; i < tin->ngeoms; i++ )
 		if ( tin->geoms && tin->geoms[i] )
-			rttriangle_free(tin->geoms[i]);
+			rttriangle_free(ctx, tin->geoms[i]);
 
 	if ( tin->geoms )
-		rtfree(tin->geoms);
+		rtfree(ctx, tin->geoms);
 
-	rtfree(tin);
+	rtfree(ctx, tin);
 }
 
 
-void printRTTIN(RTTIN *tin)
+void printRTTIN(RTCTX *ctx, RTTIN *tin)
 {
 	int i;
 	RTTRIANGLE *triangle;
 
 	if (tin->type != RTTINTYPE)
-		rterror("printRTTIN called with something else than a TIN");
+		rterror(ctx, "printRTTIN called with something else than a TIN");
 
-	rtnotice("RTTIN {");
-	rtnotice("    ndims = %i", (int)RTFLAGS_NDIMS(tin->flags));
-	rtnotice("    SRID = %i", (int)tin->srid);
-	rtnotice("    ngeoms = %i", (int)tin->ngeoms);
+	rtnotice(ctx, "RTTIN {");
+	rtnotice(ctx, "    ndims = %i", (int)RTFLAGS_NDIMS(tin->flags));
+	rtnotice(ctx, "    SRID = %i", (int)tin->srid);
+	rtnotice(ctx, "    ngeoms = %i", (int)tin->ngeoms);
 
 	for (i=0; i<tin->ngeoms; i++)
 	{
 		triangle = (RTTRIANGLE *) tin->geoms[i];
-		printPA(triangle->points);
+		printPA(ctx, triangle->points);
 	}
-	rtnotice("}");
+	rtnotice(ctx, "}");
 }
 
 
@@ -77,7 +77,7 @@ typedef struct struct_tin_arcs *tin_arcs;
 
 /* We supposed that the geometry is valid
    we could have wrong result if not */
-int rttin_is_closed(const RTTIN *tin)
+int rttin_is_closed(RTCTX *ctx, const RTTIN *tin)
 {
 	int i, j, k;
 	int narcs, carc;
@@ -92,7 +92,7 @@ int rttin_is_closed(const RTTIN *tin)
 	/* Max theorical arcs number if no one is shared ... */
 	narcs = 3 * tin->ngeoms;
 
-	arcs = rtalloc(sizeof(struct struct_tin_arcs) * narcs);
+	arcs = rtalloc(ctx, sizeof(struct struct_tin_arcs) * narcs);
 	for (i=0, carc=0; i < tin->ngeoms ; i++)
 	{
 
@@ -100,8 +100,8 @@ int rttin_is_closed(const RTTIN *tin)
 		for (j=0; j < 3 ; j++)
 		{
 
-			getPoint4d_p(patch->points, j,   &pa);
-			getPoint4d_p(patch->points, j+1, &pb);
+			getPoint4d_p(ctx, patch->points, j,   &pa);
+			getPoint4d_p(ctx, patch->points, j+1, &pb);
 
 			/* Make sure to order the 'lower' point first */
 			if ( (pa.x > pb.x) ||
@@ -109,7 +109,7 @@ int rttin_is_closed(const RTTIN *tin)
 			        (pa.x == pb.x && pa.y == pb.y && pa.z > pb.z) )
 			{
 				pa = pb;
-				getPoint4d_p(patch->points, j, &pb);
+				getPoint4d_p(ctx, patch->points, j, &pb);
 			}
 
 			for (found=0, k=0; k < carc ; k++)
@@ -127,7 +127,7 @@ int rttin_is_closed(const RTTIN *tin)
 					      anyway not a closed one */
 					if (arcs[k].cnt > 2)
 					{
-						rtfree(arcs);
+						rtfree(ctx, arcs);
 						return 0;
 					}
 				}
@@ -149,7 +149,7 @@ int rttin_is_closed(const RTTIN *tin)
 				      anyway not a closed one */
 				if (carc > narcs)
 				{
-					rtfree(arcs);
+					rtfree(ctx, arcs);
 					return 0;
 				}
 			}
@@ -162,11 +162,11 @@ int rttin_is_closed(const RTTIN *tin)
 	{
 		if (arcs[k].cnt != 2)
 		{
-			rtfree(arcs);
+			rtfree(ctx, arcs);
 			return 0;
 		}
 	}
-	rtfree(arcs);
+	rtfree(ctx, arcs);
 
 	/* Invalid TIN case */
 	if (carc < tin->ngeoms) return 0;

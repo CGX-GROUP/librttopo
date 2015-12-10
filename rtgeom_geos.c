@@ -17,7 +17,7 @@
 
 #include <stdlib.h>
 
-RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d);
+RTTIN * rttin_from_geos(RTCTX *ctx, const GEOSGeometry *geom, int want3d);
 
 #undef RTGEOM_PROFILE_BUILDAREA
 
@@ -67,7 +67,7 @@ rtgeom_geos_error(const char *fmt, ...)
 
 /* Return a RTPOINTARRAY from a GEOSCoordSeq */
 RTPOINTARRAY *
-ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d)
+ptarray_from_GEOSCoordSeq(RTCTX *ctx, const GEOSCoordSequence *cs, char want3d)
 {
 	uint32_t dims=2;
 	uint32_t size, i;
@@ -77,14 +77,14 @@ ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d)
 	RTDEBUG(2, "ptarray_fromGEOSCoordSeq called");
 
 	if ( ! GEOSCoordSeq_getSize(cs, &size) )
-		rterror("Exception thrown");
+		rterror(ctx, "Exception thrown");
 
 	RTDEBUGF(4, " GEOSCoordSeq size: %d", size);
 
 	if ( want3d )
 	{
 		if ( ! GEOSCoordSeq_getDimensions(cs, &dims) )
-			rterror("Exception thrown");
+			rterror(ctx, "Exception thrown");
 
 		RTDEBUGF(4, " GEOSCoordSeq dimensions: %d", dims);
 
@@ -94,14 +94,14 @@ ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d)
 
 	RTDEBUGF(4, " output dimensions: %d", dims);
 
-	pa = ptarray_construct((dims==3), 0, size);
+	pa = ptarray_construct(ctx, (dims==3), 0, size);
 
 	for (i=0; i<size; i++)
 	{
 		GEOSCoordSeq_getX(cs, i, &(point.x));
 		GEOSCoordSeq_getY(cs, i, &(point.y));
 		if ( dims >= 3 ) GEOSCoordSeq_getZ(cs, i, &(point.z));
-		ptarray_set_point4d(pa,i,&point);
+		ptarray_set_point4d(ctx, pa,i,&point);
 	}
 
 	return pa;
@@ -109,7 +109,7 @@ ptarray_from_GEOSCoordSeq(const GEOSCoordSequence *cs, char want3d)
 
 /* Return an RTGEOM from a Geometry */
 RTGEOM *
-GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
+GEOS2RTGEOM(RTCTX *ctx, const GEOSGeometry *geom, char want3d)
 {
 	int type = GEOSGeomTypeId(geom) ;
 	int hasZ;
@@ -132,7 +132,7 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 /*
 	if ( GEOSisEmpty(geom) )
 	{
-		return (RTGEOM*)rtcollection_construct_empty(RTCOLLECTIONTYPE, SRID, want3d, 0);
+		return (RTGEOM*)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, SRID, want3d, 0);
 	}
 */
 
@@ -148,37 +148,37 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 		RTDEBUG(4, "rtgeom_from_geometry: it's a Point");
 		cs = GEOSGeom_getCoordSeq(geom);
 		if ( GEOSisEmpty(geom) )
-		  return (RTGEOM*)rtpoint_construct_empty(SRID, want3d, 0);
-		pa = ptarray_from_GEOSCoordSeq(cs, want3d);
-		return (RTGEOM *)rtpoint_construct(SRID, NULL, pa);
+		  return (RTGEOM*)rtpoint_construct_empty(ctx, SRID, want3d, 0);
+		pa = ptarray_from_GEOSCoordSeq(ctx, cs, want3d);
+		return (RTGEOM *)rtpoint_construct(ctx, SRID, NULL, pa);
 
 	case GEOS_LINESTRING:
 	case GEOS_LINEARRING:
 		RTDEBUG(4, "rtgeom_from_geometry: it's a LineString or LinearRing");
 		if ( GEOSisEmpty(geom) )
-		  return (RTGEOM*)rtline_construct_empty(SRID, want3d, 0);
+		  return (RTGEOM*)rtline_construct_empty(ctx, SRID, want3d, 0);
 
 		cs = GEOSGeom_getCoordSeq(geom);
-		pa = ptarray_from_GEOSCoordSeq(cs, want3d);
-		return (RTGEOM *)rtline_construct(SRID, NULL, pa);
+		pa = ptarray_from_GEOSCoordSeq(ctx, cs, want3d);
+		return (RTGEOM *)rtline_construct(ctx, SRID, NULL, pa);
 
 	case GEOS_POLYGON:
 		RTDEBUG(4, "rtgeom_from_geometry: it's a Polygon");
 		if ( GEOSisEmpty(geom) )
-		  return (RTGEOM*)rtpoly_construct_empty(SRID, want3d, 0);
+		  return (RTGEOM*)rtpoly_construct_empty(ctx, SRID, want3d, 0);
 		ngeoms = GEOSGetNumInteriorRings(geom);
-		ppaa = rtalloc(sizeof(RTPOINTARRAY *)*(ngeoms+1));
+		ppaa = rtalloc(ctx, sizeof(RTPOINTARRAY *)*(ngeoms+1));
 		g = GEOSGetExteriorRing(geom);
 		cs = GEOSGeom_getCoordSeq(g);
-		ppaa[0] = ptarray_from_GEOSCoordSeq(cs, want3d);
+		ppaa[0] = ptarray_from_GEOSCoordSeq(ctx, cs, want3d);
 		for (i=0; i<ngeoms; i++)
 		{
 			g = GEOSGetInteriorRingN(geom, i);
 			cs = GEOSGeom_getCoordSeq(g);
-			ppaa[i+1] = ptarray_from_GEOSCoordSeq(cs,
+			ppaa[i+1] = ptarray_from_GEOSCoordSeq(ctx, cs,
 			                                      want3d);
 		}
-		return (RTGEOM *)rtpoly_construct(SRID, NULL,
+		return (RTGEOM *)rtpoly_construct(ctx, SRID, NULL,
 		                                  ngeoms+1, ppaa);
 
 	case GEOS_MULTIPOINT:
@@ -191,18 +191,18 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 		geoms = NULL;
 		if ( ngeoms )
 		{
-			geoms = rtalloc(sizeof(RTGEOM *)*ngeoms);
+			geoms = rtalloc(ctx, sizeof(RTGEOM *)*ngeoms);
 			for (i=0; i<ngeoms; i++)
 			{
 				g = GEOSGetGeometryN(geom, i);
-				geoms[i] = GEOS2RTGEOM(g, want3d);
+				geoms[i] = GEOS2RTGEOM(ctx, g, want3d);
 			}
 		}
-		return (RTGEOM *)rtcollection_construct(type,
+		return (RTGEOM *)rtcollection_construct(ctx, type,
 		                                        SRID, NULL, ngeoms, geoms);
 
 	default:
-		rterror("GEOS2RTGEOM: unknown geometry type: %d", type);
+		rterror(ctx, "GEOS2RTGEOM: unknown geometry type: %d", type);
 		return NULL;
 
 	}
@@ -211,11 +211,11 @@ GEOS2RTGEOM(const GEOSGeometry *geom, char want3d)
 
 
 
-GEOSCoordSeq ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *);
+GEOSCoordSeq ptarray_to_GEOSCoordSeq(RTCTX *ctx, const RTPOINTARRAY *);
 
 
 GEOSCoordSeq
-ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *pa)
+ptarray_to_GEOSCoordSeq(RTCTX *ctx, const RTPOINTARRAY *pa)
 {
 	uint32_t dims = 2;
 	uint32_t i;
@@ -227,19 +227,19 @@ ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *pa)
 		dims = 3;
 
 	if ( ! (sq = GEOSCoordSeq_create(pa->npoints, dims)) ) 
-		rterror("Error creating GEOS Coordinate Sequence");
+		rterror(ctx, "Error creating GEOS Coordinate Sequence");
 
 	for ( i=0; i < pa->npoints; i++ )
 	{
 		if ( dims == 3 )
 		{
-			p3d = getPoint3dz_cp(pa, i);
+			p3d = getPoint3dz_cp(ctx, pa, i);
 			p2d = (const RTPOINT2D *)p3d;
 			RTDEBUGF(4, "Point: %g,%g,%g", p3d->x, p3d->y, p3d->z);
 		}
 		else
 		{
-			p2d = getPoint2d_cp(pa, i);
+			p2d = getPoint2d_cp(ctx, pa, i);
 			RTDEBUGF(4, "Point: %g,%g", p2d->x, p2d->y);
 		}
 
@@ -247,9 +247,9 @@ ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *pa)
 		/* Make sure we don't pass any infinite values down into GEOS */
 		/* GEOS 3.3+ is supposed to  handle this stuff OK */
 		if ( isinf(p2d->x) || isinf(p2d->y) || (dims == 3 && isinf(p3d->z)) )
-			rterror("Infinite coordinate value found in geometry.");
+			rterror(ctx, "Infinite coordinate value found in geometry.");
 		if ( isnan(p2d->x) || isnan(p2d->y) || (dims == 3 && isnan(p3d->z)) )
-			rterror("NaN coordinate value found in geometry.");
+			rterror(ctx, "NaN coordinate value found in geometry.");
 #endif
 
 		GEOSCoordSeq_setX(sq, i, p2d->x);
@@ -262,7 +262,7 @@ ptarray_to_GEOSCoordSeq(const RTPOINTARRAY *pa)
 }
 
 static GEOSGeometry *
-ptarray_to_GEOSLinearRing(const RTPOINTARRAY *pa, int autofix)
+ptarray_to_GEOSLinearRing(RTCTX *ctx, const RTPOINTARRAY *pa, int autofix)
 {
 	GEOSCoordSeq sq;
 	GEOSGeom g;
@@ -271,28 +271,28 @@ ptarray_to_GEOSLinearRing(const RTPOINTARRAY *pa, int autofix)
 	if ( autofix )
 	{
 		/* check ring for being closed and fix if not */
-		if ( ! ptarray_is_closed_2d(pa) ) 
+		if ( ! ptarray_is_closed_2d(ctx, pa) ) 
 		{
-			npa = ptarray_addPoint(pa, getPoint_internal(pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
+			npa = ptarray_addPoint(ctx, pa, getPoint_internal(ctx, pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
 			pa = npa;
 		}
 		/* TODO: check ring for having at least 4 vertices */
 #if 0
 		while ( pa->npoints < 4 ) 
 		{
-			npa = ptarray_addPoint(npa, getPoint_internal(pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
+			npa = ptarray_addPoint(ctx, npa, getPoint_internal(ctx, pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
 		}
 #endif
 	}
 
-	sq = ptarray_to_GEOSCoordSeq(pa);
-	if ( npa ) ptarray_free(npa);
+	sq = ptarray_to_GEOSCoordSeq(ctx, pa);
+	if ( npa ) ptarray_free(ctx, npa);
 	g = GEOSGeom_createLinearRing(sq);
 	return g;
 }
 
 GEOSGeometry *
-GBOX2GEOS(const RTGBOX *box)
+GBOX2GEOS(RTCTX *ctx, const RTGBOX *box)
 {
 	GEOSGeometry* envelope;
 	GEOSGeometry* ring;
@@ -335,7 +335,7 @@ GBOX2GEOS(const RTGBOX *box)
 }
 
 GEOSGeometry *
-RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
+RTGEOM2GEOS(RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
 {
 	GEOSCoordSeq sq;
 	GEOSGeom g, shell;
@@ -349,13 +349,13 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 	char *wkt;
 #endif
 
-	RTDEBUGF(4, "RTGEOM2GEOS got a %s", rttype_name(rtgeom->type));
+	RTDEBUGF(4, "RTGEOM2GEOS got a %s", rttype_name(ctx, rtgeom->type));
 
-	if (rtgeom_has_arc(rtgeom))
+	if (rtgeom_has_arc(ctx, rtgeom))
 	{
-		RTGEOM *rtgeom_stroked = rtgeom_stroke(rtgeom, 32);
-		GEOSGeometry *g = RTGEOM2GEOS(rtgeom_stroked, autofix);
-		rtgeom_free(rtgeom_stroked);
+		RTGEOM *rtgeom_stroked = rtgeom_stroke(ctx, rtgeom, 32);
+		GEOSGeometry *g = RTGEOM2GEOS(ctx, rtgeom_stroked, autofix);
+		rtgeom_free(ctx, rtgeom_stroked);
 		return g;
 	}
 	
@@ -372,11 +372,11 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 	case RTPOINTTYPE:
 		rtp = (RTPOINT *)rtgeom;
 		
-		if ( rtgeom_is_empty(rtgeom) )
+		if ( rtgeom_is_empty(ctx, rtgeom) )
 		{
 #if RTGEOM_GEOS_VERSION < 33
-			pa = ptarray_construct_empty(rtgeom_has_z(rtgeom), rtgeom_has_m(rtgeom), 2);
-			sq = ptarray_to_GEOSCoordSeq(pa);
+			pa = ptarray_construct_empty(ctx, rtgeom_has_z(ctx, rtgeom), rtgeom_has_m(ctx, rtgeom), 2);
+			sq = ptarray_to_GEOSCoordSeq(ctx, pa);
 			shell = GEOSGeom_createLinearRing(sq);
 			g = GEOSGeom_createPolygon(shell, NULL, 0);
 #else
@@ -385,12 +385,12 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		}
 		else
 		{
-			sq = ptarray_to_GEOSCoordSeq(rtp->point);
+			sq = ptarray_to_GEOSCoordSeq(ctx, rtp->point);
 			g = GEOSGeom_createPoint(sq);
 		}
 		if ( ! g )
 		{
-			/* rtnotice("Exception in RTGEOM2GEOS"); */
+			/* rtnotice(ctx, "Exception in RTGEOM2GEOS"); */
 			return NULL;
 		}
 		break;
@@ -399,27 +399,27 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		/* TODO: if (autofix) */
 		if ( rtl->points->npoints == 1 ) {
 			/* Duplicate point, to make geos-friendly */
-			rtl->points = ptarray_addPoint(rtl->points,
-		                           getPoint_internal(rtl->points, 0),
+			rtl->points = ptarray_addPoint(ctx, rtl->points,
+		                           getPoint_internal(ctx, rtl->points, 0),
 		                           RTFLAGS_NDIMS(rtl->points->flags),
 		                           rtl->points->npoints);
 		}
-		sq = ptarray_to_GEOSCoordSeq(rtl->points);
+		sq = ptarray_to_GEOSCoordSeq(ctx, rtl->points);
 		g = GEOSGeom_createLineString(sq);
 		if ( ! g )
 		{
-			/* rtnotice("Exception in RTGEOM2GEOS"); */
+			/* rtnotice(ctx, "Exception in RTGEOM2GEOS"); */
 			return NULL;
 		}
 		break;
 
 	case RTPOLYGONTYPE:
 		rtpoly = (RTPOLY *)rtgeom;
-		if ( rtgeom_is_empty(rtgeom) )
+		if ( rtgeom_is_empty(ctx, rtgeom) )
 		{
 #if RTGEOM_GEOS_VERSION < 33
-			RTPOINTARRAY *pa = ptarray_construct_empty(rtgeom_has_z(rtgeom), rtgeom_has_m(rtgeom), 2);
-			sq = ptarray_to_GEOSCoordSeq(pa);
+			RTPOINTARRAY *pa = ptarray_construct_empty(ctx, rtgeom_has_z(ctx, rtgeom), rtgeom_has_m(ctx, rtgeom), 2);
+			sq = ptarray_to_GEOSCoordSeq(ctx, pa);
 			shell = GEOSGeom_createLinearRing(sq);
 			g = GEOSGeom_createPolygon(shell, NULL, 0);
 #else
@@ -428,16 +428,16 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		}
 		else
 		{
-			shell = ptarray_to_GEOSLinearRing(rtpoly->rings[0], autofix);
+			shell = ptarray_to_GEOSLinearRing(ctx, rtpoly->rings[0], autofix);
 			if ( ! shell ) return NULL;
-			/*rterror("RTGEOM2GEOS: exception during polygon shell conversion"); */
+			/*rterror(ctx, "RTGEOM2GEOS: exception during polygon shell conversion"); */
 			ngeoms = rtpoly->nrings-1;
 			if ( ngeoms > 0 )
 				geoms = malloc(sizeof(GEOSGeom)*ngeoms);
 
 			for (i=1; i<rtpoly->nrings; ++i)
 			{
-				geoms[i-1] = ptarray_to_GEOSLinearRing(rtpoly->rings[i], autofix);
+				geoms[i-1] = ptarray_to_GEOSLinearRing(ctx, rtpoly->rings[i], autofix);
 				if ( ! geoms[i-1] )
 				{
 					--i;
@@ -446,7 +446,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 					GEOSGeom_destroy(shell);
 					return NULL;
 				}
-				/*rterror("RTGEOM2GEOS: exception during polygon hole conversion"); */
+				/*rterror(ctx, "RTGEOM2GEOS: exception during polygon hole conversion"); */
 			}
 			g = GEOSGeom_createPolygon(shell, geoms, ngeoms);
 			if (geoms) free(geoms);
@@ -474,7 +474,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 
 		for (i=0; i<ngeoms; ++i)
 		{
-			GEOSGeometry* g = RTGEOM2GEOS(rtc->geoms[i], 0);
+			GEOSGeometry* g = RTGEOM2GEOS(ctx, rtc->geoms[i], 0);
 			if ( ! g )
 			{
 				while (i) GEOSGeom_destroy(geoms[--i]);
@@ -489,7 +489,7 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 		break;
 
 	default:
-		rterror("Unknown geometry type: %d - %s", rtgeom->type, rttype_name(rtgeom->type));
+		rterror(ctx, "Unknown geometry type: %d - %s", rtgeom->type, rttype_name(ctx, rtgeom->type));
 		return NULL;
 	}
 
@@ -505,14 +505,14 @@ RTGEOM2GEOS(const RTGEOM *rtgeom, int autofix)
 }
 
 const char*
-rtgeom_geos_version()
+rtgeom_geos_version(RTCTX *ctx)
 {
 	const char *ver = GEOSversion();
 	return ver;
 }
 
 RTGEOM *
-rtgeom_normalize(const RTGEOM *geom1)
+rtgeom_normalize(RTCTX *ctx, const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1;
@@ -524,26 +524,26 @@ rtgeom_normalize(const RTGEOM *geom1)
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = RTGEOM2GEOS(geom1, 0);
+	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL ;
 	}
 
 	if ( -1 == GEOSNormalize(g1) )
 	{
-	  rterror("Error in GEOSNormalize: %s", rtgeom_geos_errmsg);
+	  rterror(ctx, "Error in GEOSNormalize: %s", rtgeom_geos_errmsg);
 		return NULL; /* never get here */
 	}
 
 	GEOSSetSRID(g1, srid); /* needed ? */
-	result = GEOS2RTGEOM(g1, is3d);
+	result = GEOS2RTGEOM(ctx, g1, is3d);
 	GEOSGeom_destroy(g1);
 
 	if (result == NULL)
 	{
-	  rterror("Error performing intersection: GEOS2RTGEOM: %s",
+	  rterror(ctx, "Error performing intersection: GEOS2RTGEOM: %s",
 	                rtgeom_geos_errmsg);
 		return NULL ; /* never get here */
 	}
@@ -552,7 +552,7 @@ rtgeom_normalize(const RTGEOM *geom1)
 }
 
 RTGEOM *
-rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
+rtgeom_intersection(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g2, *g3 ;
@@ -560,16 +560,16 @@ rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
 	int srid ;
 
 	/* A.Intersection(Empty) == Empty */
-	if ( rtgeom_is_empty(geom2) )
-		return rtgeom_clone_deep(geom2);
+	if ( rtgeom_is_empty(ctx, geom2) )
+		return rtgeom_clone_deep(ctx, geom2);
 
 	/* Empty.Intersection(A) == Empty */
-	if ( rtgeom_is_empty(geom1) )
-		return rtgeom_clone_deep(geom1);
+	if ( rtgeom_is_empty(ctx, geom1) )
+		return rtgeom_clone_deep(ctx, geom1);
 
 	/* ensure srids are identical */
 	srid = (int)(geom1->srid);
-	error_if_srid_mismatch(srid, (int)(geom2->srid));
+	error_if_srid_mismatch(ctx, srid, (int)(geom2->srid));
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
@@ -577,17 +577,17 @@ rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
 
 	RTDEBUG(3, "intersection() START");
 
-	g1 = RTGEOM2GEOS(geom1, 0);
+	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL ;
 	}
 
-	g2 = RTGEOM2GEOS(geom2, 0);
+	g2 = RTGEOM2GEOS(ctx, geom2, 0);
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
-		rterror("Second argument geometry could not be converted to GEOS.");
+		rterror(ctx, "Second argument geometry could not be converted to GEOS.");
 		GEOSGeom_destroy(g1);
 		return NULL ;
 	}
@@ -606,7 +606,7 @@ rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
-		rterror("Error performing intersection: %s",
+		rterror(ctx, "Error performing intersection: %s",
 		        rtgeom_geos_errmsg);
 		return NULL; /* never get here */
 	}
@@ -615,14 +615,14 @@ rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
 
 	GEOSSetSRID(g3, srid);
 
-	result = GEOS2RTGEOM(g3, is3d);
+	result = GEOS2RTGEOM(ctx, g3, is3d);
 
 	if (result == NULL)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
 		GEOSGeom_destroy(g3);
-		rterror("Error performing intersection: GEOS2RTGEOM: %s",
+		rterror(ctx, "Error performing intersection: GEOS2RTGEOM: %s",
 		        rtgeom_geos_errmsg);
 		return NULL ; /* never get here */
 	}
@@ -635,7 +635,7 @@ rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
 }
 
 RTGEOM *
-rtgeom_linemerge(const RTGEOM *geom1)
+rtgeom_linemerge(RTCTX *ctx, const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g3 ;
@@ -643,18 +643,18 @@ rtgeom_linemerge(const RTGEOM *geom1)
 	int srid = geom1->srid;
 
 	/* Empty.Linemerge() == Empty */
-	if ( rtgeom_is_empty(geom1) )
-		return (RTGEOM*)rtcollection_construct_empty( RTCOLLECTIONTYPE, srid, is3d,
-                                         rtgeom_has_m(geom1) );
+	if ( rtgeom_is_empty(ctx, geom1) )
+		return (RTGEOM*)rtcollection_construct_empty(ctx,  RTCOLLECTIONTYPE, srid, is3d,
+                                         rtgeom_has_m(ctx, geom1) );
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	RTDEBUG(3, "linemerge() START");
 
-	g1 = RTGEOM2GEOS(geom1, 0);
+	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL ;
 	}
 
@@ -669,7 +669,7 @@ rtgeom_linemerge(const RTGEOM *geom1)
 	if (g3 == NULL)
 	{
 		GEOSGeom_destroy(g1);
-		rterror("Error performing linemerge: %s",
+		rterror(ctx, "Error performing linemerge: %s",
 		        rtgeom_geos_errmsg);
 		return NULL; /* never get here */
 	}
@@ -678,13 +678,13 @@ rtgeom_linemerge(const RTGEOM *geom1)
 
 	GEOSSetSRID(g3, srid);
 
-	result = GEOS2RTGEOM(g3, is3d);
+	result = GEOS2RTGEOM(ctx, g3, is3d);
 
 	if (result == NULL)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g3);
-		rterror("Error performing linemerge: GEOS2RTGEOM: %s",
+		rterror(ctx, "Error performing linemerge: GEOS2RTGEOM: %s",
 		        rtgeom_geos_errmsg);
 		return NULL ; /* never get here */
 	}
@@ -696,7 +696,7 @@ rtgeom_linemerge(const RTGEOM *geom1)
 }
 
 RTGEOM *
-rtgeom_unaryunion(const RTGEOM *geom1)
+rtgeom_unaryunion(RTCTX *ctx, const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g3 ;
@@ -704,15 +704,15 @@ rtgeom_unaryunion(const RTGEOM *geom1)
 	int srid = geom1->srid;
 
 	/* Empty.UnaryUnion() == Empty */
-	if ( rtgeom_is_empty(geom1) )
-		return rtgeom_clone_deep(geom1);
+	if ( rtgeom_is_empty(ctx, geom1) )
+		return rtgeom_clone_deep(ctx, geom1);
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = RTGEOM2GEOS(geom1, 0);
+	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL ;
 	}
 
@@ -721,7 +721,7 @@ rtgeom_unaryunion(const RTGEOM *geom1)
 	if (g3 == NULL)
 	{
 		GEOSGeom_destroy(g1);
-		rterror("Error performing unaryunion: %s",
+		rterror(ctx, "Error performing unaryunion: %s",
 		        rtgeom_geos_errmsg);
 		return NULL; /* never get here */
 	}
@@ -730,13 +730,13 @@ rtgeom_unaryunion(const RTGEOM *geom1)
 
 	GEOSSetSRID(g3, srid);
 
-	result = GEOS2RTGEOM(g3, is3d);
+	result = GEOS2RTGEOM(ctx, g3, is3d);
 
 	if (result == NULL)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g3);
-		rterror("Error performing unaryunion: GEOS2RTGEOM: %s",
+		rterror(ctx, "Error performing unaryunion: GEOS2RTGEOM: %s",
 		        rtgeom_geos_errmsg);
 		return NULL ; /* never get here */
 	}
@@ -748,7 +748,7 @@ rtgeom_unaryunion(const RTGEOM *geom1)
 }
 
 RTGEOM *
-rtgeom_difference(const RTGEOM *geom1, const RTGEOM *geom2)
+rtgeom_difference(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 {
 	GEOSGeometry *g1, *g2, *g3;
 	RTGEOM *result;
@@ -756,33 +756,33 @@ rtgeom_difference(const RTGEOM *geom1, const RTGEOM *geom2)
 	int srid;
 
 	/* A.Difference(Empty) == A */
-	if ( rtgeom_is_empty(geom2) )
-		return rtgeom_clone_deep(geom1);
+	if ( rtgeom_is_empty(ctx, geom2) )
+		return rtgeom_clone_deep(ctx, geom1);
 
 	/* Empty.Intersection(A) == Empty */
-	if ( rtgeom_is_empty(geom1) )
-		return rtgeom_clone_deep(geom1);
+	if ( rtgeom_is_empty(ctx, geom1) )
+		return rtgeom_clone_deep(ctx, geom1);
 
 	/* ensure srids are identical */
 	srid = (int)(geom1->srid);
-	error_if_srid_mismatch(srid, (int)(geom2->srid));
+	error_if_srid_mismatch(ctx, srid, (int)(geom2->srid));
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = RTGEOM2GEOS(geom1, 0);
+	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
-	g2 = RTGEOM2GEOS(geom2, 0);
+	g2 = RTGEOM2GEOS(ctx, geom2, 0);
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
 		GEOSGeom_destroy(g1);
-		rterror("Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -792,7 +792,7 @@ rtgeom_difference(const RTGEOM *geom1, const RTGEOM *geom2)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
-		rterror("GEOSDifference: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSDifference: %s", rtgeom_geos_errmsg);
 		return NULL ; /* never get here */
 	}
 
@@ -800,14 +800,14 @@ rtgeom_difference(const RTGEOM *geom1, const RTGEOM *geom2)
 
 	GEOSSetSRID(g3, srid);
 
-	result = GEOS2RTGEOM(g3, is3d);
+	result = GEOS2RTGEOM(ctx, g3, is3d);
 
 	if (result == NULL)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
 		GEOSGeom_destroy(g3);
-		rterror("Error performing difference: GEOS2RTGEOM: %s",
+		rterror(ctx, "Error performing difference: GEOS2RTGEOM: %s",
 		        rtgeom_geos_errmsg);
 		return NULL; /* never get here */
 	}
@@ -822,7 +822,7 @@ rtgeom_difference(const RTGEOM *geom1, const RTGEOM *geom2)
 }
 
 RTGEOM *
-rtgeom_symdifference(const RTGEOM* geom1, const RTGEOM* geom2)
+rtgeom_symdifference(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 {
 	GEOSGeometry *g1, *g2, *g3;
 	RTGEOM *result;
@@ -830,34 +830,34 @@ rtgeom_symdifference(const RTGEOM* geom1, const RTGEOM* geom2)
 	int srid;
 
 	/* A.SymDifference(Empty) == A */
-	if ( rtgeom_is_empty(geom2) )
-		return rtgeom_clone_deep(geom1);
+	if ( rtgeom_is_empty(ctx, geom2) )
+		return rtgeom_clone_deep(ctx, geom1);
 
 	/* Empty.DymDifference(B) == B */
-	if ( rtgeom_is_empty(geom1) )
-		return rtgeom_clone_deep(geom2);
+	if ( rtgeom_is_empty(ctx, geom1) )
+		return rtgeom_clone_deep(ctx, geom2);
 
 	/* ensure srids are identical */
 	srid = (int)(geom1->srid);
-	error_if_srid_mismatch(srid, (int)(geom2->srid));
+	error_if_srid_mismatch(ctx, srid, (int)(geom2->srid));
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = RTGEOM2GEOS(geom1, 0);
+	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
-	g2 = RTGEOM2GEOS(geom2, 0);
+	g2 = RTGEOM2GEOS(ctx, geom2, 0);
 
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
-		rterror("Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		GEOSGeom_destroy(g1);
 		return NULL;
 	}
@@ -868,7 +868,7 @@ rtgeom_symdifference(const RTGEOM* geom1, const RTGEOM* geom2)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
-		rterror("GEOSSymDifference: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSSymDifference: %s", rtgeom_geos_errmsg);
 		return NULL; /*never get here */
 	}
 
@@ -876,14 +876,14 @@ rtgeom_symdifference(const RTGEOM* geom1, const RTGEOM* geom2)
 
 	GEOSSetSRID(g3, srid);
 
-	result = GEOS2RTGEOM(g3, is3d);
+	result = GEOS2RTGEOM(ctx, g3, is3d);
 
 	if (result == NULL)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
 		GEOSGeom_destroy(g3);
-		rterror("GEOS symdifference() threw an error (result postgis geometry formation)!");
+		rterror(ctx, "GEOS symdifference() threw an error (result postgis geometry formation)!");
 		return NULL ; /*never get here */
 	}
 
@@ -895,7 +895,7 @@ rtgeom_symdifference(const RTGEOM* geom1, const RTGEOM* geom2)
 }
 
 RTGEOM*
-rtgeom_union(const RTGEOM *geom1, const RTGEOM *geom2)
+rtgeom_union(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 {
 	int is3d;
 	int srid;
@@ -905,36 +905,36 @@ rtgeom_union(const RTGEOM *geom1, const RTGEOM *geom2)
 	RTDEBUG(2, "in geomunion");
 
 	/* A.Union(empty) == A */
-	if ( rtgeom_is_empty(geom1) )
-		return rtgeom_clone_deep(geom2);
+	if ( rtgeom_is_empty(ctx, geom1) )
+		return rtgeom_clone_deep(ctx, geom2);
 
 	/* B.Union(empty) == B */
-	if ( rtgeom_is_empty(geom2) )
-		return rtgeom_clone_deep(geom1);
+	if ( rtgeom_is_empty(ctx, geom2) )
+		return rtgeom_clone_deep(ctx, geom1);
 
 
 	/* ensure srids are identical */
 	srid = (int)(geom1->srid);
-	error_if_srid_mismatch(srid, (int)(geom2->srid));
+	error_if_srid_mismatch(ctx, srid, (int)(geom2->srid));
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = RTGEOM2GEOS(geom1, 0);
+	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
-	g2 = RTGEOM2GEOS(geom2, 0);
+	g2 = RTGEOM2GEOS(ctx, geom2, 0);
 
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
 		GEOSGeom_destroy(g1);
-		rterror("Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -950,20 +950,20 @@ rtgeom_union(const RTGEOM *geom1, const RTGEOM *geom2)
 
 	if (g3 == NULL)
 	{
-		rterror("GEOSUnion: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSUnion: %s", rtgeom_geos_errmsg);
 		return NULL; /* never get here */
 	}
 
 
 	GEOSSetSRID(g3, srid);
 
-	result = GEOS2RTGEOM(g3, is3d);
+	result = GEOS2RTGEOM(ctx, g3, is3d);
 
 	GEOSGeom_destroy(g3);
 
 	if (result == NULL)
 	{
-		rterror("Error performing union: GEOS2RTGEOM: %s",
+		rterror(ctx, "Error performing union: GEOS2RTGEOM: %s",
 		        rtgeom_geos_errmsg);
 		return NULL; /*never get here */
 	}
@@ -972,10 +972,10 @@ rtgeom_union(const RTGEOM *geom1, const RTGEOM *geom2)
 }
 
 RTGEOM *
-rtgeom_clip_by_rect(const RTGEOM *geom1, double x0, double y0, double x1, double y1)
+rtgeom_clip_by_rect(RTCTX *ctx, const RTGEOM *geom1, double x0, double y0, double x1, double y1)
 {
 #if RTGEOM_GEOS_VERSION < 35
-	rterror("The GEOS version this postgis binary "
+	rterror(ctx, "The GEOS version this postgis binary "
 	        "was compiled against (%d) doesn't support "
 	        "'GEOSClipByRect' function (3.3.5+ required)",
 	        RTGEOM_GEOS_VERSION);
@@ -986,8 +986,8 @@ rtgeom_clip_by_rect(const RTGEOM *geom1, double x0, double y0, double x1, double
 	int is3d ;
 
 	/* A.Intersection(Empty) == Empty */
-	if ( rtgeom_is_empty(geom1) )
-		return rtgeom_clone_deep(geom1);
+	if ( rtgeom_is_empty(ctx, geom1) )
+		return rtgeom_clone_deep(ctx, geom1);
 
 	is3d = RTFLAGS_GET_Z(geom1->flags);
 
@@ -995,10 +995,10 @@ rtgeom_clip_by_rect(const RTGEOM *geom1, double x0, double y0, double x1, double
 
 	RTDEBUG(3, "clip_by_rect() START");
 
-	g1 = RTGEOM2GEOS(geom1, 1); /* auto-fix structure */
+	g1 = RTGEOM2GEOS(ctx, geom1, 1); /* auto-fix structure */
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL ;
 	}
 
@@ -1013,18 +1013,18 @@ rtgeom_clip_by_rect(const RTGEOM *geom1, double x0, double y0, double x1, double
 
 	if (g3 == NULL)
 	{
-		rtnotice("Error performing rectangular clipping: %s", rtgeom_geos_errmsg);
+		rtnotice(ctx, "Error performing rectangular clipping: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
 	RTDEBUGF(3, "result: %s", GEOSGeomToWKT(g3) ) ;
 
-	result = GEOS2RTGEOM(g3, is3d);
+	result = GEOS2RTGEOM(ctx, g3, is3d);
 	GEOSGeom_destroy(g3);
 
 	if (result == NULL)
 	{
-		rterror("Error performing intersection: GEOS2RTGEOM: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Error performing intersection: GEOS2RTGEOM: %s", rtgeom_geos_errmsg);
 		return NULL ; /* never get here */
 	}
 
@@ -1044,25 +1044,25 @@ typedef struct Face_t {
   struct Face_t* parent; /* if this face is an hole of another one, or NULL */
 } Face;
 
-static Face* newFace(const GEOSGeometry* g);
-static void delFace(Face* f);
-static unsigned int countParens(const Face* f);
-static void findFaceHoles(Face** faces, int nfaces);
+static Face* newFace(RTCTX *ctx, const GEOSGeometry* g);
+static void delFace(RTCTX *ctx, Face* f);
+static unsigned int countParens(RTCTX *ctx, const Face* f);
+static void findFaceHoles(RTCTX *ctx, Face** faces, int nfaces);
 
 static Face*
-newFace(const GEOSGeometry* g)
+newFace(RTCTX *ctx, const GEOSGeometry* g)
 {
-  Face* f = rtalloc(sizeof(Face));
+  Face* f = rtalloc(ctx, sizeof(Face));
   f->geom = g;
   f->env = GEOSEnvelope(f->geom);
   GEOSArea(f->env, &f->envarea);
   f->parent = NULL;
-  /* rtnotice("Built Face with area %g and %d holes", f->envarea, GEOSGetNumInteriorRings(f->geom)); */
+  /* rtnotice(ctx, "Built Face with area %g and %d holes", f->envarea, GEOSGetNumInteriorRings(f->geom)); */
   return f;
 }
 
 static unsigned int
-countParens(const Face* f)
+countParens(RTCTX *ctx, const Face* f)
 {
   unsigned int pcount = 0;
   while ( f->parent ) {
@@ -1074,10 +1074,10 @@ countParens(const Face* f)
 
 /* Destroy the face and release memory associated with it */
 static void
-delFace(Face* f)
+delFace(RTCTX *ctx, Face* f)
 {
   GEOSGeom_destroy(f->env);
-  rtfree(f);
+  rtfree(ctx, f);
 }
 
 
@@ -1096,7 +1096,7 @@ compare_by_envarea(const void* g1, const void* g2)
 
 /* Find holes of each face */
 static void
-findFaceHoles(Face** faces, int nfaces)
+findFaceHoles(RTCTX *ctx, Face** faces, int nfaces)
 {
   int i, j, h;
 
@@ -1131,26 +1131,26 @@ findFaceHoles(Face** faces, int nfaces)
 }
 
 static GEOSGeometry*
-collectFacesWithEvenAncestors(Face** faces, int nfaces)
+collectFacesWithEvenAncestors(RTCTX *ctx, Face** faces, int nfaces)
 {
-  GEOSGeometry **geoms = rtalloc(sizeof(GEOSGeometry*)*nfaces);
+  GEOSGeometry **geoms = rtalloc(ctx, sizeof(GEOSGeometry*)*nfaces);
   GEOSGeometry *ret;
   unsigned int ngeoms = 0;
   int i;
 
   for (i=0; i<nfaces; ++i) {
     Face *f = faces[i];
-    if ( countParens(f) % 2 ) continue; /* we skip odd parents geoms */
+    if ( countParens(ctx, f) % 2 ) continue; /* we skip odd parents geoms */
     geoms[ngeoms++] = GEOSGeom_clone(f->geom);
   }
 
   ret = GEOSGeom_createCollection(GEOS_MULTIPOLYGON, geoms, ngeoms);
-  rtfree(geoms);
+  rtfree(ctx, geoms);
   return ret;
 }
 
 GEOSGeometry*
-RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in)
+RTGEOM_GEOS_buildArea(RTCTX *ctx, const GEOSGeometry* geom_in)
 {
   GEOSGeometry *tmp;
   GEOSGeometry *geos_result, *shp;
@@ -1161,7 +1161,7 @@ RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in)
 
   vgeoms[0] = geom_in;
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Polygonizing");
+  rtnotice(ctx, "Polygonizing");
 #endif
   geos_result = GEOSPolygonize(vgeoms, 1);
 
@@ -1177,20 +1177,20 @@ RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in)
   if ( GEOSGeometryTypeId(geos_result) != RTCOLLECTIONTYPE )
   {
     GEOSGeom_destroy(geos_result);
-    rterror("Unexpected return from GEOSpolygonize");
+    rterror(ctx, "Unexpected return from GEOSpolygonize");
     return 0;
   }
 #endif
 
   ngeoms = GEOSGetNumGeometries(geos_result);
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Num geometries from polygonizer: %d", ngeoms);
+  rtnotice(ctx, "Num geometries from polygonizer: %d", ngeoms);
 #endif
 
 
   RTDEBUGF(3, "GEOSpolygonize: ngeoms in polygonize output: %d", ngeoms);
   RTDEBUGF(3, "GEOSpolygonize: polygonized:%s",
-              rtgeom_to_ewkt(GEOS2RTGEOM(geos_result, 0)));
+              rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, geos_result, 0)));
 
   /*
    * No geometries in collection, early out
@@ -1250,43 +1250,43 @@ RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in)
    */
 
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Preparing face structures");
+  rtnotice(ctx, "Preparing face structures");
 #endif
 
   /* Prepare face structures for later analysis */
-  geoms = rtalloc(sizeof(Face**)*ngeoms);
+  geoms = rtalloc(ctx, sizeof(Face**)*ngeoms);
   for (i=0; i<ngeoms; ++i)
-    geoms[i] = newFace(GEOSGetGeometryN(geos_result, i));
+    geoms[i] = newFace(ctx, GEOSGetGeometryN(geos_result, i));
 
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Finding face holes");
+  rtnotice(ctx, "Finding face holes");
 #endif
 
   /* Find faces representing other faces holes */
-  findFaceHoles(geoms, ngeoms);
+  findFaceHoles(ctx, geoms, ngeoms);
 
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Colletting even ancestor faces");
+  rtnotice(ctx, "Colletting even ancestor faces");
 #endif
 
   /* Build a MultiPolygon composed only by faces with an
    * even number of ancestors */
-  tmp = collectFacesWithEvenAncestors(geoms, ngeoms);
+  tmp = collectFacesWithEvenAncestors(ctx, geoms, ngeoms);
 
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Cleaning up");
+  rtnotice(ctx, "Cleaning up");
 #endif
 
   /* Cleanup face structures */
-  for (i=0; i<ngeoms; ++i) delFace(geoms[i]);
-  rtfree(geoms);
+  for (i=0; i<ngeoms; ++i) delFace(ctx, geoms[i]);
+  rtfree(ctx, geoms);
 
   /* Faces referenced memory owned by geos_result.
    * It is safe to destroy geos_result after deleting them. */
   GEOSGeom_destroy(geos_result);
 
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Self-unioning");
+  rtnotice(ctx, "Self-unioning");
 #endif
 
   /* Run a single overlay operation to dissolve shared edges */
@@ -1298,7 +1298,7 @@ RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in)
   }
 
 #ifdef RTGEOM_PROFILE_BUILDAREA
-  rtnotice("Final cleanup");
+  rtnotice(ctx, "Final cleanup");
 #endif
 
   GEOSGeom_destroy(tmp);
@@ -1309,7 +1309,7 @@ RTGEOM_GEOS_buildArea(const GEOSGeometry* geom_in)
 }
 
 RTGEOM*
-rtgeom_buildarea(const RTGEOM *geom)
+rtgeom_buildarea(RTCTX *ctx, const RTGEOM *geom)
 {
 	GEOSGeometry* geos_in;
 	GEOSGeometry* geos_out;
@@ -1318,9 +1318,9 @@ rtgeom_buildarea(const RTGEOM *geom)
 	int is3d = RTFLAGS_GET_Z(geom->flags);
 
 	/* Can't build an area from an empty! */
-	if ( rtgeom_is_empty(geom) )
+	if ( rtgeom_is_empty(ctx, geom) )
 	{
-		return (RTGEOM*)rtpoly_construct_empty(SRID, is3d, 0);
+		return (RTGEOM*)rtpoly_construct_empty(ctx, SRID, is3d, 0);
 	}
 
 	RTDEBUG(3, "buildarea called");
@@ -1329,19 +1329,19 @@ rtgeom_buildarea(const RTGEOM *geom)
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	geos_in = RTGEOM2GEOS(geom, 0);
+	geos_in = RTGEOM2GEOS(ctx, geom, 0);
 	
 	if ( 0 == geos_in )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
-	geos_out = RTGEOM_GEOS_buildArea(geos_in);
+	geos_out = RTGEOM_GEOS_buildArea(ctx, geos_in);
 	GEOSGeom_destroy(geos_in);
 
 	if ( ! geos_out ) /* exception thrown.. */
 	{
-		rterror("RTGEOM_GEOS_buildArea: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM_GEOS_buildArea: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -1352,13 +1352,13 @@ rtgeom_buildarea(const RTGEOM *geom)
 		return NULL;
 	}
 
-	geom_out = GEOS2RTGEOM(geos_out, is3d);
+	geom_out = GEOS2RTGEOM(ctx, geos_out, is3d);
 	GEOSGeom_destroy(geos_out);
 
 #if PARANOIA_LEVEL > 0
 	if ( geom_out == NULL )
 	{
-		rterror("serialization error");
+		rterror(ctx, "serialization error");
 		return NULL;
 	}
 
@@ -1368,23 +1368,23 @@ rtgeom_buildarea(const RTGEOM *geom)
 }
 
 int
-rtgeom_is_simple(const RTGEOM *geom)
+rtgeom_is_simple(RTCTX *ctx, const RTGEOM *geom)
 {
 	GEOSGeometry* geos_in;
 	int simple;
 
 	/* Empty is artays simple */
-	if ( rtgeom_is_empty(geom) )
+	if ( rtgeom_is_empty(ctx, geom) )
 	{
 		return 1;
 	}
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	geos_in = RTGEOM2GEOS(geom, 0);
+	geos_in = RTGEOM2GEOS(ctx, geom, 0);
 	if ( 0 == geos_in )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return -1;
 	}
 	simple = GEOSisSimple(geos_in);
@@ -1392,7 +1392,7 @@ rtgeom_is_simple(const RTGEOM *geom)
 
 	if ( simple == 2 ) /* exception thrown */
 	{
-		rterror("rtgeom_is_simple: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "rtgeom_is_simple: %s", rtgeom_geos_errmsg);
 		return -1;
 	}
 
@@ -1402,7 +1402,7 @@ rtgeom_is_simple(const RTGEOM *geom)
 /* ------------ end of BuildArea stuff ---------------------------------------------------------------------} */
 
 RTGEOM*
-rtgeom_geos_noop(const RTGEOM* geom_in)
+rtgeom_geos_noop(RTCTX *ctx, const RTGEOM* geom_in)
 {
 	GEOSGeometry *geosgeom;
 	RTGEOM* geom_out;
@@ -1410,16 +1410,16 @@ rtgeom_geos_noop(const RTGEOM* geom_in)
 	int is3d = RTFLAGS_GET_Z(geom_in->flags);
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
-	geosgeom = RTGEOM2GEOS(geom_in, 0);
+	geosgeom = RTGEOM2GEOS(ctx, geom_in, 0);
 	if ( ! geosgeom ) {
-		rterror("Geometry could not be converted to GEOS: %s",
+		rterror(ctx, "Geometry could not be converted to GEOS: %s",
 			rtgeom_geos_errmsg);
 		return NULL;
 	}
-	geom_out = GEOS2RTGEOM(geosgeom, is3d);
+	geom_out = GEOS2RTGEOM(ctx, geosgeom, is3d);
 	GEOSGeom_destroy(geosgeom);
 	if ( ! geom_out ) {
-		rterror("GEOS Geometry could not be converted to RTGEOM: %s",
+		rterror(ctx, "GEOS Geometry could not be converted to RTGEOM: %s",
 			rtgeom_geos_errmsg);
 	}
 	return geom_out;
@@ -1427,10 +1427,10 @@ rtgeom_geos_noop(const RTGEOM* geom_in)
 }
 
 RTGEOM*
-rtgeom_snap(const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
+rtgeom_snap(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 {
 #if RTGEOM_GEOS_VERSION < 33
-	rterror("The GEOS version this rtgeom library "
+	rterror(ctx, "The GEOS version this rtgeom library "
 	        "was compiled against (%d) doesn't support "
 	        "'Snap' function (3.3.0+ required)",
 	        RTGEOM_GEOS_VERSION);
@@ -1442,23 +1442,23 @@ rtgeom_snap(const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 	RTGEOM* out;
 
 	srid = geom1->srid;
-	error_if_srid_mismatch(srid, (int)(geom2->srid));
+	error_if_srid_mismatch(ctx, srid, (int)(geom2->srid));
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = (GEOSGeometry *)RTGEOM2GEOS(geom1, 0);
+	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
-	g2 = (GEOSGeometry *)RTGEOM2GEOS(geom2, 0);
+	g2 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom2, 0);
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
-		rterror("Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		GEOSGeom_destroy(g1);
 		return NULL;
 	}
@@ -1468,7 +1468,7 @@ rtgeom_snap(const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
-		rterror("GEOSSnap: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSSnap: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -1476,11 +1476,11 @@ rtgeom_snap(const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 	GEOSGeom_destroy(g2);
 
 	GEOSSetSRID(g3, srid);
-	out = GEOS2RTGEOM(g3, is3d);
+	out = GEOS2RTGEOM(ctx, g3, is3d);
 	if (out == NULL)
 	{
 		GEOSGeom_destroy(g3);
-		rterror("GEOSSnap() threw an error (result RTGEOM geometry formation)!");
+		rterror(ctx, "GEOSSnap() threw an error (result RTGEOM geometry formation)!");
 		return NULL;
 	}
 	GEOSGeom_destroy(g3);
@@ -1491,10 +1491,10 @@ rtgeom_snap(const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 }
 
 RTGEOM*
-rtgeom_sharedpaths(const RTGEOM* geom1, const RTGEOM* geom2)
+rtgeom_sharedpaths(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 {
 #if RTGEOM_GEOS_VERSION < 33
-	rterror("The GEOS version this postgis binary "
+	rterror(ctx, "The GEOS version this postgis binary "
 	        "was compiled against (%d) doesn't support "
 	        "'SharedPaths' function (3.3.0+ required)",
 	        RTGEOM_GEOS_VERSION);
@@ -1505,23 +1505,23 @@ rtgeom_sharedpaths(const RTGEOM* geom1, const RTGEOM* geom2)
 	int is3d, srid;
 
 	srid = geom1->srid;
-	error_if_srid_mismatch(srid, (int)(geom2->srid));
+	error_if_srid_mismatch(ctx, srid, (int)(geom2->srid));
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = (GEOSGeometry *)RTGEOM2GEOS(geom1, 0);
+	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror("First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
-	g2 = (GEOSGeometry *)RTGEOM2GEOS(geom2, 0);
+	g2 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom2, 0);
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
-		rterror("Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		GEOSGeom_destroy(g1);
 		return NULL;
 	}
@@ -1533,17 +1533,17 @@ rtgeom_sharedpaths(const RTGEOM* geom1, const RTGEOM* geom2)
 
 	if (g3 == NULL)
 	{
-		rterror("GEOSSharedPaths: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSSharedPaths: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
 	GEOSSetSRID(g3, srid);
-	out = GEOS2RTGEOM(g3, is3d);
+	out = GEOS2RTGEOM(ctx, g3, is3d);
 	GEOSGeom_destroy(g3);
 
 	if (out == NULL)
 	{
-		rterror("GEOS2RTGEOM threw an error");
+		rterror(ctx, "GEOS2RTGEOM threw an error");
 		return NULL;
 	}
 
@@ -1552,21 +1552,21 @@ rtgeom_sharedpaths(const RTGEOM* geom1, const RTGEOM* geom2)
 }
 
 RTGEOM*
-rtgeom_offsetcurve(const RTLINE *rtline, double size, int quadsegs, int joinStyle, double mitreLimit)
+rtgeom_offsetcurve(RTCTX *ctx, const RTLINE *rtline, double size, int quadsegs, int joinStyle, double mitreLimit)
 {
 #if RTGEOM_GEOS_VERSION < 32
-	rterror("rtgeom_offsetcurve: GEOS 3.2 or higher required");
+	rterror(ctx, "rtgeom_offsetcurve: GEOS 3.2 or higher required");
 #else
 	GEOSGeometry *g1, *g3;
 	RTGEOM *rtgeom_result;
-	RTGEOM *rtgeom_in = rtline_as_rtgeom(rtline);
+	RTGEOM *rtgeom_in = rtline_as_rtgeom(ctx, rtline);
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = (GEOSGeometry *)RTGEOM2GEOS(rtgeom_in, 0);
+	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, rtgeom_in, 0);
 	if ( ! g1 ) 
 	{
-		rterror("rtgeom_offsetcurve: Geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "rtgeom_offsetcurve: Geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -1583,19 +1583,19 @@ rtgeom_offsetcurve(const RTLINE *rtline, double size, int quadsegs, int joinStyl
 
 	if (g3 == NULL)
 	{
-		rterror("GEOSOffsetCurve: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSOffsetCurve: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
 	RTDEBUGF(3, "result: %s", GEOSGeomToWKT(g3));
 
-	GEOSSetSRID(g3, rtgeom_get_srid(rtgeom_in));
-	rtgeom_result = GEOS2RTGEOM(g3, rtgeom_has_z(rtgeom_in));
+	GEOSSetSRID(g3, rtgeom_get_srid(ctx, rtgeom_in));
+	rtgeom_result = GEOS2RTGEOM(ctx, g3, rtgeom_has_z(ctx, rtgeom_in));
 	GEOSGeom_destroy(g3);
 
 	if (rtgeom_result == NULL)
 	{
-		rterror("rtgeom_offsetcurve: GEOS2RTGEOM returned null");
+		rterror(ctx, "rtgeom_offsetcurve: GEOS2RTGEOM returned null");
 		return NULL;
 	}
 
@@ -1604,7 +1604,7 @@ rtgeom_offsetcurve(const RTLINE *rtline, double size, int quadsegs, int joinStyl
 #endif /* RTGEOM_GEOS_VERSION < 32 */
 }
 
-RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d) {
+RTTIN * rttin_from_geos(RTCTX *ctx, const GEOSGeometry *geom, int want3d) {
 	int type = GEOSGeomTypeId(geom);
 	int hasZ;
 	int SRID = GEOSGetSRID(geom);
@@ -1629,9 +1629,9 @@ RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d) {
 		ngeoms = GEOSGetNumGeometries(geom);
 		geoms = NULL;
 		if ( ngeoms ) {
-			geoms = rtalloc(ngeoms * sizeof *geoms);
+			geoms = rtalloc(ctx, ngeoms * sizeof *geoms);
 			if (!geoms) {
-				rterror("rttin_from_geos: can't allocate geoms");
+				rterror(ctx, "rttin_from_geos: can't allocate geoms");
 				return NULL;
 			}
 			for (i=0; i<ngeoms; i++) {
@@ -1642,12 +1642,12 @@ RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d) {
 				poly = GEOSGetGeometryN(geom, i);
 				ring = GEOSGetExteriorRing(poly);
 				cs = GEOSGeom_getCoordSeq(ring);
-				pa = ptarray_from_GEOSCoordSeq(cs, want3d);
+				pa = ptarray_from_GEOSCoordSeq(ctx, cs, want3d);
 
-				geoms[i] = rttriangle_construct(SRID, NULL, pa);
+				geoms[i] = rttriangle_construct(ctx, SRID, NULL, pa);
 			}
 		}
-		return (RTTIN *)rtcollection_construct(RTTINTYPE, SRID, NULL, ngeoms, (RTGEOM **)geoms);
+		return (RTTIN *)rtcollection_construct(ctx, RTTINTYPE, SRID, NULL, ngeoms, (RTGEOM **)geoms);
 	case GEOS_POLYGON:
 	case GEOS_MULTIPOINT:
 	case GEOS_MULTILINESTRING:
@@ -1655,11 +1655,11 @@ RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d) {
 	case GEOS_LINESTRING:
 	case GEOS_LINEARRING:
 	case GEOS_POINT:
-		rterror("rttin_from_geos: invalid geometry type for tin: %d", type);
+		rterror(ctx, "rttin_from_geos: invalid geometry type for tin: %d", type);
 		break;
 
 	default:
-		rterror("GEOS2RTGEOM: unknown geometry type: %d", type);
+		rterror(ctx, "GEOS2RTGEOM: unknown geometry type: %d", type);
 		return NULL;
 	}
 
@@ -1669,25 +1669,25 @@ RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d) {
 /*
  * output = 1 for edges, 2 for TIN, 0 for polygons
  */
-RTGEOM* rtgeom_delaunay_triangulation(const RTGEOM *rtgeom_in, double tolerance, int output) {
+RTGEOM* rtgeom_delaunay_triangulation(RTCTX *ctx, const RTGEOM *rtgeom_in, double tolerance, int output) {
 #if RTGEOM_GEOS_VERSION < 34
-	rterror("rtgeom_delaunay_triangulation: GEOS 3.4 or higher required");
+	rterror(ctx, "rtgeom_delaunay_triangulation: GEOS 3.4 or higher required");
 	return NULL;
 #else
 	GEOSGeometry *g1, *g3;
 	RTGEOM *rtgeom_result;
 
 	if (output < 0 || output > 2) {
-		rterror("rtgeom_delaunay_triangulation: invalid output type specified %d", output);
+		rterror(ctx, "rtgeom_delaunay_triangulation: invalid output type specified %d", output);
 		return NULL;
 	}
 
 	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
-	g1 = (GEOSGeometry *)RTGEOM2GEOS(rtgeom_in, 0);
+	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, rtgeom_in, 0);
 	if ( ! g1 ) 
 	{
-		rterror("rtgeom_delaunay_triangulation: Geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "rtgeom_delaunay_triangulation: Geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -1699,27 +1699,27 @@ RTGEOM* rtgeom_delaunay_triangulation(const RTGEOM *rtgeom_in, double tolerance,
 
 	if (g3 == NULL)
 	{
-		rterror("GEOSDelaunayTriangulation: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSDelaunayTriangulation: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
 	/* RTDEBUGF(3, "result: %s", GEOSGeomToWKT(g3)); */
 
-	GEOSSetSRID(g3, rtgeom_get_srid(rtgeom_in));
+	GEOSSetSRID(g3, rtgeom_get_srid(ctx, rtgeom_in));
 
 	if (output == 2) {
-		rtgeom_result = (RTGEOM *)rttin_from_geos(g3, rtgeom_has_z(rtgeom_in));
+		rtgeom_result = (RTGEOM *)rttin_from_geos(ctx, g3, rtgeom_has_z(ctx, rtgeom_in));
 	} else {
-		rtgeom_result = GEOS2RTGEOM(g3, rtgeom_has_z(rtgeom_in));
+		rtgeom_result = GEOS2RTGEOM(ctx, g3, rtgeom_has_z(ctx, rtgeom_in));
 	}
 
 	GEOSGeom_destroy(g3);
 
 	if (rtgeom_result == NULL) {
 		if (output != 2) {
-			rterror("rtgeom_delaunay_triangulation: GEOS2RTGEOM returned null");
+			rterror(ctx, "rtgeom_delaunay_triangulation: GEOS2RTGEOM returned null");
 		} else {
-			rterror("rtgeom_delaunay_triangulation: rttin_from_geos returned null");
+			rterror(ctx, "rtgeom_delaunay_triangulation: rttin_from_geos returned null");
 		}
 		return NULL;
 	}

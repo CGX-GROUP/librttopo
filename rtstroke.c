@@ -21,16 +21,16 @@
 #include "rtgeom_log.h"
 
 
-RTMLINE* rtmcurve_stroke(const RTMCURVE *mcurve, uint32_t perQuad);
-RTMPOLY* rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad);
-RTCOLLECTION* rtcollection_stroke(const RTCOLLECTION *collection, uint32_t perQuad);
+RTMLINE* rtmcurve_stroke(RTCTX *ctx, const RTMCURVE *mcurve, uint32_t perQuad);
+RTMPOLY* rtmsurface_stroke(RTCTX *ctx, const RTMSURFACE *msurface, uint32_t perQuad);
+RTCOLLECTION* rtcollection_stroke(RTCTX *ctx, const RTCOLLECTION *collection, uint32_t perQuad);
 
-RTGEOM* pta_unstroke(const RTPOINTARRAY *points, int type, int srid);
-RTGEOM* rtline_unstroke(const RTLINE *line);
-RTGEOM* rtpolygon_unstroke(const RTPOLY *poly);
-RTGEOM* rtmline_unstroke(const RTMLINE *mline);
-RTGEOM* rtmpolygon_unstroke(const RTMPOLY *mpoly);
-RTGEOM* rtgeom_unstroke(const RTGEOM *geom);
+RTGEOM* pta_unstroke(RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid);
+RTGEOM* rtline_unstroke(RTCTX *ctx, const RTLINE *line);
+RTGEOM* rtpolygon_unstroke(RTCTX *ctx, const RTPOLY *poly);
+RTGEOM* rtmline_unstroke(RTCTX *ctx, const RTMLINE *mline);
+RTGEOM* rtmpolygon_unstroke(RTCTX *ctx, const RTMPOLY *mpoly);
+RTGEOM* rtgeom_unstroke(RTCTX *ctx, const RTGEOM *geom);
 
 
 /*
@@ -38,7 +38,7 @@ RTGEOM* rtgeom_unstroke(const RTGEOM *geom);
  * contains at least on arc geometry or segment.
  */
 int
-rtgeom_has_arc(const RTGEOM *geom)
+rtgeom_has_arc(RTCTX *ctx, const RTGEOM *geom)
 {
 	RTCOLLECTION *col;
 	int i;
@@ -64,7 +64,7 @@ rtgeom_has_arc(const RTGEOM *geom)
 		col = (RTCOLLECTION *)geom;
 		for (i=0; i<col->ngeoms; i++)
 		{
-			if (rtgeom_has_arc(col->geoms[i]) == RT_TRUE) 
+			if (rtgeom_has_arc(ctx, col->geoms[i]) == RT_TRUE) 
 				return RT_TRUE;
 		}
 		return RT_FALSE;
@@ -77,7 +77,7 @@ rtgeom_has_arc(const RTGEOM *geom)
  * Begin curve segmentize functions
  ******************************************************************************/
 
-static double interpolate_arc(double angle, double a1, double a2, double a3, double zm1, double zm2, double zm3)
+static double interpolate_arc(RTCTX *ctx, double angle, double a1, double a2, double a3, double zm1, double zm2, double zm3)
 {
 	RTDEBUGF(4,"angle %.05g a1 %.05g a2 %.05g a3 %.05g zm1 %.05g zm2 %.05g zm3 %.05g",angle,a1,a2,a3,zm1,zm2,zm3);
 	/* Counter-clockwise sweep */
@@ -99,7 +99,7 @@ static double interpolate_arc(double angle, double a1, double a2, double a3, dou
 }
 
 static RTPOINTARRAY *
-rtcircle_stroke(const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, uint32_t perQuad)
+rtcircle_stroke(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, uint32_t perQuad)
 {
 	RTPOINT2D center;
 	RTPOINT2D *t1 = (RTPOINT2D*)p1;
@@ -116,8 +116,8 @@ rtcircle_stroke(const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, u
 
 	RTDEBUG(2, "rtcircle_calculate_gbox called.");
 
-	radius = rt_arc_center(t1, t2, t3, &center);
-	p2_side = rt_segment_side(t1, t3, t2);
+	radius = rt_arc_center(ctx, t1, t2, t3, &center);
+	p2_side = rt_segment_side(ctx, t1, t3, t2);
 
 	/* Matched start/end points imply circle */
 	if ( p1->x == p3->x && p1->y == p3->y )
@@ -171,23 +171,23 @@ rtcircle_stroke(const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, u
 	}
 	
 	/* Initialize point array */
-	pa = ptarray_construct_empty(1, 1, 32);
+	pa = ptarray_construct_empty(ctx, 1, 1, 32);
 
 	/* Sweep from a1 to a3 */
-	ptarray_append_point(pa, p1, RT_FALSE);
+	ptarray_append_point(ctx, pa, p1, RT_FALSE);
 	for ( angle = a1 + increment; clockwise ? angle > a3 : angle < a3; angle += increment ) 
 	{
 		pt.x = center.x + radius * cos(angle);
 		pt.y = center.y + radius * sin(angle);
-		pt.z = interpolate_arc(angle, a1, a2, a3, p1->z, p2->z, p3->z);
-		pt.m = interpolate_arc(angle, a1, a2, a3, p1->m, p2->m, p3->m);
-		ptarray_append_point(pa, &pt, RT_FALSE);
+		pt.z = interpolate_arc(ctx, angle, a1, a2, a3, p1->z, p2->z, p3->z);
+		pt.m = interpolate_arc(ctx, angle, a1, a2, a3, p1->m, p2->m, p3->m);
+		ptarray_append_point(ctx, pa, &pt, RT_FALSE);
 	}	
 	return pa;
 }
 
 RTLINE *
-rtcircstring_stroke(const RTCIRCSTRING *icurve, uint32_t perQuad)
+rtcircstring_stroke(RTCTX *ctx, const RTCIRCSTRING *icurve, uint32_t perQuad)
 {
 	RTLINE *oline;
 	RTPOINTARRAY *ptarray;
@@ -197,16 +197,16 @@ rtcircstring_stroke(const RTCIRCSTRING *icurve, uint32_t perQuad)
 
 	RTDEBUGF(2, "rtcircstring_stroke called., dim = %d", icurve->points->flags);
 
-	ptarray = ptarray_construct_empty(RTFLAGS_GET_Z(icurve->points->flags), RTFLAGS_GET_M(icurve->points->flags), 64);
+	ptarray = ptarray_construct_empty(ctx, RTFLAGS_GET_Z(icurve->points->flags), RTFLAGS_GET_M(icurve->points->flags), 64);
 
 	for (i = 2; i < icurve->points->npoints; i+=2)
 	{
 		RTDEBUGF(3, "rtcircstring_stroke: arc ending at point %d", i);
 
-		getPoint4d_p(icurve->points, i - 2, &p1);
-		getPoint4d_p(icurve->points, i - 1, &p2);
-		getPoint4d_p(icurve->points, i, &p3);
-		tmp = rtcircle_stroke(&p1, &p2, &p3, perQuad);
+		getPoint4d_p(ctx, icurve->points, i - 2, &p1);
+		getPoint4d_p(ctx, icurve->points, i - 1, &p2);
+		getPoint4d_p(ctx, icurve->points, i, &p3);
+		tmp = rtcircle_stroke(ctx, &p1, &p2, &p3, perQuad);
 
 		if (tmp)
 		{
@@ -214,10 +214,10 @@ rtcircstring_stroke(const RTCIRCSTRING *icurve, uint32_t perQuad)
 
 			for (j = 0; j < tmp->npoints; j++)
 			{
-				getPoint4d_p(tmp, j, &p4);
-				ptarray_append_point(ptarray, &p4, RT_TRUE);
+				getPoint4d_p(ctx, tmp, j, &p4);
+				ptarray_append_point(ctx, ptarray, &p4, RT_TRUE);
 			}
-			ptarray_free(tmp);
+			ptarray_free(ctx, tmp);
 		}
 		else
 		{
@@ -225,21 +225,21 @@ rtcircstring_stroke(const RTCIRCSTRING *icurve, uint32_t perQuad)
 
 			for (j = i - 2 ; j < i ; j++)
 			{
-				getPoint4d_p(icurve->points, j, &p4);
-				ptarray_append_point(ptarray, &p4, RT_TRUE);
+				getPoint4d_p(ctx, icurve->points, j, &p4);
+				ptarray_append_point(ctx, ptarray, &p4, RT_TRUE);
 			}
 		}
 
 	}
-	getPoint4d_p(icurve->points, icurve->points->npoints-1, &p1);
-	ptarray_append_point(ptarray, &p1, RT_TRUE);
+	getPoint4d_p(ctx, icurve->points, icurve->points->npoints-1, &p1);
+	ptarray_append_point(ctx, ptarray, &p1, RT_TRUE);
 		
-	oline = rtline_construct(icurve->srid, NULL, ptarray);
+	oline = rtline_construct(ctx, icurve->srid, NULL, ptarray);
 	return oline;
 }
 
 RTLINE *
-rtcompound_stroke(const RTCOMPOUND *icompound, uint32_t perQuad)
+rtcompound_stroke(RTCTX *ctx, const RTCOMPOUND *icompound, uint32_t perQuad)
 {
 	RTGEOM *geom;
 	RTPOINTARRAY *ptarray = NULL, *ptarray_out = NULL;
@@ -249,44 +249,44 @@ rtcompound_stroke(const RTCOMPOUND *icompound, uint32_t perQuad)
 
 	RTDEBUG(2, "rtcompound_stroke called.");
 
-	ptarray = ptarray_construct_empty(RTFLAGS_GET_Z(icompound->flags), RTFLAGS_GET_M(icompound->flags), 64);
+	ptarray = ptarray_construct_empty(ctx, RTFLAGS_GET_Z(icompound->flags), RTFLAGS_GET_M(icompound->flags), 64);
 
 	for (i = 0; i < icompound->ngeoms; i++)
 	{
 		geom = icompound->geoms[i];
 		if (geom->type == RTCIRCSTRINGTYPE)
 		{
-			tmp = rtcircstring_stroke((RTCIRCSTRING *)geom, perQuad);
+			tmp = rtcircstring_stroke(ctx, (RTCIRCSTRING *)geom, perQuad);
 			for (j = 0; j < tmp->points->npoints; j++)
 			{
-				getPoint4d_p(tmp->points, j, &p);
-				ptarray_append_point(ptarray, &p, RT_TRUE);
+				getPoint4d_p(ctx, tmp->points, j, &p);
+				ptarray_append_point(ctx, ptarray, &p, RT_TRUE);
 			}
-			rtline_free(tmp);
+			rtline_free(ctx, tmp);
 		}
 		else if (geom->type == RTLINETYPE)
 		{
 			tmp = (RTLINE *)geom;
 			for (j = 0; j < tmp->points->npoints; j++)
 			{
-				getPoint4d_p(tmp->points, j, &p);
-				ptarray_append_point(ptarray, &p, RT_TRUE);
+				getPoint4d_p(ctx, tmp->points, j, &p);
+				ptarray_append_point(ctx, ptarray, &p, RT_TRUE);
 			}
 		}
 		else
 		{
-			rterror("Unsupported geometry type %d found.",
-			        geom->type, rttype_name(geom->type));
+			rterror(ctx, "Unsupported geometry type %d found.",
+			        geom->type, rttype_name(ctx, geom->type));
 			return NULL;
 		}
 	}
-	ptarray_out = ptarray_remove_repeated_points(ptarray, 0.0);
-	ptarray_free(ptarray);
-	return rtline_construct(icompound->srid, NULL, ptarray_out);
+	ptarray_out = ptarray_remove_repeated_points(ctx, ptarray, 0.0);
+	ptarray_free(ctx, ptarray);
+	return rtline_construct(ctx, icompound->srid, NULL, ptarray_out);
 }
 
 RTPOLY *
-rtcurvepoly_stroke(const RTCURVEPOLY *curvepoly, uint32_t perQuad)
+rtcurvepoly_stroke(RTCTX *ctx, const RTCURVEPOLY *curvepoly, uint32_t perQuad)
 {
 	RTPOLY *ogeom;
 	RTGEOM *tmp;
@@ -296,41 +296,41 @@ rtcurvepoly_stroke(const RTCURVEPOLY *curvepoly, uint32_t perQuad)
 
 	RTDEBUG(2, "rtcurvepoly_stroke called.");
 
-	ptarray = rtalloc(sizeof(RTPOINTARRAY *)*curvepoly->nrings);
+	ptarray = rtalloc(ctx, sizeof(RTPOINTARRAY *)*curvepoly->nrings);
 
 	for (i = 0; i < curvepoly->nrings; i++)
 	{
 		tmp = curvepoly->rings[i];
 		if (tmp->type == RTCIRCSTRINGTYPE)
 		{
-			line = rtcircstring_stroke((RTCIRCSTRING *)tmp, perQuad);
-			ptarray[i] = ptarray_clone_deep(line->points);
-			rtline_free(line);
+			line = rtcircstring_stroke(ctx, (RTCIRCSTRING *)tmp, perQuad);
+			ptarray[i] = ptarray_clone_deep(ctx, line->points);
+			rtline_free(ctx, line);
 		}
 		else if (tmp->type == RTLINETYPE)
 		{
 			line = (RTLINE *)tmp;
-			ptarray[i] = ptarray_clone_deep(line->points);
+			ptarray[i] = ptarray_clone_deep(ctx, line->points);
 		}
 		else if (tmp->type == RTCOMPOUNDTYPE)
 		{
-			line = rtcompound_stroke((RTCOMPOUND *)tmp, perQuad);
-			ptarray[i] = ptarray_clone_deep(line->points);
-			rtline_free(line);
+			line = rtcompound_stroke(ctx, (RTCOMPOUND *)tmp, perQuad);
+			ptarray[i] = ptarray_clone_deep(ctx, line->points);
+			rtline_free(ctx, line);
 		}
 		else
 		{
-			rterror("Invalid ring type found in CurvePoly.");
+			rterror(ctx, "Invalid ring type found in CurvePoly.");
 			return NULL;
 		}
 	}
 
-	ogeom = rtpoly_construct(curvepoly->srid, NULL, curvepoly->nrings, ptarray);
+	ogeom = rtpoly_construct(ctx, curvepoly->srid, NULL, curvepoly->nrings, ptarray);
 	return ogeom;
 }
 
 RTMLINE *
-rtmcurve_stroke(const RTMCURVE *mcurve, uint32_t perQuad)
+rtmcurve_stroke(RTCTX *ctx, const RTMCURVE *mcurve, uint32_t perQuad)
 {
 	RTMLINE *ogeom;
 	RTGEOM **lines;
@@ -338,36 +338,36 @@ rtmcurve_stroke(const RTMCURVE *mcurve, uint32_t perQuad)
 
 	RTDEBUGF(2, "rtmcurve_stroke called, geoms=%d, dim=%d.", mcurve->ngeoms, RTFLAGS_NDIMS(mcurve->flags));
 
-	lines = rtalloc(sizeof(RTGEOM *)*mcurve->ngeoms);
+	lines = rtalloc(ctx, sizeof(RTGEOM *)*mcurve->ngeoms);
 
 	for (i = 0; i < mcurve->ngeoms; i++)
 	{
 		const RTGEOM *tmp = mcurve->geoms[i];
 		if (tmp->type == RTCIRCSTRINGTYPE)
 		{
-			lines[i] = (RTGEOM *)rtcircstring_stroke((RTCIRCSTRING *)tmp, perQuad);
+			lines[i] = (RTGEOM *)rtcircstring_stroke(ctx, (RTCIRCSTRING *)tmp, perQuad);
 		}
 		else if (tmp->type == RTLINETYPE)
 		{
-			lines[i] = (RTGEOM *)rtline_construct(mcurve->srid, NULL, ptarray_clone_deep(((RTLINE *)tmp)->points));
+			lines[i] = (RTGEOM *)rtline_construct(ctx, mcurve->srid, NULL, ptarray_clone_deep(ctx, ((RTLINE *)tmp)->points));
 		}
 		else if (tmp->type == RTCOMPOUNDTYPE)
 		{
-			lines[i] = (RTGEOM *)rtcompound_stroke((RTCOMPOUND *)tmp, perQuad);
+			lines[i] = (RTGEOM *)rtcompound_stroke(ctx, (RTCOMPOUND *)tmp, perQuad);
 		}
 		else
 		{
-			rterror("Unsupported geometry found in MultiCurve.");
+			rterror(ctx, "Unsupported geometry found in MultiCurve.");
 			return NULL;
 		}
 	}
 
-	ogeom = (RTMLINE *)rtcollection_construct(RTMULTILINETYPE, mcurve->srid, NULL, mcurve->ngeoms, lines);
+	ogeom = (RTMLINE *)rtcollection_construct(ctx, RTMULTILINETYPE, mcurve->srid, NULL, mcurve->ngeoms, lines);
 	return ogeom;
 }
 
 RTMPOLY *
-rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad)
+rtmsurface_stroke(RTCTX *ctx, const RTMSURFACE *msurface, uint32_t perQuad)
 {
 	RTMPOLY *ogeom;
 	RTGEOM *tmp;
@@ -378,32 +378,32 @@ rtmsurface_stroke(const RTMSURFACE *msurface, uint32_t perQuad)
 
 	RTDEBUG(2, "rtmsurface_stroke called.");
 
-	polys = rtalloc(sizeof(RTGEOM *)*msurface->ngeoms);
+	polys = rtalloc(ctx, sizeof(RTGEOM *)*msurface->ngeoms);
 
 	for (i = 0; i < msurface->ngeoms; i++)
 	{
 		tmp = msurface->geoms[i];
 		if (tmp->type == RTCURVEPOLYTYPE)
 		{
-			polys[i] = (RTGEOM *)rtcurvepoly_stroke((RTCURVEPOLY *)tmp, perQuad);
+			polys[i] = (RTGEOM *)rtcurvepoly_stroke(ctx, (RTCURVEPOLY *)tmp, perQuad);
 		}
 		else if (tmp->type == RTPOLYGONTYPE)
 		{
 			poly = (RTPOLY *)tmp;
-			ptarray = rtalloc(sizeof(RTPOINTARRAY *)*poly->nrings);
+			ptarray = rtalloc(ctx, sizeof(RTPOINTARRAY *)*poly->nrings);
 			for (j = 0; j < poly->nrings; j++)
 			{
-				ptarray[j] = ptarray_clone_deep(poly->rings[j]);
+				ptarray[j] = ptarray_clone_deep(ctx, poly->rings[j]);
 			}
-			polys[i] = (RTGEOM *)rtpoly_construct(msurface->srid, NULL, poly->nrings, ptarray);
+			polys[i] = (RTGEOM *)rtpoly_construct(ctx, msurface->srid, NULL, poly->nrings, ptarray);
 		}
 	}
-	ogeom = (RTMPOLY *)rtcollection_construct(RTMULTIPOLYGONTYPE, msurface->srid, NULL, msurface->ngeoms, polys);
+	ogeom = (RTMPOLY *)rtcollection_construct(ctx, RTMULTIPOLYGONTYPE, msurface->srid, NULL, msurface->ngeoms, polys);
 	return ogeom;
 }
 
 RTCOLLECTION *
-rtcollection_stroke(const RTCOLLECTION *collection, uint32_t perQuad)
+rtcollection_stroke(RTCTX *ctx, const RTCOLLECTION *collection, uint32_t perQuad)
 {
 	RTCOLLECTION *ocol;
 	RTGEOM *tmp;
@@ -412,7 +412,7 @@ rtcollection_stroke(const RTCOLLECTION *collection, uint32_t perQuad)
 
 	RTDEBUG(2, "rtcollection_stroke called.");
 
-	geoms = rtalloc(sizeof(RTGEOM *)*collection->ngeoms);
+	geoms = rtalloc(ctx, sizeof(RTGEOM *)*collection->ngeoms);
 
 	for (i=0; i<collection->ngeoms; i++)
 	{
@@ -420,52 +420,52 @@ rtcollection_stroke(const RTCOLLECTION *collection, uint32_t perQuad)
 		switch (tmp->type)
 		{
 		case RTCIRCSTRINGTYPE:
-			geoms[i] = (RTGEOM *)rtcircstring_stroke((RTCIRCSTRING *)tmp, perQuad);
+			geoms[i] = (RTGEOM *)rtcircstring_stroke(ctx, (RTCIRCSTRING *)tmp, perQuad);
 			break;
 		case RTCOMPOUNDTYPE:
-			geoms[i] = (RTGEOM *)rtcompound_stroke((RTCOMPOUND *)tmp, perQuad);
+			geoms[i] = (RTGEOM *)rtcompound_stroke(ctx, (RTCOMPOUND *)tmp, perQuad);
 			break;
 		case RTCURVEPOLYTYPE:
-			geoms[i] = (RTGEOM *)rtcurvepoly_stroke((RTCURVEPOLY *)tmp, perQuad);
+			geoms[i] = (RTGEOM *)rtcurvepoly_stroke(ctx, (RTCURVEPOLY *)tmp, perQuad);
 			break;
 		case RTCOLLECTIONTYPE:
-			geoms[i] = (RTGEOM *)rtcollection_stroke((RTCOLLECTION *)tmp, perQuad);
+			geoms[i] = (RTGEOM *)rtcollection_stroke(ctx, (RTCOLLECTION *)tmp, perQuad);
 			break;
 		default:
-			geoms[i] = rtgeom_clone(tmp);
+			geoms[i] = rtgeom_clone(ctx, tmp);
 			break;
 		}
 	}
-	ocol = rtcollection_construct(RTCOLLECTIONTYPE, collection->srid, NULL, collection->ngeoms, geoms);
+	ocol = rtcollection_construct(ctx, RTCOLLECTIONTYPE, collection->srid, NULL, collection->ngeoms, geoms);
 	return ocol;
 }
 
 RTGEOM *
-rtgeom_stroke(const RTGEOM *geom, uint32_t perQuad)
+rtgeom_stroke(RTCTX *ctx, const RTGEOM *geom, uint32_t perQuad)
 {
 	RTGEOM * ogeom = NULL;
 	switch (geom->type)
 	{
 	case RTCIRCSTRINGTYPE:
-		ogeom = (RTGEOM *)rtcircstring_stroke((RTCIRCSTRING *)geom, perQuad);
+		ogeom = (RTGEOM *)rtcircstring_stroke(ctx, (RTCIRCSTRING *)geom, perQuad);
 		break;
 	case RTCOMPOUNDTYPE:
-		ogeom = (RTGEOM *)rtcompound_stroke((RTCOMPOUND *)geom, perQuad);
+		ogeom = (RTGEOM *)rtcompound_stroke(ctx, (RTCOMPOUND *)geom, perQuad);
 		break;
 	case RTCURVEPOLYTYPE:
-		ogeom = (RTGEOM *)rtcurvepoly_stroke((RTCURVEPOLY *)geom, perQuad);
+		ogeom = (RTGEOM *)rtcurvepoly_stroke(ctx, (RTCURVEPOLY *)geom, perQuad);
 		break;
 	case RTMULTICURVETYPE:
-		ogeom = (RTGEOM *)rtmcurve_stroke((RTMCURVE *)geom, perQuad);
+		ogeom = (RTGEOM *)rtmcurve_stroke(ctx, (RTMCURVE *)geom, perQuad);
 		break;
 	case RTMULTISURFACETYPE:
-		ogeom = (RTGEOM *)rtmsurface_stroke((RTMSURFACE *)geom, perQuad);
+		ogeom = (RTGEOM *)rtmsurface_stroke(ctx, (RTMSURFACE *)geom, perQuad);
 		break;
 	case RTCOLLECTIONTYPE:
-		ogeom = (RTGEOM *)rtcollection_stroke((RTCOLLECTION *)geom, perQuad);
+		ogeom = (RTGEOM *)rtcollection_stroke(ctx, (RTCOLLECTION *)geom, perQuad);
 		break;
 	default:
-		ogeom = rtgeom_clone(geom);
+		ogeom = rtgeom_clone(ctx, geom);
 	}
 	return ogeom;
 }
@@ -475,7 +475,7 @@ rtgeom_stroke(const RTGEOM *geom, uint32_t perQuad)
  * TODO: move to rtalgorithm
  */
 static double
-rt_arc_angle(const RTPOINT2D *a, const RTPOINT2D *b, const RTPOINT2D *c)
+rt_arc_angle(RTCTX *ctx, const RTPOINT2D *a, const RTPOINT2D *b, const RTPOINT2D *c)
 {
   RTPOINT2D ab, cb;
 
@@ -497,31 +497,31 @@ rt_arc_angle(const RTPOINT2D *a, const RTPOINT2D *b, const RTPOINT2D *c)
 * Returns RT_TRUE if b is on the arc formed by a1/a2/a3, but not within
 * that portion already described by a1/a2/a3
 */
-static int pt_continues_arc(const RTPOINT4D *a1, const RTPOINT4D *a2, const RTPOINT4D *a3, const RTPOINT4D *b)
+static int pt_continues_arc(RTCTX *ctx, const RTPOINT4D *a1, const RTPOINT4D *a2, const RTPOINT4D *a3, const RTPOINT4D *b)
 {
 	RTPOINT2D center;
 	RTPOINT2D *t1 = (RTPOINT2D*)a1;
 	RTPOINT2D *t2 = (RTPOINT2D*)a2;
 	RTPOINT2D *t3 = (RTPOINT2D*)a3;
 	RTPOINT2D *tb = (RTPOINT2D*)b;
-	double radius = rt_arc_center(t1, t2, t3, &center);
+	double radius = rt_arc_center(ctx, t1, t2, t3, &center);
 	double b_distance, diff;
 
 	/* Co-linear a1/a2/a3 */
 	if ( radius < 0.0 )
 		return RT_FALSE;
 
-	b_distance = distance2d_pt_pt(tb, &center);
+	b_distance = distance2d_pt_pt(ctx, tb, &center);
 	diff = fabs(radius - b_distance);
 	RTDEBUGF(4, "circle_radius=%g, b_distance=%g, diff=%g, percentage=%g", radius, b_distance, diff, diff/radius);
 	
 	/* Is the point b on the circle? */
 	if ( diff < EPSILON_SQLMM ) 
 	{
-		int a2_side = rt_segment_side(t1, t3, t2);
-		int b_side  = rt_segment_side(t1, t3, tb);
-		double angle1 = rt_arc_angle(t1, t2, t3);
-		double angle2 = rt_arc_angle(t2, t3, tb);
+		int a2_side = rt_segment_side(ctx, t1, t3, t2);
+		int b_side  = rt_segment_side(ctx, t1, t3, tb);
+		double angle1 = rt_arc_angle(ctx, t1, t2, t3);
+		double angle2 = rt_arc_angle(ctx, t2, t3, tb);
 
 		/* Is the angle similar to the previous one ? */
 		diff = fabs(angle1 - angle2);
@@ -540,48 +540,48 @@ static int pt_continues_arc(const RTPOINT4D *a1, const RTPOINT4D *a2, const RTPO
 }
 
 static RTGEOM*
-linestring_from_pa(const RTPOINTARRAY *pa, int srid, int start, int end)
+linestring_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int end)
 {
 	int i = 0, j = 0;
 	RTPOINT4D p;
-	RTPOINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), end-start+2);
+	RTPOINTARRAY *pao = ptarray_construct(ctx, ptarray_has_z(ctx, pa), ptarray_has_m(ctx, pa), end-start+2);
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
 	for( i = start; i < end + 2; i++ )
 	{
-		getPoint4d_p(pa, i, &p);
-		ptarray_set_point4d(pao, j++, &p);	
+		getPoint4d_p(ctx, pa, i, &p);
+		ptarray_set_point4d(ctx, pao, j++, &p);	
 	}
-	return rtline_as_rtgeom(rtline_construct(srid, NULL, pao));
+	return rtline_as_rtgeom(ctx, rtline_construct(ctx, srid, NULL, pao));
 }
 
 static RTGEOM*
-circstring_from_pa(const RTPOINTARRAY *pa, int srid, int start, int end)
+circstring_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int end)
 {
 	
 	RTPOINT4D p0, p1, p2;
-	RTPOINTARRAY *pao = ptarray_construct(ptarray_has_z(pa), ptarray_has_m(pa), 3);
+	RTPOINTARRAY *pao = ptarray_construct(ctx, ptarray_has_z(ctx, pa), ptarray_has_m(ctx, pa), 3);
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
-	getPoint4d_p(pa, start, &p0);
-	ptarray_set_point4d(pao, 0, &p0);	
-	getPoint4d_p(pa, (start+end+1)/2, &p1);
-	ptarray_set_point4d(pao, 1, &p1);	
-	getPoint4d_p(pa, end+1, &p2);
-	ptarray_set_point4d(pao, 2, &p2);	
-	return rtcircstring_as_rtgeom(rtcircstring_construct(srid, NULL, pao));
+	getPoint4d_p(ctx, pa, start, &p0);
+	ptarray_set_point4d(ctx, pao, 0, &p0);	
+	getPoint4d_p(ctx, pa, (start+end+1)/2, &p1);
+	ptarray_set_point4d(ctx, pao, 1, &p1);	
+	getPoint4d_p(ctx, pa, end+1, &p2);
+	ptarray_set_point4d(ctx, pao, 2, &p2);	
+	return rtcircstring_as_rtgeom(ctx, rtcircstring_construct(ctx, srid, NULL, pao));
 }
 
 static RTGEOM*
-geom_from_pa(const RTPOINTARRAY *pa, int srid, int is_arc, int start, int end)
+geom_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int is_arc, int start, int end)
 {
 	RTDEBUGF(4, "srid=%d, is_arc=%d, start=%d, end=%d", srid, is_arc, start, end);
 	if ( is_arc )
-		return circstring_from_pa(pa, srid, start, end);
+		return circstring_from_pa(ctx, pa, srid, start, end);
 	else
-		return linestring_from_pa(pa, srid, start, end);
+		return linestring_from_pa(ctx, pa, srid, start, end);
 }
 
 RTGEOM*
-pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
+pta_unstroke(RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid)
 {
 	int i = 0, j, k;
 	RTPOINT4D a1, a2, a3, b;
@@ -598,7 +598,7 @@ pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
 
 	/* Die on null input */
 	if ( ! points )
-		rterror("pta_unstroke called with null pointarray");
+		rterror(ctx, "pta_unstroke called with null pointarray");
 
 	/* Null on empty input? */
 	if ( points->npoints == 0 )
@@ -608,12 +608,12 @@ pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
 	if ( points->npoints < 4 )
 	{
 		/* Return a linestring here*/
-		rterror("pta_unstroke needs implementation for npoints < 4");
+		rterror(ctx, "pta_unstroke needs implementation for npoints < 4");
 	}
 	
 	/* Allocate our result array of vertices that are part of arcs */
 	num_edges = points->npoints - 1;
-	edges_in_arcs = rtalloc(num_edges + 1);
+	edges_in_arcs = rtalloc(ctx, num_edges + 1);
 	memset(edges_in_arcs, 0, num_edges + 1);
 	
 	/* We make a candidate arc of the first two edges, */
@@ -626,17 +626,17 @@ pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
 
 		found_arc = RT_FALSE;
 		/* Make candidate arc */
-		getPoint4d_p(points, i  , &a1);
-		getPoint4d_p(points, i+1, &a2);
-		getPoint4d_p(points, i+2, &a3);
+		getPoint4d_p(ctx, points, i  , &a1);
+		getPoint4d_p(ctx, points, i+1, &a2);
+		getPoint4d_p(ctx, points, i+2, &a3);
 		memcpy(&first, &a1, sizeof(RTPOINT4D));
 
 		for( j = i+3; j < num_edges+1; j++ )
 		{
 			RTDEBUGF(4, "i=%d, j=%d", i, j);
-			getPoint4d_p(points, j, &b);
+			getPoint4d_p(ctx, points, j, &b);
 			/* Does this point fall on our candidate arc? */
-			if ( pt_continues_arc(&a1, &a2, &a3, &b) )
+			if ( pt_continues_arc(ctx, &a1, &a2, &a3, &b) )
 			{
 				/* Yes. Mark this edge and the two preceding it as arc components */
 				RTDEBUGF(4, "pt_continues_arc #%d", current_arc);
@@ -670,9 +670,9 @@ pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
 				num_quadrants = 4;
 			}
 			else {
-				rt_arc_center((RTPOINT2D*)&first, (RTPOINT2D*)&b, (RTPOINT2D*)&a1, (RTPOINT2D*)&center);
-				angle = rt_arc_angle((RTPOINT2D*)&first, (RTPOINT2D*)&center, (RTPOINT2D*)&b);
-        int p2_side = rt_segment_side((RTPOINT2D*)&first, (RTPOINT2D*)&a1, (RTPOINT2D*)&b);
+				rt_arc_center(ctx, (RTPOINT2D*)&first, (RTPOINT2D*)&b, (RTPOINT2D*)&a1, (RTPOINT2D*)&center);
+				angle = rt_arc_angle(ctx, (RTPOINT2D*)&first, (RTPOINT2D*)&center, (RTPOINT2D*)&b);
+        int p2_side = rt_segment_side(ctx, (RTPOINT2D*)&first, (RTPOINT2D*)&a1, (RTPOINT2D*)&b);
         if ( p2_side >= 0 ) angle = -angle; 
 
 				if ( angle < 0 ) angle = 2 * M_PI + angle;
@@ -698,7 +698,7 @@ pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
 	
 #if RTGEOM_DEBUG_LEVEL > 3
 	{
-		char *edgestr = rtalloc(num_edges+1);
+		char *edgestr = rtalloc(ctx, num_edges+1);
 		for ( i = 0; i < num_edges; i++ )
 		{
 			if ( edges_in_arcs[i] )
@@ -708,61 +708,61 @@ pta_unstroke(const RTPOINTARRAY *points, int type, int srid)
 		}
 		edgestr[num_edges] = 0;
 		RTDEBUGF(3, "edge pattern %s", edgestr);
-		rtfree(edgestr);
+		rtfree(ctx, edgestr);
 	}
 #endif
 
 	start = 0;
 	edge_type = edges_in_arcs[0];
-	outcol = rtcollection_construct_empty(RTCOMPOUNDTYPE, srid, ptarray_has_z(points), ptarray_has_m(points));
+	outcol = rtcollection_construct_empty(ctx, RTCOMPOUNDTYPE, srid, ptarray_has_z(ctx, points), ptarray_has_m(ctx, points));
 	for( i = 1; i < num_edges; i++ )
 	{
 		if( edge_type != edges_in_arcs[i] )
 		{
 			end = i - 1;
-			rtcollection_add_rtgeom(outcol, geom_from_pa(points, srid, edge_type, start, end));
+			rtcollection_add_rtgeom(ctx, outcol, geom_from_pa(ctx, points, srid, edge_type, start, end));
 			start = i;
 			edge_type = edges_in_arcs[i];
 		}
 	}
-	rtfree(edges_in_arcs); /* not needed anymore */
+	rtfree(ctx, edges_in_arcs); /* not needed anymore */
 
 	/* Roll out last item */
 	end = num_edges - 1;
-	rtcollection_add_rtgeom(outcol, geom_from_pa(points, srid, edge_type, start, end));
+	rtcollection_add_rtgeom(ctx, outcol, geom_from_pa(ctx, points, srid, edge_type, start, end));
 	
 	/* Strip down to singleton if only one entry */
 	if ( outcol->ngeoms == 1 )
 	{
 		RTGEOM *outgeom = outcol->geoms[0];
-		outcol->ngeoms = 0; rtcollection_free(outcol);
+		outcol->ngeoms = 0; rtcollection_free(ctx, outcol);
 		return outgeom;
 	}
-	return rtcollection_as_rtgeom(outcol);
+	return rtcollection_as_rtgeom(ctx, outcol);
 }
 
 
 RTGEOM *
-rtline_unstroke(const RTLINE *line)
+rtline_unstroke(RTCTX *ctx, const RTLINE *line)
 {
 	RTDEBUG(2, "rtline_unstroke called.");
 
-	if ( line->points->npoints < 4 ) return rtline_as_rtgeom(rtline_clone(line));
-	else return pta_unstroke(line->points, line->flags, line->srid);
+	if ( line->points->npoints < 4 ) return rtline_as_rtgeom(ctx, rtline_clone(ctx, line));
+	else return pta_unstroke(ctx, line->points, line->flags, line->srid);
 }
 
 RTGEOM *
-rtpolygon_unstroke(const RTPOLY *poly)
+rtpolygon_unstroke(RTCTX *ctx, const RTPOLY *poly)
 {
 	RTGEOM **geoms;
 	int i, hascurve = 0;
 
 	RTDEBUG(2, "rtpolygon_unstroke called.");
 
-	geoms = rtalloc(sizeof(RTGEOM *)*poly->nrings);
+	geoms = rtalloc(ctx, sizeof(RTGEOM *)*poly->nrings);
 	for (i=0; i<poly->nrings; i++)
 	{
-		geoms[i] = pta_unstroke(poly->rings[i], poly->flags, poly->srid);
+		geoms[i] = pta_unstroke(ctx, poly->rings[i], poly->flags, poly->srid);
 		if (geoms[i]->type == RTCIRCSTRINGTYPE || geoms[i]->type == RTCOMPOUNDTYPE)
 		{
 			hascurve = 1;
@@ -772,26 +772,26 @@ rtpolygon_unstroke(const RTPOLY *poly)
 	{
 		for (i=0; i<poly->nrings; i++)
 		{
-			rtfree(geoms[i]); /* TODO: should this be rtgeom_free instead ? */
+			rtfree(ctx, geoms[i]); /* TODO: should this be rtgeom_free instead ? */
 		}
-		return rtgeom_clone((RTGEOM *)poly);
+		return rtgeom_clone(ctx, (RTGEOM *)poly);
 	}
 
-	return (RTGEOM *)rtcollection_construct(RTCURVEPOLYTYPE, poly->srid, NULL, poly->nrings, geoms);
+	return (RTGEOM *)rtcollection_construct(ctx, RTCURVEPOLYTYPE, poly->srid, NULL, poly->nrings, geoms);
 }
 
 RTGEOM *
-rtmline_unstroke(const RTMLINE *mline)
+rtmline_unstroke(RTCTX *ctx, const RTMLINE *mline)
 {
 	RTGEOM **geoms;
 	int i, hascurve = 0;
 
 	RTDEBUG(2, "rtmline_unstroke called.");
 
-	geoms = rtalloc(sizeof(RTGEOM *)*mline->ngeoms);
+	geoms = rtalloc(ctx, sizeof(RTGEOM *)*mline->ngeoms);
 	for (i=0; i<mline->ngeoms; i++)
 	{
-		geoms[i] = rtline_unstroke((RTLINE *)mline->geoms[i]);
+		geoms[i] = rtline_unstroke(ctx, (RTLINE *)mline->geoms[i]);
 		if (geoms[i]->type == RTCIRCSTRINGTYPE || geoms[i]->type == RTCOMPOUNDTYPE)
 		{
 			hascurve = 1;
@@ -801,25 +801,25 @@ rtmline_unstroke(const RTMLINE *mline)
 	{
 		for (i=0; i<mline->ngeoms; i++)
 		{
-			rtfree(geoms[i]); /* TODO: should this be rtgeom_free instead ? */
+			rtfree(ctx, geoms[i]); /* TODO: should this be rtgeom_free instead ? */
 		}
-		return rtgeom_clone((RTGEOM *)mline);
+		return rtgeom_clone(ctx, (RTGEOM *)mline);
 	}
-	return (RTGEOM *)rtcollection_construct(RTMULTICURVETYPE, mline->srid, NULL, mline->ngeoms, geoms);
+	return (RTGEOM *)rtcollection_construct(ctx, RTMULTICURVETYPE, mline->srid, NULL, mline->ngeoms, geoms);
 }
 
 RTGEOM * 
-rtmpolygon_unstroke(const RTMPOLY *mpoly)
+rtmpolygon_unstroke(RTCTX *ctx, const RTMPOLY *mpoly)
 {
 	RTGEOM **geoms;
 	int i, hascurve = 0;
 
 	RTDEBUG(2, "rtmpoly_unstroke called.");
 
-	geoms = rtalloc(sizeof(RTGEOM *)*mpoly->ngeoms);
+	geoms = rtalloc(ctx, sizeof(RTGEOM *)*mpoly->ngeoms);
 	for (i=0; i<mpoly->ngeoms; i++)
 	{
-		geoms[i] = rtpolygon_unstroke((RTPOLY *)mpoly->geoms[i]);
+		geoms[i] = rtpolygon_unstroke(ctx, (RTPOLY *)mpoly->geoms[i]);
 		if (geoms[i]->type == RTCURVEPOLYTYPE)
 		{
 			hascurve = 1;
@@ -829,30 +829,30 @@ rtmpolygon_unstroke(const RTMPOLY *mpoly)
 	{
 		for (i=0; i<mpoly->ngeoms; i++)
 		{
-			rtfree(geoms[i]); /* TODO: should this be rtgeom_free instead ? */
+			rtfree(ctx, geoms[i]); /* TODO: should this be rtgeom_free instead ? */
 		}
-		return rtgeom_clone((RTGEOM *)mpoly);
+		return rtgeom_clone(ctx, (RTGEOM *)mpoly);
 	}
-	return (RTGEOM *)rtcollection_construct(RTMULTISURFACETYPE, mpoly->srid, NULL, mpoly->ngeoms, geoms);
+	return (RTGEOM *)rtcollection_construct(ctx, RTMULTISURFACETYPE, mpoly->srid, NULL, mpoly->ngeoms, geoms);
 }
 
 RTGEOM *
-rtgeom_unstroke(const RTGEOM *geom)
+rtgeom_unstroke(RTCTX *ctx, const RTGEOM *geom)
 {
 	RTDEBUG(2, "rtgeom_unstroke called.");
 
 	switch (geom->type)
 	{
 	case RTLINETYPE:
-		return rtline_unstroke((RTLINE *)geom);
+		return rtline_unstroke(ctx, (RTLINE *)geom);
 	case RTPOLYGONTYPE:
-		return rtpolygon_unstroke((RTPOLY *)geom);
+		return rtpolygon_unstroke(ctx, (RTPOLY *)geom);
 	case RTMULTILINETYPE:
-		return rtmline_unstroke((RTMLINE *)geom);
+		return rtmline_unstroke(ctx, (RTMLINE *)geom);
 	case RTMULTIPOLYGONTYPE:
-		return rtmpolygon_unstroke((RTMPOLY *)geom);
+		return rtmpolygon_unstroke(ctx, (RTMPOLY *)geom);
 	default:
-		return rtgeom_clone(geom);
+		return rtgeom_clone(ctx, geom);
 	}
 }
 

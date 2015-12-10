@@ -52,9 +52,9 @@
  * Return Nth vertex in GEOSGeometry as a POINT.
  * May return NULL if the geometry has NO vertexex.
  */
-GEOSGeometry* RTGEOM_GEOS_getPointN(const GEOSGeometry*, uint32_t);
+GEOSGeometry* RTGEOM_GEOS_getPointN(RTCTX *ctx, const GEOSGeometry*, uint32_t);
 GEOSGeometry*
-RTGEOM_GEOS_getPointN(const GEOSGeometry* g_in, uint32_t n)
+RTGEOM_GEOS_getPointN(RTCTX *ctx, const GEOSGeometry* g_in, uint32_t n)
 {
 	uint32_t dims;
 	const GEOSCoordSequence* seq_in;
@@ -74,7 +74,7 @@ RTGEOM_GEOS_getPointN(const GEOSGeometry* g_in, uint32_t n)
 		for (gn=0; gn<GEOSGetNumGeometries(g_in); ++gn)
 		{
 			const GEOSGeometry* g = GEOSGetGeometryN(g_in, gn);
-			ret = RTGEOM_GEOS_getPointN(g,n);
+			ret = RTGEOM_GEOS_getPointN(ctx, g,n);
 			if ( ret ) return ret;
 		}
 		break;
@@ -82,12 +82,12 @@ RTGEOM_GEOS_getPointN(const GEOSGeometry* g_in, uint32_t n)
 
 	case GEOS_POLYGON:
 	{
-		ret = RTGEOM_GEOS_getPointN(GEOSGetExteriorRing(g_in), n);
+		ret = RTGEOM_GEOS_getPointN(ctx, GEOSGetExteriorRing(g_in), n);
 		if ( ret ) return ret;
 		for (gn=0; gn<GEOSGetNumInteriorRings(g_in); ++gn)
 		{
 			const GEOSGeometry* g = GEOSGetInteriorRingN(g_in, gn);
-			ret = RTGEOM_GEOS_getPointN(g, n);
+			ret = RTGEOM_GEOS_getPointN(ctx, g, n);
 			if ( ret ) return ret;
 		}
 		break;
@@ -125,10 +125,10 @@ RTGEOM_GEOS_getPointN(const GEOSGeometry* g_in, uint32_t n)
 
 
 
-RTGEOM * rtcollection_make_geos_friendly(RTCOLLECTION *g);
-RTGEOM * rtline_make_geos_friendly(RTLINE *line);
-RTGEOM * rtpoly_make_geos_friendly(RTPOLY *poly);
-RTPOINTARRAY* ring_make_geos_friendly(RTPOINTARRAY* ring);
+RTGEOM * rtcollection_make_geos_friendly(RTCTX *ctx, RTCOLLECTION *g);
+RTGEOM * rtline_make_geos_friendly(RTCTX *ctx, RTLINE *line);
+RTGEOM * rtpoly_make_geos_friendly(RTCTX *ctx, RTPOLY *poly);
+RTPOINTARRAY* ring_make_geos_friendly(RTCTX *ctx, RTPOINTARRAY* ring);
 
 /*
  * Ensure the geometry is "structurally" valid
@@ -137,7 +137,7 @@ RTPOINTARRAY* ring_make_geos_friendly(RTPOINTARRAY* ring);
  * May return geometries of lower dimension (on collapses)
  */
 static RTGEOM *
-rtgeom_make_geos_friendly(RTGEOM *geom)
+rtgeom_make_geos_friendly(RTCTX *ctx, RTGEOM *geom)
 {
 	RTDEBUGF(2, "rtgeom_make_geos_friendly enter (type %d)", geom->type);
 	switch (geom->type)
@@ -150,18 +150,18 @@ rtgeom_make_geos_friendly(RTGEOM *geom)
 
 	case RTLINETYPE:
 		/* lines need at least 2 points */
-		return rtline_make_geos_friendly((RTLINE *)geom);
+		return rtline_make_geos_friendly(ctx, (RTLINE *)geom);
 		break;
 
 	case RTPOLYGONTYPE:
 		/* polygons need all rings closed and with npoints > 3 */
-		return rtpoly_make_geos_friendly((RTPOLY *)geom);
+		return rtpoly_make_geos_friendly(ctx, (RTPOLY *)geom);
 		break;
 
 	case RTMULTILINETYPE:
 	case RTMULTIPOLYGONTYPE:
 	case RTCOLLECTIONTYPE:
-		return rtcollection_make_geos_friendly((RTCOLLECTION *)geom);
+		return rtcollection_make_geos_friendly(ctx, (RTCOLLECTION *)geom);
 		break;
 
 	case RTCIRCSTRINGTYPE:
@@ -170,7 +170,7 @@ rtgeom_make_geos_friendly(RTGEOM *geom)
 	case RTMULTISURFACETYPE:
 	case RTMULTICURVETYPE:
 	default:
-		rterror("rtgeom_make_geos_friendly: unsupported input geometry type: %s (%d)", rttype_name(geom->type), geom->type);
+		rterror(ctx, "rtgeom_make_geos_friendly: unsupported input geometry type: %s (%d)", rttype_name(ctx, geom->type), geom->type);
 		break;
 	}
 	return 0;
@@ -182,18 +182,18 @@ rtgeom_make_geos_friendly(RTGEOM *geom)
  * constructed RTPOINTARRAY.
  * TODO: move in ptarray.c
  */
-RTPOINTARRAY* ptarray_close2d(RTPOINTARRAY* ring);
+RTPOINTARRAY* ptarray_close2d(RTCTX *ctx, RTPOINTARRAY* ring);
 RTPOINTARRAY*
-ptarray_close2d(RTPOINTARRAY* ring)
+ptarray_close2d(RTCTX *ctx, RTPOINTARRAY* ring)
 {
 	RTPOINTARRAY* newring;
 
 	/* close the ring if not already closed (2d only) */
-	if ( ! ptarray_is_closed_2d(ring) )
+	if ( ! ptarray_is_closed_2d(ctx, ring) )
 	{
 		/* close it up */
-		newring = ptarray_addPoint(ring,
-		                           getPoint_internal(ring, 0),
+		newring = ptarray_addPoint(ctx, ring,
+		                           getPoint_internal(ctx, ring, 0),
 		                           RTFLAGS_NDIMS(ring->flags),
 		                           ring->npoints);
 		ring = newring;
@@ -203,13 +203,13 @@ ptarray_close2d(RTPOINTARRAY* ring)
 
 /* May return the same input or a new one (never zero) */
 RTPOINTARRAY*
-ring_make_geos_friendly(RTPOINTARRAY* ring)
+ring_make_geos_friendly(RTCTX *ctx, RTPOINTARRAY* ring)
 {
 	RTPOINTARRAY* closedring;
 	RTPOINTARRAY* ring_in = ring;
 
 	/* close the ring if not already closed (2d only) */
-	closedring = ptarray_close2d(ring);
+	closedring = ptarray_close2d(ctx, ring);
 	if (closedring != ring )
 	{
 		ring = closedring;
@@ -222,11 +222,11 @@ ring_make_geos_friendly(RTPOINTARRAY* ring)
 		RTPOINTARRAY *oring = ring;
 		RTDEBUGF(4, "ring has %d points, adding another", ring->npoints);
 		/* let's add another... */
-		ring = ptarray_addPoint(ring,
-		                        getPoint_internal(ring, 0),
+		ring = ptarray_addPoint(ctx, ring,
+		                        getPoint_internal(ctx, ring, 0),
 		                        RTFLAGS_NDIMS(ring->flags),
 		                        ring->npoints);
-		if ( oring != ring_in ) ptarray_free(oring);
+		if ( oring != ring_in ) ptarray_free(ctx, oring);
 	}
 
 
@@ -237,7 +237,7 @@ ring_make_geos_friendly(RTPOINTARRAY* ring)
  * May return the input untouched.
  */
 RTGEOM *
-rtpoly_make_geos_friendly(RTPOLY *poly)
+rtpoly_make_geos_friendly(RTCTX *ctx, RTPOLY *poly)
 {
 	RTGEOM* ret;
 	RTPOINTARRAY **new_rings;
@@ -247,18 +247,18 @@ rtpoly_make_geos_friendly(RTPOLY *poly)
 	if ( ! poly->nrings ) return (RTGEOM*)poly;
 
 	/* Allocate enough pointers for all rings */
-	new_rings = rtalloc(sizeof(RTPOINTARRAY*)*poly->nrings);
+	new_rings = rtalloc(ctx, sizeof(RTPOINTARRAY*)*poly->nrings);
 
 	/* All rings must be closed and have > 3 points */
 	for (i=0; i<poly->nrings; i++)
 	{
 		RTPOINTARRAY* ring_in = poly->rings[i];
-		RTPOINTARRAY* ring_out = ring_make_geos_friendly(ring_in);
+		RTPOINTARRAY* ring_out = ring_make_geos_friendly(ctx, ring_in);
 
 		if ( ring_in != ring_out )
 		{
 			RTDEBUGF(3, "rtpoly_make_geos_friendly: ring %d cleaned, now has %d points", i, ring_out->npoints);
-			ptarray_free(ring_in);
+			ptarray_free(ctx, ring_in);
 		}
 		else
 		{
@@ -269,7 +269,7 @@ rtpoly_make_geos_friendly(RTPOLY *poly)
 		new_rings[i] = ring_out;
 	}
 
-	rtfree(poly->rings);
+	rtfree(ctx, poly->rings);
 	poly->rings = new_rings;
 	ret = (RTGEOM*)poly;
 
@@ -278,7 +278,7 @@ rtpoly_make_geos_friendly(RTPOLY *poly)
 
 /* Need NO or >1 points. Duplicate first if only one. */
 RTGEOM *
-rtline_make_geos_friendly(RTLINE *line)
+rtline_make_geos_friendly(RTCTX *ctx, RTLINE *line)
 {
 	RTGEOM *ret;
 
@@ -286,41 +286,41 @@ rtline_make_geos_friendly(RTLINE *line)
 	{
 #if 1
 		/* Duplicate point */
-		line->points = ptarray_addPoint(line->points,
-		                                getPoint_internal(line->points, 0),
+		line->points = ptarray_addPoint(ctx, line->points,
+		                                getPoint_internal(ctx, line->points, 0),
 		                                RTFLAGS_NDIMS(line->points->flags),
 		                                line->points->npoints);
 		ret = (RTGEOM*)line;
 #else
 		/* Turn into a point */
-		ret = (RTGEOM*)rtpoint_construct(line->srid, 0, line->points);
+		ret = (RTGEOM*)rtpoint_construct(ctx, line->srid, 0, line->points);
 #endif
 		return ret;
 	}
 	else
 	{
 		return (RTGEOM*)line;
-		/* return rtline_clone(line); */
+		/* return rtline_clone(ctx, line); */
 	}
 }
 
 RTGEOM *
-rtcollection_make_geos_friendly(RTCOLLECTION *g)
+rtcollection_make_geos_friendly(RTCTX *ctx, RTCOLLECTION *g)
 {
 	RTGEOM **new_geoms;
 	uint32_t i, new_ngeoms=0;
 	RTCOLLECTION *ret;
 
 	/* enough space for all components */
-	new_geoms = rtalloc(sizeof(RTGEOM *)*g->ngeoms);
+	new_geoms = rtalloc(ctx, sizeof(RTGEOM *)*g->ngeoms);
 
-	ret = rtalloc(sizeof(RTCOLLECTION));
+	ret = rtalloc(ctx, sizeof(RTCOLLECTION));
 	memcpy(ret, g, sizeof(RTCOLLECTION));
     ret->maxgeoms = g->ngeoms;
 
 	for (i=0; i<g->ngeoms; i++)
 	{
-		RTGEOM* newg = rtgeom_make_geos_friendly(g->geoms[i]);
+		RTGEOM* newg = rtgeom_make_geos_friendly(ctx, g->geoms[i]);
 		if ( newg ) new_geoms[new_ngeoms++] = newg;
 	}
 
@@ -345,7 +345,7 @@ rtcollection_make_geos_friendly(RTCOLLECTION *g)
  * Fully node given linework
  */
 static GEOSGeometry*
-RTGEOM_GEOS_nodeLines(const GEOSGeometry* lines)
+RTGEOM_GEOS_nodeLines(RTCTX *ctx, const GEOSGeometry* lines)
 {
 	GEOSGeometry* noded;
 	GEOSGeometry* point;
@@ -357,12 +357,12 @@ RTGEOM_GEOS_nodeLines(const GEOSGeometry* lines)
 	 * TODO: substitute this with UnaryUnion?
 	 */
 
-	point = RTGEOM_GEOS_getPointN(lines, 0);
+	point = RTGEOM_GEOS_getPointN(ctx, lines, 0);
 	if ( ! point ) return NULL;
 
 	RTDEBUGF(3,
 	               "Boundary point: %s",
-	               rtgeom_to_ewkt(GEOS2RTGEOM(point, 0)));
+	               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, point, 0)));
 
 	noded = GEOSUnion(lines, point);
 	if ( NULL == noded )
@@ -375,8 +375,8 @@ RTGEOM_GEOS_nodeLines(const GEOSGeometry* lines)
 
 	RTDEBUGF(3,
 	               "RTGEOM_GEOS_nodeLines: in[%s] out[%s]",
-	               rtgeom_to_ewkt(GEOS2RTGEOM(lines, 0)),
-	               rtgeom_to_ewkt(GEOS2RTGEOM(noded, 0)));
+	               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, lines, 0)),
+	               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, noded, 0)));
 
 	return noded;
 }
@@ -388,7 +388,7 @@ RTGEOM_GEOS_nodeLines(const GEOSGeometry* lines)
  *
  */
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidPolygon(RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeom gout;
 	GEOSGeom geos_bound;
@@ -407,20 +407,20 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 
 	RTDEBUGF(3,
 	               "Boundaries: %s",
-	               rtgeom_to_ewkt(GEOS2RTGEOM(geos_bound, 0)));
+	               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, geos_bound, 0)));
 
 	/* Use noded boundaries as initial "cut" edges */
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-  rtnotice("ST_MakeValid: noding lines");
+  rtnotice(ctx, "ST_MakeValid: noding lines");
 #endif
 
 
-	geos_cut_edges = RTGEOM_GEOS_nodeLines(geos_bound);
+	geos_cut_edges = RTGEOM_GEOS_nodeLines(ctx, geos_bound);
 	if ( NULL == geos_cut_edges )
 	{
 		GEOSGeom_destroy(geos_bound);
-		rtnotice("RTGEOM_GEOS_nodeLines(): %s", rtgeom_geos_errmsg);
+		rtnotice(ctx, "RTGEOM_GEOS_nodeLines(ctx): %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -431,24 +431,24 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		GEOSGeometry* po;
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: extracting unique points from bounds");
+    rtnotice(ctx, "ST_MakeValid: extracting unique points from bounds");
 #endif
 
 		pi = GEOSGeom_extractUniquePoints(geos_bound);
 		if ( NULL == pi )
 		{
 			GEOSGeom_destroy(geos_bound);
-			rtnotice("GEOSGeom_extractUniquePoints(): %s",
+			rtnotice(ctx, "GEOSGeom_extractUniquePoints(): %s",
 			         rtgeom_geos_errmsg);
 			return NULL;
 		}
 
 		RTDEBUGF(3,
 		               "Boundaries input points %s",
-		               rtgeom_to_ewkt(GEOS2RTGEOM(pi, 0)));
+		               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, pi, 0)));
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: extracting unique points from cut_edges");
+    rtnotice(ctx, "ST_MakeValid: extracting unique points from cut_edges");
 #endif
 
 		po = GEOSGeom_extractUniquePoints(geos_cut_edges);
@@ -456,17 +456,17 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		{
 			GEOSGeom_destroy(geos_bound);
 			GEOSGeom_destroy(pi);
-			rtnotice("GEOSGeom_extractUniquePoints(): %s",
+			rtnotice(ctx, "GEOSGeom_extractUniquePoints(): %s",
 			         rtgeom_geos_errmsg);
 			return NULL;
 		}
 
 		RTDEBUGF(3,
 		               "Boundaries output points %s",
-		               rtgeom_to_ewkt(GEOS2RTGEOM(po, 0)));
+		               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, po, 0)));
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: find collapse points");
+    rtnotice(ctx, "ST_MakeValid: find collapse points");
 #endif
 
 		collapse_points = GEOSDifference(pi, po);
@@ -475,16 +475,16 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 			GEOSGeom_destroy(geos_bound);
 			GEOSGeom_destroy(pi);
 			GEOSGeom_destroy(po);
-			rtnotice("GEOSDifference(): %s", rtgeom_geos_errmsg);
+			rtnotice(ctx, "GEOSDifference(): %s", rtgeom_geos_errmsg);
 			return NULL;
 		}
 
 		RTDEBUGF(3,
 		               "Collapse points: %s",
-		               rtgeom_to_ewkt(GEOS2RTGEOM(collapse_points, 0)));
+		               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, collapse_points, 0)));
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: cleanup(1)");
+    rtnotice(ctx, "ST_MakeValid: cleanup(1)");
 #endif
 
 		GEOSGeom_destroy(pi);
@@ -494,13 +494,13 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 
 	RTDEBUGF(3,
 	               "Noded Boundaries: %s",
-	               rtgeom_to_ewkt(GEOS2RTGEOM(geos_cut_edges, 0)));
+	               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, geos_cut_edges, 0)));
 
 	/* And use an empty geometry as initial "area" */
 	geos_area = GEOSGeom_createEmptyPolygon();
 	if ( ! geos_area )
 	{
-		rtnotice("GEOSGeom_createEmptyPolygon(): %s", rtgeom_geos_errmsg);
+		rtnotice(ctx, "GEOSGeom_createEmptyPolygon(): %s", rtgeom_geos_errmsg);
 		GEOSGeom_destroy(geos_cut_edges);
 		return NULL;
 	}
@@ -519,19 +519,19 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		GEOSGeometry* new_cut_edges=0;
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: building area from %d edges", GEOSGetNumGeometries(geos_cut_edges)); 
+    rtnotice(ctx, "ST_MakeValid: building area from %d edges", GEOSGetNumGeometries(geos_cut_edges)); 
 #endif
 
 		/*
 		 * ASSUMPTION: cut_edges should already be fully noded
 		 */
 
-		new_area = RTGEOM_GEOS_buildArea(geos_cut_edges);
+		new_area = RTGEOM_GEOS_buildArea(ctx, geos_cut_edges);
 		if ( ! new_area )   /* must be an exception */
 		{
 			GEOSGeom_destroy(geos_cut_edges);
 			GEOSGeom_destroy(geos_area);
-			rtnotice("RTGEOM_GEOS_buildArea() threw an error: %s",
+			rtnotice(ctx, "RTGEOM_GEOS_buildArea(ctx) threw an error: %s",
 			         rtgeom_geos_errmsg);
 			return NULL;
 		}
@@ -548,7 +548,7 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		 */
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: ring built with %d cut edges, saving boundaries", GEOSGetNumGeometries(geos_cut_edges)); 
+    rtnotice(ctx, "ST_MakeValid: ring built with %d cut edges, saving boundaries", GEOSGetNumGeometries(geos_cut_edges)); 
 #endif
 
 		/*
@@ -560,8 +560,8 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		{
 			/* We did check for empty area already so
 			 * this must be some other error */
-			rtnotice("GEOSBoundary('%s') threw an error: %s",
-			         rtgeom_to_ewkt(GEOS2RTGEOM(new_area, 0)),
+			rtnotice(ctx, "GEOSBoundary('%s') threw an error: %s",
+			         rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, new_area, 0)),
 			         rtgeom_geos_errmsg);
 			GEOSGeom_destroy(new_area);
 			GEOSGeom_destroy(geos_area);
@@ -569,7 +569,7 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		}
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: running SymDifference with new area"); 
+    rtnotice(ctx, "ST_MakeValid: running SymDifference with new area"); 
 #endif
 
 		/*
@@ -582,7 +582,7 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 			GEOSGeom_destroy(new_area);
 			GEOSGeom_destroy(new_area_bound);
 			GEOSGeom_destroy(geos_area);
-			rtnotice("GEOSSymDifference() threw an error: %s",
+			rtnotice(ctx, "GEOSSymDifference() threw an error: %s",
 			         rtgeom_geos_errmsg);
 			return NULL;
 		}
@@ -604,7 +604,7 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		 */
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-    rtnotice("ST_MakeValid: computing new cut_edges (GEOSDifference)"); 
+    rtnotice(ctx, "ST_MakeValid: computing new cut_edges (GEOSDifference)"); 
 #endif
 
 		new_cut_edges = GEOSDifference(geos_cut_edges, new_area_bound);
@@ -615,7 +615,7 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 			GEOSGeom_destroy(geos_cut_edges);
 			GEOSGeom_destroy(geos_area);
 			/* TODO: Shouldn't this be an rterror ? */
-			rtnotice("GEOSDifference() threw an error: %s",
+			rtnotice(ctx, "GEOSDifference() threw an error: %s",
 			         rtgeom_geos_errmsg);
 			return NULL;
 		}
@@ -624,7 +624,7 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 	}
 
 #ifdef RTGEOM_PROFILE_MAKEVALID
-  rtnotice("ST_MakeValid: final checks");
+  rtnotice(ctx, "ST_MakeValid: final checks");
 #endif
 
 	if ( ! GEOSisEmpty(geos_area) )
@@ -667,7 +667,7 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 		{
 			/* cleanup and throw */
 			/* TODO: Shouldn't this be an rterror ? */
-			rtnotice("GEOSGeom_createCollection() threw an error: %s",
+			rtnotice(ctx, "GEOSGeom_createCollection() threw an error: %s",
 			         rtgeom_geos_errmsg);
 			/* TODO: cleanup! */
 			return NULL;
@@ -679,15 +679,15 @@ RTGEOM_GEOS_makeValidPolygon(const GEOSGeometry* gin)
 }
 
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidLine(const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidLine(RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeometry* noded;
-	noded = RTGEOM_GEOS_nodeLines(gin);
+	noded = RTGEOM_GEOS_nodeLines(ctx, gin);
 	return noded;
 }
 
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidMultiLine(const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidMultiLine(RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeometry** lines;
 	GEOSGeometry** points;
@@ -702,14 +702,14 @@ RTGEOM_GEOS_makeValidMultiLine(const GEOSGeometry* gin)
 	ngeoms = GEOSGetNumGeometries(gin);
 
 	nlines_alloc = ngeoms;
-	lines = rtalloc(sizeof(GEOSGeometry*)*nlines_alloc);
-	points = rtalloc(sizeof(GEOSGeometry*)*ngeoms);
+	lines = rtalloc(ctx, sizeof(GEOSGeometry*)*nlines_alloc);
+	points = rtalloc(ctx, sizeof(GEOSGeometry*)*ngeoms);
 
 	for (i=0; i<ngeoms; ++i)
 	{
 		const GEOSGeometry* g = GEOSGetGeometryN(gin, i);
 		GEOSGeometry* vg;
-		vg = RTGEOM_GEOS_makeValidLine(g);
+		vg = RTGEOM_GEOS_makeValidLine(ctx, g);
 		if ( GEOSisEmpty(vg) )
 		{
 			/* we don't care about this one */
@@ -727,7 +727,7 @@ RTGEOM_GEOS_makeValidMultiLine(const GEOSGeometry* gin)
 		{
 			nsubgeoms=GEOSGetNumGeometries(vg);
 			nlines_alloc += nsubgeoms;
-			lines = rtrealloc(lines, sizeof(GEOSGeometry*)*nlines_alloc);
+			lines = rtrealloc(ctx, lines, sizeof(GEOSGeometry*)*nlines_alloc);
 			for (j=0; j<nsubgeoms; ++j)
 			{
 				const GEOSGeometry* gc = GEOSGetGeometryN(vg, j);
@@ -740,7 +740,7 @@ RTGEOM_GEOS_makeValidMultiLine(const GEOSGeometry* gin)
 		{
 			/* NOTE: return from GEOSGeomType will leak
 			 * but we really don't expect this to happen */
-			rterror("unexpected geom type returned "
+			rterror(ctx, "unexpected geom type returned "
 			        "by RTGEOM_GEOS_makeValid: %s",
 			        GEOSGeomType(vg));
 		}
@@ -772,7 +772,7 @@ RTGEOM_GEOS_makeValidMultiLine(const GEOSGeometry* gin)
 		}
 	}
 
-	rtfree(lines);
+	rtfree(ctx, lines);
 
 	if ( mline_out && mpoint_out )
 	{
@@ -790,19 +790,19 @@ RTGEOM_GEOS_makeValidMultiLine(const GEOSGeometry* gin)
 		gout = mpoint_out;
 	}
 
-	rtfree(points);
+	rtfree(ctx, points);
 
 	return gout;
 }
 
-static GEOSGeometry* RTGEOM_GEOS_makeValid(const GEOSGeometry*);
+static GEOSGeometry* RTGEOM_GEOS_makeValid(RTCTX *ctx, const GEOSGeometry*);
 
 /*
  * We expect initGEOS being called already.
  * Will return NULL on error (expect error handler being called by then)
  */
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidCollection(const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidCollection(RTCTX *ctx, const GEOSGeometry* gin)
 {
 	int nvgeoms;
 	GEOSGeometry **vgeoms;
@@ -811,21 +811,21 @@ RTGEOM_GEOS_makeValidCollection(const GEOSGeometry* gin)
 
 	nvgeoms = GEOSGetNumGeometries(gin);
 	if ( nvgeoms == -1 ) {
-		rterror("GEOSGetNumGeometries: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSGetNumGeometries: %s", rtgeom_geos_errmsg);
 		return 0;
 	}
 
-	vgeoms = rtalloc( sizeof(GEOSGeometry*) * nvgeoms );
+	vgeoms = rtalloc(ctx,  sizeof(GEOSGeometry*) * nvgeoms );
 	if ( ! vgeoms ) {
-		rterror("RTGEOM_GEOS_makeValidCollection: out of memory");
+		rterror(ctx, "RTGEOM_GEOS_makeValidCollection: out of memory");
 		return 0;
 	}
 
 	for ( i=0; i<nvgeoms; ++i ) {
-		vgeoms[i] = RTGEOM_GEOS_makeValid( GEOSGetGeometryN(gin, i) );
+		vgeoms[i] = RTGEOM_GEOS_makeValid(ctx,  GEOSGetGeometryN(gin, i) );
 		if ( ! vgeoms[i] ) {
 			while (i--) GEOSGeom_destroy(vgeoms[i]);
-			rtfree(vgeoms);
+			rtfree(ctx, vgeoms);
 			/* we expect rterror being called already by makeValid */
 			return NULL;
 		}
@@ -837,12 +837,12 @@ RTGEOM_GEOS_makeValidCollection(const GEOSGeometry* gin)
 	{
 		/* cleanup and throw */
 		for ( i=0; i<nvgeoms; ++i ) GEOSGeom_destroy(vgeoms[i]);
-		rtfree(vgeoms);
-		rterror("GEOSGeom_createCollection() threw an error: %s",
+		rtfree(ctx, vgeoms);
+		rterror(ctx, "GEOSGeom_createCollection() threw an error: %s",
 		         rtgeom_geos_errmsg);
 		return NULL;
 	}
-	rtfree(vgeoms);
+	rtfree(ctx, vgeoms);
 
 	return gout;
 
@@ -850,7 +850,7 @@ RTGEOM_GEOS_makeValidCollection(const GEOSGeometry* gin)
 
 
 static GEOSGeometry*
-RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValid(RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeometry* gout;
 	char ret_char;
@@ -863,14 +863,14 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 	if ( ret_char == 2 )
 	{
 		/* I don't think should ever happen */
-		rterror("GEOSisValid(): %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSisValid(): %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
 	else if ( ret_char )
 	{
 		RTDEBUGF(3,
 		               "Geometry [%s] is valid. ",
-		               rtgeom_to_ewkt(GEOS2RTGEOM(gin, 0)));
+		               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, gin, 0)));
 
 		/* It's valid at this step, return what we have */
 		return GEOSGeom_clone(gin);
@@ -879,7 +879,7 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 	RTDEBUGF(3,
 	               "Geometry [%s] is still not valid: %s. "
 	               "Will try to clean up further.",
-	               rtgeom_to_ewkt(GEOS2RTGEOM(gin, 0)), rtgeom_geos_errmsg);
+	               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, gin, 0)), rtgeom_geos_errmsg);
 
 
 
@@ -892,26 +892,26 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 	case GEOS_MULTIPOINT:
 	case GEOS_POINT:
 		/* points are artays valid, but we might have invalid ordinate values */
-		rtnotice("PUNTUAL geometry resulted invalid to GEOS -- dunno how to clean that up");
+		rtnotice(ctx, "PUNTUAL geometry resulted invalid to GEOS -- dunno how to clean that up");
 		return NULL;
 		break;
 
 	case GEOS_LINESTRING:
-		gout = RTGEOM_GEOS_makeValidLine(gin);
+		gout = RTGEOM_GEOS_makeValidLine(ctx, gin);
 		if ( ! gout )  /* an exception or something */
 		{
 			/* cleanup and throw */
-			rterror("%s", rtgeom_geos_errmsg);
+			rterror(ctx, "%s", rtgeom_geos_errmsg);
 			return NULL;
 		}
 		break; /* we've done */
 
 	case GEOS_MULTILINESTRING:
-		gout = RTGEOM_GEOS_makeValidMultiLine(gin);
+		gout = RTGEOM_GEOS_makeValidMultiLine(ctx, gin);
 		if ( ! gout )  /* an exception or something */
 		{
 			/* cleanup and throw */
-			rterror("%s", rtgeom_geos_errmsg);
+			rterror(ctx, "%s", rtgeom_geos_errmsg);
 			return NULL;
 		}
 		break; /* we've done */
@@ -919,11 +919,11 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 	case GEOS_POLYGON:
 	case GEOS_MULTIPOLYGON:
 	{
-		gout = RTGEOM_GEOS_makeValidPolygon(gin);
+		gout = RTGEOM_GEOS_makeValidPolygon(ctx, gin);
 		if ( ! gout )  /* an exception or something */
 		{
 			/* cleanup and throw */
-			rterror("%s", rtgeom_geos_errmsg);
+			rterror(ctx, "%s", rtgeom_geos_errmsg);
 			return NULL;
 		}
 		break; /* we've done */
@@ -931,11 +931,11 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 
 	case GEOS_GEOMETRYCOLLECTION:
 	{
-		gout = RTGEOM_GEOS_makeValidCollection(gin);
+		gout = RTGEOM_GEOS_makeValidCollection(ctx, gin);
 		if ( ! gout )  /* an exception or something */
 		{
 			/* cleanup and throw */
-			rterror("%s", rtgeom_geos_errmsg);
+			rterror(ctx, "%s", rtgeom_geos_errmsg);
 			return NULL;
 		}
 		break; /* we've done */
@@ -944,7 +944,7 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 	default:
 	{
 		char* typname = GEOSGeomType(gin);
-		rtnotice("ST_MakeValid: doesn't support geometry type: %s",
+		rtnotice(ctx, "ST_MakeValid: doesn't support geometry type: %s",
 		         typname);
 		GEOSFree(typname);
 		return NULL;
@@ -976,7 +976,7 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 			GEOSGeom_destroy(pd);
 			if ( loss )
 			{
-				rtnotice("Vertices lost in RTGEOM_GEOS_makeValid");
+				rtnotice(ctx, "Vertices lost in RTGEOM_GEOS_makeValid");
 				/* return NULL */
 			}
 	}
@@ -988,7 +988,7 @@ RTGEOM_GEOS_makeValid(const GEOSGeometry* gin)
 
 /* Exported. Uses GEOS internally */
 RTGEOM*
-rtgeom_make_valid(RTGEOM* rtgeom_in)
+rtgeom_make_valid(RTCTX *ctx, RTGEOM* rtgeom_in)
 {
 	int is3d;
 	GEOSGeom geosgeom;
@@ -1005,7 +1005,7 @@ rtgeom_make_valid(RTGEOM* rtgeom_in)
 	initGEOS(rtgeom_geos_error, rtgeom_geos_error);
 
 	rtgeom_out = rtgeom_in;
-	geosgeom = RTGEOM2GEOS(rtgeom_out, 0);
+	geosgeom = RTGEOM2GEOS(ctx, rtgeom_out, 0);
 	if ( ! geosgeom )
 	{
 		RTDEBUGF(4,
@@ -1014,18 +1014,18 @@ rtgeom_make_valid(RTGEOM* rtgeom_in)
 		               rtgeom_geos_errmsg);
 
 
-		rtgeom_out = rtgeom_make_geos_friendly(rtgeom_out);
+		rtgeom_out = rtgeom_make_geos_friendly(ctx, rtgeom_out);
 		if ( ! rtgeom_out )
 		{
-			rterror("Could not make a valid geometry out of input");
+			rterror(ctx, "Could not make a valid geometry out of input");
 		}
 
 		/* try again as we did cleanup now */
 		/* TODO: invoke RTGEOM2GEOS directly with autoclean ? */
-		geosgeom = RTGEOM2GEOS(rtgeom_out, 0);
+		geosgeom = RTGEOM2GEOS(ctx, rtgeom_out, 0);
 		if ( ! geosgeom )
 		{
-			rterror("Couldn't convert RTGEOM geom to GEOS: %s",
+			rterror(ctx, "Couldn't convert RTGEOM geom to GEOS: %s",
 			        rtgeom_geos_errmsg);
 			return NULL;
 		}
@@ -1037,26 +1037,26 @@ rtgeom_make_valid(RTGEOM* rtgeom_in)
 		rtgeom_out = rtgeom_in;
 	}
 
-	geosout = RTGEOM_GEOS_makeValid(geosgeom);
+	geosout = RTGEOM_GEOS_makeValid(ctx, geosgeom);
 	GEOSGeom_destroy(geosgeom);
 	if ( ! geosout )
 	{
 		return NULL;
 	}
 
-	rtgeom_out = GEOS2RTGEOM(geosout, is3d);
+	rtgeom_out = GEOS2RTGEOM(ctx, geosout, is3d);
 	GEOSGeom_destroy(geosout);
 
-	if ( rtgeom_is_collection(rtgeom_in) && ! rtgeom_is_collection(rtgeom_out) )
+	if ( rtgeom_is_collection(ctx, rtgeom_in) && ! rtgeom_is_collection(ctx, rtgeom_out) )
 	{{
-		RTGEOM **ogeoms = rtalloc(sizeof(RTGEOM*));
+		RTGEOM **ogeoms = rtalloc(ctx, sizeof(RTGEOM*));
 		RTGEOM *ogeom;
 		RTDEBUG(3, "rtgeom_make_valid: forcing multi");
 		/* NOTE: this is safe because rtgeom_out is surely not rtgeom_in or
 		 * otherwise we couldn't have a collection and a non-collection */
 		assert(rtgeom_in != rtgeom_out);
 		ogeoms[0] = rtgeom_out;
-		ogeom = (RTGEOM *)rtcollection_construct(RTMULTITYPE[rtgeom_out->type],
+		ogeom = (RTGEOM *)rtcollection_construct(ctx, RTMULTITYPE[rtgeom_out->type],
 		                          rtgeom_out->srid, rtgeom_out->bbox, 1, ogeoms);
 		rtgeom_out->bbox = NULL;
 		rtgeom_out = ogeom;

@@ -17,7 +17,7 @@
 #include "rttopo_config.h"
 
 RTGEOM*
-rtgeom_from_encoded_polyline(const char *encodedpolyline, int precision)
+rtgeom_from_encoded_polyline(RTCTX *ctx, const char *encodedpolyline, int precision)
 {
   RTGEOM *geom = NULL;
   RTPOINTARRAY *pa = NULL;
@@ -28,7 +28,7 @@ rtgeom_from_encoded_polyline(const char *encodedpolyline, int precision)
   float latitude = 0.0f;
   float longitude = 0.0f;
 
-  pa = ptarray_construct_empty(RT_FALSE, RT_FALSE, 1);
+  pa = ptarray_construct_empty(ctx, RT_FALSE, RT_FALSE, 1);
 
   while (idx < length) {
     RTPOINT4D pt;
@@ -57,11 +57,11 @@ rtgeom_from_encoded_polyline(const char *encodedpolyline, int precision)
     pt.x = longitude/scale;
     pt.y = latitude/scale;
 	pt.m = pt.z = 0.0;
-    ptarray_append_point(pa, &pt, RT_FALSE);
+    ptarray_append_point(ctx, pa, &pt, RT_FALSE);
   }
 
-  geom = (RTGEOM *)rtline_construct(4326, NULL, pa);
-  rtgeom_add_bbox(geom);
+  geom = (RTGEOM *)rtline_construct(ctx, 4326, NULL, pa);
+  rtgeom_add_bbox(ctx, geom);
 
   return geom;
 }

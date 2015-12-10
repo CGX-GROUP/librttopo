@@ -17,72 +17,72 @@
 #include "rtgeom_log.h"
 
 void
-rtmpoint_release(RTMPOINT *rtmpoint)
+rtmpoint_release(RTCTX *ctx, RTMPOINT *rtmpoint)
 {
-	rtgeom_release(rtmpoint_as_rtgeom(rtmpoint));
+	rtgeom_release(ctx, rtmpoint_as_rtgeom(ctx, rtmpoint));
 }
 
 RTMPOINT *
-rtmpoint_construct_empty(int srid, char hasz, char hasm)
+rtmpoint_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 {
-	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(RTMULTIPOINTTYPE, srid, hasz, hasm);
+	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(ctx, RTMULTIPOINTTYPE, srid, hasz, hasm);
 	return ret;
 }
 
-RTMPOINT* rtmpoint_add_rtpoint(RTMPOINT *mobj, const RTPOINT *obj)
+RTMPOINT* rtmpoint_add_rtpoint(RTCTX *ctx, RTMPOINT *mobj, const RTPOINT *obj)
 {
 	RTDEBUG(4, "Called");
-	return (RTMPOINT*)rtcollection_add_rtgeom((RTCOLLECTION*)mobj, (RTGEOM*)obj);
+	return (RTMPOINT*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
 RTMPOINT *
-rtmpoint_construct(int srid, const RTPOINTARRAY *pa)
+rtmpoint_construct(RTCTX *ctx, int srid, const RTPOINTARRAY *pa)
 {
 	int i;
-	int hasz = ptarray_has_z(pa);
-	int hasm = ptarray_has_m(pa);
-	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(RTMULTIPOINTTYPE, srid, hasz, hasm);
+	int hasz = ptarray_has_z(ctx, pa);
+	int hasm = ptarray_has_m(ctx, pa);
+	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(ctx, RTMULTIPOINTTYPE, srid, hasz, hasm);
 	
 	for ( i = 0; i < pa->npoints; i++ )
 	{
 		RTPOINT *rtp;
 		RTPOINT4D p;
-		getPoint4d_p(pa, i, &p);		
-		rtp = rtpoint_make(srid, hasz, hasm, &p);
-		rtmpoint_add_rtpoint(ret, rtp);
+		getPoint4d_p(ctx, pa, i, &p);		
+		rtp = rtpoint_make(ctx, srid, hasz, hasm, &p);
+		rtmpoint_add_rtpoint(ctx, ret, rtp);
 	}
 	
 	return ret;
 }
 
 
-void rtmpoint_free(RTMPOINT *mpt)
+void rtmpoint_free(RTCTX *ctx, RTMPOINT *mpt)
 {
 	int i;
 
 	if ( ! mpt ) return;
 	
 	if ( mpt->bbox )
-		rtfree(mpt->bbox);
+		rtfree(ctx, mpt->bbox);
 
 	for ( i = 0; i < mpt->ngeoms; i++ )
 		if ( mpt->geoms && mpt->geoms[i] )
-			rtpoint_free(mpt->geoms[i]);
+			rtpoint_free(ctx, mpt->geoms[i]);
 
 	if ( mpt->geoms )
-		rtfree(mpt->geoms);
+		rtfree(ctx, mpt->geoms);
 
-	rtfree(mpt);
+	rtfree(ctx, mpt);
 }
 
 RTGEOM*
-rtmpoint_remove_repeated_points(const RTMPOINT *mpoint, double tolerance)
+rtmpoint_remove_repeated_points(RTCTX *ctx, const RTMPOINT *mpoint, double tolerance)
 {
 	uint32_t nnewgeoms;
 	uint32_t i, j;
 	RTGEOM **newgeoms;
 
-	newgeoms = rtalloc(sizeof(RTGEOM *)*mpoint->ngeoms);
+	newgeoms = rtalloc(ctx, sizeof(RTGEOM *)*mpoint->ngeoms);
 	nnewgeoms = 0;
 	for (i=0; i<mpoint->ngeoms; ++i)
 	{
@@ -90,7 +90,7 @@ rtmpoint_remove_repeated_points(const RTMPOINT *mpoint, double tolerance)
 		int seen=0;
 		for (j=0; j<nnewgeoms; ++j)
 		{
-			if ( rtpoint_same((RTPOINT*)newgeoms[j],
+			if ( rtpoint_same(ctx, (RTPOINT*)newgeoms[j],
 			                  (RTPOINT*)mpoint->geoms[i]) )
 			{
 				seen=1;
@@ -98,11 +98,11 @@ rtmpoint_remove_repeated_points(const RTMPOINT *mpoint, double tolerance)
 			}
 		}
 		if ( seen ) continue;
-		newgeoms[nnewgeoms++] = (RTGEOM*)rtpoint_clone(mpoint->geoms[i]);
+		newgeoms[nnewgeoms++] = (RTGEOM*)rtpoint_clone(ctx, mpoint->geoms[i]);
 	}
 
-	return (RTGEOM*)rtcollection_construct(mpoint->type,
-	                                       mpoint->srid, mpoint->bbox ? gbox_copy(mpoint->bbox) : NULL,
+	return (RTGEOM*)rtcollection_construct(ctx, mpoint->type,
+	                                       mpoint->srid, mpoint->bbox ? gbox_copy(ctx, mpoint->bbox) : NULL,
 	                                       nnewgeoms, newgeoms);
 
 }

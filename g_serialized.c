@@ -16,43 +16,43 @@
 * GSERIALIZED metadata utility functions.
 */
 
-int gserialized_has_bbox(const GSERIALIZED *gser)
+int gserialized_has_bbox(RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_GET_BBOX(gser->flags);
 }
 
-int gserialized_has_z(const GSERIALIZED *gser)
+int gserialized_has_z(RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_GET_Z(gser->flags);
 }
 
-int gserialized_has_m(const GSERIALIZED *gser)
+int gserialized_has_m(RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_GET_M(gser->flags);
 }
 
-int gserialized_get_zm(const GSERIALIZED *gser)
+int gserialized_get_zm(RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return 2 * RTFLAGS_GET_Z(gser->flags) + RTFLAGS_GET_M(gser->flags);
 }
 
-int gserialized_ndims(const GSERIALIZED *gser)
+int gserialized_ndims(RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_NDIMS(gser->flags);
 }
 
-int gserialized_is_geodetic(const GSERIALIZED *gser)
+int gserialized_is_geodetic(RTCTX *ctx, const GSERIALIZED *gser)
 {
 	  return RTFLAGS_GET_GEODETIC(gser->flags);
 }
  
-uint32_t gserialized_max_header_size(void) 
+uint32_t gserialized_max_header_size(RTCTX *ctx) 
 {
-	/* read GSERIALIZED size + max bbox according gbox_serialized_size (2 + Z + M) + 1 int for type */
+	/* read GSERIALIZED size + max bbox according gbox_serialized_size(ctx, 2 + Z + M) + 1 int for type */
 	return sizeof(GSERIALIZED) + 8 * sizeof(float) + sizeof(int);
 }
 
-uint32_t gserialized_get_type(const GSERIALIZED *s)
+uint32_t gserialized_get_type(RTCTX *ctx, const GSERIALIZED *s)
 {
 	uint32_t *ptr;
 	assert(s);
@@ -60,13 +60,13 @@ uint32_t gserialized_get_type(const GSERIALIZED *s)
 	RTDEBUG(4,"entered");
 	if ( RTFLAGS_GET_BBOX(s->flags) )
 	{
-		RTDEBUGF(4,"skipping forward past bbox (%d bytes)",gbox_serialized_size(s->flags));
-		ptr += (gbox_serialized_size(s->flags) / sizeof(uint32_t));
+		RTDEBUGF(4,"skipping forward past bbox (%d bytes)",gbox_serialized_size(ctx, s->flags));
+		ptr += (gbox_serialized_size(ctx, s->flags) / sizeof(uint32_t));
 	}
 	return *ptr;
 }
 
-int32_t gserialized_get_srid(const GSERIALIZED *s)
+int32_t gserialized_get_srid(RTCTX *ctx, const GSERIALIZED *s)
 {
 	int32_t srid = 0;
 	srid = srid | (s->srid[0] << 16);
@@ -80,14 +80,14 @@ int32_t gserialized_get_srid(const GSERIALIZED *s)
 	if ( srid == 0 ) 
 		return SRID_UNKNOWN;
 	else
-		return clamp_srid(srid);
+		return clamp_srid(ctx, srid);
 }
 
-void gserialized_set_srid(GSERIALIZED *s, int32_t srid)
+void gserialized_set_srid(RTCTX *ctx, GSERIALIZED *s, int32_t srid)
 {
 	RTDEBUGF(3, "Called with srid = %d", srid);
 
-	srid = clamp_srid(srid);
+	srid = clamp_srid(ctx, srid);
 
 	/* 0 is our internal unknown value.
 	 * We'll map back and forth here for now */
@@ -99,17 +99,17 @@ void gserialized_set_srid(GSERIALIZED *s, int32_t srid)
 	s->srid[2] = (srid & 0x000000FF);
 }
 
-GSERIALIZED* gserialized_copy(const GSERIALIZED *g)
+GSERIALIZED* gserialized_copy(RTCTX *ctx, const GSERIALIZED *g)
 {
 	GSERIALIZED *g_out = NULL;
 	assert(g);
-	g_out = (GSERIALIZED*)rtalloc(SIZE_GET(g->size));
+	g_out = (GSERIALIZED*)rtalloc(ctx, SIZE_GET(g->size));
 	memcpy((uint8_t*)g_out,(uint8_t*)g,SIZE_GET(g->size));
 	return g_out;
 }
 
-static size_t gserialized_is_empty_recurse(const uint8_t *p, int *isempty);
-static size_t gserialized_is_empty_recurse(const uint8_t *p, int *isempty)
+static size_t gserialized_is_empty_recurse(RTCTX *ctx, const uint8_t *p, int *isempty);
+static size_t gserialized_is_empty_recurse(RTCTX *ctx, const uint8_t *p, int *isempty)
 {
 	int i;
 	int32_t type, num;
@@ -117,12 +117,12 @@ static size_t gserialized_is_empty_recurse(const uint8_t *p, int *isempty)
 	memcpy(&type, p, 4);
 	memcpy(&num, p+4, 4);
 	
-	if ( rttype_is_collection(type) )
+	if ( rttype_is_collection(ctx, type) )
 	{
 		size_t lz = 8;
 		for ( i = 0; i < num; i++ )
 		{
-			lz += gserialized_is_empty_recurse(p+lz, isempty);
+			lz += gserialized_is_empty_recurse(ctx, p+lz, isempty);
 			if ( ! *isempty )
 				return lz;
 		}
@@ -136,7 +136,7 @@ static size_t gserialized_is_empty_recurse(const uint8_t *p, int *isempty)
 	}
 }
 
-int gserialized_is_empty(const GSERIALIZED *g)
+int gserialized_is_empty(RTCTX *ctx, const GSERIALIZED *g)
 {
 	uint8_t *p = (uint8_t*)g;
 	int isempty = 0;
@@ -144,18 +144,18 @@ int gserialized_is_empty(const GSERIALIZED *g)
 
 	p += 8; /* Skip varhdr and srid/flags */
 	if( RTFLAGS_GET_BBOX(g->flags) )
-		p += gbox_serialized_size(g->flags); /* Skip the box */
+		p += gbox_serialized_size(ctx, g->flags); /* Skip the box */
 
-	gserialized_is_empty_recurse(p, &isempty);
+	gserialized_is_empty_recurse(ctx, p, &isempty);
 	return isempty;
 }
 
-char* gserialized_to_string(const GSERIALIZED *g)
+char* gserialized_to_string(RTCTX *ctx, const GSERIALIZED *g)
 {
-	return rtgeom_to_wkt(rtgeom_from_gserialized(g), RTWKT_ISO, 12, 0);
+	return rtgeom_to_wkt(ctx, rtgeom_from_gserialized(ctx, g), RTWKT_ISO, 12, 0);
 }
 
-int gserialized_read_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
+int gserialized_read_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox)
 {
 
 	/* Null input! */
@@ -202,9 +202,9 @@ int gserialized_read_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 * Populate a bounding box *without* allocating an RTGEOM. Useful
 * for some performance purposes.
 */
-static int gserialized_peek_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
+static int gserialized_peek_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox)
 {
-	uint32_t type = gserialized_get_type(g);
+	uint32_t type = gserialized_get_type(ctx, g);
 
 	/* Peeking doesn't help if you already have a box or are geodetic */
 	if ( RTFLAGS_GET_GEODETIC(g->flags) || RTFLAGS_GET_BBOX(g->flags) )
@@ -235,7 +235,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 		{
 			gbox->mmin = gbox->mmax = dptr[i++];
 		}
-		gbox_float_round(gbox);
+		gbox_float_round(ctx, gbox);
 		return RT_SUCCESS;
 	}
 	/* We can calculate the box of a two-point cartesian line trivially */
@@ -276,7 +276,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 			gbox->mmin = FP_MIN(dptr[i], dptr[i+ndims]);
 			gbox->mmax = FP_MAX(dptr[i], dptr[i+ndims]);
 		}
-		gbox_float_round(gbox);
+		gbox_float_round(ctx, gbox);
 		return RT_SUCCESS;
 	}
 	/* We can also do single-entry multi-points */
@@ -307,7 +307,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 		{
 			gbox->mmin = gbox->mmax = dptr[i++];
 		}
-		gbox_float_round(gbox);
+		gbox_float_round(ctx, gbox);
 		return RT_SUCCESS;
 	}
 	/* And we can do single-entry multi-lines with two vertices (!!!) */
@@ -357,7 +357,7 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 			gbox->mmin = FP_MIN(dptr[i], dptr[i+ndims]);
 			gbox->mmax = FP_MAX(dptr[i], dptr[i+ndims]);
 		}
-		gbox_float_round(gbox);
+		gbox_float_round(ctx, gbox);
 		return RT_SUCCESS;
 	}
 	
@@ -368,16 +368,16 @@ static int gserialized_peek_gbox_p(const GSERIALIZED *g, RTGBOX *gbox)
 * Read the bounding box off a serialization and calculate one if
 * it is not already there.
 */
-int gserialized_get_gbox_p(const GSERIALIZED *g, RTGBOX *box)
+int gserialized_get_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *box)
 {
 	/* Try to just read the serialized box. */
-	if ( gserialized_read_gbox_p(g, box) == RT_SUCCESS )
+	if ( gserialized_read_gbox_p(ctx, g, box) == RT_SUCCESS )
 	{
 		return RT_SUCCESS;
 	}
 	/* No box? Try to peek into simpler geometries and */
 	/* derive a box without creating an rtgeom */
-	else if ( gserialized_peek_gbox_p(g, box) == RT_SUCCESS )
+	else if ( gserialized_peek_gbox_p(ctx, g, box) == RT_SUCCESS )
 	{
 		return RT_SUCCESS;
 	}
@@ -385,10 +385,10 @@ int gserialized_get_gbox_p(const GSERIALIZED *g, RTGBOX *box)
 	/* See http://trac.osgeo.org/postgis/ticket/1023 */
 	else
 	{
-		RTGEOM *rtgeom = rtgeom_from_gserialized(g);
-		int ret = rtgeom_calculate_gbox(rtgeom, box);
-		gbox_float_round(box);
-		rtgeom_free(rtgeom);
+		RTGEOM *rtgeom = rtgeom_from_gserialized(ctx, g);
+		int ret = rtgeom_calculate_gbox(ctx, rtgeom, box);
+		gbox_float_round(ctx, box);
+		rtgeom_free(ctx, rtgeom);
 		return ret;
 	}
 }
@@ -400,9 +400,9 @@ int gserialized_get_gbox_p(const GSERIALIZED *g, RTGBOX *box)
 
 /* Private functions */
 
-static size_t gserialized_from_any_size(const RTGEOM *geom); /* Local prototype */
+static size_t gserialized_from_any_size(RTCTX *ctx, const RTGEOM *geom); /* Local prototype */
 
-static size_t gserialized_from_rtpoint_size(const RTPOINT *point)
+static size_t gserialized_from_rtpoint_size(RTCTX *ctx, const RTPOINT *point)
 {
 	size_t size = 4; /* Type number. */
 
@@ -416,7 +416,7 @@ static size_t gserialized_from_rtpoint_size(const RTPOINT *point)
 	return size;
 }
 
-static size_t gserialized_from_rtline_size(const RTLINE *line)
+static size_t gserialized_from_rtline_size(RTCTX *ctx, const RTLINE *line)
 {
 	size_t size = 4; /* Type number. */
 
@@ -430,7 +430,7 @@ static size_t gserialized_from_rtline_size(const RTLINE *line)
 	return size;
 }
 
-static size_t gserialized_from_rttriangle_size(const RTTRIANGLE *triangle)
+static size_t gserialized_from_rttriangle_size(RTCTX *ctx, const RTTRIANGLE *triangle)
 {
 	size_t size = 4; /* Type number. */
 
@@ -444,7 +444,7 @@ static size_t gserialized_from_rttriangle_size(const RTTRIANGLE *triangle)
 	return size;
 }
 
-static size_t gserialized_from_rtpoly_size(const RTPOLY *poly)
+static size_t gserialized_from_rtpoly_size(RTCTX *ctx, const RTPOLY *poly)
 {
 	size_t size = 4; /* Type number. */
 	int i = 0;
@@ -466,7 +466,7 @@ static size_t gserialized_from_rtpoly_size(const RTPOLY *poly)
 	return size;
 }
 
-static size_t gserialized_from_rtcircstring_size(const RTCIRCSTRING *curve)
+static size_t gserialized_from_rtcircstring_size(RTCTX *ctx, const RTCIRCSTRING *curve)
 {
 	size_t size = 4; /* Type number. */
 
@@ -480,7 +480,7 @@ static size_t gserialized_from_rtcircstring_size(const RTCIRCSTRING *curve)
 	return size;
 }
 
-static size_t gserialized_from_rtcollection_size(const RTCOLLECTION *col)
+static size_t gserialized_from_rtcollection_size(RTCTX *ctx, const RTCOLLECTION *col)
 {
 	size_t size = 4; /* Type number. */
 	int i = 0;
@@ -491,7 +491,7 @@ static size_t gserialized_from_rtcollection_size(const RTCOLLECTION *col)
 
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
-		size_t subsize = gserialized_from_any_size(col->geoms[i]);
+		size_t subsize = gserialized_from_any_size(ctx, col->geoms[i]);
 		size += subsize;
 		RTDEBUGF(3, "rtcollection subgeom(%d) size = %d", i, subsize);
 	}
@@ -501,22 +501,22 @@ static size_t gserialized_from_rtcollection_size(const RTCOLLECTION *col)
 	return size;
 }
 
-static size_t gserialized_from_any_size(const RTGEOM *geom)
+static size_t gserialized_from_any_size(RTCTX *ctx, const RTGEOM *geom)
 {
-	RTDEBUGF(2, "Input type: %s", rttype_name(geom->type));
+	RTDEBUGF(2, "Input type: %s", rttype_name(ctx, geom->type));
 
 	switch (geom->type)
 	{
 	case RTPOINTTYPE:
-		return gserialized_from_rtpoint_size((RTPOINT *)geom);
+		return gserialized_from_rtpoint_size(ctx, (RTPOINT *)geom);
 	case RTLINETYPE:
-		return gserialized_from_rtline_size((RTLINE *)geom);
+		return gserialized_from_rtline_size(ctx, (RTLINE *)geom);
 	case RTPOLYGONTYPE:
-		return gserialized_from_rtpoly_size((RTPOLY *)geom);
+		return gserialized_from_rtpoly_size(ctx, (RTPOLY *)geom);
 	case RTTRIANGLETYPE:
-		return gserialized_from_rttriangle_size((RTTRIANGLE *)geom);
+		return gserialized_from_rttriangle_size(ctx, (RTTRIANGLE *)geom);
 	case RTCIRCSTRINGTYPE:
-		return gserialized_from_rtcircstring_size((RTCIRCSTRING *)geom);
+		return gserialized_from_rtcircstring_size(ctx, (RTCIRCSTRING *)geom);
 	case RTCURVEPOLYTYPE:
 	case RTCOMPOUNDTYPE:
 	case RTMULTIPOINTTYPE:
@@ -527,24 +527,24 @@ static size_t gserialized_from_any_size(const RTGEOM *geom)
 	case RTPOLYHEDRALSURFACETYPE:
 	case RTTINTYPE:
 	case RTCOLLECTIONTYPE:
-		return gserialized_from_rtcollection_size((RTCOLLECTION *)geom);
+		return gserialized_from_rtcollection_size(ctx, (RTCOLLECTION *)geom);
 	default:
-		rterror("Unknown geometry type: %d - %s", geom->type, rttype_name(geom->type));
+		rterror(ctx, "Unknown geometry type: %d - %s", geom->type, rttype_name(ctx, geom->type));
 		return 0;
 	}
 }
 
 /* Public function */
 
-size_t gserialized_from_rtgeom_size(const RTGEOM *geom)
+size_t gserialized_from_rtgeom_size(RTCTX *ctx, const RTGEOM *geom)
 {
 	size_t size = 8; /* Header overhead. */
 	assert(geom);
 	
 	if ( geom->bbox )
-		size += gbox_serialized_size(geom->flags);	
+		size += gbox_serialized_size(ctx, geom->flags);	
 		
-	size += gserialized_from_any_size(geom);
+	size += gserialized_from_any_size(ctx, geom);
 	RTDEBUGF(3, "g_serialize size = %d", size);
 	
 	return size;
@@ -556,19 +556,19 @@ size_t gserialized_from_rtgeom_size(const RTGEOM *geom)
 
 /* Private functions */
 
-static size_t gserialized_from_rtgeom_any(const RTGEOM *geom, uint8_t *buf);
+static size_t gserialized_from_rtgeom_any(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf);
 
-static size_t gserialized_from_rtpoint(const RTPOINT *point, uint8_t *buf)
+static size_t gserialized_from_rtpoint(RTCTX *ctx, const RTPOINT *point, uint8_t *buf)
 {
 	uint8_t *loc;
-	int ptsize = ptarray_point_size(point->point);
+	int ptsize = ptarray_point_size(ctx, point->point);
 	int type = RTPOINTTYPE;
 
 	assert(point);
 	assert(buf);
 
 	if ( RTFLAGS_GET_ZM(point->flags) != RTFLAGS_GET_ZM(point->point->flags) )
-		rterror("Dimensions mismatch in rtpoint");
+		rterror(ctx, "Dimensions mismatch in rtpoint");
 
 	RTDEBUGF(2, "rtpoint_to_gserialized(%p, %p) called", point, buf);
 
@@ -584,14 +584,14 @@ static size_t gserialized_from_rtpoint(const RTPOINT *point, uint8_t *buf)
 	/* Copy in the ordinates. */
 	if ( point->point->npoints > 0 )
 	{
-		memcpy(loc, getPoint_internal(point->point, 0), ptsize);
+		memcpy(loc, getPoint_internal(ctx, point->point, 0), ptsize);
 		loc += ptsize;
 	}
 
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtline(const RTLINE *line, uint8_t *buf)
+static size_t gserialized_from_rtline(RTCTX *ctx, const RTLINE *line, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize;
@@ -604,9 +604,9 @@ static size_t gserialized_from_rtline(const RTLINE *line, uint8_t *buf)
 	RTDEBUGF(2, "rtline_to_gserialized(%p, %p) called", line, buf);
 
 	if ( RTFLAGS_GET_Z(line->flags) != RTFLAGS_GET_Z(line->points->flags) )
-		rterror("Dimensions mismatch in rtline");
+		rterror(ctx, "Dimensions mismatch in rtline");
 
-	ptsize = ptarray_point_size(line->points);
+	ptsize = ptarray_point_size(ctx, line->points);
 
 	loc = buf;
 
@@ -624,7 +624,7 @@ static size_t gserialized_from_rtline(const RTLINE *line, uint8_t *buf)
 	if ( line->points->npoints > 0 )
 	{
 		size = line->points->npoints * ptsize;
-		memcpy(loc, getPoint_internal(line->points, 0), size);
+		memcpy(loc, getPoint_internal(ctx, line->points, 0), size);
 		loc += size;
 	}
 	RTDEBUGF(3, "rtline_to_gserialized copied serialized_pointlist (%d bytes)", ptsize * line->points->npoints);
@@ -632,7 +632,7 @@ static size_t gserialized_from_rtline(const RTLINE *line, uint8_t *buf)
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtpoly(const RTPOLY *poly, uint8_t *buf)
+static size_t gserialized_from_rtpoly(RTCTX *ctx, const RTPOLY *poly, uint8_t *buf)
 {
 	int i;
 	uint8_t *loc;
@@ -676,16 +676,16 @@ static size_t gserialized_from_rtpoly(const RTPOLY *poly, uint8_t *buf)
 		size_t pasize;
 
 		if ( RTFLAGS_GET_ZM(poly->flags) != RTFLAGS_GET_ZM(pa->flags) )
-			rterror("Dimensions mismatch in rtpoly");
+			rterror(ctx, "Dimensions mismatch in rtpoly");
 
 		pasize = pa->npoints * ptsize;
-		memcpy(loc, getPoint_internal(pa, 0), pasize);
+		memcpy(loc, getPoint_internal(ctx, pa, 0), pasize);
 		loc += pasize;
 	}
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rttriangle(const RTTRIANGLE *triangle, uint8_t *buf)
+static size_t gserialized_from_rttriangle(RTCTX *ctx, const RTTRIANGLE *triangle, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize;
@@ -698,9 +698,9 @@ static size_t gserialized_from_rttriangle(const RTTRIANGLE *triangle, uint8_t *b
 	RTDEBUGF(2, "rttriangle_to_gserialized(%p, %p) called", triangle, buf);
 
 	if ( RTFLAGS_GET_ZM(triangle->flags) != RTFLAGS_GET_ZM(triangle->points->flags) )
-		rterror("Dimensions mismatch in rttriangle");
+		rterror(ctx, "Dimensions mismatch in rttriangle");
 
-	ptsize = ptarray_point_size(triangle->points);
+	ptsize = ptarray_point_size(ctx, triangle->points);
 
 	loc = buf;
 
@@ -718,7 +718,7 @@ static size_t gserialized_from_rttriangle(const RTTRIANGLE *triangle, uint8_t *b
 	if ( triangle->points->npoints > 0 )
 	{
 		size = triangle->points->npoints * ptsize;
-		memcpy(loc, getPoint_internal(triangle->points, 0), size);
+		memcpy(loc, getPoint_internal(ctx, triangle->points, 0), size);
 		loc += size;
 	}
 	RTDEBUGF(3, "rttriangle_to_gserialized copied serialized_pointlist (%d bytes)", ptsize * triangle->points->npoints);
@@ -726,7 +726,7 @@ static size_t gserialized_from_rttriangle(const RTTRIANGLE *triangle, uint8_t *b
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtcircstring(const RTCIRCSTRING *curve, uint8_t *buf)
+static size_t gserialized_from_rtcircstring(RTCTX *ctx, const RTCIRCSTRING *curve, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize;
@@ -737,10 +737,10 @@ static size_t gserialized_from_rtcircstring(const RTCIRCSTRING *curve, uint8_t *
 	assert(buf);
 
 	if (RTFLAGS_GET_ZM(curve->flags) != RTFLAGS_GET_ZM(curve->points->flags))
-		rterror("Dimensions mismatch in rtcircstring");
+		rterror(ctx, "Dimensions mismatch in rtcircstring");
 
 
-	ptsize = ptarray_point_size(curve->points);
+	ptsize = ptarray_point_size(ctx, curve->points);
 	loc = buf;
 
 	/* Write in the type. */
@@ -755,14 +755,14 @@ static size_t gserialized_from_rtcircstring(const RTCIRCSTRING *curve, uint8_t *
 	if ( curve->points->npoints > 0 )
 	{
 		size = curve->points->npoints * ptsize;
-		memcpy(loc, getPoint_internal(curve->points, 0), size);
+		memcpy(loc, getPoint_internal(ctx, curve->points, 0), size);
 		loc += size;
 	}
 
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtcollection(const RTCOLLECTION *coll, uint8_t *buf)
+static size_t gserialized_from_rtcollection(RTCTX *ctx, const RTCOLLECTION *coll, uint8_t *buf)
 {
 	size_t subsize = 0;
 	uint8_t *loc;
@@ -787,36 +787,36 @@ static size_t gserialized_from_rtcollection(const RTCOLLECTION *coll, uint8_t *b
 	for ( i=0; i<coll->ngeoms; i++ )
 	{
 		if (RTFLAGS_GET_ZM(coll->flags) != RTFLAGS_GET_ZM(coll->geoms[i]->flags))
-			rterror("Dimensions mismatch in rtcollection");
-		subsize = gserialized_from_rtgeom_any(coll->geoms[i], loc);
+			rterror(ctx, "Dimensions mismatch in rtcollection");
+		subsize = gserialized_from_rtgeom_any(ctx, coll->geoms[i], loc);
 		loc += subsize;
 	}
 
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtgeom_any(const RTGEOM *geom, uint8_t *buf)
+static size_t gserialized_from_rtgeom_any(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf)
 {
 	assert(geom);
 	assert(buf);
 
 	RTDEBUGF(2, "Input type (%d) %s, hasz: %d hasm: %d",
-		geom->type, rttype_name(geom->type),
+		geom->type, rttype_name(ctx, geom->type),
 		RTFLAGS_GET_Z(geom->flags), RTFLAGS_GET_M(geom->flags));
 	RTDEBUGF(2, "RTGEOM(%p) uint8_t(%p)", geom, buf);
 
 	switch (geom->type)
 	{
 	case RTPOINTTYPE:
-		return gserialized_from_rtpoint((RTPOINT *)geom, buf);
+		return gserialized_from_rtpoint(ctx, (RTPOINT *)geom, buf);
 	case RTLINETYPE:
-		return gserialized_from_rtline((RTLINE *)geom, buf);
+		return gserialized_from_rtline(ctx, (RTLINE *)geom, buf);
 	case RTPOLYGONTYPE:
-		return gserialized_from_rtpoly((RTPOLY *)geom, buf);
+		return gserialized_from_rtpoly(ctx, (RTPOLY *)geom, buf);
 	case RTTRIANGLETYPE:
-		return gserialized_from_rttriangle((RTTRIANGLE *)geom, buf);
+		return gserialized_from_rttriangle(ctx, (RTTRIANGLE *)geom, buf);
 	case RTCIRCSTRINGTYPE:
-		return gserialized_from_rtcircstring((RTCIRCSTRING *)geom, buf);
+		return gserialized_from_rtcircstring(ctx, (RTCIRCSTRING *)geom, buf);
 	case RTCURVEPOLYTYPE:
 	case RTCOMPOUNDTYPE:
 	case RTMULTIPOINTTYPE:
@@ -827,15 +827,15 @@ static size_t gserialized_from_rtgeom_any(const RTGEOM *geom, uint8_t *buf)
 	case RTPOLYHEDRALSURFACETYPE:
 	case RTTINTYPE:
 	case RTCOLLECTIONTYPE:
-		return gserialized_from_rtcollection((RTCOLLECTION *)geom, buf);
+		return gserialized_from_rtcollection(ctx, (RTCOLLECTION *)geom, buf);
 	default:
-		rterror("Unknown geometry type: %d - %s", geom->type, rttype_name(geom->type));
+		rterror(ctx, "Unknown geometry type: %d - %s", geom->type, rttype_name(ctx, geom->type));
 		return 0;
 	}
 	return 0;
 }
 
-static size_t gserialized_from_gbox(const RTGBOX *gbox, uint8_t *buf)
+static size_t gserialized_from_gbox(RTCTX *ctx, const RTGBOX *gbox, uint8_t *buf)
 {
 	uint8_t *loc = buf;
 	float f;
@@ -843,29 +843,29 @@ static size_t gserialized_from_gbox(const RTGBOX *gbox, uint8_t *buf)
 
 	assert(buf);
 
-	f = next_float_down(gbox->xmin);
+	f = next_float_down(ctx, gbox->xmin);
 	memcpy(loc, &f, sizeof(float));
 	loc += sizeof(float);
 
-	f = next_float_up(gbox->xmax);
+	f = next_float_up(ctx, gbox->xmax);
 	memcpy(loc, &f, sizeof(float));
 	loc += sizeof(float);
 
-	f = next_float_down(gbox->ymin);
+	f = next_float_down(ctx, gbox->ymin);
 	memcpy(loc, &f, sizeof(float));
 	loc += sizeof(float);
 
-	f = next_float_up(gbox->ymax);
+	f = next_float_up(ctx, gbox->ymax);
 	memcpy(loc, &f, sizeof(float));
 	loc += sizeof(float);
 
 	if ( RTFLAGS_GET_GEODETIC(gbox->flags) )
 	{
-		f = next_float_down(gbox->zmin);
+		f = next_float_down(ctx, gbox->zmin);
 		memcpy(loc, &f, sizeof(float));
 		loc += sizeof(float);
 
-		f = next_float_up(gbox->zmax);
+		f = next_float_up(ctx, gbox->zmax);
 		memcpy(loc, &f, sizeof(float));
 		loc += sizeof(float);
 
@@ -876,11 +876,11 @@ static size_t gserialized_from_gbox(const RTGBOX *gbox, uint8_t *buf)
 
 	if ( RTFLAGS_GET_Z(gbox->flags) )
 	{
-		f = next_float_down(gbox->zmin);
+		f = next_float_down(ctx, gbox->zmin);
 		memcpy(loc, &f, sizeof(float));
 		loc += sizeof(float);
 
-		f = next_float_up(gbox->zmax);
+		f = next_float_up(ctx, gbox->zmax);
 		memcpy(loc, &f, sizeof(float));
 		loc += sizeof(float);
 
@@ -888,11 +888,11 @@ static size_t gserialized_from_gbox(const RTGBOX *gbox, uint8_t *buf)
 
 	if ( RTFLAGS_GET_M(gbox->flags) )
 	{
-		f = next_float_down(gbox->mmin);
+		f = next_float_down(ctx, gbox->mmin);
 		memcpy(loc, &f, sizeof(float));
 		loc += sizeof(float);
 
-		f = next_float_up(gbox->mmax);
+		f = next_float_up(ctx, gbox->mmax);
 		memcpy(loc, &f, sizeof(float));
 		loc += sizeof(float);
 	}
@@ -903,7 +903,7 @@ static size_t gserialized_from_gbox(const RTGBOX *gbox, uint8_t *buf)
 
 /* Public function */
 
-GSERIALIZED* gserialized_from_rtgeom(RTGEOM *geom, int is_geodetic, size_t *size)
+GSERIALIZED* gserialized_from_rtgeom(RTCTX *ctx, RTGEOM *geom, int is_geodetic, size_t *size)
 {
 	size_t expected_size = 0;
 	size_t return_size = 0;
@@ -915,9 +915,9 @@ GSERIALIZED* gserialized_from_rtgeom(RTGEOM *geom, int is_geodetic, size_t *size
 	/*
 	** See if we need a bounding box, add one if we don't have one.
 	*/
-	if ( (! geom->bbox) && rtgeom_needs_bbox(geom) && (!rtgeom_is_empty(geom)) )
+	if ( (! geom->bbox) && rtgeom_needs_bbox(ctx, geom) && (!rtgeom_is_empty(ctx, geom)) )
 	{
-		rtgeom_add_bbox(geom);
+		rtgeom_add_bbox(ctx, geom);
 	}
 	
 	/*
@@ -927,8 +927,8 @@ GSERIALIZED* gserialized_from_rtgeom(RTGEOM *geom, int is_geodetic, size_t *size
 		RTFLAGS_SET_BBOX(geom->flags, 1);
 
 	/* Set up the uint8_t buffer into which we are going to write the serialized geometry. */
-	expected_size = gserialized_from_rtgeom_size(geom);
-	serialized = rtalloc(expected_size);
+	expected_size = gserialized_from_rtgeom_size(ctx, geom);
+	serialized = rtalloc(ctx, expected_size);
 	ptr = serialized;
 
 	/* Move past size, srid and flags. */
@@ -936,17 +936,17 @@ GSERIALIZED* gserialized_from_rtgeom(RTGEOM *geom, int is_geodetic, size_t *size
 
 	/* Write in the serialized form of the gbox, if necessary. */
 	if ( geom->bbox )
-		ptr += gserialized_from_gbox(geom->bbox, ptr);
+		ptr += gserialized_from_gbox(ctx, geom->bbox, ptr);
 
 	/* Write in the serialized form of the geometry. */
-	ptr += gserialized_from_rtgeom_any(geom, ptr);
+	ptr += gserialized_from_rtgeom_any(ctx, geom, ptr);
 
 	/* Calculate size as returned by data processing functions. */
 	return_size = ptr - serialized;
 
 	if ( expected_size != return_size ) /* Uh oh! */
 	{
-		rterror("Return size (%d) not equal to expected size (%d)!", return_size, expected_size);
+		rterror(ctx, "Return size (%d) not equal to expected size (%d)!", return_size, expected_size);
 		return NULL;
 	}
 
@@ -962,7 +962,7 @@ GSERIALIZED* gserialized_from_rtgeom(RTGEOM *geom, int is_geodetic, size_t *size
 	g->size = return_size << 2;
 
 	/* Set the SRID! */
-	gserialized_set_srid(g, geom->srid);
+	gserialized_set_srid(ctx, g, geom->srid);
 
 	g->flags = geom->flags;
 
@@ -973,9 +973,9 @@ GSERIALIZED* gserialized_from_rtgeom(RTGEOM *geom, int is_geodetic, size_t *size
 * De-serialize GSERIALIZED into an RTGEOM.
 */
 
-static RTGEOM* rtgeom_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size);
+static RTGEOM* rtgeom_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size);
 
-static RTPOINT* rtpoint_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTPOINT* rtpoint_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTPOINT *point;
@@ -983,20 +983,20 @@ static RTPOINT* rtpoint_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_fla
 
 	assert(data_ptr);
 
-	point = (RTPOINT*)rtalloc(sizeof(RTPOINT));
+	point = (RTPOINT*)rtalloc(ctx, sizeof(RTPOINT));
 	point->srid = SRID_UNKNOWN; /* Default */
 	point->bbox = NULL;
 	point->type = RTPOINTTYPE;
 	point->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the type. */
-	npoints = rt_get_uint32_t(data_ptr); /* Zero => empty geometry */
+	npoints = rt_get_uint32_t(ctx, data_ptr); /* Zero => empty geometry */
 	data_ptr += 4; /* Skip past the npoints. */
 
 	if ( npoints > 0 )
-		point->point = ptarray_construct_reference_data(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 1, data_ptr);
+		point->point = ptarray_construct_reference_data(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 1, data_ptr);
 	else
-		point->point = ptarray_construct(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty point */
+		point->point = ptarray_construct(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty point */
 
 	data_ptr += npoints * RTFLAGS_NDIMS(g_flags) * sizeof(double);
 
@@ -1006,7 +1006,7 @@ static RTPOINT* rtpoint_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_fla
 	return point;
 }
 
-static RTLINE* rtline_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTLINE* rtline_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTLINE *line;
@@ -1014,21 +1014,21 @@ static RTLINE* rtline_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 
 	assert(data_ptr);
 
-	line = (RTLINE*)rtalloc(sizeof(RTLINE));
+	line = (RTLINE*)rtalloc(ctx, sizeof(RTLINE));
 	line->srid = SRID_UNKNOWN; /* Default */
 	line->bbox = NULL;
 	line->type = RTLINETYPE;
 	line->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the type. */
-	npoints = rt_get_uint32_t(data_ptr); /* Zero => empty geometry */
+	npoints = rt_get_uint32_t(ctx, data_ptr); /* Zero => empty geometry */
 	data_ptr += 4; /* Skip past the npoints. */
 
 	if ( npoints > 0 )
-		line->points = ptarray_construct_reference_data(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, data_ptr);
+		line->points = ptarray_construct_reference_data(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, data_ptr);
 		
 	else
-		line->points = ptarray_construct(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty linestring */
+		line->points = ptarray_construct(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty linestring */
 
 	data_ptr += RTFLAGS_NDIMS(g_flags) * npoints * sizeof(double);
 
@@ -1038,7 +1038,7 @@ static RTLINE* rtline_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 	return line;
 }
 
-static RTPOLY* rtpoly_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTPOLY* rtpoly_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTPOLY *poly;
@@ -1048,14 +1048,14 @@ static RTPOLY* rtpoly_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 
 	assert(data_ptr);
 
-	poly = (RTPOLY*)rtalloc(sizeof(RTPOLY));
+	poly = (RTPOLY*)rtalloc(ctx, sizeof(RTPOLY));
 	poly->srid = SRID_UNKNOWN; /* Default */
 	poly->bbox = NULL;
 	poly->type = RTPOLYGONTYPE;
 	poly->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the polygontype. */
-	nrings = rt_get_uint32_t(data_ptr); /* Zero => empty geometry */
+	nrings = rt_get_uint32_t(ctx, data_ptr); /* Zero => empty geometry */
 	poly->nrings = nrings;
 	RTDEBUGF(4, "nrings = %d", nrings);
 	data_ptr += 4; /* Skip past the nrings. */
@@ -1063,7 +1063,7 @@ static RTPOLY* rtpoly_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 	ordinate_ptr = data_ptr; /* Start the ordinate pointer. */
 	if ( nrings > 0)
 	{
-		poly->rings = (RTPOINTARRAY**)rtalloc( sizeof(RTPOINTARRAY*) * nrings );
+		poly->rings = (RTPOINTARRAY**)rtalloc(ctx,  sizeof(RTPOINTARRAY*) * nrings );
 		ordinate_ptr += nrings * 4; /* Move past all the npoints values. */
 		if ( nrings % 2 ) /* If there is padding, move past that too. */
 			ordinate_ptr += 4;
@@ -1078,11 +1078,11 @@ static RTPOLY* rtpoly_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 		uint32_t npoints = 0;
 
 		/* Read in the number of points. */
-		npoints = rt_get_uint32_t(data_ptr);
+		npoints = rt_get_uint32_t(ctx, data_ptr);
 		data_ptr += 4;
 
 		/* Make a point array for the ring, and move the ordinate pointer past the ring ordinates. */
-		poly->rings[i] = ptarray_construct_reference_data(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, ordinate_ptr);
+		poly->rings[i] = ptarray_construct_reference_data(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, ordinate_ptr);
 		
 		ordinate_ptr += sizeof(double) * RTFLAGS_NDIMS(g_flags) * npoints;
 	}
@@ -1093,7 +1093,7 @@ static RTPOLY* rtpoly_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags
 	return poly;
 }
 
-static RTTRIANGLE* rttriangle_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTTRIANGLE* rttriangle_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTTRIANGLE *triangle;
@@ -1101,20 +1101,20 @@ static RTTRIANGLE* rttriangle_from_gserialized_buffer(uint8_t *data_ptr, uint8_t
 
 	assert(data_ptr);
 
-	triangle = (RTTRIANGLE*)rtalloc(sizeof(RTTRIANGLE));
+	triangle = (RTTRIANGLE*)rtalloc(ctx, sizeof(RTTRIANGLE));
 	triangle->srid = SRID_UNKNOWN; /* Default */
 	triangle->bbox = NULL;
 	triangle->type = RTTRIANGLETYPE;
 	triangle->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the type. */
-	npoints = rt_get_uint32_t(data_ptr); /* Zero => empty geometry */
+	npoints = rt_get_uint32_t(ctx, data_ptr); /* Zero => empty geometry */
 	data_ptr += 4; /* Skip past the npoints. */
 
 	if ( npoints > 0 )
-		triangle->points = ptarray_construct_reference_data(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, data_ptr);		
+		triangle->points = ptarray_construct_reference_data(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, data_ptr);		
 	else
-		triangle->points = ptarray_construct(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty triangle */
+		triangle->points = ptarray_construct(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty triangle */
 
 	data_ptr += RTFLAGS_NDIMS(g_flags) * npoints * sizeof(double);
 
@@ -1124,7 +1124,7 @@ static RTTRIANGLE* rttriangle_from_gserialized_buffer(uint8_t *data_ptr, uint8_t
 	return triangle;
 }
 
-static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTCIRCSTRING *circstring;
@@ -1132,20 +1132,20 @@ static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(uint8_t *data_ptr, uin
 
 	assert(data_ptr);
 
-	circstring = (RTCIRCSTRING*)rtalloc(sizeof(RTCIRCSTRING));
+	circstring = (RTCIRCSTRING*)rtalloc(ctx, sizeof(RTCIRCSTRING));
 	circstring->srid = SRID_UNKNOWN; /* Default */
 	circstring->bbox = NULL;
 	circstring->type = RTCIRCSTRINGTYPE;
 	circstring->flags = g_flags;
 
 	data_ptr += 4; /* Skip past the circstringtype. */
-	npoints = rt_get_uint32_t(data_ptr); /* Zero => empty geometry */
+	npoints = rt_get_uint32_t(ctx, data_ptr); /* Zero => empty geometry */
 	data_ptr += 4; /* Skip past the npoints. */
 
 	if ( npoints > 0 )
-		circstring->points = ptarray_construct_reference_data(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, data_ptr);		
+		circstring->points = ptarray_construct_reference_data(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), npoints, data_ptr);		
 	else
-		circstring->points = ptarray_construct(RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty circularstring */
+		circstring->points = ptarray_construct(ctx, RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), 0); /* Empty circularstring */
 
 	data_ptr += RTFLAGS_NDIMS(g_flags) * npoints * sizeof(double);
 
@@ -1155,7 +1155,7 @@ static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(uint8_t *data_ptr, uin
 	return circstring;
 }
 
-static RTCOLLECTION* rtcollection_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTCOLLECTION* rtcollection_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint32_t type;
 	uint8_t *start_ptr = data_ptr;
@@ -1165,21 +1165,21 @@ static RTCOLLECTION* rtcollection_from_gserialized_buffer(uint8_t *data_ptr, uin
 
 	assert(data_ptr);
 
-	type = rt_get_uint32_t(data_ptr);
+	type = rt_get_uint32_t(ctx, data_ptr);
 	data_ptr += 4; /* Skip past the type. */
 
-	collection = (RTCOLLECTION*)rtalloc(sizeof(RTCOLLECTION));
+	collection = (RTCOLLECTION*)rtalloc(ctx, sizeof(RTCOLLECTION));
 	collection->srid = SRID_UNKNOWN; /* Default */
 	collection->bbox = NULL;
 	collection->type = type;
 	collection->flags = g_flags;
 
-	ngeoms = rt_get_uint32_t(data_ptr);
+	ngeoms = rt_get_uint32_t(ctx, data_ptr);
 	collection->ngeoms = ngeoms; /* Zero => empty geometry */
 	data_ptr += 4; /* Skip past the ngeoms. */
 
 	if ( ngeoms > 0 )
-		collection->geoms = rtalloc(sizeof(RTGEOM*) * ngeoms);
+		collection->geoms = rtalloc(ctx, sizeof(RTGEOM*) * ngeoms);
 	else
 		collection->geoms = NULL;
 
@@ -1188,16 +1188,16 @@ static RTCOLLECTION* rtcollection_from_gserialized_buffer(uint8_t *data_ptr, uin
 
 	for ( i = 0; i < ngeoms; i++ )
 	{
-		uint32_t subtype = rt_get_uint32_t(data_ptr);
+		uint32_t subtype = rt_get_uint32_t(ctx, data_ptr);
 		size_t subsize = 0;
 
-		if ( ! rtcollection_allows_subtype(type, subtype) )
+		if ( ! rtcollection_allows_subtype(ctx, type, subtype) )
 		{
-			rterror("Invalid subtype (%s) for collection type (%s)", rttype_name(subtype), rttype_name(type));
-			rtfree(collection);
+			rterror(ctx, "Invalid subtype (%s) for collection type (%s)", rttype_name(ctx, subtype), rttype_name(ctx, type));
+			rtfree(ctx, collection);
 			return NULL;
 		}
-		collection->geoms[i] = rtgeom_from_gserialized_buffer(data_ptr, g_flags, &subsize);
+		collection->geoms[i] = rtgeom_from_gserialized_buffer(ctx, data_ptr, g_flags, &subsize);
 		data_ptr += subsize;
 	}
 
@@ -1207,29 +1207,29 @@ static RTCOLLECTION* rtcollection_from_gserialized_buffer(uint8_t *data_ptr, uin
 	return collection;
 }
 
-RTGEOM* rtgeom_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+RTGEOM* rtgeom_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint32_t type;
 
 	assert(data_ptr);
 
-	type = rt_get_uint32_t(data_ptr);
+	type = rt_get_uint32_t(ctx, data_ptr);
 
-	RTDEBUGF(2, "Got type %d (%s), hasz=%d hasm=%d geodetic=%d hasbox=%d", type, rttype_name(type),
+	RTDEBUGF(2, "Got type %d (%s), hasz=%d hasm=%d geodetic=%d hasbox=%d", type, rttype_name(ctx, type),
 		RTFLAGS_GET_Z(g_flags), RTFLAGS_GET_M(g_flags), RTFLAGS_GET_GEODETIC(g_flags), RTFLAGS_GET_BBOX(g_flags));
 
 	switch (type)
 	{
 	case RTPOINTTYPE:
-		return (RTGEOM *)rtpoint_from_gserialized_buffer(data_ptr, g_flags, g_size);
+		return (RTGEOM *)rtpoint_from_gserialized_buffer(ctx, data_ptr, g_flags, g_size);
 	case RTLINETYPE:
-		return (RTGEOM *)rtline_from_gserialized_buffer(data_ptr, g_flags, g_size);
+		return (RTGEOM *)rtline_from_gserialized_buffer(ctx, data_ptr, g_flags, g_size);
 	case RTCIRCSTRINGTYPE:
-		return (RTGEOM *)rtcircstring_from_gserialized_buffer(data_ptr, g_flags, g_size);
+		return (RTGEOM *)rtcircstring_from_gserialized_buffer(ctx, data_ptr, g_flags, g_size);
 	case RTPOLYGONTYPE:
-		return (RTGEOM *)rtpoly_from_gserialized_buffer(data_ptr, g_flags, g_size);
+		return (RTGEOM *)rtpoly_from_gserialized_buffer(ctx, data_ptr, g_flags, g_size);
 	case RTTRIANGLETYPE:
-		return (RTGEOM *)rttriangle_from_gserialized_buffer(data_ptr, g_flags, g_size);
+		return (RTGEOM *)rttriangle_from_gserialized_buffer(ctx, data_ptr, g_flags, g_size);
 	case RTMULTIPOINTTYPE:
 	case RTMULTILINETYPE:
 	case RTMULTIPOLYGONTYPE:
@@ -1240,14 +1240,14 @@ RTGEOM* rtgeom_from_gserialized_buffer(uint8_t *data_ptr, uint8_t g_flags, size_
 	case RTPOLYHEDRALSURFACETYPE:
 	case RTTINTYPE:
 	case RTCOLLECTIONTYPE:
-		return (RTGEOM *)rtcollection_from_gserialized_buffer(data_ptr, g_flags, g_size);
+		return (RTGEOM *)rtcollection_from_gserialized_buffer(ctx, data_ptr, g_flags, g_size);
 	default:
-		rterror("Unknown geometry type: %d - %s", type, rttype_name(type));
+		rterror(ctx, "Unknown geometry type: %d - %s", type, rttype_name(ctx, type));
 		return NULL;
 	}
 }
 
-RTGEOM* rtgeom_from_gserialized(const GSERIALIZED *g)
+RTGEOM* rtgeom_from_gserialized(RTCTX *ctx, const GSERIALIZED *g)
 {
 	uint8_t g_flags = 0;
 	int32_t g_srid = 0;
@@ -1259,37 +1259,37 @@ RTGEOM* rtgeom_from_gserialized(const GSERIALIZED *g)
 
 	assert(g);
 
-	g_srid = gserialized_get_srid(g);
+	g_srid = gserialized_get_srid(ctx, g);
 	g_flags = g->flags;
-	g_type = gserialized_get_type(g);
-	RTDEBUGF(4, "Got type %d (%s), srid=%d", g_type, rttype_name(g_type), g_srid);
+	g_type = gserialized_get_type(ctx, g);
+	RTDEBUGF(4, "Got type %d (%s), srid=%d", g_type, rttype_name(ctx, g_type), g_srid);
 
 	data_ptr = (uint8_t*)g->data;
 	if ( RTFLAGS_GET_BBOX(g_flags) )
-		data_ptr += gbox_serialized_size(g_flags);
+		data_ptr += gbox_serialized_size(ctx, g_flags);
 
-	rtgeom = rtgeom_from_gserialized_buffer(data_ptr, g_flags, &g_size);
+	rtgeom = rtgeom_from_gserialized_buffer(ctx, data_ptr, g_flags, &g_size);
 
 	if ( ! rtgeom ) 
-		rterror("rtgeom_from_gserialized: unable create geometry"); /* Ooops! */
+		rterror(ctx, "rtgeom_from_gserialized: unable create geometry"); /* Ooops! */
 
 	rtgeom->type = g_type;
 	rtgeom->flags = g_flags;
 
-	if ( gserialized_read_gbox_p(g, &bbox) == RT_SUCCESS )
+	if ( gserialized_read_gbox_p(ctx, g, &bbox) == RT_SUCCESS )
 	{
-		rtgeom->bbox = gbox_copy(&bbox);
+		rtgeom->bbox = gbox_copy(ctx, &bbox);
 	}
-	else if ( rtgeom_needs_bbox(rtgeom) && (rtgeom_calculate_gbox(rtgeom, &bbox) == RT_SUCCESS) )
+	else if ( rtgeom_needs_bbox(ctx, rtgeom) && (rtgeom_calculate_gbox(ctx, rtgeom, &bbox) == RT_SUCCESS) )
 	{
-		rtgeom->bbox = gbox_copy(&bbox);
+		rtgeom->bbox = gbox_copy(ctx, &bbox);
 	}
 	else
 	{
 		rtgeom->bbox = NULL;
 	}
 
-	rtgeom_set_srid(rtgeom, g_srid);
+	rtgeom_set_srid(ctx, rtgeom, g_srid);
 
 	return rtgeom;
 }
