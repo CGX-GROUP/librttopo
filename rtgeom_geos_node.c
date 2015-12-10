@@ -80,7 +80,7 @@ rtgeom_extract_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
 	return col;
 }
 
-/* Assumes initGEOS was called already */
+/* Assumes rtgeom_geos_ensure_init(ctx) was called */
 /* May return RTPOINT or RTMPOINT */
 static RTGEOM*
 rtgeom_extract_unique_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
@@ -88,7 +88,7 @@ rtgeom_extract_unique_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
 #if RTGEOM_GEOS_VERSION < 33
 	rterror(ctx, "The GEOS version this postgis binary "
 	        "was compiled against (%d) doesn't support "
-	        "'GEOSUnaryUnion' function (3.3.0+ required)",
+	        "'GEOSUnaryUnion' function _r(ctx->gctx, 3.3.0+ required)",
 	        RTGEOM_GEOS_VERSION);
 	return NULL;
 #else /* RTGEOM_GEOS_VERSION >= 33 */
@@ -104,16 +104,16 @@ rtgeom_extract_unique_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
 
 	/* UnaryUnion to remove duplicates */
 	/* TODO: do it all within pgis using indices */
-	gepu = GEOSUnaryUnion(gepall);
+	gepu = GEOSUnaryUnion_r(ctx->gctx, gepall);
 	if ( ! gepu ) {
-		GEOSGeom_destroy(gepall);
+		GEOSGeom_destroy_r(ctx->gctx, gepall);
 		rterror(ctx, "GEOSUnaryUnion: %s", rtgeom_geos_errmsg);
 		return NULL;
 	}
-	GEOSGeom_destroy(gepall);
+	GEOSGeom_destroy_r(ctx->gctx, gepall);
 
 	ret = GEOS2RTGEOM(ctx, gepu, RTFLAGS_GET_Z(rtg->flags));
-	GEOSGeom_destroy(gepu);
+	GEOSGeom_destroy_r(ctx->gctx, gepu);
 	if ( ! ret ) {
 		rterror(ctx, "Error during GEOS2RTGEOM");
 		return NULL;
@@ -131,7 +131,7 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 #if RTGEOM_GEOS_VERSION < 33
 	rterror(ctx, "The GEOS version this postgis binary "
 	        "was compiled against (%d) doesn't support "
-	        "'GEOSUnaryUnion' function (3.3.0+ required)",
+	        "'GEOSUnaryUnion' function _r(ctx->gctx, 3.3.0+ required)",
 	        RTGEOM_GEOS_VERSION);
 	return NULL;
 #else /* RTGEOM_GEOS_VERSION >= 33 */
@@ -145,7 +145,7 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 		return NULL;
 	}
 
-	initGEOS(rtgeom_geos_error, rtgeom_geos_error);
+	rtgeom_geos_ensure_init(ctx);
 	g1 = RTGEOM2GEOS(ctx, rtgeom_in, 1);
 	if ( ! g1 ) {
 		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_geos_errmsg);
@@ -154,14 +154,14 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 
 	ep = rtgeom_extract_unique_endpoints(ctx, rtgeom_in);
 	if ( ! ep ) {
-		GEOSGeom_destroy(g1);
+		GEOSGeom_destroy_r(ctx->gctx, g1);
 		rterror(ctx, "Error extracting unique endpoints from input");
 		return NULL;
 	}
 
 	/* Unary union input to fully node */
-	gu = GEOSUnaryUnion(g1);
-	GEOSGeom_destroy(g1);
+	gu = GEOSUnaryUnion_r(ctx->gctx, g1);
+	GEOSGeom_destroy_r(ctx->gctx, g1);
 	if ( ! gu ) {
 		rtgeom_free(ctx, ep);
 		rterror(ctx, "GEOSUnaryUnion: %s", rtgeom_geos_errmsg);
@@ -169,8 +169,8 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 	}
 
 	/* Linemerge (in case of overlaps) */
-	gm = GEOSLineMerge(gu);
-	GEOSGeom_destroy(gu);
+	gm = GEOSLineMerge_r(ctx->gctx, gu);
+	GEOSGeom_destroy_r(ctx->gctx, gu);
 	if ( ! gm ) {
 		rtgeom_free(ctx, ep);
 		rterror(ctx, "GEOSLineMerge: %s", rtgeom_geos_errmsg);
@@ -178,7 +178,7 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 	}
 
 	lines = GEOS2RTGEOM(ctx, gm, RTFLAGS_GET_Z(rtgeom_in->flags));
-	GEOSGeom_destroy(gm);
+	GEOSGeom_destroy_r(ctx->gctx, gm);
 	if ( ! lines ) {
 		rtgeom_free(ctx, ep);
 		rterror(ctx, "Error during GEOS2RTGEOM");

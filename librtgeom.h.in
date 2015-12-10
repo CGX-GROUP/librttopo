@@ -1999,7 +1999,7 @@ RTGEOM *rtgeom_unstroke(const RTCTX *ctx, const RTGEOM *geom);
  ******************************************************************************/
 
 /** Return GEOS version string (not to be freed) */
-const char* rtgeom_geos_version(const RTCTX *ctx);
+const char* rtgeom_geos_version(void);
 
 /** Convert an RTGEOM to a GEOS Geometry and convert back -- for debug only */
 RTGEOM* rtgeom_geos_noop(const RTCTX *ctx, const RTGEOM *geom) ;

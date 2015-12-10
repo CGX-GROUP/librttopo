@@ -75,7 +75,7 @@ rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* bl
 	 *      -> Return a collection of all elements resulting from the split
 	 */
 
-	initGEOS(rtgeom_geos_error, rtgeom_geos_error);
+	rtgeom_geos_ensure_init(ctx);
 
 	g1 = RTGEOM2GEOS(ctx, (RTGEOM*)rtline_in, 0);
 	if ( ! g1 )
@@ -324,7 +324,7 @@ rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* bl
 	 *      -> Return a collection of all elements resulting from the split
 	 */
 
-	initGEOS(rtgeom_geos_error, rtgeom_geos_error);
+	rtgeom_geos_ensure_init(ctx);
 
 	g1 = RTGEOM2GEOS(ctx, (RTGEOM*)rtpoly_in, 0);
 	if ( NULL == g1 )
