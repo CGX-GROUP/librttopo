@@ -24,6 +24,22 @@ RTTIN *rttin_from_geos(const GEOSGeometry *geom, int want3d);
 #define RTGEOM_GEOS_ERRMSG_MAXSIZE 256
 char rtgeom_geos_errmsg[RTGEOM_GEOS_ERRMSG_MAXSIZE];
 
+static void
+rtgeom_geos_notice(const char *fmt, ...)
+{
+	char msg[256];
+	va_list ap;
+
+	va_start(ap, fmt);
+
+	/* Call the supplied function */
+	vsnprintf (msg, 255, fmt, ap);
+	msg[255]='\0';
+	printf("%s\n", msg);
+
+	va_end(ap);
+}
+
 extern void
 rtgeom_geos_error(const char *fmt, ...)
 {
@@ -506,7 +522,7 @@ rtgeom_normalize(const RTGEOM *geom1)
 	srid = (int)(geom1->srid);
 	is3d = RTFLAGS_GET_Z(geom1->flags);
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = RTGEOM2GEOS(geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
@@ -557,7 +573,7 @@ rtgeom_intersection(const RTGEOM *geom1, const RTGEOM *geom2)
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	RTDEBUG(3, "intersection() START");
 
@@ -631,7 +647,7 @@ rtgeom_linemerge(const RTGEOM *geom1)
 		return (RTGEOM*)rtcollection_construct_empty( RTCOLLECTIONTYPE, srid, is3d,
                                          rtgeom_has_m(geom1) );
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	RTDEBUG(3, "linemerge() START");
 
@@ -691,7 +707,7 @@ rtgeom_unaryunion(const RTGEOM *geom1)
 	if ( rtgeom_is_empty(geom1) )
 		return rtgeom_clone_deep(geom1);
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = RTGEOM2GEOS(geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
@@ -753,7 +769,7 @@ rtgeom_difference(const RTGEOM *geom1, const RTGEOM *geom2)
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = RTGEOM2GEOS(geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
@@ -827,7 +843,7 @@ rtgeom_symdifference(const RTGEOM* geom1, const RTGEOM* geom2)
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = RTGEOM2GEOS(geom1, 0);
 
@@ -903,7 +919,7 @@ rtgeom_union(const RTGEOM *geom1, const RTGEOM *geom2)
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = RTGEOM2GEOS(geom1, 0);
 
@@ -975,7 +991,7 @@ rtgeom_clip_by_rect(const RTGEOM *geom1, double x0, double y0, double x1, double
 
 	is3d = RTFLAGS_GET_Z(geom1->flags);
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	RTDEBUG(3, "clip_by_rect() START");
 
@@ -1311,7 +1327,7 @@ rtgeom_buildarea(const RTGEOM *geom)
 
 	RTDEBUGF(3, "ST_BuildArea got geom @ %p", geom);
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	geos_in = RTGEOM2GEOS(geom, 0);
 	
@@ -1363,7 +1379,7 @@ rtgeom_is_simple(const RTGEOM *geom)
 		return 1;
 	}
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	geos_in = RTGEOM2GEOS(geom, 0);
 	if ( 0 == geos_in )   /* exception thrown at construction */
@@ -1393,7 +1409,7 @@ rtgeom_geos_noop(const RTGEOM* geom_in)
 
 	int is3d = RTFLAGS_GET_Z(geom_in->flags);
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 	geosgeom = RTGEOM2GEOS(geom_in, 0);
 	if ( ! geosgeom ) {
 		rterror("Geometry could not be converted to GEOS: %s",
@@ -1430,7 +1446,7 @@ rtgeom_snap(const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
@@ -1493,7 +1509,7 @@ rtgeom_sharedpaths(const RTGEOM* geom1, const RTGEOM* geom2)
 
 	is3d = (RTFLAGS_GET_Z(geom1->flags) || RTFLAGS_GET_Z(geom2->flags)) ;
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
@@ -1545,7 +1561,7 @@ rtgeom_offsetcurve(const RTLINE *rtline, double size, int quadsegs, int joinStyl
 	RTGEOM *rtgeom_result;
 	RTGEOM *rtgeom_in = rtline_as_rtgeom(rtline);
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(rtgeom_in, 0);
 	if ( ! g1 ) 
@@ -1666,7 +1682,7 @@ RTGEOM* rtgeom_delaunay_triangulation(const RTGEOM *rtgeom_in, double tolerance,
 		return NULL;
 	}
 
-	initGEOS(rtnotice, rtgeom_geos_error);
+	initGEOS(rtgeom_geos_notice, rtgeom_geos_error);
 
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(rtgeom_in, 0);
 	if ( ! g1 ) 
