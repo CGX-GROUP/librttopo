@@ -15,6 +15,8 @@
 #ifndef _LIBRTGEOM_H
 #define _LIBRTGEOM_H 1
 
+#include <geos_c.h>
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -34,11 +36,6 @@
 * handlers by calling the rtgeom_set_handlers(const RTCTX *ctx) function, otherwise the default 
 * ones will be used.
 */
-
-typedef struct RTCTX_T RTCTX;
-
-/** Return rtgeom version string (not to be freed) */
-const char* rtgeom_version(const RTCTX *ctx);
 
 /**
 * Return types for functions with status returns.
@@ -154,15 +151,9 @@ typedef enum RTORD_T {
 #endif
 
 /**
-* Return a valid SRID from an arbitrary integer
-* Raises a notice if what comes out is different from
-* what went in.
-* Raises an error if SRID value is out of bounds.
-*/
-extern int clamp_srid(const RTCTX *ctx, int srid);
-
-/* Raise an rterror if srids do not match */
-void error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2);
+ * RT library context
+ */
+typedef struct RTCTX_T RTCTX;
 
 /**
  * Global functions for memory/logging handlers.
@@ -175,17 +166,45 @@ typedef void (*rtreporter)(const char* fmt, va_list ap)
 typedef void (*rtdebuglogger)(int level, const char* fmt, va_list ap)
   __attribute__ (( format(printf, 2,0) ));
 
-/**
-* Install custom memory management and error handling functions you want your
-* application to use.
-* @ingroup system
-* @todo take a structure ?
-*/
-extern void rtgeom_set_handlers(const RTCTX *ctx, rtallocator allocator, 
-        rtreallocator reallocator, rtfreeor freeor, rtreporter errorreporter,
-        rtreporter noticereporter);
 
-extern void rtgeom_set_debuglogger(const RTCTX *ctx, rtdebuglogger debuglogger);
+/**
+ * Initialize the library with custom memory management functions
+ * you want your
+ * application to use.
+ * @ingroup system
+ */
+RTCTX *rtgeom_init(rtallocator allocator,
+                   rtreallocator reallocator,
+                   rtfreeor freeor);
+
+/** Return rtgeom version string (not to be freed) */
+const char* rtgeom_version(void);
+
+
+/**
+* Return a valid SRID from an arbitrary integer
+* Raises a notice if what comes out is different from
+* what went in.
+* Raises an error if SRID value is out of bounds.
+*/
+extern int clamp_srid(const RTCTX *ctx, int srid);
+
+/* Raise an rterror if srids do not match */
+void error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2);
+
+/**
+ * This function is called by programs which want to set up custom handling 
+ * for memory management and error reporting
+ *
+ * Only non-NULL values change their respective handler
+ */
+extern void rtgeom_set_loggers(const RTCTX *ctx, rtreporter errorreporter,
+          rtreporter noticereporter, rtdebuglogger debuglogger);
+
+/**
+ * Set geos context, returning any previously set one
+ */
+extern GEOSContextHandle_t rtgeom_set_geos_context(RTCTX *ctx, GEOSContextHandle_t gctx);
 
 /**
  * Request interruption of any running code

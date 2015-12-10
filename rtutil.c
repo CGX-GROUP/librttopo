@@ -159,29 +159,37 @@ default_errorreporter(const char *fmt, va_list ap)
 	exit(1);
 }
 
-/**
- * This function is called by programs which want to set up custom handling 
- * for memory management and error reporting
- *
- * Only non-NULL values change their respective handler
- */
-void
-rtgeom_set_handlers(const RTCTX *ctx, rtallocator allocator, rtreallocator reallocator,
-	        rtfreeor freeor, rtreporter errorreporter,
-	        rtreporter noticereporter) {
+RTCTX *
+rtgeom_init(rtallocator allocator,
+                   rtreallocator reallocator,
+                   rtfreeor freeor)
+{
+  RTCTX *ctx = allocator(sizeof(RTCTX));
 
 	if ( allocator ) rtalloc_var = allocator;
 	if ( reallocator ) rtrealloc_var = reallocator;
 	if ( freeor ) rtfree_var = freeor;
 
-	if ( errorreporter ) rterror_var = errorreporter;
-	if ( noticereporter ) rtnotice_var = noticereporter;
+  return ctx;
 }
 
 void
-rtgeom_set_debuglogger(const RTCTX *ctx, rtdebuglogger debuglogger) {
+rtgeom_set_loggers(const RTCTX *ctx, rtreporter errorreporter,
+          rtreporter noticereporter, rtdebuglogger debuglogger)
+{
 
+	if ( errorreporter ) rterror_var = errorreporter;
+	if ( noticereporter ) rtnotice_var = noticereporter;
 	if ( debuglogger ) rtdebug_var = debuglogger;
+}
+
+GEOSContextHandle_t
+rtgeom_set_geos_context(RTCTX *ctx,
+	        GEOSContextHandle_t gctx)
+{
+  GEOSContextHandle_t old = ctx->gctx;
+  ctx->gctx = gctx;
+  return old;
 }
 
 const char* 

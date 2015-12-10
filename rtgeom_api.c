@@ -23,8 +23,9 @@
  */
 #define PARANOIA_LEVEL 1
 
+
 const char *
-rtgeom_version(const RTCTX *ctx)
+rtgeom_version()
 {
   static char *ptr = NULL;
   static char buf[256];
