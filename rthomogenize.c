@@ -20,7 +20,7 @@ typedef struct {
 } HomogenizeBuffer;
 
 static void
-init_homogenizebuffer(RTCTX *ctx, HomogenizeBuffer *buffer)
+init_homogenizebuffer(const RTCTX *ctx, HomogenizeBuffer *buffer)
 {
 	int i;
 	for ( i = 0; i < RTNUMTYPES; i++ )
@@ -59,7 +59,7 @@ free_homogenizebuffer(HomogenizeBuffer *buffer)
 ** typed collections.
 */
 static void
-rtcollection_build_buffer(RTCTX *ctx, const RTCOLLECTION *col, HomogenizeBuffer *buffer)
+rtcollection_build_buffer(const RTCTX *ctx, const RTCOLLECTION *col, HomogenizeBuffer *buffer)
 {
 	int i;
 	
@@ -100,7 +100,7 @@ rtcollection_build_buffer(RTCTX *ctx, const RTCOLLECTION *col, HomogenizeBuffer 
 }
 
 static RTGEOM*
-rtcollection_homogenize(RTCTX *ctx, const RTCOLLECTION *col)
+rtcollection_homogenize(const RTCTX *ctx, const RTCOLLECTION *col)
 {
 	int i;
 	int ntypes = 0;
@@ -192,7 +192,7 @@ rtcollection_homogenize(RTCTX *ctx, const RTCOLLECTION *col)
 **      => GEOMETRYCOLLECTION(MULTILINESTRING(), POINT())
 */
 RTGEOM *
-rtgeom_homogenize(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_homogenize(const RTCTX *ctx, const RTGEOM *geom)
 {
 	RTGEOM *hgeom;
 

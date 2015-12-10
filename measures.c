@@ -25,32 +25,32 @@ The functions starting the distance-calculation processses
 --------------------------------------------------------------------------------------------------------------*/
 
 RTGEOM *
-rtgeom_closest_line(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_closest_line(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
   return rt_dist2d_distanceline(ctx, rt1, rt2, rt1->srid, DIST_MIN);
 }
 
 RTGEOM *
-rtgeom_furthest_line(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_furthest_line(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
   return rt_dist2d_distanceline(ctx, rt1, rt2, rt1->srid, DIST_MAX);
 }
 
 RTGEOM *
-rtgeom_closest_point(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_closest_point(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
   return rt_dist2d_distancepoint(ctx, rt1, rt2, rt1->srid, DIST_MIN);  
 }
 
 RTGEOM *
-rtgeom_furthest_point(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_furthest_point(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
   return rt_dist2d_distancepoint(ctx, rt1, rt2, rt1->srid, DIST_MAX);  
 }
 
 
 void
-rt_dist2d_distpts_init(RTCTX *ctx, DISTPTS *dl, int mode)
+rt_dist2d_distpts_init(const RTCTX *ctx, DISTPTS *dl, int mode)
 {
 	dl->twisted = -1;
 	dl->p1.x = dl->p1.y = 0.0;
@@ -67,7 +67,7 @@ rt_dist2d_distpts_init(RTCTX *ctx, DISTPTS *dl, int mode)
 Function initializing shortestline and longestline calculations.
 */
 RTGEOM *
-rt_dist2d_distanceline(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
+rt_dist2d_distanceline(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 {
 	double x1,x2,y1,y2;
 
@@ -114,7 +114,7 @@ rt_dist2d_distanceline(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int sri
 Function initializing closestpoint calculations.
 */
 RTGEOM *
-rt_dist2d_distancepoint(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,int srid,int mode)
+rt_dist2d_distancepoint(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,int srid,int mode)
 {
 	double x,y;
 	DISTPTS thedl;
@@ -152,7 +152,7 @@ rt_dist2d_distancepoint(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,int sri
 Function initialazing max distance calculation
 */
 double
-rtgeom_maxdistance2d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_maxdistance2d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	RTDEBUG(2, "rtgeom_maxdistance2d is called");
 
@@ -164,7 +164,7 @@ Function handling max distance calculations and dfyllywithin calculations.
 The difference is just the tolerance.
 */
 double
-rtgeom_maxdistance2d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
+rtgeom_maxdistance2d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
 {
 	/*double thedist;*/
 	DISTPTS thedl;
@@ -185,7 +185,7 @@ rtgeom_maxdistance2d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,
 	Function initialazing min distance calculation
 */
 double
-rtgeom_mindistance2d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_mindistance2d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	RTDEBUG(2, "rtgeom_mindistance2d is called");
 	return rtgeom_mindistance2d_tolerance(ctx,  rt1, rt2, 0.0 );
@@ -196,7 +196,7 @@ rtgeom_mindistance2d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 	The difference is just the tolerance.
 */
 double
-rtgeom_mindistance2d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
+rtgeom_mindistance2d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
 {
 	DISTPTS thedl;
 	RTDEBUG(2, "rtgeom_mindistance2d_tolerance is called");
@@ -228,7 +228,7 @@ Functions preparing geometries for distance-calculations
 	bboxes we will use anyway.
 */
 int
-rt_dist2d_comp(RTCTX *ctx, const RTGEOM *rt1,const RTGEOM *rt2, DISTPTS *dl)
+rt_dist2d_comp(const RTCTX *ctx, const RTGEOM *rt1,const RTGEOM *rt2, DISTPTS *dl)
 {
 	RTDEBUG(2, "rt_dist2d_comp is called");
 
@@ -236,7 +236,7 @@ rt_dist2d_comp(RTCTX *ctx, const RTGEOM *rt1,const RTGEOM *rt2, DISTPTS *dl)
 }
 
 static int
-rt_dist2d_is_collection(RTCTX *ctx, const RTGEOM *g)
+rt_dist2d_is_collection(const RTCTX *ctx, const RTGEOM *g)
 {
 
 	switch (g->type)
@@ -260,7 +260,7 @@ rt_dist2d_is_collection(RTCTX *ctx, const RTGEOM *g)
 /**
 This is a recursive function delivering every possible combinatin of subgeometries
 */
-int rt_dist2d_recursive(RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS *dl)
+int rt_dist2d_recursive(const RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS *dl)
 {
 	int i, j;
 	int n1=1;
@@ -353,7 +353,7 @@ int rt_dist2d_recursive(RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DIST
 
 
 int
-rt_dist2d_distribute_bruteforce(RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS *dl)
+rt_dist2d_distribute_bruteforce(const RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS *dl)
 {
 
 	int	t1 = rtg1->type;
@@ -481,7 +481,7 @@ rt_dist2d_distribute_bruteforce(RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg
 We have to check for overlapping bboxes
 */
 int
-rt_dist2d_check_overlap(RTCTX *ctx, RTGEOM *rtg1,RTGEOM *rtg2)
+rt_dist2d_check_overlap(const RTCTX *ctx, RTGEOM *rtg1,RTGEOM *rtg2)
 {
 	RTDEBUG(2, "rt_dist2d_check_overlap is called");
 	if ( ! rtg1->bbox )
@@ -505,7 +505,7 @@ rt_dist2d_check_overlap(RTCTX *ctx, RTGEOM *rtg1,RTGEOM *rtg2)
 Here the geometries are distributed for the new faster distance-calculations
 */
 int
-rt_dist2d_distribute_fast(RTCTX *ctx, RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS *dl)
+rt_dist2d_distribute_fast(const RTCTX *ctx, RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS *dl)
 {
 	RTPOINTARRAY *pa1, *pa2;
 	int	type1 = rtg1->type;
@@ -558,7 +558,7 @@ The old way of calculating distances, now used for:
 point to point calculation
 */
 int
-rt_dist2d_point_point(RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS *dl)
+rt_dist2d_point_point(const RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS *dl)
 {
 	const RTPOINT2D *p1, *p2;
 
@@ -572,7 +572,7 @@ rt_dist2d_point_point(RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS *dl)
 point to line calculation
 */
 int
-rt_dist2d_point_line(RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS *dl)
+rt_dist2d_point_line(const RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS *dl)
 {
 	const RTPOINT2D *p;
 	RTDEBUG(2, "rt_dist2d_point_line is called");
@@ -581,7 +581,7 @@ rt_dist2d_point_line(RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS *dl)
 }
 
 int
-rt_dist2d_point_circstring(RTCTX *ctx, RTPOINT *point, RTCIRCSTRING *circ, DISTPTS *dl)
+rt_dist2d_point_circstring(const RTCTX *ctx, RTPOINT *point, RTCIRCSTRING *circ, DISTPTS *dl)
 {
 	const RTPOINT2D *p;
 	p = getPoint2d_cp(ctx, point->point, 0);
@@ -594,7 +594,7 @@ rt_dist2d_point_circstring(RTCTX *ctx, RTPOINT *point, RTCIRCSTRING *circ, DISTP
  *    if so, then return dist to hole, else return 0 (point in polygon)
  */
 int
-rt_dist2d_point_poly(RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS *dl)
+rt_dist2d_point_poly(const RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS *dl)
 {
 	const RTPOINT2D *p;
 	int i;
@@ -642,7 +642,7 @@ rt_dist2d_point_poly(RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS *dl)
 }
 
 int
-rt_dist2d_point_curvepoly(RTCTX *ctx, RTPOINT *point, RTCURVEPOLY *poly, DISTPTS *dl)
+rt_dist2d_point_curvepoly(const RTCTX *ctx, RTPOINT *point, RTCURVEPOLY *poly, DISTPTS *dl)
 {
 	const RTPOINT2D *p;
 	int i;
@@ -690,7 +690,7 @@ rt_dist2d_point_curvepoly(RTCTX *ctx, RTPOINT *point, RTCURVEPOLY *poly, DISTPTS
 line to line calculation
 */
 int
-rt_dist2d_line_line(RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS *dl)
+rt_dist2d_line_line(const RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS *dl)
 {
 	RTPOINTARRAY *pa1 = line1->points;
 	RTPOINTARRAY *pa2 = line2->points;
@@ -699,7 +699,7 @@ rt_dist2d_line_line(RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS *dl)
 }
 
 int
-rt_dist2d_line_circstring(RTCTX *ctx, RTLINE *line1, RTCIRCSTRING *line2, DISTPTS *dl)
+rt_dist2d_line_circstring(const RTCTX *ctx, RTLINE *line1, RTCIRCSTRING *line2, DISTPTS *dl)
 {
 	return rt_dist2d_ptarray_ptarrayarc(ctx, line1->points, line2->points, dl);
 }
@@ -716,7 +716,7 @@ rt_dist2d_line_circstring(RTCTX *ctx, RTLINE *line1, RTCIRCSTRING *line2, DISTPT
  * polygon or inside a hole)
  */
 int
-rt_dist2d_line_poly(RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
+rt_dist2d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
 {
 	const RTPOINT2D *pt;
 	int i;
@@ -779,7 +779,7 @@ rt_dist2d_line_poly(RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
 }
 
 int
-rt_dist2d_line_curvepoly(RTCTX *ctx, RTLINE *line, RTCURVEPOLY *poly, DISTPTS *dl)
+rt_dist2d_line_curvepoly(const RTCTX *ctx, RTLINE *line, RTCURVEPOLY *poly, DISTPTS *dl)
 {
 	const RTPOINT2D *pt = getPoint2d_cp(ctx, line->points, 0);
 	int i;
@@ -826,7 +826,7 @@ Function handling polygon to polygon calculation
 5	If we have come all the way here we know that the first point of one of them is inside the other ones outer ring and not in holes so we check wich one is inside.
  */
 int
-rt_dist2d_poly_poly(RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
+rt_dist2d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 {
 
 	const RTPOINT2D *pt;
@@ -901,7 +901,7 @@ rt_dist2d_poly_poly(RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 }
 
 int
-rt_dist2d_poly_curvepoly(RTCTX *ctx, RTPOLY *poly1, RTCURVEPOLY *curvepoly2, DISTPTS *dl)
+rt_dist2d_poly_curvepoly(const RTCTX *ctx, RTPOLY *poly1, RTCURVEPOLY *curvepoly2, DISTPTS *dl)
 {
 	RTCURVEPOLY *curvepoly1 = rtcurvepoly_construct_from_rtpoly(ctx, poly1);
 	int rv = rt_dist2d_curvepoly_curvepoly(ctx, curvepoly1, curvepoly2, dl);
@@ -910,7 +910,7 @@ rt_dist2d_poly_curvepoly(RTCTX *ctx, RTPOLY *poly1, RTCURVEPOLY *curvepoly2, DIS
 }
 
 int
-rt_dist2d_circstring_poly(RTCTX *ctx, RTCIRCSTRING *circ, RTPOLY *poly, DISTPTS *dl)
+rt_dist2d_circstring_poly(const RTCTX *ctx, RTCIRCSTRING *circ, RTPOLY *poly, DISTPTS *dl)
 {
 	RTCURVEPOLY *curvepoly = rtcurvepoly_construct_from_rtpoly(ctx, poly);
 	int rv = rt_dist2d_line_curvepoly(ctx, (RTLINE*)circ, curvepoly, dl);
@@ -920,19 +920,19 @@ rt_dist2d_circstring_poly(RTCTX *ctx, RTCIRCSTRING *circ, RTPOLY *poly, DISTPTS 
 
 
 int
-rt_dist2d_circstring_curvepoly(RTCTX *ctx, RTCIRCSTRING *circ, RTCURVEPOLY *poly, DISTPTS *dl)
+rt_dist2d_circstring_curvepoly(const RTCTX *ctx, RTCIRCSTRING *circ, RTCURVEPOLY *poly, DISTPTS *dl)
 {
 	return rt_dist2d_line_curvepoly(ctx, (RTLINE*)circ, poly, dl);
 }
 
 int
-rt_dist2d_circstring_circstring(RTCTX *ctx, RTCIRCSTRING *line1, RTCIRCSTRING *line2, DISTPTS *dl)
+rt_dist2d_circstring_circstring(const RTCTX *ctx, RTCIRCSTRING *line1, RTCIRCSTRING *line2, DISTPTS *dl)
 {
 	return rt_dist2d_ptarrayarc_ptarrayarc(ctx, line1->points, line2->points, dl);
 }
 
 static const RTPOINT2D *
-rt_curvering_getfirstpoint2d_cp(RTCTX *ctx, RTGEOM *geom)
+rt_curvering_getfirstpoint2d_cp(const RTCTX *ctx, RTGEOM *geom)
 {
 	switch( geom->type )
 	{
@@ -953,7 +953,7 @@ rt_curvering_getfirstpoint2d_cp(RTCTX *ctx, RTGEOM *geom)
 }
 
 int
-rt_dist2d_curvepoly_curvepoly(RTCTX *ctx, RTCURVEPOLY *poly1, RTCURVEPOLY *poly2, DISTPTS *dl)
+rt_dist2d_curvepoly_curvepoly(const RTCTX *ctx, RTCURVEPOLY *poly1, RTCURVEPOLY *poly2, DISTPTS *dl)
 {
 	const RTPOINT2D *pt;
 	int i;
@@ -1032,7 +1032,7 @@ rt_dist2d_curvepoly_curvepoly(RTCTX *ctx, RTCURVEPOLY *poly1, RTCURVEPOLY *poly2
  * Returns minimum distance between point and pointarray
  */
 int
-rt_dist2d_pt_ptarray(RTCTX *ctx, const RTPOINT2D *p, RTPOINTARRAY *pa,DISTPTS *dl)
+rt_dist2d_pt_ptarray(const RTCTX *ctx, const RTPOINT2D *p, RTPOINTARRAY *pa,DISTPTS *dl)
 {
 	int t;
 	const RTPOINT2D *start, *end;
@@ -1062,7 +1062,7 @@ rt_dist2d_pt_ptarray(RTCTX *ctx, const RTPOINT2D *p, RTPOINTARRAY *pa,DISTPTS *d
 * Returns minimum distance between point and arc pointarray.
 */
 int
-rt_dist2d_pt_ptarrayarc(RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *pa, DISTPTS *dl)
+rt_dist2d_pt_ptarrayarc(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *pa, DISTPTS *dl)
 {
 	int t;
 	const RTPOINT2D *A1;
@@ -1114,7 +1114,7 @@ rt_dist2d_pt_ptarrayarc(RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *pa, 
 * test each segment of l1 against each segment of l2.
 */
 int
-rt_dist2d_ptarray_ptarray(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS *dl)
+rt_dist2d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS *dl)
 {
 	int t,u;
 	const RTPOINT2D	*start, *end;
@@ -1166,7 +1166,7 @@ rt_dist2d_ptarray_ptarray(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS
 * Test each segment of pa against each arc of pb for distance.
 */
 int
-rt_dist2d_ptarray_ptarrayarc(RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl)
+rt_dist2d_ptarray_ptarrayarc(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl)
 {
 	int t, u;
 	const RTPOINT2D *A1;
@@ -1220,7 +1220,7 @@ rt_dist2d_ptarray_ptarrayarc(RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINTAR
 * Test each arc of pa against each arc of pb for distance.
 */
 int
-rt_dist2d_ptarrayarc_ptarrayarc(RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl)
+rt_dist2d_ptarrayarc_ptarrayarc(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINTARRAY *pb, DISTPTS *dl)
 {
 	int t, u;
 	const RTPOINT2D *A1;
@@ -1271,7 +1271,7 @@ rt_dist2d_ptarrayarc_ptarrayarc(RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOIN
 * Line/circle approach from http://stackoverflow.com/questions/1073336/circle-line-collision-detection 
 */
 int 
-rt_dist2d_seg_arc(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *B1, const RTPOINT2D *B2, const RTPOINT2D *B3, DISTPTS *dl)
+rt_dist2d_seg_arc(const RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *B1, const RTPOINT2D *B2, const RTPOINT2D *B3, DISTPTS *dl)
 {
 	RTPOINT2D C; /* center of arc circle */
 	double radius_C; /* radius of arc circle */
@@ -1418,7 +1418,7 @@ rt_dist2d_seg_arc(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RT
 }
 
 int
-rt_dist2d_pt_arc(RTCTX *ctx, const RTPOINT2D* P, const RTPOINT2D* A1, const RTPOINT2D* A2, const RTPOINT2D* A3, DISTPTS* dl)
+rt_dist2d_pt_arc(const RTCTX *ctx, const RTPOINT2D* P, const RTPOINT2D* A1, const RTPOINT2D* A2, const RTPOINT2D* A3, DISTPTS* dl)
 {
 	double radius_A, d;
 	RTPOINT2D C; /* center of circle defined by arc A */
@@ -1461,7 +1461,7 @@ rt_dist2d_pt_arc(RTCTX *ctx, const RTPOINT2D* P, const RTPOINT2D* A1, const RTPO
 
 
 int
-rt_dist2d_arc_arc(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, 
+rt_dist2d_arc_arc(const RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, 
                   const RTPOINT2D *B1, const RTPOINT2D *B2, const RTPOINT2D *B3,
                   DISTPTS *dl)
 {
@@ -1647,7 +1647,7 @@ This function is changed so it is not doing any comparasion of distance
 but just sending every possible combination further to rt_dist2d_pt_seg
 */
 int
-rt_dist2d_seg_seg(RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl)
+rt_dist2d_seg_seg(const RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl)
 {
 	double	s_top, s_bot,s;
 	double	r_top, r_bot,r;
@@ -1773,7 +1773,7 @@ The naming is not good but comes from that it compares a
 chosen selection of the points not all of them
 */
 int
-rt_dist2d_fast_ptarray_ptarray(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS *dl, RTGBOX *box1, RTGBOX *box2)
+rt_dist2d_fast_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS *dl, RTGBOX *box1, RTGBOX *box2)
 {
 	/*here we define two lists to hold our calculated "z"-values and the order number in the geometry*/
 
@@ -1901,7 +1901,7 @@ struct_cmp_by_measure(const void *a, const void *b)
 	preparation before rt_dist2d_seg_seg.
 */
 int
-rt_dist2d_pre_seg_seg(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl)
+rt_dist2d_pre_seg_seg(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTSTRUCT *list1, LISTSTRUCT *list2,double k, DISTPTS *dl)
 {
 	const RTPOINT2D *p1, *p2, *p3, *p4, *p01, *p02;
 	int pnr1,pnr2,pnr3,pnr4, n1, n2, i, u, r, twist;
@@ -1988,7 +1988,7 @@ rt_dist2d_pre_seg_seg(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTSTRUCT 
 	already know they do not intersect
 */
 int
-rt_dist2d_selected_seg_seg(RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl)
+rt_dist2d_selected_seg_seg(const RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl)
 {
 	RTDEBUGF(2, "rt_dist2d_selected_seg_seg [%g,%g]->[%g,%g] by [%g,%g]->[%g,%g]",
 	         A->x,A->y,B->x,B->y, C->x,C->y, D->x, D->y);
@@ -2034,7 +2034,7 @@ and just returning the distance without identifying the points.
 To get this points it was nessecary to change and it also showed to be about 10%faster.
 */
 int
-rt_dist2d_pt_seg(RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B, DISTPTS *dl)
+rt_dist2d_pt_seg(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B, DISTPTS *dl)
 {
 	RTPOINT2D c;
 	double	r;
@@ -2110,7 +2110,7 @@ or most far away from each other
 depending on dl->mode (max or min)
 */
 int
-rt_dist2d_pt_pt(RTCTX *ctx, const RTPOINT2D *thep1, const RTPOINT2D *thep2, DISTPTS *dl)
+rt_dist2d_pt_pt(const RTCTX *ctx, const RTPOINT2D *thep1, const RTPOINT2D *thep2, DISTPTS *dl)
 {
 	double hside = thep2->x - thep1->x;
 	double vside = thep2->y - thep1->y;
@@ -2146,7 +2146,7 @@ End of Functions in common for Brute force and new calculation
 The old function nessecary for ptarray_segmentize2d in ptarray.c
 */
 double
-distance2d_pt_pt(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
+distance2d_pt_pt(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
 {
 	double hside = p2->x - p1->x;
 	double vside = p2->y - p1->y;
@@ -2156,7 +2156,7 @@ distance2d_pt_pt(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
 }
 
 double
-distance2d_sqr_pt_pt(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
+distance2d_sqr_pt_pt(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
 {
 	double hside = p2->x - p1->x;
 	double vside = p2->y - p1->y;
@@ -2171,7 +2171,7 @@ distance2d_sqr_pt_pt(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
 The old function nessecary for ptarray_segmentize2d in ptarray.c
 */
 double
-distance2d_pt_seg(RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B)
+distance2d_pt_seg(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B)
 {
 	double	r,s;
 
@@ -2220,7 +2220,7 @@ distance2d_pt_seg(RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPO
 
 /* return distance squared, useful to avoid sqrt calculations */
 double
-distance2d_sqr_pt_seg(RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B)
+distance2d_sqr_pt_seg(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B)
 {
 	double	r,s;
 
@@ -2256,7 +2256,7 @@ distance2d_sqr_pt_seg(RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const 
  * Return 0 on exception (same point), 1 otherwise.
  */
 int
-azimuth_pt_pt(RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, double *d)
+azimuth_pt_pt(const RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, double *d)
 {
 	if ( A->x == B->x )
 	{

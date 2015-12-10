@@ -24,30 +24,30 @@
  * TODO: obsolete this
  */
 int
-rtpoint_getPoint2d_p(RTCTX *ctx, const RTPOINT *point, RTPOINT2D *out)
+rtpoint_getPoint2d_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT2D *out)
 {
 	return getPoint2d_p(ctx, point->point, 0, out);
 }
 
 /* convenience functions to hide the RTPOINTARRAY */
 int
-rtpoint_getPoint3dz_p(RTCTX *ctx, const RTPOINT *point, RTPOINT3DZ *out)
+rtpoint_getPoint3dz_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT3DZ *out)
 {
 	return getPoint3dz_p(ctx, point->point,0,out);
 }
 int
-rtpoint_getPoint3dm_p(RTCTX *ctx, const RTPOINT *point, RTPOINT3DM *out)
+rtpoint_getPoint3dm_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT3DM *out)
 {
 	return getPoint3dm_p(ctx, point->point,0,out);
 }
 int
-rtpoint_getPoint4d_p(RTCTX *ctx, const RTPOINT *point, RTPOINT4D *out)
+rtpoint_getPoint4d_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT4D *out)
 {
 	return getPoint4d_p(ctx, point->point,0,out);
 }
 
 double
-rtpoint_get_x(RTCTX *ctx, const RTPOINT *point)
+rtpoint_get_x(const RTCTX *ctx, const RTPOINT *point)
 {
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(ctx, point) )
@@ -57,7 +57,7 @@ rtpoint_get_x(RTCTX *ctx, const RTPOINT *point)
 }
 
 double
-rtpoint_get_y(RTCTX *ctx, const RTPOINT *point)
+rtpoint_get_y(const RTCTX *ctx, const RTPOINT *point)
 {
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(ctx, point) )
@@ -67,7 +67,7 @@ rtpoint_get_y(RTCTX *ctx, const RTPOINT *point)
 }
 
 double
-rtpoint_get_z(RTCTX *ctx, const RTPOINT *point)
+rtpoint_get_z(const RTCTX *ctx, const RTPOINT *point)
 {
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(ctx, point) )
@@ -79,7 +79,7 @@ rtpoint_get_z(RTCTX *ctx, const RTPOINT *point)
 }
 
 double
-rtpoint_get_m(RTCTX *ctx, const RTPOINT *point)
+rtpoint_get_m(const RTCTX *ctx, const RTPOINT *point)
 {
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(ctx, point) )
@@ -95,7 +95,7 @@ rtpoint_get_m(RTCTX *ctx, const RTPOINT *point)
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTPOINT *
-rtpoint_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *point)
+rtpoint_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *point)
 {
 	RTPOINT *result;
 	uint8_t flags = 0;
@@ -117,7 +117,7 @@ rtpoint_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *point)
 }
 
 RTPOINT *
-rtpoint_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtpoint_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTPOINT *result = rtalloc(ctx, sizeof(RTPOINT));
 	result->type = RTPOINTTYPE;
@@ -129,7 +129,7 @@ rtpoint_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 }
 
 RTPOINT *
-rtpoint_make2d(RTCTX *ctx, int srid, double x, double y)
+rtpoint_make2d(const RTCTX *ctx, int srid, double x, double y)
 {
 	RTPOINT4D p = {x, y, 0.0, 0.0};
 	RTPOINTARRAY *pa = ptarray_construct_empty(ctx, 0, 0, 1);
@@ -139,7 +139,7 @@ rtpoint_make2d(RTCTX *ctx, int srid, double x, double y)
 }
 
 RTPOINT *
-rtpoint_make3dz(RTCTX *ctx, int srid, double x, double y, double z)
+rtpoint_make3dz(const RTCTX *ctx, int srid, double x, double y, double z)
 {
 	RTPOINT4D p = {x, y, z, 0.0};
 	RTPOINTARRAY *pa = ptarray_construct_empty(ctx, 1, 0, 1);
@@ -150,7 +150,7 @@ rtpoint_make3dz(RTCTX *ctx, int srid, double x, double y, double z)
 }
 
 RTPOINT *
-rtpoint_make3dm(RTCTX *ctx, int srid, double x, double y, double m)
+rtpoint_make3dm(const RTCTX *ctx, int srid, double x, double y, double m)
 {
 	RTPOINT4D p = {x, y, 0.0, m};
 	RTPOINTARRAY *pa = ptarray_construct_empty(ctx, 0, 1, 1);
@@ -161,7 +161,7 @@ rtpoint_make3dm(RTCTX *ctx, int srid, double x, double y, double m)
 }
 
 RTPOINT *
-rtpoint_make4d(RTCTX *ctx, int srid, double x, double y, double z, double m)
+rtpoint_make4d(const RTCTX *ctx, int srid, double x, double y, double z, double m)
 {
 	RTPOINT4D p = {x, y, z, m};
 	RTPOINTARRAY *pa = ptarray_construct_empty(ctx, 1, 1, 1);
@@ -172,14 +172,14 @@ rtpoint_make4d(RTCTX *ctx, int srid, double x, double y, double z, double m)
 }
 
 RTPOINT *
-rtpoint_make(RTCTX *ctx, int srid, int hasz, int hasm, const RTPOINT4D *p)
+rtpoint_make(const RTCTX *ctx, int srid, int hasz, int hasm, const RTPOINT4D *p)
 {
 	RTPOINTARRAY *pa = ptarray_construct_empty(ctx, hasz, hasm, 1);
 	ptarray_append_point(ctx, pa, p, RT_TRUE);
 	return rtpoint_construct(ctx, srid, NULL, pa);
 }
 
-void rtpoint_free(RTCTX *ctx, RTPOINT *pt)
+void rtpoint_free(const RTCTX *ctx, RTPOINT *pt)
 {
 	if ( ! pt ) return;
 	
@@ -190,7 +190,7 @@ void rtpoint_free(RTCTX *ctx, RTPOINT *pt)
 	rtfree(ctx, pt);
 }
 
-void printRTPOINT(RTCTX *ctx, RTPOINT *point)
+void printRTPOINT(const RTCTX *ctx, RTPOINT *point)
 {
 	rtnotice(ctx, "RTPOINT {");
 	rtnotice(ctx, "    ndims = %i", (int)RTFLAGS_NDIMS(point->flags));
@@ -205,7 +205,7 @@ void printRTPOINT(RTCTX *ctx, RTPOINT *point)
  * @see ptarray_clone 
  */
 RTPOINT *
-rtpoint_clone(RTCTX *ctx, const RTPOINT *g)
+rtpoint_clone(const RTCTX *ctx, const RTPOINT *g)
 {
 	RTPOINT *ret = rtalloc(ctx, sizeof(RTPOINT));
 
@@ -222,7 +222,7 @@ rtpoint_clone(RTCTX *ctx, const RTPOINT *g)
 
 
 void
-rtpoint_release(RTCTX *ctx, RTPOINT *rtpoint)
+rtpoint_release(const RTCTX *ctx, RTPOINT *rtpoint)
 {
 	rtgeom_release(ctx, rtpoint_as_rtgeom(ctx, rtpoint));
 }
@@ -230,14 +230,14 @@ rtpoint_release(RTCTX *ctx, RTPOINT *rtpoint)
 
 /* check coordinate equality  */
 char
-rtpoint_same(RTCTX *ctx, const RTPOINT *p1, const RTPOINT *p2)
+rtpoint_same(const RTCTX *ctx, const RTPOINT *p1, const RTPOINT *p2)
 {
 	return ptarray_same(ctx, p1->point, p2->point);
 }
 
 
 RTPOINT*
-rtpoint_force_dims(RTCTX *ctx, const RTPOINT *point, int hasz, int hasm)
+rtpoint_force_dims(const RTCTX *ctx, const RTPOINT *point, int hasz, int hasm)
 {
 	RTPOINTARRAY *pdims = NULL;
 	RTPOINT *pointout;
@@ -257,7 +257,7 @@ rtpoint_force_dims(RTCTX *ctx, const RTPOINT *point, int hasz, int hasm)
 	return pointout;
 }
 
-int rtpoint_is_empty(RTCTX *ctx, const RTPOINT *point)
+int rtpoint_is_empty(const RTCTX *ctx, const RTPOINT *point)
 {
 	if ( ! point->point || point->point->npoints < 1 )
 		return RT_TRUE;
@@ -266,7 +266,7 @@ int rtpoint_is_empty(RTCTX *ctx, const RTPOINT *point)
 
 
 RTPOINT *
-rtpoint_grid(RTCTX *ctx, const RTPOINT *point, const gridspec *grid)
+rtpoint_grid(const RTCTX *ctx, const RTPOINT *point, const gridspec *grid)
 {
 	RTPOINTARRAY *opa = ptarray_grid(ctx, point->point, grid);
 	return rtpoint_construct(ctx, point->srid, NULL, opa);

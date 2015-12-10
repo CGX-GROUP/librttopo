@@ -509,7 +509,7 @@ parse_geojson(json_object *geojson, int *hasz, int root_srid)
 #endif /* HAVE_LIBJSON or HAVE_LIBJSON_C --} */
 
 RTGEOM*
-rtgeom_from_geojson(RTCTX *ctx, const char *geojson, char **srs)
+rtgeom_from_geojson(const RTCTX *ctx, const char *geojson, char **srs)
 {
 #ifndef HAVE_LIBJSON
 	*srs = NULL;

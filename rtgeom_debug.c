@@ -20,7 +20,7 @@
 static char tflags[6];
 
 static char *
-rtgeom_flagchars(RTCTX *ctx, RTGEOM *rtg)
+rtgeom_flagchars(const RTCTX *ctx, RTGEOM *rtg)
 {
 	int flagno = 0;
 	if ( RTFLAGS_GET_Z(rtg->flags) ) tflags[flagno++] = 'Z';
@@ -39,7 +39,7 @@ rtgeom_flagchars(RTCTX *ctx, RTGEOM *rtg)
  * Returns an alloced string containing summary for the RTGEOM object
  */
 static char *
-rtpoint_summary(RTCTX *ctx, RTPOINT *point, int offset)
+rtpoint_summary(const RTCTX *ctx, RTPOINT *point, int offset)
 {
 	char *result;
 	char *pad="";
@@ -54,7 +54,7 @@ rtpoint_summary(RTCTX *ctx, RTPOINT *point, int offset)
 }
 
 static char *
-rtline_summary(RTCTX *ctx, RTLINE *line, int offset)
+rtline_summary(const RTCTX *ctx, RTLINE *line, int offset)
 {
 	char *result;
 	char *pad="";
@@ -71,7 +71,7 @@ rtline_summary(RTCTX *ctx, RTLINE *line, int offset)
 
 
 static char *
-rtcollection_summary(RTCTX *ctx, RTCOLLECTION *col, int offset)
+rtcollection_summary(const RTCTX *ctx, RTCOLLECTION *col, int offset)
 {
 	size_t size = 128;
 	char *result;
@@ -109,7 +109,7 @@ rtcollection_summary(RTCTX *ctx, RTCOLLECTION *col, int offset)
 }
 
 static char *
-rtpoly_summary(RTCTX *ctx, RTPOLY *poly, int offset)
+rtpoly_summary(const RTCTX *ctx, RTPOLY *poly, int offset)
 {
 	char tmp[256];
 	size_t size = 64*(poly->nrings+1)+128;
@@ -142,7 +142,7 @@ rtpoly_summary(RTCTX *ctx, RTPOLY *poly, int offset)
 }
 
 char *
-rtgeom_summary(RTCTX *ctx, const RTGEOM *rtgeom, int offset)
+rtgeom_summary(const RTCTX *ctx, const RTGEOM *rtgeom, int offset)
 {
 	char *result;
 

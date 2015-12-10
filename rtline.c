@@ -26,7 +26,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTLINE *
-rtline_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
+rtline_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 {
 	RTLINE *result;
 	result = (RTLINE*) rtalloc(ctx, sizeof(RTLINE));
@@ -48,7 +48,7 @@ rtline_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 }
 
 RTLINE *
-rtline_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtline_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTLINE *result = rtalloc(ctx, sizeof(RTLINE));
 	result->type = RTLINETYPE;
@@ -60,7 +60,7 @@ rtline_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 }
 
 
-void rtline_free(RTCTX *ctx, RTLINE  *line)
+void rtline_free(const RTCTX *ctx, RTLINE  *line)
 {
 	if ( ! line ) return;
 	
@@ -72,7 +72,7 @@ void rtline_free(RTCTX *ctx, RTLINE  *line)
 }
 
 
-void printRTLINE(RTCTX *ctx, RTLINE *line)
+void printRTLINE(const RTCTX *ctx, RTLINE *line)
 {
 	rtnotice(ctx, "RTLINE {");
 	rtnotice(ctx, "    ndims = %i", (int)RTFLAGS_NDIMS(line->flags));
@@ -86,7 +86,7 @@ void printRTLINE(RTCTX *ctx, RTLINE *line)
  * @see ptarray_clone 
  */
 RTLINE *
-rtline_clone(RTCTX *ctx, const RTLINE *g)
+rtline_clone(const RTCTX *ctx, const RTLINE *g)
 {
 	RTLINE *ret = rtalloc(ctx, sizeof(RTLINE));
 
@@ -102,7 +102,7 @@ rtline_clone(RTCTX *ctx, const RTLINE *g)
 
 /* Deep clone RTLINE object. RTPOINTARRAY *is* copied. */
 RTLINE *
-rtline_clone_deep(RTCTX *ctx, const RTLINE *g)
+rtline_clone_deep(const RTCTX *ctx, const RTLINE *g)
 {
 	RTLINE *ret = rtalloc(ctx, sizeof(RTLINE));
 
@@ -118,20 +118,20 @@ rtline_clone_deep(RTCTX *ctx, const RTLINE *g)
 
 
 void
-rtline_release(RTCTX *ctx, RTLINE *rtline)
+rtline_release(const RTCTX *ctx, RTLINE *rtline)
 {
 	rtgeom_release(ctx, rtline_as_rtgeom(ctx, rtline));
 }
 
 void
-rtline_reverse(RTCTX *ctx, RTLINE *line)
+rtline_reverse(const RTCTX *ctx, RTLINE *line)
 {
 	if ( rtline_is_empty(ctx, line) ) return;
 	ptarray_reverse(ctx, line->points);
 }
 
 RTLINE *
-rtline_segmentize2d(RTCTX *ctx, RTLINE *line, double dist)
+rtline_segmentize2d(const RTCTX *ctx, RTLINE *line, double dist)
 {
 	RTPOINTARRAY *segmentized = ptarray_segmentize2d(ctx, line->points, dist);
 	if ( ! segmentized ) return NULL;
@@ -140,7 +140,7 @@ rtline_segmentize2d(RTCTX *ctx, RTLINE *line, double dist)
 
 /* check coordinate equality  */
 char
-rtline_same(RTCTX *ctx, const RTLINE *l1, const RTLINE *l2)
+rtline_same(const RTCTX *ctx, const RTLINE *l1, const RTLINE *l2)
 {
 	return ptarray_same(ctx, l1->points, l2->points);
 }
@@ -150,7 +150,7 @@ rtline_same(RTCTX *ctx, const RTLINE *l1, const RTLINE *l2)
  * RTLINE dimensions are large enough to host all input dimensions.
  */
 RTLINE *
-rtline_from_rtgeom_array(RTCTX *ctx, int srid, uint32_t ngeoms, RTGEOM **geoms)
+rtline_from_rtgeom_array(const RTCTX *ctx, int srid, uint32_t ngeoms, RTGEOM **geoms)
 {
  	int i;
 	int hasz = RT_FALSE;
@@ -211,7 +211,7 @@ rtline_from_rtgeom_array(RTCTX *ctx, int srid, uint32_t ngeoms, RTGEOM **geoms)
  * RTLINE dimensions are large enough to host all input dimensions.
  */
 RTLINE *
-rtline_from_ptarray(RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points)
+rtline_from_ptarray(const RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points)
 {
  	int i;
 	int hasz = RT_FALSE;
@@ -258,7 +258,7 @@ rtline_from_ptarray(RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points)
  * Construct a RTLINE from a RTMPOINT
  */
 RTLINE *
-rtline_from_rtmpoint(RTCTX *ctx, int srid, const RTMPOINT *mpoint)
+rtline_from_rtmpoint(const RTCTX *ctx, int srid, const RTMPOINT *mpoint)
 {
 	uint32_t i;
 	RTPOINTARRAY *pa = NULL;
@@ -292,7 +292,7 @@ rtline_from_rtmpoint(RTCTX *ctx, int srid, const RTMPOINT *mpoint)
 * Returns NULL if the geometry is empty or the index invalid.
 */
 RTPOINT*
-rtline_get_rtpoint(RTCTX *ctx, const RTLINE *line, int where)
+rtline_get_rtpoint(const RTCTX *ctx, const RTLINE *line, int where)
 {
 	RTPOINT4D pt;
 	RTPOINT *rtpoint;
@@ -310,7 +310,7 @@ rtline_get_rtpoint(RTCTX *ctx, const RTLINE *line, int where)
 
 
 int
-rtline_add_rtpoint(RTCTX *ctx, RTLINE *line, RTPOINT *point, int where)
+rtline_add_rtpoint(const RTCTX *ctx, RTLINE *line, RTPOINT *point, int where)
 {
 	RTPOINT4D pt;	
 	getPoint4d_p(ctx, point->point, 0, &pt);
@@ -331,7 +331,7 @@ rtline_add_rtpoint(RTCTX *ctx, RTLINE *line, RTPOINT *point, int where)
 
 
 RTLINE *
-rtline_removepoint(RTCTX *ctx, RTLINE *line, uint32_t index)
+rtline_removepoint(const RTCTX *ctx, RTLINE *line, uint32_t index)
 {
 	RTPOINTARRAY *newpa;
 	RTLINE *ret;
@@ -348,7 +348,7 @@ rtline_removepoint(RTCTX *ctx, RTLINE *line, uint32_t index)
  * Note: input will be changed, make sure you have permissions for this.
  */
 void
-rtline_setPoint4d(RTCTX *ctx, RTLINE *line, uint32_t index, RTPOINT4D *newpoint)
+rtline_setPoint4d(const RTCTX *ctx, RTLINE *line, uint32_t index, RTPOINT4D *newpoint)
 {
 	ptarray_set_point4d(ctx, line->points, index, newpoint);
 	/* Update the box, if there is one to update */
@@ -364,7 +364,7 @@ rtline_setPoint4d(RTCTX *ctx, RTLINE *line, uint32_t index, RTPOINT4D *newpoint)
 * the measure between the supplied start and end values.
 */
 RTLINE*
-rtline_measured_from_rtline(RTCTX *ctx, const RTLINE *rtline, double m_start, double m_end)
+rtline_measured_from_rtline(const RTCTX *ctx, const RTLINE *rtline, double m_start, double m_end)
 {
 	int i = 0;
 	int hasm = 0, hasz = 0;
@@ -424,7 +424,7 @@ rtline_measured_from_rtline(RTCTX *ctx, const RTLINE *rtline, double m_start, do
 }
 
 RTGEOM*
-rtline_remove_repeated_points(RTCTX *ctx, const RTLINE *rtline, double tolerance)
+rtline_remove_repeated_points(const RTCTX *ctx, const RTLINE *rtline, double tolerance)
 {
 	RTPOINTARRAY* npts = ptarray_remove_repeated_points_minpoints(ctx, rtline->points, tolerance, 2);
 
@@ -436,7 +436,7 @@ rtline_remove_repeated_points(RTCTX *ctx, const RTLINE *rtline, double tolerance
 }
 
 int
-rtline_is_closed(RTCTX *ctx, const RTLINE *line)
+rtline_is_closed(const RTCTX *ctx, const RTLINE *line)
 {
 	if (RTFLAGS_GET_Z(line->flags))
 		return ptarray_is_closed_3d(ctx, line->points);
@@ -445,7 +445,7 @@ rtline_is_closed(RTCTX *ctx, const RTLINE *line)
 }
 
 int
-rtline_is_trajectory(RTCTX *ctx, const RTLINE *line)
+rtline_is_trajectory(const RTCTX *ctx, const RTLINE *line)
 {
   RTPOINT3DM p;
   int i, n;
@@ -474,7 +474,7 @@ rtline_is_trajectory(RTCTX *ctx, const RTLINE *line)
 
 
 RTLINE*
-rtline_force_dims(RTCTX *ctx, const RTLINE *line, int hasz, int hasm)
+rtline_force_dims(const RTCTX *ctx, const RTLINE *line, int hasz, int hasm)
 {
 	RTPOINTARRAY *pdims = NULL;
 	RTLINE *lineout;
@@ -493,7 +493,7 @@ rtline_force_dims(RTCTX *ctx, const RTLINE *line, int hasz, int hasm)
 	return lineout;
 }
 
-int rtline_is_empty(RTCTX *ctx, const RTLINE *line)
+int rtline_is_empty(const RTCTX *ctx, const RTLINE *line)
 {
 	if ( !line->points || line->points->npoints < 1 )
 		return RT_TRUE;
@@ -501,7 +501,7 @@ int rtline_is_empty(RTCTX *ctx, const RTLINE *line)
 }
 
 
-int rtline_count_vertices(RTCTX *ctx, RTLINE *line)
+int rtline_count_vertices(const RTCTX *ctx, RTLINE *line)
 {
 	assert(line);
 	if ( ! line->points )
@@ -509,7 +509,7 @@ int rtline_count_vertices(RTCTX *ctx, RTLINE *line)
 	return line->points->npoints;
 }
 
-RTLINE* rtline_simplify(RTCTX *ctx, const RTLINE *iline, double dist, int preserve_collapsed)
+RTLINE* rtline_simplify(const RTCTX *ctx, const RTLINE *iline, double dist, int preserve_collapsed)
 {
 	static const int minvertices = 2; /* TODO: allow setting this */
 	RTLINE *oline;
@@ -547,14 +547,14 @@ RTLINE* rtline_simplify(RTCTX *ctx, const RTLINE *iline, double dist, int preser
 	return oline;
 }
 
-double rtline_length(RTCTX *ctx, const RTLINE *line)
+double rtline_length(const RTCTX *ctx, const RTLINE *line)
 {
 	if ( rtline_is_empty(ctx, line) )
 		return 0.0;
 	return ptarray_length(ctx, line->points);
 }
 
-double rtline_length_2d(RTCTX *ctx, const RTLINE *line)
+double rtline_length_2d(const RTCTX *ctx, const RTLINE *line)
 {
 	if ( rtline_is_empty(ctx, line) )
 		return 0.0;
@@ -563,7 +563,7 @@ double rtline_length_2d(RTCTX *ctx, const RTLINE *line)
 
 
 
-RTLINE* rtline_grid(RTCTX *ctx, const RTLINE *line, const gridspec *grid)
+RTLINE* rtline_grid(const RTCTX *ctx, const RTLINE *line, const gridspec *grid)
 {
 	RTLINE *oline;
 	RTPOINTARRAY *opa;

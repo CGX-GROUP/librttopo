@@ -18,26 +18,26 @@
 
 
 void
-rtmpoly_release(RTCTX *ctx, RTMPOLY *rtmpoly)
+rtmpoly_release(const RTCTX *ctx, RTMPOLY *rtmpoly)
 {
 	rtgeom_release(ctx, rtmpoly_as_rtgeom(ctx, rtmpoly));
 }
 
 RTMPOLY *
-rtmpoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtmpoly_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTMPOLY *ret = (RTMPOLY*)rtcollection_construct_empty(ctx, RTMULTIPOLYGONTYPE, srid, hasz, hasm);
 	return ret;
 }
 
 
-RTMPOLY* rtmpoly_add_rtpoly(RTCTX *ctx, RTMPOLY *mobj, const RTPOLY *obj)
+RTMPOLY* rtmpoly_add_rtpoly(const RTCTX *ctx, RTMPOLY *mobj, const RTPOLY *obj)
 {
 	return (RTMPOLY*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
 
-void rtmpoly_free(RTCTX *ctx, RTMPOLY *mpoly)
+void rtmpoly_free(const RTCTX *ctx, RTMPOLY *mpoly)
 {
 	int i;
 	if ( ! mpoly ) return;

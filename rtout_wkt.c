@@ -13,7 +13,7 @@
 #include "rtgeom_log.h"
 #include "stringbuffer.h"
 
-static void rtgeom_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant);
+static void rtgeom_to_wkt_sb(const RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant);
 
 
 /*
@@ -22,7 +22,7 @@ static void rtgeom_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb,
 * clear what the third dimension represents.
 * SFSQL format never has more than two dimensions, so no qualifiers.
 */
-static void dimension_qualifiers_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, uint8_t variant)
+static void dimension_qualifiers_to_wkt_sb(const RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, uint8_t variant)
 {
 
 	/* Extended RTWKT: POINTM(0 0 0) */
@@ -52,7 +52,7 @@ static void dimension_qualifiers_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, strin
 * Write an empty token out, padding with a space if
 * necessary. 
 */
-static void empty_to_wkt_sb(RTCTX *ctx, stringbuffer_t *sb)
+static void empty_to_wkt_sb(const RTCTX *ctx, stringbuffer_t *sb)
 {
 	if ( ! strchr(" ,(", stringbuffer_lastchar(ctx, sb)) ) /* "EMPTY" */
 	{ 
@@ -66,7 +66,7 @@ static void empty_to_wkt_sb(RTCTX *ctx, stringbuffer_t *sb)
 * we may suppress some dimensions. ISO and Extended formats include
 * all dimensions. Standard OGC output only includes X/Y coordinates.
 */
-static void ptarray_to_wkt_sb(RTCTX *ctx, const RTPOINTARRAY *ptarray, stringbuffer_t *sb, int precision, uint8_t variant)
+static void ptarray_to_wkt_sb(const RTCTX *ctx, const RTPOINTARRAY *ptarray, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	/* OGC only includes X/Y */
 	int dimensions = 2;
@@ -113,7 +113,7 @@ static void ptarray_to_wkt_sb(RTCTX *ctx, const RTPOINTARRAY *ptarray, stringbuf
 *   Extended: POINTM(0 0 0)
 *   OGC: POINT(0 0)
 */
-static void rtpoint_to_wkt_sb(RTCTX *ctx, const RTPOINT *pt, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtpoint_to_wkt_sb(const RTCTX *ctx, const RTPOINT *pt, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
@@ -133,7 +133,7 @@ static void rtpoint_to_wkt_sb(RTCTX *ctx, const RTPOINT *pt, stringbuffer_t *sb,
 /*
 * LINESTRING(0 0 0, 1 1 1)
 */
-static void rtline_to_wkt_sb(RTCTX *ctx, const RTLINE *line, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtline_to_wkt_sb(const RTCTX *ctx, const RTLINE *line, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
@@ -152,7 +152,7 @@ static void rtline_to_wkt_sb(RTCTX *ctx, const RTLINE *line, stringbuffer_t *sb,
 /*
 * POLYGON(0 0 1, 1 0 1, 1 1 1, 0 1 1, 0 0 1)
 */
-static void rtpoly_to_wkt_sb(RTCTX *ctx, const RTPOLY *poly, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtpoly_to_wkt_sb(const RTCTX *ctx, const RTPOLY *poly, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 	if ( ! (variant & RTWKT_NO_TYPE) )
@@ -179,7 +179,7 @@ static void rtpoly_to_wkt_sb(RTCTX *ctx, const RTPOLY *poly, stringbuffer_t *sb,
 /*
 * CIRCULARSTRING
 */
-static void rtcircstring_to_wkt_sb(RTCTX *ctx, const RTCIRCSTRING *circ, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcircstring_to_wkt_sb(const RTCTX *ctx, const RTCIRCSTRING *circ, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
@@ -199,7 +199,7 @@ static void rtcircstring_to_wkt_sb(RTCTX *ctx, const RTCIRCSTRING *circ, stringb
 * Multi-points do not wrap their sub-members in parens, unlike other multi-geometries.
 *   MULTPOINT(0 0, 1 1) instead of MULTIPOINT((0 0),(1 1))
 */
-static void rtmpoint_to_wkt_sb(RTCTX *ctx, const RTMPOINT *mpoint, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmpoint_to_wkt_sb(const RTCTX *ctx, const RTMPOINT *mpoint, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 	if ( ! (variant & RTWKT_NO_TYPE) )
@@ -227,7 +227,7 @@ static void rtmpoint_to_wkt_sb(RTCTX *ctx, const RTMPOINT *mpoint, stringbuffer_
 /*
 * MULTILINESTRING
 */
-static void rtmline_to_wkt_sb(RTCTX *ctx, const RTMLINE *mline, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmline_to_wkt_sb(const RTCTX *ctx, const RTMLINE *mline, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -257,7 +257,7 @@ static void rtmline_to_wkt_sb(RTCTX *ctx, const RTMLINE *mline, stringbuffer_t *
 /*
 * MULTIPOLYGON
 */
-static void rtmpoly_to_wkt_sb(RTCTX *ctx, const RTMPOLY *mpoly, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmpoly_to_wkt_sb(const RTCTX *ctx, const RTMPOLY *mpoly, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -289,7 +289,7 @@ static void rtmpoly_to_wkt_sb(RTCTX *ctx, const RTMPOLY *mpoly, stringbuffer_t *
 * but not their linestring sub-geometries.
 *   COMPOUNDCURVE((0 0, 1 1), CURVESTRING(1 1, 2 2, 3 3))
 */
-static void rtcompound_to_wkt_sb(RTCTX *ctx, const RTCOMPOUND *comp, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcompound_to_wkt_sb(const RTCTX *ctx, const RTCOMPOUND *comp, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -334,7 +334,7 @@ static void rtcompound_to_wkt_sb(RTCTX *ctx, const RTCOMPOUND *comp, stringbuffe
 * but not their linestring rings.
 *   CURVEPOLYGON((0 0, 1 1, 0 1, 0 0), CURVESTRING(0 0, 1 1, 0 1, 0.5 1, 0 0))
 */
-static void rtcurvepoly_to_wkt_sb(RTCTX *ctx, const RTCURVEPOLY *cpoly, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcurvepoly_to_wkt_sb(const RTCTX *ctx, const RTCURVEPOLY *cpoly, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -382,7 +382,7 @@ static void rtcurvepoly_to_wkt_sb(RTCTX *ctx, const RTCURVEPOLY *cpoly, stringbu
 * but not their linear sub-geometries.
 *   MULTICURVE((0 0, 1 1), CURVESTRING(0 0, 1 1, 2 2))
 */
-static void rtmcurve_to_wkt_sb(RTCTX *ctx, const RTMCURVE *mcurv, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmcurve_to_wkt_sb(const RTCTX *ctx, const RTMCURVE *mcurv, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -430,7 +430,7 @@ static void rtmcurve_to_wkt_sb(RTCTX *ctx, const RTMCURVE *mcurv, stringbuffer_t
 * but not their linear sub-geometries.
 *   MULTISURFACE(((0 0, 1 1, 1 0, 0 0)), CURVEPOLYGON(CURVESTRING(0 0, 1 1, 2 2, 0 1, 0 0)))
 */
-static void rtmsurface_to_wkt_sb(RTCTX *ctx, const RTMSURFACE *msurf, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtmsurface_to_wkt_sb(const RTCTX *ctx, const RTMSURFACE *msurf, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -473,7 +473,7 @@ static void rtmsurface_to_wkt_sb(RTCTX *ctx, const RTMSURFACE *msurf, stringbuff
 * but not their linear sub-geometries.
 *   GEOMETRYCOLLECTION(POLYGON((0 0, 1 1, 1 0, 0 0)), CURVEPOLYGON(CURVESTRING(0 0, 1 1, 2 2, 0 1, 0 0)))
 */
-static void rtcollection_to_wkt_sb(RTCTX *ctx, const RTCOLLECTION *collection, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtcollection_to_wkt_sb(const RTCTX *ctx, const RTCOLLECTION *collection, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -501,7 +501,7 @@ static void rtcollection_to_wkt_sb(RTCTX *ctx, const RTCOLLECTION *collection, s
 /*
 * TRIANGLE 
 */
-static void rttriangle_to_wkt_sb(RTCTX *ctx, const RTTRIANGLE *tri, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rttriangle_to_wkt_sb(const RTCTX *ctx, const RTTRIANGLE *tri, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	if ( ! (variant & RTWKT_NO_TYPE) )
 	{
@@ -522,7 +522,7 @@ static void rttriangle_to_wkt_sb(RTCTX *ctx, const RTTRIANGLE *tri, stringbuffer
 /*
 * TIN
 */
-static void rttin_to_wkt_sb(RTCTX *ctx, const RTTIN *tin, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rttin_to_wkt_sb(const RTCTX *ctx, const RTTIN *tin, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -551,7 +551,7 @@ static void rttin_to_wkt_sb(RTCTX *ctx, const RTTIN *tin, stringbuffer_t *sb, in
 /*
 * POLYHEDRALSURFACE
 */
-static void rtpsurface_to_wkt_sb(RTCTX *ctx, const RTPSURFACE *psurf, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtpsurface_to_wkt_sb(const RTCTX *ctx, const RTPSURFACE *psurf, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	int i = 0;
 
@@ -583,7 +583,7 @@ static void rtpsurface_to_wkt_sb(RTCTX *ctx, const RTPSURFACE *psurf, stringbuff
 /*
 * Generic GEOMETRY
 */
-static void rtgeom_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant)
+static void rtgeom_to_wkt_sb(const RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant)
 {
 	RTDEBUGF(4, "rtgeom_to_wkt_sb: type %s, hasz %d, hasm %d",
 		rttype_name(ctx, geom->type), (geom->type),
@@ -652,7 +652,7 @@ static void rtgeom_to_wkt_sb(RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb,
 * @param size_out If supplied, will return the size of the returned string,
 * including the null terminator.
 */
-char* rtgeom_to_wkt(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, int precision, size_t *size_out)
+char* rtgeom_to_wkt(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, int precision, size_t *size_out)
 {
 	stringbuffer_t *sb;
 	char *str = NULL;

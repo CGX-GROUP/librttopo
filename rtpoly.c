@@ -26,7 +26,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTPOLY*
-rtpoly_construct(RTCTX *ctx, int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points)
+rtpoly_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points)
 {
 	RTPOLY *result;
 	int hasz, hasm;
@@ -63,7 +63,7 @@ rtpoly_construct(RTCTX *ctx, int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARR
 }
 
 RTPOLY*
-rtpoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtpoly_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTPOLY *result = rtalloc(ctx, sizeof(RTPOLY));
 	result->type = RTPOLYGONTYPE;
@@ -76,7 +76,7 @@ rtpoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 	return result;
 }
 
-void rtpoly_free(RTCTX *ctx, RTPOLY  *poly)
+void rtpoly_free(const RTCTX *ctx, RTPOLY  *poly)
 {
 	int t;
 
@@ -97,7 +97,7 @@ void rtpoly_free(RTCTX *ctx, RTPOLY  *poly)
 	rtfree(ctx, poly);
 }
 
-void printRTPOLY(RTCTX *ctx, RTPOLY *poly)
+void printRTPOLY(const RTCTX *ctx, RTPOLY *poly)
 {
 	int t;
 	rtnotice(ctx, "RTPOLY {");
@@ -117,7 +117,7 @@ void printRTPOLY(RTCTX *ctx, RTPOLY *poly)
  * @see ptarray_clone 
  */
 RTPOLY *
-rtpoly_clone(RTCTX *ctx, const RTPOLY *g)
+rtpoly_clone(const RTCTX *ctx, const RTPOLY *g)
 {
 	int i;
 	RTPOLY *ret = rtalloc(ctx, sizeof(RTPOLY));
@@ -132,7 +132,7 @@ rtpoly_clone(RTCTX *ctx, const RTPOLY *g)
 
 /* Deep clone RTPOLY object. RTPOINTARRAY are copied, as is ring array */
 RTPOLY *
-rtpoly_clone_deep(RTCTX *ctx, const RTPOLY *g)
+rtpoly_clone_deep(const RTCTX *ctx, const RTPOLY *g)
 {
 	int i;
 	RTPOLY *ret = rtalloc(ctx, sizeof(RTPOLY));
@@ -151,7 +151,7 @@ rtpoly_clone_deep(RTCTX *ctx, const RTPOLY *g)
 * Add a ring to a polygon. Point array will be referenced, not copied.
 */
 int
-rtpoly_add_ring(RTCTX *ctx, RTPOLY *poly, RTPOINTARRAY *pa) 
+rtpoly_add_ring(const RTCTX *ctx, RTPOLY *poly, RTPOINTARRAY *pa) 
 {
 	if( ! poly || ! pa ) 
 		return RT_FAILURE;
@@ -172,7 +172,7 @@ rtpoly_add_ring(RTCTX *ctx, RTPOLY *poly, RTPOINTARRAY *pa)
 }
 
 void
-rtpoly_force_clockwise(RTCTX *ctx, RTPOLY *poly)
+rtpoly_force_clockwise(const RTCTX *ctx, RTPOLY *poly)
 {
 	int i;
 
@@ -192,13 +192,13 @@ rtpoly_force_clockwise(RTCTX *ctx, RTPOLY *poly)
 }
 
 void
-rtpoly_release(RTCTX *ctx, RTPOLY *rtpoly)
+rtpoly_release(const RTCTX *ctx, RTPOLY *rtpoly)
 {
 	rtgeom_release(ctx, rtpoly_as_rtgeom(ctx, rtpoly));
 }
 
 void
-rtpoly_reverse(RTCTX *ctx, RTPOLY *poly)
+rtpoly_reverse(const RTCTX *ctx, RTPOLY *poly)
 {
 	int i;
 	if ( rtpoly_is_empty(ctx, poly) ) return;
@@ -207,7 +207,7 @@ rtpoly_reverse(RTCTX *ctx, RTPOLY *poly)
 }
 
 RTPOLY *
-rtpoly_segmentize2d(RTCTX *ctx, RTPOLY *poly, double dist)
+rtpoly_segmentize2d(const RTCTX *ctx, RTPOLY *poly, double dist)
 {
 	RTPOINTARRAY **newrings;
 	uint32_t i;
@@ -231,7 +231,7 @@ rtpoly_segmentize2d(RTCTX *ctx, RTPOLY *poly, double dist)
  * ring and coordinate order is considered
  */
 char
-rtpoly_same(RTCTX *ctx, const RTPOLY *p1, const RTPOLY *p2)
+rtpoly_same(const RTCTX *ctx, const RTPOLY *p1, const RTPOLY *p2)
 {
 	uint32_t i;
 
@@ -252,7 +252,7 @@ rtpoly_same(RTCTX *ctx, const RTPOLY *p1, const RTPOLY *p2)
  * Input lines must have at least 4 points, and be closed.
  */
 RTPOLY *
-rtpoly_from_rtlines(RTCTX *ctx, const RTLINE *shell,
+rtpoly_from_rtlines(const RTCTX *ctx, const RTLINE *shell,
                     uint32_t nholes, const RTLINE **holes)
 {
 	uint32_t nrings;
@@ -286,7 +286,7 @@ rtpoly_from_rtlines(RTCTX *ctx, const RTLINE *shell,
 }
 
 RTGEOM*
-rtpoly_remove_repeated_points(RTCTX *ctx, const RTPOLY *poly, double tolerance)
+rtpoly_remove_repeated_points(const RTCTX *ctx, const RTPOLY *poly, double tolerance)
 {
 	uint32_t i;
 	RTPOINTARRAY **newrings;
@@ -305,7 +305,7 @@ rtpoly_remove_repeated_points(RTCTX *ctx, const RTPOLY *poly, double tolerance)
 
 
 RTPOLY*
-rtpoly_force_dims(RTCTX *ctx, const RTPOLY *poly, int hasz, int hasm)
+rtpoly_force_dims(const RTCTX *ctx, const RTPOLY *poly, int hasz, int hasm)
 {
 	RTPOLY *polyout;
 	
@@ -329,14 +329,14 @@ rtpoly_force_dims(RTCTX *ctx, const RTPOLY *poly, int hasz, int hasm)
 	return polyout;
 }
 
-int rtpoly_is_empty(RTCTX *ctx, const RTPOLY *poly)
+int rtpoly_is_empty(const RTCTX *ctx, const RTPOLY *poly)
 {
 	if ( (poly->nrings < 1) || (!poly->rings) || (!poly->rings[0]) || (poly->rings[0]->npoints < 1) )
 		return RT_TRUE;
 	return RT_FALSE;
 }
 
-int rtpoly_count_vertices(RTCTX *ctx, RTPOLY *poly)
+int rtpoly_count_vertices(const RTCTX *ctx, RTPOLY *poly)
 {
 	int i = 0;
 	int v = 0; /* vertices */
@@ -348,7 +348,7 @@ int rtpoly_count_vertices(RTCTX *ctx, RTPOLY *poly)
 	return v;
 }
 
-RTPOLY* rtpoly_simplify(RTCTX *ctx, const RTPOLY *ipoly, double dist, int preserve_collapsed)
+RTPOLY* rtpoly_simplify(const RTCTX *ctx, const RTPOLY *ipoly, double dist, int preserve_collapsed)
 {
 	int i;
 	RTPOLY *opoly = rtpoly_construct_empty(ctx, ipoly->srid, RTFLAGS_GET_Z(ipoly->flags), RTFLAGS_GET_M(ipoly->flags));
@@ -408,7 +408,7 @@ RTPOLY* rtpoly_simplify(RTCTX *ctx, const RTPOLY *ipoly, double dist, int preser
 * Find the area of the outer ring - sum (area of inner rings).
 */
 double
-rtpoly_area(RTCTX *ctx, const RTPOLY *poly)
+rtpoly_area(const RTCTX *ctx, const RTPOLY *poly)
 {
 	double poly_area = 0.0;
 	int i;
@@ -441,7 +441,7 @@ rtpoly_area(RTCTX *ctx, const RTPOLY *poly)
  * Could use a more numerically stable calculator...
  */
 double
-rtpoly_perimeter(RTCTX *ctx, const RTPOLY *poly)
+rtpoly_perimeter(const RTCTX *ctx, const RTPOLY *poly)
 {
 	double result=0.0;
 	int i;
@@ -459,7 +459,7 @@ rtpoly_perimeter(RTCTX *ctx, const RTPOLY *poly)
  * Could use a more numerically stable calculator...
  */
 double
-rtpoly_perimeter_2d(RTCTX *ctx, const RTPOLY *poly)
+rtpoly_perimeter_2d(const RTCTX *ctx, const RTPOLY *poly)
 {
 	double result=0.0;
 	int i;
@@ -473,7 +473,7 @@ rtpoly_perimeter_2d(RTCTX *ctx, const RTPOLY *poly)
 }
 
 int
-rtpoly_is_closed(RTCTX *ctx, const RTPOLY *poly)
+rtpoly_is_closed(const RTCTX *ctx, const RTPOLY *poly)
 {
 	int i = 0;
 	
@@ -498,7 +498,7 @@ rtpoly_is_closed(RTCTX *ctx, const RTPOLY *poly)
 }
 
 int 
-rtpoly_startpoint(RTCTX *ctx, const RTPOLY* poly, RTPOINT4D* pt)
+rtpoly_startpoint(const RTCTX *ctx, const RTPOLY* poly, RTPOINT4D* pt)
 {
 	if ( poly->nrings < 1 )
 		return RT_FAILURE;
@@ -506,7 +506,7 @@ rtpoly_startpoint(RTCTX *ctx, const RTPOLY* poly, RTPOINT4D* pt)
 }
 
 int
-rtpoly_contains_point(RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D *pt)
+rtpoly_contains_point(const RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D *pt)
 {
 	int i;
 	
@@ -526,7 +526,7 @@ rtpoly_contains_point(RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D *pt)
 
 
 
-RTPOLY* rtpoly_grid(RTCTX *ctx, const RTPOLY *poly, const gridspec *grid)
+RTPOLY* rtpoly_grid(const RTCTX *ctx, const RTPOLY *poly, const gridspec *grid)
 {
 	RTPOLY *opoly;
 	int ri;

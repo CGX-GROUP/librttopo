@@ -71,11 +71,11 @@ typedef struct
 	int64_t accum_rels[MAX_N_DIMS]; /*Holds the acculmulated relative values*/
 } TWKB_STATE;
 
-static int rtgeom_to_twkb_buf(RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
+static int rtgeom_to_twkb_buf(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
 
-static int rtpoint_to_twkb_buf(RTCTX *ctx, const RTPOINT *line, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
-static int rtline_to_twkb_buf(RTCTX *ctx, const RTLINE *line, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
-static int rtpoly_to_twkb_buf(RTCTX *ctx, const RTPOLY *poly, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
-static int rtcollection_to_twkb_buf(RTCTX *ctx, const RTCOLLECTION *col, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
-static int rtgeom_write_to_buffer(RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *global_values, TWKB_STATE *parent_state);
+static int rtpoint_to_twkb_buf(const RTCTX *ctx, const RTPOINT *line, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
+static int rtline_to_twkb_buf(const RTCTX *ctx, const RTLINE *line, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
+static int rtpoly_to_twkb_buf(const RTCTX *ctx, const RTPOLY *poly, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
+static int rtcollection_to_twkb_buf(const RTCTX *ctx, const RTCOLLECTION *col, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
+static int rtgeom_write_to_buffer(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *global_values, TWKB_STATE *parent_state);
 

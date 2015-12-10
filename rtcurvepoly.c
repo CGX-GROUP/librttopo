@@ -20,7 +20,7 @@
 
 
 RTCURVEPOLY *
-rtcurvepoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtcurvepoly_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTCURVEPOLY *ret;
 
@@ -37,7 +37,7 @@ rtcurvepoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 }
 
 RTCURVEPOLY *
-rtcurvepoly_construct_from_rtpoly(RTCTX *ctx, RTPOLY *rtpoly)
+rtcurvepoly_construct_from_rtpoly(const RTCTX *ctx, RTPOLY *rtpoly)
 {
 	RTCURVEPOLY *ret;
 	int i;
@@ -56,7 +56,7 @@ rtcurvepoly_construct_from_rtpoly(RTCTX *ctx, RTPOLY *rtpoly)
 	return ret;
 }
 
-int rtcurvepoly_add_ring(RTCTX *ctx, RTCURVEPOLY *poly, RTGEOM *ring)
+int rtcurvepoly_add_ring(const RTCTX *ctx, RTCURVEPOLY *poly, RTGEOM *ring)
 {
 	int i;
 	
@@ -117,7 +117,7 @@ int rtcurvepoly_add_ring(RTCTX *ctx, RTCURVEPOLY *poly, RTGEOM *ring)
  * This should be rewritten to make use of the curve itself.
  */
 double
-rtcurvepoly_area(RTCTX *ctx, const RTCURVEPOLY *curvepoly)
+rtcurvepoly_area(const RTCTX *ctx, const RTCURVEPOLY *curvepoly)
 {
 	double area = 0.0;
 	RTPOLY *poly;
@@ -131,7 +131,7 @@ rtcurvepoly_area(RTCTX *ctx, const RTCURVEPOLY *curvepoly)
 
 
 double
-rtcurvepoly_perimeter(RTCTX *ctx, const RTCURVEPOLY *poly)
+rtcurvepoly_perimeter(const RTCTX *ctx, const RTCURVEPOLY *poly)
 {
 	double result=0.0;
 	int i;
@@ -143,7 +143,7 @@ rtcurvepoly_perimeter(RTCTX *ctx, const RTCURVEPOLY *poly)
 }
 
 double
-rtcurvepoly_perimeter_2d(RTCTX *ctx, const RTCURVEPOLY *poly)
+rtcurvepoly_perimeter_2d(const RTCTX *ctx, const RTCURVEPOLY *poly)
 {
 	double result=0.0;
 	int i;

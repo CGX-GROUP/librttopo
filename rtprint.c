@@ -11,7 +11,7 @@
 
 /* Ensures the given lat and lon are in the "normal" range:
  * -90 to +90 for lat, -180 to +180 for lon. */
-static void rtprint_normalize_latlon(RTCTX *ctx, double *lat, double *lon)
+static void rtprint_normalize_latlon(const RTCTX *ctx, double *lat, double *lon)
 {
 	/* First remove all the truly excessive trips around the world via up or down. */
 	while (*lat > 270)
@@ -53,7 +53,7 @@ static void rtprint_normalize_latlon(RTCTX *ctx, double *lat, double *lon)
  * lat vs. lon.  They are only used if the "C" (compass dir) token appears in the
  * format string.
  * NOTE: Format string and symbols are required to be in UTF-8. */
-static char * rtdouble_to_dms(RTCTX *ctx, double val, const char *pos_dir_symbol, const char *neg_dir_symbol, const char * format)
+static char * rtdouble_to_dms(const RTCTX *ctx, double val, const char *pos_dir_symbol, const char *neg_dir_symbol, const char * format)
 {
 	/* 3 numbers, 1 sign or compass dir, and 5 possible strings (degree signs, spaces, misc text, etc) between or around them.*/
 	static int NUM_PIECES = 9;
@@ -363,7 +363,7 @@ static char * rtdouble_to_dms(RTCTX *ctx, double val, const char *pos_dir_symbol
  * NOTE: Format string is required to be in UTF-8.
  * NOTE2: returned string is rtalloc'ed, caller is responsible to rtfree it up
  */
-static char * rtdoubles_to_latlon(RTCTX *ctx, double lat, double lon, const char * format)
+static char * rtdoubles_to_latlon(const RTCTX *ctx, double lat, double lon, const char * format)
 {
 	char * lat_text;
 	char * lon_text;
@@ -390,7 +390,7 @@ static char * rtdoubles_to_latlon(RTCTX *ctx, double lat, double lon, const char
  * NOTE: Format string is required to be in UTF-8.
  * NOTE2: returned string is rtalloc'ed, caller is responsible to rtfree it up
  */
-char* rtpoint_to_latlon(RTCTX *ctx, const RTPOINT * pt, const char *format)
+char* rtpoint_to_latlon(const RTCTX *ctx, const RTPOINT * pt, const char *format)
 {
 	const RTPOINT2D *p;
 	if (NULL == pt)

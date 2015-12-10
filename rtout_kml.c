@@ -15,12 +15,12 @@
 #include "librtgeom_internal.h"
 #include "stringbuffer.h"
 
-static int rtgeom_to_kml2_sb(RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix, stringbuffer_t *sb);
-static int rtpoint_to_kml2_sb(RTCTX *ctx, const RTPOINT *point, int precision, const char *prefix, stringbuffer_t *sb);
-static int rtline_to_kml2_sb(RTCTX *ctx, const RTLINE *line, int precision, const char *prefix, stringbuffer_t *sb);
-static int rtpoly_to_kml2_sb(RTCTX *ctx, const RTPOLY *poly, int precision, const char *prefix, stringbuffer_t *sb);
-static int rtcollection_to_kml2_sb(RTCTX *ctx, const RTCOLLECTION *col, int precision, const char *prefix, stringbuffer_t *sb);
-static int ptarray_to_kml2_sb(RTCTX *ctx, const RTPOINTARRAY *pa, int precision, stringbuffer_t *sb);
+static int rtgeom_to_kml2_sb(const RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix, stringbuffer_t *sb);
+static int rtpoint_to_kml2_sb(const RTCTX *ctx, const RTPOINT *point, int precision, const char *prefix, stringbuffer_t *sb);
+static int rtline_to_kml2_sb(const RTCTX *ctx, const RTLINE *line, int precision, const char *prefix, stringbuffer_t *sb);
+static int rtpoly_to_kml2_sb(const RTCTX *ctx, const RTPOLY *poly, int precision, const char *prefix, stringbuffer_t *sb);
+static int rtcollection_to_kml2_sb(const RTCTX *ctx, const RTCOLLECTION *col, int precision, const char *prefix, stringbuffer_t *sb);
+static int ptarray_to_kml2_sb(const RTCTX *ctx, const RTPOINTARRAY *pa, int precision, stringbuffer_t *sb);
 
 /*
 * KML 2.2.0
@@ -28,7 +28,7 @@ static int ptarray_to_kml2_sb(RTCTX *ctx, const RTPOINTARRAY *pa, int precision,
 
 /* takes a GEOMETRY and returns a KML representation */
 char*
-rtgeom_to_kml2(RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix)
+rtgeom_to_kml2(const RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix)
 {
 	stringbuffer_t *sb;
 	int rv;
@@ -54,7 +54,7 @@ rtgeom_to_kml2(RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix
 }
 
 static int 
-rtgeom_to_kml2_sb(RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix, stringbuffer_t *sb)
+rtgeom_to_kml2_sb(const RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix, stringbuffer_t *sb)
 {
 	switch (geom->type)
 	{
@@ -79,7 +79,7 @@ rtgeom_to_kml2_sb(RTCTX *ctx, const RTGEOM *geom, int precision, const char *pre
 }
 
 static int 
-ptarray_to_kml2_sb(RTCTX *ctx, const RTPOINTARRAY *pa, int precision, stringbuffer_t *sb)
+ptarray_to_kml2_sb(const RTCTX *ctx, const RTPOINTARRAY *pa, int precision, stringbuffer_t *sb)
 {
 	int i, j;
 	int dims = RTFLAGS_GET_Z(pa->flags) ? 3 : 2;
@@ -110,7 +110,7 @@ ptarray_to_kml2_sb(RTCTX *ctx, const RTPOINTARRAY *pa, int precision, stringbuff
 
 
 static int 
-rtpoint_to_kml2_sb(RTCTX *ctx, const RTPOINT *point, int precision, const char *prefix, stringbuffer_t *sb)
+rtpoint_to_kml2_sb(const RTCTX *ctx, const RTPOINT *point, int precision, const char *prefix, stringbuffer_t *sb)
 {
 	/* Open point */
 	if ( stringbuffer_aprintf(ctx, sb, "<%sPoint><%scoordinates>", prefix, prefix) < 0 ) return RT_FAILURE;
@@ -122,7 +122,7 @@ rtpoint_to_kml2_sb(RTCTX *ctx, const RTPOINT *point, int precision, const char *
 }
 
 static int 
-rtline_to_kml2_sb(RTCTX *ctx, const RTLINE *line, int precision, const char *prefix, stringbuffer_t *sb)
+rtline_to_kml2_sb(const RTCTX *ctx, const RTLINE *line, int precision, const char *prefix, stringbuffer_t *sb)
 {
 	/* Open linestring */
 	if ( stringbuffer_aprintf(ctx, sb, "<%sLineString><%scoordinates>", prefix, prefix) < 0 ) return RT_FAILURE;
@@ -135,7 +135,7 @@ rtline_to_kml2_sb(RTCTX *ctx, const RTLINE *line, int precision, const char *pre
 }
 
 static int 
-rtpoly_to_kml2_sb(RTCTX *ctx, const RTPOLY *poly, int precision, const char *prefix, stringbuffer_t *sb)
+rtpoly_to_kml2_sb(const RTCTX *ctx, const RTPOLY *poly, int precision, const char *prefix, stringbuffer_t *sb)
 {
 	int i, rv;
 	
@@ -167,7 +167,7 @@ rtpoly_to_kml2_sb(RTCTX *ctx, const RTPOLY *poly, int precision, const char *pre
 }
 
 static int 
-rtcollection_to_kml2_sb(RTCTX *ctx, const RTCOLLECTION *col, int precision, const char *prefix, stringbuffer_t *sb)
+rtcollection_to_kml2_sb(const RTCTX *ctx, const RTCOLLECTION *col, int precision, const char *prefix, stringbuffer_t *sb)
 {
 	int i, rv;
 		

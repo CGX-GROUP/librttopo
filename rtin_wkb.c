@@ -36,7 +36,7 @@ typedef struct
 /**
 * Internal function declarations.
 */
-RTGEOM* rtgeom_from_wkb_state(RTCTX *ctx, wkb_parse_state *s);
+RTGEOM* rtgeom_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s);
 
 
 
@@ -69,7 +69,7 @@ static uint8_t hex2char[256] = {
     };
 
 
-uint8_t* bytes_from_hexbytes(RTCTX *ctx, const char *hexbuf, size_t hexsize)
+uint8_t* bytes_from_hexbytes(const RTCTX *ctx, const char *hexbuf, size_t hexsize)
 {
 	uint8_t *buf = NULL;
 	register uint8_t h1, h2;
@@ -108,7 +108,7 @@ uint8_t* bytes_from_hexbytes(RTCTX *ctx, const char *hexbuf, size_t hexsize)
 * Check that we are not about to read off the end of the RTWKB 
 * array.
 */
-static inline void wkb_parse_state_check(RTCTX *ctx, wkb_parse_state *s, size_t next)
+static inline void wkb_parse_state_check(const RTCTX *ctx, wkb_parse_state *s, size_t next)
 {
 	if( (s->pos + next) > (s->wkb + s->wkb_size) )
 		rterror(ctx, "RTWKB structure does not match expected size!");
@@ -119,7 +119,7 @@ static inline void wkb_parse_state_check(RTCTX *ctx, wkb_parse_state *s, size_t 
 * as an extended RTWKB type number (with Z/M/SRID flags masked onto the 
 * high bits).
 */
-static void rttype_from_wkb_state(RTCTX *ctx, wkb_parse_state *s, uint32_t wkb_type)
+static void rttype_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s, uint32_t wkb_type)
 {
 	uint32_t wkb_simple_type;
 	
@@ -231,7 +231,7 @@ static void rttype_from_wkb_state(RTCTX *ctx, wkb_parse_state *s, uint32_t wkb_t
 * Byte
 * Read a byte and advance the parse state forward.
 */
-static char byte_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static char byte_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	char char_value = 0;
 	RTDEBUG(4, "Entered function");
@@ -250,7 +250,7 @@ static char byte_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * Int32
 * Read 4-byte integer and advance the parse state forward.
 */
-static uint32_t integer_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static uint32_t integer_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	uint32_t i = 0;
 
@@ -280,7 +280,7 @@ static uint32_t integer_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * Double
 * Read an 8-byte double and advance the parse state forward.
 */
-static double double_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static double double_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	double d = 0;
 
@@ -312,7 +312,7 @@ static double double_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * Read a dynamically sized point array and advance the parse state forward.
 * First read the number of points, then read the points.
 */
-static RTPOINTARRAY* ptarray_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTPOINTARRAY* ptarray_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	RTPOINTARRAY *pa = NULL;
 	size_t pa_size;
@@ -366,7 +366,7 @@ static RTPOINTARRAY* ptarray_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * dimension of the point, so this looks like a special case of the above
 * with only one point.
 */
-static RTPOINT* rtpoint_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTPOINT* rtpoint_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	static uint32_t npoints = 1;
 	RTPOINTARRAY *pa = NULL;
@@ -422,7 +422,7 @@ static RTPOINT* rtpoint_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * There is only one pointarray in a linestring. Optionally
 * check for minimal following of rules (two point minimum).
 */
-static RTLINE* rtline_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTLINE* rtline_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	RTPOINTARRAY *pa = ptarray_from_wkb_state(ctx, s);
 
@@ -447,7 +447,7 @@ static RTLINE* rtline_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * check for minimal following of rules (three point minimum,
 * odd number of points).
 */
-static RTCIRCSTRING* rtcircstring_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTCIRCSTRING* rtcircstring_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	RTPOINTARRAY *pa = ptarray_from_wkb_state(ctx, s);
 
@@ -477,7 +477,7 @@ static RTCIRCSTRING* rtcircstring_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * First read the number of rings, then read each ring
 * (which are structured as point arrays)
 */
-static RTPOLY* rtpoly_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTPOLY* rtpoly_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	uint32_t nrings = integer_from_wkb_state(ctx, s);
 	int i = 0;
@@ -530,7 +530,7 @@ static RTPOLY* rtpoly_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * Triangles are encoded like polygons in RTWKB, but more like linestrings
 * as rtgeometries.
 */
-static RTTRIANGLE* rttriangle_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTTRIANGLE* rttriangle_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	uint32_t nrings = integer_from_wkb_state(ctx, s);
 	RTTRIANGLE *tri = rttriangle_construct_empty(ctx, s->srid, s->has_z, s->has_m);
@@ -582,7 +582,7 @@ static RTTRIANGLE* rttriangle_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 /**
 * RTCURVEPOLYTYPE
 */
-static RTCURVEPOLY* rtcurvepoly_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTCURVEPOLY* rtcurvepoly_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	uint32_t ngeoms = integer_from_wkb_state(ctx, s);
 	RTCURVEPOLY *cp = rtcurvepoly_construct_empty(ctx, s->srid, s->has_z, s->has_m);
@@ -612,7 +612,7 @@ static RTCURVEPOLY* rtcurvepoly_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * RTMULTICURVETYPE, RTMULTISURFACETYPE, 
 * RTTINTYPE
 */
-static RTCOLLECTION* rtcollection_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+static RTCOLLECTION* rtcollection_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	uint32_t ngeoms = integer_from_wkb_state(ctx, s);
 	RTCOLLECTION *col = rtcollection_construct_empty(ctx, s->rttype, s->srid, s->has_z, s->has_m);
@@ -650,7 +650,7 @@ static RTCOLLECTION* rtcollection_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * number and an optional srid number. We handle all those here, then pass
 * to the appropriate handler for the specific type.
 */
-RTGEOM* rtgeom_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
+RTGEOM* rtgeom_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
 	char wkb_little_endian;
 	uint32_t wkb_type;
@@ -746,7 +746,7 @@ RTGEOM* rtgeom_from_wkb_state(RTCTX *ctx, wkb_parse_state *s)
 * Check is a bitmask of: RT_PARSER_CHECK_MINPOINTS, RT_PARSER_CHECK_ODD, 
 * RT_PARSER_CHECK_CLOSURE, RT_PARSER_CHECK_NONE, RT_PARSER_CHECK_ALL
 */
-RTGEOM* rtgeom_from_wkb(RTCTX *ctx, const uint8_t *wkb, const size_t wkb_size, const char check)
+RTGEOM* rtgeom_from_wkb(const RTCTX *ctx, const uint8_t *wkb, const size_t wkb_size, const char check)
 {
 	wkb_parse_state s;
 	
@@ -771,7 +771,7 @@ RTGEOM* rtgeom_from_wkb(RTCTX *ctx, const uint8_t *wkb, const size_t wkb_size, c
 	return rtgeom_from_wkb_state(ctx, &s);
 }
 
-RTGEOM* rtgeom_from_hexwkb(RTCTX *ctx, const char *hexwkb, const char check)
+RTGEOM* rtgeom_from_hexwkb(const RTCTX *ctx, const char *hexwkb, const char check)
 {
 	int hexwkb_len;
 	uint8_t *wkb;

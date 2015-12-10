@@ -49,38 +49,38 @@ PLANE3D;
 /*
 Geometry returning functions
 */
-RTGEOM * rt_dist3d_distancepoint(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,int srid,int mode);
-RTGEOM * rt_dist3d_distanceline(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,int srid,int mode);
+RTGEOM * rt_dist3d_distancepoint(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,int srid,int mode);
+RTGEOM * rt_dist3d_distanceline(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,int srid,int mode);
 
 /*
 Preprocessing functions
 */
-int rt_dist3d_distribute_bruteforce(RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D *dl);
-int rt_dist3d_recursive(RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl);
+int rt_dist3d_distribute_bruteforce(const RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D *dl);
+int rt_dist3d_recursive(const RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl);
 int rt_dist3d_distribute_fast(const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D *dl);
 
 /*
 Brute force functions
 */
-int rt_dist3d_pt_ptarray(RTCTX *ctx, RTPOINT3DZ *p, RTPOINTARRAY *pa, DISTPTS3D *dl);
-int rt_dist3d_point_point(RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl);
-int rt_dist3d_point_line(RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS3D *dl);
-int rt_dist3d_line_line(RTCTX *ctx, RTLINE *line1,RTLINE *line2 , DISTPTS3D *dl);
-int rt_dist3d_point_poly(RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl);
-int rt_dist3d_line_poly(RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS3D *dl);
-int rt_dist3d_poly_poly(RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl);
-int rt_dist3d_ptarray_ptarray(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl);
-int rt_dist3d_seg_seg(RTCTX *ctx, RTPOINT3DZ *A, RTPOINT3DZ *B, RTPOINT3DZ *C, RTPOINT3DZ *D, DISTPTS3D *dl);
-int rt_dist3d_pt_pt(RTCTX *ctx, RTPOINT3DZ *p1, RTPOINT3DZ *p2, DISTPTS3D *dl);
-int rt_dist3d_pt_seg(RTCTX *ctx, RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl);
-int rt_dist3d_pt_poly(RTCTX *ctx, RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp,  DISTPTS3D *dl);
-int rt_dist3d_ptarray_poly(RTCTX *ctx, RTPOINTARRAY *pa, RTPOLY *poly, PLANE3D *plane, DISTPTS3D *dl);
+int rt_dist3d_pt_ptarray(const RTCTX *ctx, RTPOINT3DZ *p, RTPOINTARRAY *pa, DISTPTS3D *dl);
+int rt_dist3d_point_point(const RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl);
+int rt_dist3d_point_line(const RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS3D *dl);
+int rt_dist3d_line_line(const RTCTX *ctx, RTLINE *line1,RTLINE *line2 , DISTPTS3D *dl);
+int rt_dist3d_point_poly(const RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl);
+int rt_dist3d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS3D *dl);
+int rt_dist3d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl);
+int rt_dist3d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl);
+int rt_dist3d_seg_seg(const RTCTX *ctx, RTPOINT3DZ *A, RTPOINT3DZ *B, RTPOINT3DZ *C, RTPOINT3DZ *D, DISTPTS3D *dl);
+int rt_dist3d_pt_pt(const RTCTX *ctx, RTPOINT3DZ *p1, RTPOINT3DZ *p2, DISTPTS3D *dl);
+int rt_dist3d_pt_seg(const RTCTX *ctx, RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl);
+int rt_dist3d_pt_poly(const RTCTX *ctx, RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp,  DISTPTS3D *dl);
+int rt_dist3d_ptarray_poly(const RTCTX *ctx, RTPOINTARRAY *pa, RTPOLY *poly, PLANE3D *plane, DISTPTS3D *dl);
 
 
 
-double project_point_on_plane(RTCTX *ctx, RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0);
-int define_plane(RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl);
-int pt_in_ring_3d(RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane);
+double project_point_on_plane(const RTCTX *ctx, RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0);
+int define_plane(const RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl);
+int pt_in_ring_3d(const RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane);
 
 /*
 Helper functions

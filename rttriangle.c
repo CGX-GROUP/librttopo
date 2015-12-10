@@ -24,7 +24,7 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTTRIANGLE*
-rttriangle_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
+rttriangle_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 {
 	RTTRIANGLE *result;
 
@@ -42,7 +42,7 @@ rttriangle_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 }
 
 RTTRIANGLE*
-rttriangle_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rttriangle_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTTRIANGLE *result = rtalloc(ctx, sizeof(RTTRIANGLE));
 	result->type = RTTRIANGLETYPE;
@@ -53,7 +53,7 @@ rttriangle_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 	return result;
 }
 
-void rttriangle_free(RTCTX *ctx, RTTRIANGLE  *triangle)
+void rttriangle_free(const RTCTX *ctx, RTTRIANGLE  *triangle)
 {
 	if ( ! triangle ) return;
 	
@@ -66,7 +66,7 @@ void rttriangle_free(RTCTX *ctx, RTTRIANGLE  *triangle)
 	rtfree(ctx, triangle);
 }
 
-void printRTTRIANGLE(RTCTX *ctx, RTTRIANGLE *triangle)
+void printRTTRIANGLE(const RTCTX *ctx, RTTRIANGLE *triangle)
 {
 	if (triangle->type != RTTRIANGLETYPE)
                 rterror(ctx, "printRTTRIANGLE called with something else than a Triangle");
@@ -83,35 +83,35 @@ void printRTTRIANGLE(RTCTX *ctx, RTTRIANGLE *triangle)
  * @see ptarray_clone 
  */
 RTTRIANGLE *
-rttriangle_clone(RTCTX *ctx, const RTTRIANGLE *g)
+rttriangle_clone(const RTCTX *ctx, const RTTRIANGLE *g)
 {
 	RTDEBUGF(2, "rttriangle_clone called with %p", g);
 	return (RTTRIANGLE *)rtline_clone(ctx, (const RTLINE *)g);
 }
 
 void
-rttriangle_force_clockwise(RTCTX *ctx, RTTRIANGLE *triangle)
+rttriangle_force_clockwise(const RTCTX *ctx, RTTRIANGLE *triangle)
 {
 	if ( ptarray_isccw(ctx, triangle->points) )
 		ptarray_reverse(ctx, triangle->points);
 }
 
 void
-rttriangle_reverse(RTCTX *ctx, RTTRIANGLE *triangle)
+rttriangle_reverse(const RTCTX *ctx, RTTRIANGLE *triangle)
 {
 	if( rttriangle_is_empty(ctx, triangle) ) return;
 	ptarray_reverse(ctx, triangle->points);
 }
 
 void
-rttriangle_release(RTCTX *ctx, RTTRIANGLE *rttriangle)
+rttriangle_release(const RTCTX *ctx, RTTRIANGLE *rttriangle)
 {
 	rtgeom_release(ctx, rttriangle_as_rtgeom(ctx, rttriangle));
 }
 
 /* check coordinate equality  */
 char
-rttriangle_same(RTCTX *ctx, const RTTRIANGLE *t1, const RTTRIANGLE *t2)
+rttriangle_same(const RTCTX *ctx, const RTTRIANGLE *t1, const RTTRIANGLE *t2)
 {
 	char r = ptarray_same(ctx, t1->points, t2->points);
 	RTDEBUGF(5, "returning %d", r);
@@ -125,7 +125,7 @@ rttriangle_same(RTCTX *ctx, const RTTRIANGLE *t1, const RTTRIANGLE *t2)
  * Input line must have 4 points, and be closed.
  */
 RTTRIANGLE *
-rttriangle_from_rtline(RTCTX *ctx, const RTLINE *shell)
+rttriangle_from_rtline(const RTCTX *ctx, const RTLINE *shell)
 {
 	RTTRIANGLE *ret;
 	RTPOINTARRAY *pa;
@@ -147,7 +147,7 @@ rttriangle_from_rtline(RTCTX *ctx, const RTLINE *shell)
 }
 
 char
-rttriangle_is_repeated_points(RTCTX *ctx, RTTRIANGLE *triangle)
+rttriangle_is_repeated_points(const RTCTX *ctx, RTTRIANGLE *triangle)
 {
 	char ret;
 	RTPOINTARRAY *pa;
@@ -159,7 +159,7 @@ rttriangle_is_repeated_points(RTCTX *ctx, RTTRIANGLE *triangle)
 	return ret;
 }
 
-int rttriangle_is_empty(RTCTX *ctx, const RTTRIANGLE *triangle)
+int rttriangle_is_empty(const RTCTX *ctx, const RTTRIANGLE *triangle)
 {
 	if ( !triangle->points || triangle->points->npoints < 1 )
 		return RT_TRUE;
@@ -170,7 +170,7 @@ int rttriangle_is_empty(RTCTX *ctx, const RTTRIANGLE *triangle)
  * Find the area of the outer ring 
  */
 double
-rttriangle_area(RTCTX *ctx, const RTTRIANGLE *triangle)
+rttriangle_area(const RTCTX *ctx, const RTTRIANGLE *triangle)
 {
 	double area=0.0;
 	int i;
@@ -193,7 +193,7 @@ rttriangle_area(RTCTX *ctx, const RTTRIANGLE *triangle)
 
 
 double
-rttriangle_perimeter(RTCTX *ctx, const RTTRIANGLE *triangle)
+rttriangle_perimeter(const RTCTX *ctx, const RTTRIANGLE *triangle)
 {
 	if( triangle->points ) 
 		return ptarray_length(ctx, triangle->points);
@@ -202,7 +202,7 @@ rttriangle_perimeter(RTCTX *ctx, const RTTRIANGLE *triangle)
 }
 
 double
-rttriangle_perimeter_2d(RTCTX *ctx, const RTTRIANGLE *triangle)
+rttriangle_perimeter_2d(const RTCTX *ctx, const RTTRIANGLE *triangle)
 {
 	if( triangle->points ) 
 		return ptarray_length_2d(ctx, triangle->points);

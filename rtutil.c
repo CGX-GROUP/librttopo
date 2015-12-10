@@ -166,7 +166,7 @@ default_errorreporter(const char *fmt, va_list ap)
  * Only non-NULL values change their respective handler
  */
 void
-rtgeom_set_handlers(RTCTX *ctx, rtallocator allocator, rtreallocator reallocator,
+rtgeom_set_handlers(const RTCTX *ctx, rtallocator allocator, rtreallocator reallocator,
 	        rtfreeor freeor, rtreporter errorreporter,
 	        rtreporter noticereporter) {
 
@@ -179,13 +179,13 @@ rtgeom_set_handlers(RTCTX *ctx, rtallocator allocator, rtreallocator reallocator
 }
 
 void
-rtgeom_set_debuglogger(RTCTX *ctx, rtdebuglogger debuglogger) {
+rtgeom_set_debuglogger(const RTCTX *ctx, rtdebuglogger debuglogger) {
 
 	if ( debuglogger ) rtdebug_var = debuglogger;
 }
 
 const char* 
-rttype_name(RTCTX *ctx, uint8_t type)
+rttype_name(const RTCTX *ctx, uint8_t type)
 {
 	if ( type > 15 )
 	{
@@ -221,7 +221,7 @@ rtfree(const RTCTX *ctx, void *mem)
  * Modifies input.
  */
 void
-trim_trailing_zeros(RTCTX *ctx, char *str)
+trim_trailing_zeros(const RTCTX *ctx, char *str)
 {
 	char *ptr, *totrim=NULL;
 	int len;
@@ -261,7 +261,7 @@ trim_trailing_zeros(RTCTX *ctx, char *str)
  *    1 - end trunctation (i.e. characters are removed from the end)
  */
 
-char * rtmessage_truncate(RTCTX *ctx, char *str, int startpos, int endpos, int maxlength, int truncdirection)
+char * rtmessage_truncate(const RTCTX *ctx, char *str, int startpos, int endpos, int maxlength, int truncdirection)
 {
 	char *output;
 	char *outstart;
@@ -327,7 +327,7 @@ char * rtmessage_truncate(RTCTX *ctx, char *str, int startpos, int endpos, int m
 
 
 char
-getMachineEndian(RTCTX *ctx)
+getMachineEndian(const RTCTX *ctx)
 {
 	static int endian_check_int = 1; /* dont modify this!!! */
 
@@ -338,7 +338,7 @@ getMachineEndian(RTCTX *ctx)
 
 
 void
-error_if_srid_mismatch(RTCTX *ctx, int srid1, int srid2)
+error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2)
 {
 	if ( srid1 != srid2 )
 	{
@@ -347,7 +347,7 @@ error_if_srid_mismatch(RTCTX *ctx, int srid1, int srid2)
 }
 
 int
-clamp_srid(RTCTX *ctx, int srid)
+clamp_srid(const RTCTX *ctx, int srid)
 {
 	int newsrid = srid;
 

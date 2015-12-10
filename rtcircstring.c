@@ -18,15 +18,15 @@
 #include "librtgeom_internal.h"
 #include "rtgeom_log.h"
 
-void printRTCIRCSTRING(RTCTX *ctx, RTCIRCSTRING *curve);
-void rtcircstring_reverse(RTCTX *ctx, RTCIRCSTRING *curve);
-void rtcircstring_release(RTCTX *ctx, RTCIRCSTRING *rtcirc);
-char rtcircstring_same(RTCTX *ctx, const RTCIRCSTRING *me, const RTCIRCSTRING *you);
-RTCIRCSTRING * rtcircstring_from_rtpointarray(RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points);
-RTCIRCSTRING * rtcircstring_from_rtmpoint(RTCTX *ctx, int srid, RTMPOINT *mpoint);
-RTCIRCSTRING * rtcircstring_addpoint(RTCTX *ctx, RTCIRCSTRING *curve, RTPOINT *point, uint32_t where);
-RTCIRCSTRING * rtcircstring_removepoint(RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index);
-void rtcircstring_setPoint4d(RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *newpoint);
+void printRTCIRCSTRING(const RTCTX *ctx, RTCIRCSTRING *curve);
+void rtcircstring_reverse(const RTCTX *ctx, RTCIRCSTRING *curve);
+void rtcircstring_release(const RTCTX *ctx, RTCIRCSTRING *rtcirc);
+char rtcircstring_same(const RTCTX *ctx, const RTCIRCSTRING *me, const RTCIRCSTRING *you);
+RTCIRCSTRING * rtcircstring_from_rtpointarray(const RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points);
+RTCIRCSTRING * rtcircstring_from_rtmpoint(const RTCTX *ctx, int srid, RTMPOINT *mpoint);
+RTCIRCSTRING * rtcircstring_addpoint(const RTCTX *ctx, RTCIRCSTRING *curve, RTPOINT *point, uint32_t where);
+RTCIRCSTRING * rtcircstring_removepoint(const RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index);
+void rtcircstring_setPoint4d(const RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *newpoint);
 
 
 
@@ -35,7 +35,7 @@ void rtcircstring_setPoint4d(RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index, RT
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 RTCIRCSTRING *
-rtcircstring_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
+rtcircstring_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 {
 	RTCIRCSTRING *result;
 
@@ -64,7 +64,7 @@ rtcircstring_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
 }
 
 RTCIRCSTRING *
-rtcircstring_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtcircstring_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTCIRCSTRING *result = rtalloc(ctx, sizeof(RTCIRCSTRING));
 	result->type = RTCIRCSTRINGTYPE;
@@ -76,13 +76,13 @@ rtcircstring_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 }
 
 void
-rtcircstring_release(RTCTX *ctx, RTCIRCSTRING *rtcirc)
+rtcircstring_release(const RTCTX *ctx, RTCIRCSTRING *rtcirc)
 {
 	rtgeom_release(ctx, rtcircstring_as_rtgeom(ctx, rtcirc));
 }
 
 
-void rtcircstring_free(RTCTX *ctx, RTCIRCSTRING *curve)
+void rtcircstring_free(const RTCTX *ctx, RTCIRCSTRING *curve)
 {
 	if ( ! curve ) return;
 	
@@ -95,7 +95,7 @@ void rtcircstring_free(RTCTX *ctx, RTCIRCSTRING *curve)
 
 
 
-void printRTCIRCSTRING(RTCTX *ctx, RTCIRCSTRING *curve)
+void printRTCIRCSTRING(const RTCTX *ctx, RTCIRCSTRING *curve)
 {
 	rtnotice(ctx, "RTCIRCSTRING {");
 	rtnotice(ctx, "    ndims = %i", (int)RTFLAGS_NDIMS(curve->flags));
@@ -109,20 +109,20 @@ void printRTCIRCSTRING(RTCTX *ctx, RTCIRCSTRING *curve)
  * @see ptarray_clone 
  */
 RTCIRCSTRING *
-rtcircstring_clone(RTCTX *ctx, const RTCIRCSTRING *g)
+rtcircstring_clone(const RTCTX *ctx, const RTCIRCSTRING *g)
 {
 	return (RTCIRCSTRING *)rtline_clone(ctx, (RTLINE *)g);
 }
 
 
-void rtcircstring_reverse(RTCTX *ctx, RTCIRCSTRING *curve)
+void rtcircstring_reverse(const RTCTX *ctx, RTCIRCSTRING *curve)
 {
 	ptarray_reverse(ctx, curve->points);
 }
 
 /* check coordinate equality */
 char
-rtcircstring_same(RTCTX *ctx, const RTCIRCSTRING *me, const RTCIRCSTRING *you)
+rtcircstring_same(const RTCTX *ctx, const RTCIRCSTRING *me, const RTCIRCSTRING *you)
 {
 	return ptarray_same(ctx, me->points, you->points);
 }
@@ -132,7 +132,7 @@ rtcircstring_same(RTCTX *ctx, const RTCIRCSTRING *me, const RTCIRCSTRING *you)
  * RTCIRCSTRING dimensions are large enough to host all input dimensions.
  */
 RTCIRCSTRING *
-rtcircstring_from_rtpointarray(RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points)
+rtcircstring_from_rtpointarray(const RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points)
 {
 	int zmflag=0;
 	uint32_t i;
@@ -183,7 +183,7 @@ rtcircstring_from_rtpointarray(RTCTX *ctx, int srid, uint32_t npoints, RTPOINT *
  * Construct a RTCIRCSTRING from a RTMPOINT
  */
 RTCIRCSTRING *
-rtcircstring_from_rtmpoint(RTCTX *ctx, int srid, RTMPOINT *mpoint)
+rtcircstring_from_rtmpoint(const RTCTX *ctx, int srid, RTMPOINT *mpoint)
 {
 	uint32_t i;
 	RTPOINTARRAY *pa;
@@ -217,7 +217,7 @@ rtcircstring_from_rtmpoint(RTCTX *ctx, int srid, RTMPOINT *mpoint)
 }
 
 RTCIRCSTRING *
-rtcircstring_addpoint(RTCTX *ctx, RTCIRCSTRING *curve, RTPOINT *point, uint32_t where)
+rtcircstring_addpoint(const RTCTX *ctx, RTCIRCSTRING *curve, RTPOINT *point, uint32_t where)
 {
 	RTPOINTARRAY *newpa;
 	RTCIRCSTRING *ret;
@@ -231,7 +231,7 @@ rtcircstring_addpoint(RTCTX *ctx, RTCIRCSTRING *curve, RTPOINT *point, uint32_t 
 }
 
 RTCIRCSTRING *
-rtcircstring_removepoint(RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index)
+rtcircstring_removepoint(const RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index)
 {
 	RTPOINTARRAY *newpa;
 	RTCIRCSTRING *ret;
@@ -246,13 +246,13 @@ rtcircstring_removepoint(RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index)
  * Note: input will be changed, make sure you have permissions for this.
  * */
 void
-rtcircstring_setPoint4d(RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *newpoint)
+rtcircstring_setPoint4d(const RTCTX *ctx, RTCIRCSTRING *curve, uint32_t index, RTPOINT4D *newpoint)
 {
 	ptarray_set_point4d(ctx, curve->points, index, newpoint);
 }
 
 int
-rtcircstring_is_closed(RTCTX *ctx, const RTCIRCSTRING *curve)
+rtcircstring_is_closed(const RTCTX *ctx, const RTCIRCSTRING *curve)
 {
 	if (RTFLAGS_GET_Z(curve->flags))
 		return ptarray_is_closed_3d(ctx, curve->points);
@@ -260,19 +260,19 @@ rtcircstring_is_closed(RTCTX *ctx, const RTCIRCSTRING *curve)
 	return ptarray_is_closed_2d(ctx, curve->points);
 }
 
-int rtcircstring_is_empty(RTCTX *ctx, const RTCIRCSTRING *circ)
+int rtcircstring_is_empty(const RTCTX *ctx, const RTCIRCSTRING *circ)
 {
 	if ( !circ->points || circ->points->npoints < 1 )
 		return RT_TRUE;
 	return RT_FALSE;
 }
 
-double rtcircstring_length(RTCTX *ctx, const RTCIRCSTRING *circ)
+double rtcircstring_length(const RTCTX *ctx, const RTCIRCSTRING *circ)
 {
 	return rtcircstring_length_2d(ctx, circ);
 }
 
-double rtcircstring_length_2d(RTCTX *ctx, const RTCIRCSTRING *circ)
+double rtcircstring_length_2d(const RTCTX *ctx, const RTCIRCSTRING *circ)
 {
 	if ( rtcircstring_is_empty(ctx, circ) )
 		return 0.0;
@@ -284,7 +284,7 @@ double rtcircstring_length_2d(RTCTX *ctx, const RTCIRCSTRING *circ)
  * Returns freshly allocated #RTPOINT that corresponds to the index where.
  * Returns NULL if the geometry is empty or the index invalid.
  */
-RTPOINT* rtcircstring_get_rtpoint(RTCTX *ctx, const RTCIRCSTRING *circ, int where) {
+RTPOINT* rtcircstring_get_rtpoint(const RTCTX *ctx, const RTCIRCSTRING *circ, int where) {
 	RTPOINT4D pt;
 	RTPOINT *rtpoint;
 	RTPOINTARRAY *pa;
@@ -302,7 +302,7 @@ RTPOINT* rtcircstring_get_rtpoint(RTCTX *ctx, const RTCIRCSTRING *circ, int wher
 /*
 * Snap to grid 
 */
-RTCIRCSTRING* rtcircstring_grid(RTCTX *ctx, const RTCIRCSTRING *line, const gridspec *grid)
+RTCIRCSTRING* rtcircstring_grid(const RTCTX *ctx, const RTCIRCSTRING *line, const gridspec *grid)
 {
 	RTCIRCSTRING *oline;
 	RTPOINTARRAY *opa;

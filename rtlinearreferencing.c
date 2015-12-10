@@ -16,7 +16,7 @@
 #include "measures3d.h"
 
 static int
-segment_locate_along(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, double m, double offset, RTPOINT4D *pn)
+segment_locate_along(const RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, double m, double offset, RTPOINT4D *pn)
 {
 	double m1 = p1->m;
 	double m2 = p2->m;
@@ -63,7 +63,7 @@ segment_locate_along(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, doubl
 
 
 static RTPOINTARRAY*
-ptarray_locate_along(RTCTX *ctx, const RTPOINTARRAY *pa, double m, double offset)
+ptarray_locate_along(const RTCTX *ctx, const RTPOINTARRAY *pa, double m, double offset)
 {
 	int i;
 	RTPOINT4D p1, p2, pn;
@@ -94,7 +94,7 @@ ptarray_locate_along(RTCTX *ctx, const RTPOINTARRAY *pa, double m, double offset
 }
 
 static RTMPOINT*
-rtline_locate_along(RTCTX *ctx, const RTLINE *rtline, double m, double offset)
+rtline_locate_along(const RTCTX *ctx, const RTLINE *rtline, double m, double offset)
 {
 	RTPOINTARRAY *opa = NULL;
 	RTMPOINT *mp = NULL;
@@ -132,7 +132,7 @@ rtline_locate_along(RTCTX *ctx, const RTLINE *rtline, double m, double offset)
 }
 
 static RTMPOINT*
-rtmline_locate_along(RTCTX *ctx, const RTMLINE *rtmline, double m, double offset)
+rtmline_locate_along(const RTCTX *ctx, const RTMLINE *rtmline, double m, double offset)
 {
 	RTMPOINT *rtmpoint = NULL;
 	RTGEOM *rtg = rtmline_as_rtgeom(ctx, rtmline);
@@ -166,7 +166,7 @@ rtmline_locate_along(RTCTX *ctx, const RTMLINE *rtmline, double m, double offset
 }
 
 static RTMPOINT*
-rtpoint_locate_along(RTCTX *ctx, const RTPOINT *rtpoint, double m, double offset)
+rtpoint_locate_along(const RTCTX *ctx, const RTPOINT *rtpoint, double m, double offset)
 {
 	double point_m = rtpoint_get_m(ctx, rtpoint);
 	RTGEOM *rtg = rtpoint_as_rtgeom(ctx, rtpoint);
@@ -179,7 +179,7 @@ rtpoint_locate_along(RTCTX *ctx, const RTPOINT *rtpoint, double m, double offset
 }
 
 static RTMPOINT*
-rtmpoint_locate_along(RTCTX *ctx, const RTMPOINT *rtin, double m, double offset)
+rtmpoint_locate_along(const RTCTX *ctx, const RTMPOINT *rtin, double m, double offset)
 {
 	RTGEOM *rtg = rtmpoint_as_rtgeom(ctx, rtin);
 	RTMPOINT *rtout = NULL;
@@ -201,7 +201,7 @@ rtmpoint_locate_along(RTCTX *ctx, const RTMPOINT *rtin, double m, double offset)
 }
 
 RTGEOM*
-rtgeom_locate_along(RTCTX *ctx, const RTGEOM *rtin, double m, double offset)
+rtgeom_locate_along(const RTCTX *ctx, const RTGEOM *rtin, double m, double offset)
 {
 	if ( ! rtin ) return NULL;
 
@@ -235,7 +235,7 @@ rtgeom_locate_along(RTCTX *ctx, const RTGEOM *rtin, double m, double offset)
 * @param ordinate number (1=x, 2=y, 3=z, 4=m)
 * @return d value at that ordinate
 */
-double rtpoint_get_ordinate(RTCTX *ctx, const RTPOINT4D *p, char ordinate)
+double rtpoint_get_ordinate(const RTCTX *ctx, const RTPOINT4D *p, char ordinate)
 {
 	if ( ! p )
 	{
@@ -267,7 +267,7 @@ double rtpoint_get_ordinate(RTCTX *ctx, const RTPOINT4D *p, char ordinate)
 * Given a point, ordinate number and value, set that ordinate on the
 * point.
 */
-void rtpoint_set_ordinate(RTCTX *ctx, RTPOINT4D *p, char ordinate, double value)
+void rtpoint_set_ordinate(const RTCTX *ctx, RTPOINT4D *p, char ordinate, double value)
 {
 	if ( ! p )
 	{
@@ -305,7 +305,7 @@ void rtpoint_set_ordinate(RTCTX *ctx, RTPOINT4D *p, char ordinate, double value)
 * generate a new point that is proportionally between the input points,
 * using the values in the provided dimension as the scaling factors.
 */
-int point_interpolate(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, RTPOINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value)
+int point_interpolate(const RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, RTPOINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value)
 {
 	static char* dims = "XYZM";
 	double p1_value = rtpoint_get_ordinate(ctx, p1, ordinate);
@@ -348,7 +348,7 @@ int point_interpolate(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, RTPO
 * Clip an input POINT between two values, on any ordinate input.
 */
 RTCOLLECTION*
-rtpoint_clip_to_ordinate_range(RTCTX *ctx, const RTPOINT *point, char ordinate, double from, double to)
+rtpoint_clip_to_ordinate_range(const RTCTX *ctx, const RTPOINT *point, char ordinate, double from, double to)
 {
 	RTCOLLECTION *rtgeom_out = NULL;
 	char hasz, hasm;
@@ -399,7 +399,7 @@ rtpoint_clip_to_ordinate_range(RTCTX *ctx, const RTPOINT *point, char ordinate, 
 * Clip an input MULTIPOINT between two values, on any ordinate input.
 */
 RTCOLLECTION*
-rtmpoint_clip_to_ordinate_range(RTCTX *ctx, const RTMPOINT *mpoint, char ordinate, double from, double to)
+rtmpoint_clip_to_ordinate_range(const RTCTX *ctx, const RTMPOINT *mpoint, char ordinate, double from, double to)
 {
 	RTCOLLECTION *rtgeom_out = NULL;
 	char hasz, hasm;
@@ -454,7 +454,7 @@ rtmpoint_clip_to_ordinate_range(RTCTX *ctx, const RTMPOINT *mpoint, char ordinat
 * Clip an input MULTILINESTRING between two values, on any ordinate input.
 */
 RTCOLLECTION*
-rtmline_clip_to_ordinate_range(RTCTX *ctx, const RTMLINE *mline, char ordinate, double from, double to)
+rtmline_clip_to_ordinate_range(const RTCTX *ctx, const RTMLINE *mline, char ordinate, double from, double to)
 {
 	RTCOLLECTION *rtgeom_out = NULL;
 
@@ -539,7 +539,7 @@ rtmline_clip_to_ordinate_range(RTCTX *ctx, const RTMLINE *mline, char ordinate, 
 * LINESTRING between the from/to range for the specified ordinate (XYZM)
 */
 RTCOLLECTION*
-rtline_clip_to_ordinate_range(RTCTX *ctx, const RTLINE *line, char ordinate, double from, double to)
+rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinate, double from, double to)
 {
 
 	RTPOINTARRAY *pa_in = NULL;
@@ -762,7 +762,7 @@ rtline_clip_to_ordinate_range(RTCTX *ctx, const RTLINE *line, char ordinate, dou
 }
 
 RTCOLLECTION*
-rtgeom_clip_to_ordinate_range(RTCTX *ctx, const RTGEOM *rtin, char ordinate, double from, double to, double offset)
+rtgeom_clip_to_ordinate_range(const RTCTX *ctx, const RTGEOM *rtin, char ordinate, double from, double to, double offset)
 {
 	RTCOLLECTION *out_col;
 	RTCOLLECTION *out_offset;
@@ -831,7 +831,7 @@ rtgeom_clip_to_ordinate_range(RTCTX *ctx, const RTGEOM *rtin, char ordinate, dou
 }
 
 RTCOLLECTION*
-rtgeom_locate_between(RTCTX *ctx, const RTGEOM *rtin, double from, double to, double offset)
+rtgeom_locate_between(const RTCTX *ctx, const RTGEOM *rtin, double from, double to, double offset)
 {
 	if ( ! rtgeom_has_m(ctx, rtin) )
 		rterror(ctx, "Input geometry does not have a measure dimension");
@@ -840,7 +840,7 @@ rtgeom_locate_between(RTCTX *ctx, const RTGEOM *rtin, double from, double to, do
 }
 
 double
-rtgeom_interpolate_point(RTCTX *ctx, const RTGEOM *rtin, const RTPOINT *rtpt)
+rtgeom_interpolate_point(const RTCTX *ctx, const RTGEOM *rtin, const RTPOINT *rtpt)
 {
 	RTPOINT4D p, p_proj;
 	double ret = 0.0;
@@ -895,7 +895,7 @@ rtgeom_interpolate_point(RTCTX *ctx, const RTGEOM *rtin, const RTPOINT *rtpt)
  *
  */
 static double
-segments_tcpa(RTCTX *ctx, RTPOINT4D* p0, const RTPOINT4D* p1,
+segments_tcpa(const RTCTX *ctx, RTPOINT4D* p0, const RTPOINT4D* p1,
               RTPOINT4D* q0, const RTPOINT4D* q1,
               double t0, double t1)
 {
@@ -981,7 +981,7 @@ segments_tcpa(RTCTX *ctx, RTPOINT4D* p0, const RTPOINT4D* p1,
 }
 
 static int
-ptarray_collect_mvals(RTCTX *ctx, const RTPOINTARRAY *pa, double tmin, double tmax, double *mvals)
+ptarray_collect_mvals(const RTCTX *ctx, const RTPOINTARRAY *pa, double tmin, double tmax, double *mvals)
 {
 	RTPOINT4D pbuf;
 	int i, n=0;
@@ -1009,7 +1009,7 @@ compare_double(const void *pa, const void *pb)
 
 /* Return number of elements in unique array */
 static int
-uniq(RTCTX *ctx, double *vals, int nvals)
+uniq(const RTCTX *ctx, double *vals, int nvals)
 {
 	int i, last=0;
 	for (i=1; i<nvals; ++i)
@@ -1039,7 +1039,7 @@ uniq(RTCTX *ctx, double *vals, int nvals)
  *         or -1 if given measure was out of the known range.
  */
 static int
-ptarray_locate_along_linear(RTCTX *ctx, const RTPOINTARRAY *pa, double m, RTPOINT4D *p, int from)
+ptarray_locate_along_linear(const RTCTX *ctx, const RTPOINTARRAY *pa, double m, RTPOINT4D *p, int from)
 {
 	int i = from;
 	RTPOINT4D p1, p2;
@@ -1060,7 +1060,7 @@ ptarray_locate_along_linear(RTCTX *ctx, const RTPOINTARRAY *pa, double m, RTPOIN
 }
 
 double
-rtgeom_tcpa(RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double *mindist)
+rtgeom_tcpa(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double *mindist)
 {
 	RTLINE *l1, *l2;
 	int i;
@@ -1227,7 +1227,7 @@ rtgeom_tcpa(RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double *mindist)
 }
 
 int
-rtgeom_cpa_within(RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double maxdist)
+rtgeom_cpa_within(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double maxdist)
 {
 	RTLINE *l1, *l2;
 	int i;

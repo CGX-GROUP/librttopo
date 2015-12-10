@@ -14,13 +14,13 @@
 #include "stringbuffer.h"
 #include "librtgeom_internal.h"
 
-static char * rtline_to_encoded_polyline(RTCTX *ctx, const RTLINE*, int precision);
-static char * rtmmpoint_to_encoded_polyline(RTCTX *ctx, const RTMPOINT*, int precision);
-static char * pointarray_to_encoded_polyline(RTCTX *ctx, const RTPOINTARRAY*, int precision);
+static char * rtline_to_encoded_polyline(const RTCTX *ctx, const RTLINE*, int precision);
+static char * rtmmpoint_to_encoded_polyline(const RTCTX *ctx, const RTMPOINT*, int precision);
+static char * pointarray_to_encoded_polyline(const RTCTX *ctx, const RTPOINTARRAY*, int precision);
 
 /* takes a GEOMETRY and returns an Encoded Polyline representation */
 extern char *
-rtgeom_to_encoded_polyline(RTCTX *ctx, const RTGEOM *geom, int precision)
+rtgeom_to_encoded_polyline(const RTCTX *ctx, const RTGEOM *geom, int precision)
 {
 	int type = geom->type;
 	switch (type)
@@ -36,13 +36,13 @@ rtgeom_to_encoded_polyline(RTCTX *ctx, const RTGEOM *geom, int precision)
 }
 
 static
-char * rtline_to_encoded_polyline(RTCTX *ctx, const RTLINE *line, int precision)
+char * rtline_to_encoded_polyline(const RTCTX *ctx, const RTLINE *line, int precision)
 {
 	return pointarray_to_encoded_polyline(ctx, line->points, precision);
 }
 
 static
-char * rtmmpoint_to_encoded_polyline(RTCTX *ctx, const RTMPOINT *mpoint, int precision)
+char * rtmmpoint_to_encoded_polyline(const RTCTX *ctx, const RTMPOINT *mpoint, int precision)
 {
 	RTLINE *line = rtline_from_rtmpoint(ctx, mpoint->srid, mpoint);
 	char *encoded_polyline = rtline_to_encoded_polyline(ctx, line, precision);
@@ -52,7 +52,7 @@ char * rtmmpoint_to_encoded_polyline(RTCTX *ctx, const RTMPOINT *mpoint, int pre
 }
 
 static
-char * pointarray_to_encoded_polyline(RTCTX *ctx, const RTPOINTARRAY *pa, int precision)
+char * pointarray_to_encoded_polyline(const RTCTX *ctx, const RTPOINTARRAY *pa, int precision)
 {
 	int i;
 	const RTPOINT2D *prevPoint;

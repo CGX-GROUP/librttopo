@@ -15,13 +15,13 @@
 #include "librtgeom_internal.h"
 
 void
-rtmline_release(RTCTX *ctx, RTMLINE *rtmline)
+rtmline_release(const RTCTX *ctx, RTMLINE *rtmline)
 {
 	rtgeom_release(ctx, rtmline_as_rtgeom(ctx, rtmline));
 }
 
 RTMLINE *
-rtmline_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtmline_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTMLINE *ret = (RTMLINE*)rtcollection_construct_empty(ctx, RTMULTILINETYPE, srid, hasz, hasm);
 	return ret;
@@ -29,7 +29,7 @@ rtmline_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
 
 
 
-RTMLINE* rtmline_add_rtline(RTCTX *ctx, RTMLINE *mobj, const RTLINE *obj)
+RTMLINE* rtmline_add_rtline(const RTCTX *ctx, RTMLINE *mobj, const RTLINE *obj)
 {
 	return (RTMLINE*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
@@ -39,7 +39,7 @@ RTMLINE* rtmline_add_rtline(RTCTX *ctx, RTMLINE *mobj, const RTLINE *obj)
 * the measure between the supplied start and end values.
 */
 RTMLINE*
-rtmline_measured_from_rtmline(RTCTX *ctx, const RTMLINE *rtmline, double m_start, double m_end)
+rtmline_measured_from_rtmline(const RTCTX *ctx, const RTMLINE *rtmline, double m_start, double m_end)
 {
 	int i = 0;
 	int hasm = 0, hasz = 0;
@@ -95,7 +95,7 @@ rtmline_measured_from_rtmline(RTCTX *ctx, const RTMLINE *rtmline, double m_start
 	return (RTMLINE*)rtcollection_construct(ctx, rtmline->type, rtmline->srid, NULL, rtmline->ngeoms, geoms);
 }
 
-void rtmline_free(RTCTX *ctx, RTMLINE *mline)
+void rtmline_free(const RTCTX *ctx, RTMLINE *mline)
 {
 	int i;
 	if ( ! mline ) return;

@@ -1038,7 +1038,7 @@ RTT_ELEMID rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol);
  *
  * @return an array of <nedges> edge identifiers that sewed togheter
  *         will build up the input linestring (after snapping). Caller
- *         will need to free the array using rtfree(RTCTX *ctx), if not null.
+ *         will need to free the array using rtfree(const RTCTX *ctx), if not null.
  */
 RTT_ELEMID* rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol,
                         int* nedges);
@@ -1059,7 +1059,7 @@ RTT_ELEMID* rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol,
  *
  * @return an array of <nfaces> face identifiers that sewed togheter
  *         will build up the input polygon (after snapping). Caller
- *         will need to free the array using rtfree(RTCTX *ctx), if not null.
+ *         will need to free the array using rtfree(const RTCTX *ctx), if not null.
  */
 RTT_ELEMID* rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol,
                         int* nfaces);

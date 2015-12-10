@@ -17,7 +17,7 @@
 /**
 * Returns -1 if n < 0.0 and 1 if n > 0.0
 */
-int signum(RTCTX *ctx, double n)
+int signum(const RTCTX *ctx, double n)
 {
 	if( n < 0 ) return -1;
 	if( n > 0 ) return 1;
@@ -25,7 +25,7 @@ int signum(RTCTX *ctx, double n)
 }
 
 int
-p4d_same(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2)
+p4d_same(const RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) && FP_EQUALS(p1->z,p2->z) && FP_EQUALS(p1->m,p2->m) )
 		return RT_TRUE;
@@ -34,7 +34,7 @@ p4d_same(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2)
 }
 
 int
-p3d_same(RTCTX *ctx, const POINT3D *p1, const POINT3D *p2)
+p3d_same(const RTCTX *ctx, const POINT3D *p1, const POINT3D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) && FP_EQUALS(p1->z,p2->z) )
 		return RT_TRUE;
@@ -43,7 +43,7 @@ p3d_same(RTCTX *ctx, const POINT3D *p1, const POINT3D *p2)
 }
 
 int
-p2d_same(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
+p2d_same(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
 {
 	if( FP_EQUALS(p1->x,p2->x) && FP_EQUALS(p1->y,p2->y) )
 		return RT_TRUE;
@@ -58,7 +58,7 @@ p2d_same(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2)
 * Return  1  if point Q is right of segment P
 * Return  0  if point Q in on segment P
 */
-int rt_segment_side(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q)
+int rt_segment_side(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q)
 {
 	double side = ( (q->x - p1->x) * (p2->y - p1->y) - (p2->x - p1->x) * (q->y - p1->y) );
 	if ( side == 0.0 )
@@ -71,7 +71,7 @@ int rt_segment_side(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const 
 * Returns the length of a linear segment
 */
 double
-rt_seg_length(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2)
+rt_seg_length(const RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2)
 {
 	return sqrt((A1->x-A2->x)*(A1->x-A2->x)+(A1->y-A2->y)*(A1->y-A2->y));
 }
@@ -82,7 +82,7 @@ rt_seg_length(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2)
 * determined to be on the circle defined by A1/A2/A3.
 */
 int
-rt_pt_in_arc(RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
+rt_pt_in_arc(const RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
 	return rt_segment_side(ctx, A1, A3, A2) == rt_segment_side(ctx, A1, A3, P);
 }
@@ -92,7 +92,7 @@ rt_pt_in_arc(RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2
 * deterined to be on the line defined by A1/A2.
 */
 int
-rt_pt_in_seg(RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2)
+rt_pt_in_seg(const RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2D *A2)
 {
 	return ((A1->x <= P->x && P->x < A2->x) || (A1->x >= P->x && P->x > A2->x)) ||
 	       ((A1->y <= P->y && P->y < A2->y) || (A1->y >= P->y && P->y > A2->y));
@@ -102,7 +102,7 @@ rt_pt_in_seg(RTCTX *ctx, const RTPOINT2D *P, const RTPOINT2D *A1, const RTPOINT2
 * Returns true if arc A is actually a point (all vertices are the same) .
 */
 int
-rt_arc_is_pt(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
+rt_arc_is_pt(const RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
 	if ( A1->x == A2->x && A2->x == A3->x && 
 	     A1->y == A2->y && A2->y == A3->y )
@@ -115,7 +115,7 @@ rt_arc_is_pt(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT
 * Returns the length of a circular arc segment
 */
 double
-rt_arc_length(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
+rt_arc_length(const RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3)
 {
 	RTPOINT2D C;
 	double radius_A, circumference_A;
@@ -175,7 +175,7 @@ rt_arc_length(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOIN
 	return circumference_A * (angle / (2*M_PI));
 }
 
-int rt_arc_side(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, const RTPOINT2D *Q)
+int rt_arc_side(const RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPOINT2D *A3, const RTPOINT2D *Q)
 {
 	RTPOINT2D C;
 	double radius_A;
@@ -224,7 +224,7 @@ int rt_arc_side(RTCTX *ctx, const RTPOINT2D *A1, const RTPOINT2D *A2, const RTPO
 * point is coincident with either end point, they are taken as colinear.
 */
 double
-rt_arc_center(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTPOINT2D *result)	
+rt_arc_center(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *p3, RTPOINT2D *result)	
 {
 	RTPOINT2D c;
 	double cx, cy, cr;
@@ -277,7 +277,7 @@ rt_arc_center(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOIN
 }
 
 int
-pt_in_ring_2d(RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
+pt_in_ring_2d(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
 {
 	int cn = 0;    /* the crossing number counter */
 	int i;
@@ -333,7 +333,7 @@ pt_in_ring_2d(RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
 
 
 static int 
-rt_seg_interact(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
+rt_seg_interact(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
 {
 	double minq=FP_MIN(q1->x,q2->x);
 	double maxq=FP_MAX(q1->x,q2->x);
@@ -368,7 +368,7 @@ rt_seg_interact(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPO
 **		SEG_CROSS_LEFT = 2,
 **		SEG_CROSS_RIGHT = 3,
 */
-int rt_segment_intersects(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
+int rt_segment_intersects(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q1, const RTPOINT2D *q2)
 {
 
 	int pq1, pq2, qp1, qp2;
@@ -457,7 +457,7 @@ int rt_segment_intersects(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, 
 **   LINE_MULTICROSS_END_SAME_FIRST_RIGHT = 3
 **
 */
-int rtline_crossing_direction(RTCTX *ctx, const RTLINE *l1, const RTLINE *l2)
+int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *l2)
 {
 	int i = 0, j = 0;
 	const RTPOINT2D *p1, *p2, *q1, *q2;
@@ -578,7 +578,7 @@ static char *base32 = "0123456789bcdefghjkmnpqrstuvwxyz";
 ** From geohash-native.c, (c) 2008 David Troy <dave@roundhousetech.com>
 ** Released under the MIT License.
 */
-char * geohash_point(RTCTX *ctx, double longitude, double latitude, int precision)
+char * geohash_point(const RTCTX *ctx, double longitude, double latitude, int precision)
 {
 	int is_even=1, i=0;
 	double lat[2], lon[2], mid;
@@ -644,7 +644,7 @@ char * geohash_point(RTCTX *ctx, double longitude, double latitude, int precisio
 ** From geohash-native.c, (c) 2008 David Troy <dave@roundhousetech.com>
 ** Released under the MIT License.
 */
-unsigned int geohash_point_as_int(RTCTX *ctx, RTPOINT2D *pt)
+unsigned int geohash_point_as_int(const RTCTX *ctx, RTPOINT2D *pt)
 {
 	int is_even=1;
 	double lat[2], lon[2], mid;
@@ -700,7 +700,7 @@ unsigned int geohash_point_as_int(RTCTX *ctx, RTPOINT2D *pt)
 ** box accordingly. A precision less than 0 indicates that the entire length
 ** of the GeoHash should be used.
 */
-void decode_geohash_bbox(RTCTX *ctx, char *geohash, double *lat, double *lon, int precision)
+void decode_geohash_bbox(const RTCTX *ctx, char *geohash, double *lat, double *lon, int precision)
 {
 	int i, j, hashlen;
 	char c, cd, mask, is_even = 1;
@@ -739,7 +739,7 @@ void decode_geohash_bbox(RTCTX *ctx, char *geohash, double *lat, double *lon, in
 	}
 }
 
-int rtgeom_geohash_precision(RTCTX *ctx, RTGBOX bbox, RTGBOX *bounds)
+int rtgeom_geohash_precision(const RTCTX *ctx, RTGBOX bbox, RTGBOX *bounds)
 {
 	double minx, miny, maxx, maxy;
 	double latmax, latmin, lonmax, lonmin;
@@ -824,7 +824,7 @@ int rtgeom_geohash_precision(RTCTX *ctx, RTGBOX bbox, RTGBOX *bounds)
 ** bounds of the feature. Big features have loose precision.
 ** Small features have tight precision.
 */
-char * rtgeom_geohash(RTCTX *ctx, const RTGEOM *rtgeom, int precision)
+char * rtgeom_geohash(const RTCTX *ctx, const RTGEOM *rtgeom, int precision)
 {
 	RTGBOX gbox;
 	RTGBOX gbox_bounds;

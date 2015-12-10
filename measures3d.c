@@ -18,7 +18,7 @@
 
 
 static inline int
-get_3dvector_from_points(RTCTX *ctx, RTPOINT3DZ *p1,RTPOINT3DZ *p2, VECTOR3D *v)
+get_3dvector_from_points(const RTCTX *ctx, RTPOINT3DZ *p1,RTPOINT3DZ *p2, VECTOR3D *v)
 {
 	v->x=p2->x-p1->x;
 	v->y=p2->y-p1->y;
@@ -28,7 +28,7 @@ get_3dvector_from_points(RTCTX *ctx, RTPOINT3DZ *p1,RTPOINT3DZ *p2, VECTOR3D *v)
 }
 
 static inline int
-get_3dcross_product(RTCTX *ctx, VECTOR3D *v1,VECTOR3D *v2, VECTOR3D *v)
+get_3dcross_product(const RTCTX *ctx, VECTOR3D *v1,VECTOR3D *v2, VECTOR3D *v)
 {
 	v->x=(v1->y*v2->z)-(v1->z*v2->y);
 	v->y=(v1->z*v2->x)-(v1->x*v2->z);
@@ -44,7 +44,7 @@ geometries lacks z-values. The vertical line crosses the 2d point that is closes
 and the z-range is from maxz to minz in the geoemtrie that has z values.
 */
 static 
-RTGEOM* create_v_line(RTCTX *ctx, const RTGEOM *rtgeom,double x, double y, int srid)
+RTGEOM* create_v_line(const RTCTX *ctx, const RTGEOM *rtgeom,double x, double y, int srid)
 {
 	
 	RTPOINT *rtpoints[2];
@@ -61,19 +61,19 @@ RTGEOM* create_v_line(RTCTX *ctx, const RTGEOM *rtgeom,double x, double y, int s
 }
 
 RTGEOM * 
-rtgeom_closest_line_3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_closest_line_3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	return rt_dist3d_distanceline(ctx, rt1, rt2, rt1->srid, DIST_MIN);
 }
 
 RTGEOM * 
-rtgeom_furthest_line_3d(RTCTX *ctx, RTGEOM *rt1, RTGEOM *rt2)
+rtgeom_furthest_line_3d(const RTCTX *ctx, RTGEOM *rt1, RTGEOM *rt2)
 {
 	return rt_dist3d_distanceline(ctx, rt1, rt2, rt1->srid, DIST_MAX);
 }
 
 RTGEOM * 
-rtgeom_closest_point_3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_closest_point_3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	return rt_dist3d_distancepoint(ctx, rt1, rt2, rt1->srid, DIST_MIN);
 }
@@ -83,7 +83,7 @@ rtgeom_closest_point_3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 Function initializing 3dshortestline and 3dlongestline calculations.
 */
 RTGEOM *
-rt_dist3d_distanceline(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
+rt_dist3d_distanceline(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 {
 	RTDEBUG(2, "rt_dist3d_distanceline is called");
 	double x1,x2,y1,y2, z1, z2, x, y;
@@ -187,7 +187,7 @@ rt_dist3d_distanceline(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int sri
 Function initializing 3dclosestpoint calculations.
 */
 RTGEOM *
-rt_dist3d_distancepoint(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
+rt_dist3d_distancepoint(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int srid, int mode)
 {
 	
 	double x,y,z;
@@ -287,7 +287,7 @@ rt_dist3d_distancepoint(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, int sr
 Function initializing 3d max distance calculation
 */
 double
-rtgeom_maxdistance3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_maxdistance3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	RTDEBUG(2, "rtgeom_maxdistance3d is called");
 
@@ -299,7 +299,7 @@ Function handling 3d max distance calculations and dfullywithin calculations.
 The difference is just the tolerance.
 */
 double
-rtgeom_maxdistance3d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
+rtgeom_maxdistance3d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
 {
 	if(!rtgeom_has_z(ctx, rt1) || !rtgeom_has_z(ctx, rt2))
 	{
@@ -325,7 +325,7 @@ rtgeom_maxdistance3d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,
 	Function initializing 3d min distance calculation
 */
 double
-rtgeom_mindistance3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
+rtgeom_mindistance3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
 	RTDEBUG(2, "rtgeom_mindistance3d is called");
 	return rtgeom_mindistance3d_tolerance(ctx,  rt1, rt2, 0.0 );
@@ -336,7 +336,7 @@ rtgeom_mindistance3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 	The difference is just the tolerance.
 */
 double
-rtgeom_mindistance3d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
+rtgeom_mindistance3d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
 {
 	if(!rtgeom_has_z(ctx, rt1) || !rtgeom_has_z(ctx, rt2))
 	{
@@ -372,7 +372,7 @@ Functions preparing geometries for distance-calculations
 /**
 This is a recursive function delivering every possible combination of subgeometries
 */
-int rt_dist3d_recursive(RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
+int rt_dist3d_recursive(const RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTPTS3D *dl)
 {
 	int i, j;
 	int n1=1;
@@ -453,7 +453,7 @@ int rt_dist3d_recursive(RTCTX *ctx, const RTGEOM *rtg1,const RTGEOM *rtg2, DISTP
 This function distributes the brute-force for 3D so far the only type, tasks depending on type
 */
 int
-rt_dist3d_distribute_bruteforce(RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D *dl)
+rt_dist3d_distribute_bruteforce(const RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2, DISTPTS3D *dl)
 {
 
 	int	t1 = rtg1->type;
@@ -557,7 +557,7 @@ So far the only way to do 3D-calculations
 point to point calculation
 */
 int
-rt_dist3d_point_point(RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl)
+rt_dist3d_point_point(const RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS3D *dl)
 {
 	RTPOINT3DZ p1;
 	RTPOINT3DZ p2;
@@ -573,7 +573,7 @@ rt_dist3d_point_point(RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPTS3D *d
 point to line calculation
 */
 int
-rt_dist3d_point_line(RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS3D *dl)
+rt_dist3d_point_line(const RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS3D *dl)
 {
 	RTPOINT3DZ p;
 	RTPOINTARRAY *pa = line->points;
@@ -595,7 +595,7 @@ for max distance it is artays point against boundary
 
 */
 int
-rt_dist3d_point_poly(RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl)
+rt_dist3d_point_poly(const RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl)
 {
 	RTPOINT3DZ p, projp;/*projp is "point projected on plane"*/
 	PLANE3D plane;
@@ -625,7 +625,7 @@ rt_dist3d_point_poly(RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS3D *dl)
 line to line calculation
 */
 int
-rt_dist3d_line_line(RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS3D *dl)
+rt_dist3d_line_line(const RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS3D *dl)
 {
 	RTPOINTARRAY *pa1 = line1->points;
 	RTPOINTARRAY *pa2 = line2->points;
@@ -638,7 +638,7 @@ rt_dist3d_line_line(RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS3D *dl)
 
 line to polygon calculation
 */
-int rt_dist3d_line_poly(RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS3D *dl)
+int rt_dist3d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS3D *dl)
 {
 	PLANE3D plane;	
 	RTDEBUG(2, "rt_dist3d_line_poly is called");	
@@ -658,7 +658,7 @@ int rt_dist3d_line_poly(RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS3D *dl)
 
 polygon to polygon calculation
 */
-int rt_dist3d_poly_poly(RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
+int rt_dist3d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
 {		
 	PLANE3D plane;		
 	RTDEBUG(2, "rt_dist3d_poly_poly is called");
@@ -690,7 +690,7 @@ int rt_dist3d_poly_poly(RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS3D *dl)
  * Returns distance between point and pointarray
  */
 int
-rt_dist3d_pt_ptarray(RTCTX *ctx, RTPOINT3DZ *p, RTPOINTARRAY *pa,DISTPTS3D *dl)
+rt_dist3d_pt_ptarray(const RTCTX *ctx, RTPOINT3DZ *p, RTPOINTARRAY *pa,DISTPTS3D *dl)
 {
 	int t;
 	RTPOINT3DZ	start, end;
@@ -720,7 +720,7 @@ If searching for min distance, this one finds the closest point on segment A-B f
 if searching for max distance it just sends p-A and p-B to pt-pt calculation
 */
 int
-rt_dist3d_pt_seg(RTCTX *ctx, RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl)
+rt_dist3d_pt_seg(const RTCTX *ctx, RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPTS3D *dl)
 {
 	RTPOINT3DZ c;
 	double	r;
@@ -768,7 +768,7 @@ rt_dist3d_pt_seg(RTCTX *ctx, RTPOINT3DZ *p, RTPOINT3DZ *A, RTPOINT3DZ *B, DISTPT
 }
 
 double
-distance3d_pt_pt(RTCTX *ctx, const POINT3D *p1, const POINT3D *p2)
+distance3d_pt_pt(const RTCTX *ctx, const POINT3D *p1, const POINT3D *p2)
 {
   double dx = p2->x - p1->x;
   double dy = p2->y - p1->y;
@@ -785,7 +785,7 @@ or most far away from each other
 depending on dl->mode (max or min)
 */
 int
-rt_dist3d_pt_pt(RTCTX *ctx, RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
+rt_dist3d_pt_pt(const RTCTX *ctx, RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
 {
 	double dx = thep2->x - thep1->x;
 	double dy = thep2->y - thep1->y;
@@ -817,7 +817,7 @@ rt_dist3d_pt_pt(RTCTX *ctx, RTPOINT3DZ *thep1, RTPOINT3DZ *thep2,DISTPTS3D *dl)
 Finds all combinationes of segments between two pointarrays
 */
 int
-rt_dist3d_ptarray_ptarray(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
+rt_dist3d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS3D *dl)
 {
 	int t,u;
 	RTPOINT3DZ	start, end;
@@ -871,7 +871,7 @@ rt_dist3d_ptarray_ptarray(RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,DISTPTS
 Finds the two closest points on two linesegments
 */
 int 
-rt_dist3d_seg_seg(RTCTX *ctx, RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3DZ *s2p2, DISTPTS3D *dl)
+rt_dist3d_seg_seg(const RTCTX *ctx, RTPOINT3DZ *s1p1, RTPOINT3DZ *s1p2, RTPOINT3DZ *s2p1, RTPOINT3DZ *s2p2, DISTPTS3D *dl)
 {
 	VECTOR3D v1, v2, vl;
 	double s1k, s2k; /*two variables representing where on Line 1 (s1k) and where on Line 2 (s2k) a connecting line between the two lines is perpendicular to both lines*/
@@ -993,7 +993,7 @@ If not we check from original point to the bounadary.
 If the projected point is inside a hole of the polygon we check the distance to the boudary of that hole.
 */
 int
-rt_dist3d_pt_poly(RTCTX *ctx, RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp, DISTPTS3D *dl)
+rt_dist3d_pt_poly(const RTCTX *ctx, RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOINT3DZ *projp, DISTPTS3D *dl)
 {	
 	int i;
 	
@@ -1027,7 +1027,7 @@ rt_dist3d_pt_poly(RTCTX *ctx, RTPOINT3DZ *p, RTPOLY *poly, PLANE3D *plane,RTPOIN
 
 Computes pointarray to polygon distance
 */
-int rt_dist3d_ptarray_poly(RTCTX *ctx, RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPTS3D *dl)
+int rt_dist3d_ptarray_poly(const RTCTX *ctx, RTPOINTARRAY *pa, RTPOLY *poly,PLANE3D *plane, DISTPTS3D *dl)
 {
 	
 
@@ -1110,7 +1110,7 @@ Here we define the plane of a polygon (boundary pointarray of a polygon)
 the plane is stored as a pont in plane (plane.pop) and a normal vector (plane.pv)
 */
 int
-define_plane(RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl)
+define_plane(const RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl)
 {
 	int i,j, numberofvectors, pointsinslice;
 	RTPOINT3DZ p, p1, p2;
@@ -1176,7 +1176,7 @@ define_plane(RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl)
 Finds a point on a plane from where the original point is perpendicular to the plane
 */
 double 
-project_point_on_plane(RTCTX *ctx, RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0)
+project_point_on_plane(const RTCTX *ctx, RTPOINT3DZ *p,  PLANE3D *pl, RTPOINT3DZ *p0)
 {
 /*In our plane definition we have a point on the plane and a normal vektor (pl.pv), perpendicular to the plane
 this vector will be paralell to the line between our inputted point above the plane and the point we are searching for on the plane.
@@ -1214,7 +1214,7 @@ So, we already have a direction from p to find p0, but we don't know the distanc
 *	That is the dimension with the highest number in pv
  */
 int
-pt_in_ring_3d(RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
+pt_in_ring_3d(const RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PLANE3D *plane)
 {
 	
 	int cn = 0;    /* the crossing number counter */

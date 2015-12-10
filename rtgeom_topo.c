@@ -423,7 +423,7 @@ rtt_be_ExistsEdgeIntersectingPoint(RTT_TOPOLOGY* topo, RTPOINT* pt)
  ************************************************************************/
 
 static void
-_rtt_release_faces(RTCTX *ctx, RTT_ISO_FACE *faces, int num_faces)
+_rtt_release_faces(const RTCTX *ctx, RTT_ISO_FACE *faces, int num_faces)
 {
   int i;
   for ( i=0; i<num_faces; ++i ) {
@@ -433,7 +433,7 @@ _rtt_release_faces(RTCTX *ctx, RTT_ISO_FACE *faces, int num_faces)
 }
 
 static void
-_rtt_release_edges(RTCTX *ctx, RTT_ISO_EDGE *edges, int num_edges)
+_rtt_release_edges(const RTCTX *ctx, RTT_ISO_EDGE *edges, int num_edges)
 {
   int i;
   for ( i=0; i<num_edges; ++i ) {
@@ -443,7 +443,7 @@ _rtt_release_edges(RTCTX *ctx, RTT_ISO_EDGE *edges, int num_edges)
 }
 
 static void
-_rtt_release_nodes(RTCTX *ctx, RTT_ISO_NODE *nodes, int num_nodes)
+_rtt_release_nodes(const RTCTX *ctx, RTT_ISO_NODE *nodes, int num_nodes)
 {
   int i;
   for ( i=0; i<num_nodes; ++i ) {
@@ -4914,7 +4914,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
  * the maximum absolute value of a geometry ordinate
  */
 static double
-_rtt_minTolerance(RTCTX *ctx,  RTGEOM *g )
+_rtt_minTolerance(const RTCTX *ctx,  RTGEOM *g )
 {
   const RTGBOX* gbox;
   double max;

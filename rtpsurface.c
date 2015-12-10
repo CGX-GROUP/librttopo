@@ -17,13 +17,13 @@
 #include "rtgeom_log.h"
 
 
-RTPSURFACE* rtpsurface_add_rtpoly(RTCTX *ctx, RTPSURFACE *mobj, const RTPOLY *obj)
+RTPSURFACE* rtpsurface_add_rtpoly(const RTCTX *ctx, RTPSURFACE *mobj, const RTPOLY *obj)
 {
 	return (RTPSURFACE*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
 
-void rtpsurface_free(RTCTX *ctx, RTPSURFACE *psurf)
+void rtpsurface_free(const RTCTX *ctx, RTPSURFACE *psurf)
 {
 	int i;
 	if ( ! psurf ) return;
@@ -41,7 +41,7 @@ void rtpsurface_free(RTCTX *ctx, RTPSURFACE *psurf)
 }
 
 
-void printRTPSURFACE(RTCTX *ctx, RTPSURFACE *psurf)
+void printRTPSURFACE(const RTCTX *ctx, RTPSURFACE *psurf)
 {
 	int i, j;
 	RTPOLY *patch;
@@ -83,7 +83,7 @@ typedef struct struct_psurface_arcs *psurface_arcs;
 
 /* We supposed that the geometry is valid
    we could have wrong result if not */
-int rtpsurface_is_closed(RTCTX *ctx, const RTPSURFACE *psurface)
+int rtpsurface_is_closed(const RTCTX *ctx, const RTPSURFACE *psurface)
 {
 	int i, j, k;
 	int narcs, carc;

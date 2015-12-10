@@ -43,7 +43,7 @@
 * Allocate a new stringbuffer_t. Use stringbuffer_destroy to free.
 */
 stringbuffer_t* 
-stringbuffer_create(RTCTX *ctx)
+stringbuffer_create(const RTCTX *ctx)
 {
 	return stringbuffer_create_with_size(ctx, STRINGBUFFER_STARTSIZE);
 }
@@ -52,7 +52,7 @@ stringbuffer_create(RTCTX *ctx)
 * Allocate a new stringbuffer_t. Use stringbuffer_destroy to free.
 */
 stringbuffer_t* 
-stringbuffer_create_with_size(RTCTX *ctx, size_t size)
+stringbuffer_create_with_size(const RTCTX *ctx, size_t size)
 {
 	stringbuffer_t *s;
 
@@ -68,7 +68,7 @@ stringbuffer_create_with_size(RTCTX *ctx, size_t size)
 * Free the stringbuffer_t and all memory managed within it.
 */
 void 
-stringbuffer_destroy(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_destroy(const RTCTX *ctx, stringbuffer_t *s)
 {
 	if ( s->str_start ) rtfree(ctx, s->str_start);
 	if ( s ) rtfree(ctx, s);
@@ -80,7 +80,7 @@ stringbuffer_destroy(RTCTX *ctx, stringbuffer_t *s)
 * stringbuffer_t.
 */
 void 
-stringbuffer_clear(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_clear(const RTCTX *ctx, stringbuffer_t *s)
 {
 	s->str_start[0] = '\0';
 	s->str_end = s->str_start;
@@ -91,7 +91,7 @@ stringbuffer_clear(RTCTX *ctx, stringbuffer_t *s)
 * specified additional size.
 */
 static inline void 
-stringbuffer_makeroom(RTCTX *ctx, stringbuffer_t *s, size_t size_to_add)
+stringbuffer_makeroom(const RTCTX *ctx, stringbuffer_t *s, size_t size_to_add)
 {
 	size_t current_size = (s->str_end - s->str_start);
 	size_t capacity = s->capacity;
@@ -112,7 +112,7 @@ stringbuffer_makeroom(RTCTX *ctx, stringbuffer_t *s, size_t size_to_add)
 * Return the last character in the buffer.
 */
 char 
-stringbuffer_lastchar(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_lastchar(const RTCTX *ctx, stringbuffer_t *s)
 {
 	if( s->str_end == s->str_start ) 
 		return 0;
@@ -124,7 +124,7 @@ stringbuffer_lastchar(RTCTX *ctx, stringbuffer_t *s)
 * Append the specified string to the stringbuffer_t.
 */
 void 
-stringbuffer_append(RTCTX *ctx, stringbuffer_t *s, const char *a)
+stringbuffer_append(const RTCTX *ctx, stringbuffer_t *s, const char *a)
 {
 	int alen = strlen(a); /* Length of string to append */
 	int alen0 = alen + 1; /* Length including null terminator */
@@ -139,7 +139,7 @@ stringbuffer_append(RTCTX *ctx, stringbuffer_t *s, const char *a)
 * within the internal string.
 */
 const char* 
-stringbuffer_getstring(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_getstring(const RTCTX *ctx, stringbuffer_t *s)
 {
 	return s->str_start;
 }
@@ -150,7 +150,7 @@ stringbuffer_getstring(RTCTX *ctx, stringbuffer_t *s)
 * freeing the return value.
 */
 char* 
-stringbuffer_getstringcopy(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_getstringcopy(const RTCTX *ctx, stringbuffer_t *s)
 {
 	size_t size = (s->str_end - s->str_start) + 1;
 	char *str = rtalloc(ctx, size);
@@ -164,7 +164,7 @@ stringbuffer_getstringcopy(RTCTX *ctx, stringbuffer_t *s)
 * null terminator (same behavior as strlen()).
 */
 int 
-stringbuffer_getlength(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_getlength(const RTCTX *ctx, stringbuffer_t *s)
 {
 	return (s->str_end - s->str_start);
 }
@@ -173,7 +173,7 @@ stringbuffer_getlength(RTCTX *ctx, stringbuffer_t *s)
 * Clear the stringbuffer_t and re-start it with the specified string.
 */
 void 
-stringbuffer_set(RTCTX *ctx, stringbuffer_t *s, const char *str)
+stringbuffer_set(const RTCTX *ctx, stringbuffer_t *s, const char *str)
 {
 	stringbuffer_clear(ctx, s);
 	stringbuffer_append(ctx, s, str);
@@ -183,7 +183,7 @@ stringbuffer_set(RTCTX *ctx, stringbuffer_t *s, const char *str)
 * Copy the contents of src into dst.
 */
 void 
-stringbuffer_copy(RTCTX *ctx, stringbuffer_t *dst, stringbuffer_t *src)
+stringbuffer_copy(const RTCTX *ctx, stringbuffer_t *dst, stringbuffer_t *src)
 {
 	stringbuffer_set(ctx, dst, stringbuffer_getstring(ctx, src));
 }
@@ -194,7 +194,7 @@ stringbuffer_copy(RTCTX *ctx, stringbuffer_t *dst, stringbuffer_t *src)
 * check errno for reasons, documented in the printf man page.
 */
 static int 
-stringbuffer_avprintf(RTCTX *ctx, stringbuffer_t *s, const char *fmt, va_list ap)
+stringbuffer_avprintf(const RTCTX *ctx, stringbuffer_t *s, const char *fmt, va_list ap)
 {
 	int maxlen = (s->capacity - (s->str_end - s->str_start));
 	int len = 0; /* Length of the output */
@@ -243,7 +243,7 @@ stringbuffer_avprintf(RTCTX *ctx, stringbuffer_t *s, const char *fmt, va_list ap
 * as documented in the printf man page.
 */
 int 
-stringbuffer_aprintf(RTCTX *ctx, stringbuffer_t *s, const char *fmt, ...)
+stringbuffer_aprintf(const RTCTX *ctx, stringbuffer_t *s, const char *fmt, ...)
 {
 	int r;
 	va_list ap;
@@ -258,7 +258,7 @@ stringbuffer_aprintf(RTCTX *ctx, stringbuffer_t *s, const char *fmt, ...)
 * the number of characters trimmed.
 */
 int 
-stringbuffer_trim_trailing_white(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_trim_trailing_white(const RTCTX *ctx, stringbuffer_t *s)
 {
 	char *ptr = s->str_end;
 	int dist = 0;
@@ -294,7 +294,7 @@ stringbuffer_trim_trailing_white(RTCTX *ctx, stringbuffer_t *s)
 *     0.0 -> 0
 */
 int 
-stringbuffer_trim_trailing_zeroes(RTCTX *ctx, stringbuffer_t *s)
+stringbuffer_trim_trailing_zeroes(const RTCTX *ctx, stringbuffer_t *s)
 {
 	char *ptr = s->str_end;
 	char *decimal_ptr = NULL;

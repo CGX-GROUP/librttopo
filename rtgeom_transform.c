@@ -19,7 +19,7 @@
 
 /** convert decimal degress to radians */
 static void
-to_rad(RTCTX *ctx, RTPOINT4D *pt)
+to_rad(const RTCTX *ctx, RTPOINT4D *pt)
 {
 	pt->x *= M_PI/180.0;
 	pt->y *= M_PI/180.0;
@@ -27,7 +27,7 @@ to_rad(RTCTX *ctx, RTPOINT4D *pt)
 
 /** convert radians to decimal degress */
 static void
-to_dec(RTCTX *ctx, RTPOINT4D *pt)
+to_dec(const RTCTX *ctx, RTPOINT4D *pt)
 {
 	pt->x *= 180.0/M_PI;
 	pt->y *= 180.0/M_PI;
@@ -38,7 +38,7 @@ to_dec(RTCTX *ctx, RTPOINT4D *pt)
  * from inpj projection to outpj projection
  */
 int
-ptarray_transform(RTCTX *ctx, RTPOINTARRAY *pa, projPJ inpj, projPJ outpj)
+ptarray_transform(const RTCTX *ctx, RTPOINTARRAY *pa, projPJ inpj, projPJ outpj)
 {
   int i;
 	RTPOINT4D p;
@@ -59,7 +59,7 @@ ptarray_transform(RTCTX *ctx, RTPOINTARRAY *pa, projPJ inpj, projPJ outpj)
  * from inpj projection to outpj projection
  */
 int
-rtgeom_transform(RTCTX *ctx, RTGEOM *geom, projPJ inpj, projPJ outpj)
+rtgeom_transform(const RTCTX *ctx, RTGEOM *geom, projPJ inpj, projPJ outpj)
 {
 	int i;
 
@@ -116,7 +116,7 @@ rtgeom_transform(RTCTX *ctx, RTGEOM *geom, projPJ inpj, projPJ outpj)
 }
 
 int
-point4d_transform(RTCTX *ctx, RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
+point4d_transform(const RTCTX *ctx, RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
 {
 	int* pj_errno_ref;
 	RTPOINT4D orig_pt;
@@ -158,7 +158,7 @@ point4d_transform(RTCTX *ctx, RTPOINT4D *pt, projPJ srcpj, projPJ dstpj)
 }
 
 projPJ
-rtproj_from_string(RTCTX *ctx, const char *str1)
+rtproj_from_string(const RTCTX *ctx, const char *str1)
 {
 	int t;
 	char *params[1024];  /* one for each parameter */

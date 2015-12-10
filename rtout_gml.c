@@ -22,44 +22,44 @@
 #include "librtgeom_internal.h"
 
 
-static size_t asgml2_point_size(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char *prefix);
-static char * asgml2_point(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char *prefix);
-static size_t asgml2_line_size(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix);
-static char * asgml2_line(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix);
-static size_t asgml2_poly_size(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix);
-static char * asgml2_poly(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix);
-static size_t asgml2_multi_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
-static char * asgml2_multi(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
-static size_t asgml2_collection_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
-static char * asgml2_collection(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
-static size_t pointArray_toGML2(RTCTX *ctx, RTPOINTARRAY *pa, char *buf, int precision);
+static size_t asgml2_point_size(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char *prefix);
+static char * asgml2_point(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char *prefix);
+static size_t asgml2_line_size(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix);
+static char * asgml2_line(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix);
+static size_t asgml2_poly_size(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix);
+static char * asgml2_poly(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix);
+static size_t asgml2_multi_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
+static char * asgml2_multi(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
+static size_t asgml2_collection_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
+static char * asgml2_collection(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, const char *prefix);
+static size_t pointArray_toGML2(const RTCTX *ctx, RTPOINTARRAY *pa, char *buf, int precision);
 
-static size_t asgml3_point_size(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_point(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static size_t asgml3_line_size(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_line(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_circstring(RTCTX *ctx,  const RTCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id );
-static size_t asgml3_poly_size(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_poly(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, int is_patch, const char *prefix, const char *id);
-static char * asgml3_curvepoly(RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static size_t asgml3_triangle_size(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_triangle(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static size_t asgml3_multi_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_multi(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_psurface(RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_tin(RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static size_t asgml3_collection_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_collection(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char * asgml3_compound(RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id );
-static char * asgml3_multicurve(RTCTX *ctx,  const RTMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id );
-static char * asgml3_multisurface(RTCTX *ctx, const RTMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static size_t pointArray_toGML3(RTCTX *ctx, RTPOINTARRAY *pa, char *buf, int precision, int opts);
+static size_t asgml3_point_size(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_point(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static size_t asgml3_line_size(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_line(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_circstring(const RTCTX *ctx,  const RTCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id );
+static size_t asgml3_poly_size(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_poly(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, int is_patch, const char *prefix, const char *id);
+static char * asgml3_curvepoly(const RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static size_t asgml3_triangle_size(const RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_triangle(const RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static size_t asgml3_multi_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_multi(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_psurface(const RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_tin(const RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static size_t asgml3_collection_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_collection(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static char * asgml3_compound(const RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id );
+static char * asgml3_multicurve(const RTCTX *ctx,  const RTMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id );
+static char * asgml3_multisurface(const RTCTX *ctx, const RTMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static size_t pointArray_toGML3(const RTCTX *ctx, RTPOINTARRAY *pa, char *buf, int precision, int opts);
 
 
-static size_t pointArray_GMLsize(RTCTX *ctx, RTPOINTARRAY *pa, int precision);
+static size_t pointArray_GMLsize(const RTCTX *ctx, RTPOINTARRAY *pa, int precision);
 
 static char *
-gbox_to_gml2(RTCTX *ctx, const RTGBOX *bbox, const char *srs, int precision, const char *prefix)
+gbox_to_gml2(const RTCTX *ctx, const RTGBOX *bbox, const char *srs, int precision, const char *prefix)
 {
 	int size;
 	RTPOINT4D pt;
@@ -114,7 +114,7 @@ gbox_to_gml2(RTCTX *ctx, const RTGBOX *bbox, const char *srs, int precision, con
 }
 
 static char *
-gbox_to_gml3(RTCTX *ctx, const RTGBOX *bbox, const char *srs, int precision, int opts, const char *prefix)
+gbox_to_gml3(const RTCTX *ctx, const RTGBOX *bbox, const char *srs, int precision, int opts, const char *prefix)
 {
 	int size;
 	RTPOINT4D pt;
@@ -182,7 +182,7 @@ gbox_to_gml3(RTCTX *ctx, const RTGBOX *bbox, const char *srs, int precision, int
 
 
 extern char *
-rtgeom_extent_to_gml2(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char *prefix)
+rtgeom_extent_to_gml2(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char *prefix)
 {
 	const RTGBOX* bbox = rtgeom_get_bbox(ctx, geom);
 	/*
@@ -197,7 +197,7 @@ rtgeom_extent_to_gml2(RTCTX *ctx, const RTGEOM *geom, const char *srs, int preci
 
 
 extern char *
-rtgeom_extent_to_gml3(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix)
+rtgeom_extent_to_gml3(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix)
 {
 	const RTGBOX* bbox = rtgeom_get_bbox(ctx, geom);
 	/*
@@ -215,7 +215,7 @@ rtgeom_extent_to_gml3(RTCTX *ctx, const RTGEOM *geom, const char *srs, int preci
  *  	takes a GEOMETRY and returns a GML2 representation
  */
 extern char *
-rtgeom_to_gml2(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char* prefix)
+rtgeom_to_gml2(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char* prefix)
 {
 	int type = geom->type;
 
@@ -255,7 +255,7 @@ rtgeom_to_gml2(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, c
 }
 
 static size_t
-asgml2_point_size(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char* prefix)
+asgml2_point_size(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char* prefix)
 {
 	int size;
 	size_t prefixlen = strlen(prefix);
@@ -267,7 +267,7 @@ asgml2_point_size(RTCTX *ctx, const RTPOINT *point, const char *srs, int precisi
 }
 
 static size_t
-asgml2_point_buf(RTCTX *ctx, const RTPOINT *point, const char *srs, char *output, int precision, const char* prefix)
+asgml2_point_buf(const RTCTX *ctx, const RTPOINT *point, const char *srs, char *output, int precision, const char* prefix)
 {
 	char *ptr = output;
 
@@ -287,7 +287,7 @@ asgml2_point_buf(RTCTX *ctx, const RTPOINT *point, const char *srs, char *output
 }
 
 static char *
-asgml2_point(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char *prefix)
+asgml2_point(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char *prefix)
 {
 	char *output;
 	int size;
@@ -299,7 +299,7 @@ asgml2_point(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, c
 }
 
 static size_t
-asgml2_line_size(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix)
+asgml2_line_size(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix)
 {
 	int size;
 	size_t prefixlen = strlen(prefix);
@@ -311,7 +311,7 @@ asgml2_line_size(RTCTX *ctx, const RTLINE *line, const char *srs, int precision,
 }
 
 static size_t
-asgml2_line_buf(RTCTX *ctx, const RTLINE *line, const char *srs, char *output, int precision,
+asgml2_line_buf(const RTCTX *ctx, const RTLINE *line, const char *srs, char *output, int precision,
                 const char *prefix)
 {
 	char *ptr=output;
@@ -334,7 +334,7 @@ asgml2_line_buf(RTCTX *ctx, const RTLINE *line, const char *srs, char *output, i
 }
 
 static char *
-asgml2_line(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix)
+asgml2_line(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, const char *prefix)
 {
 	char *output;
 	int size;
@@ -346,7 +346,7 @@ asgml2_line(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, cons
 }
 
 static size_t
-asgml2_poly_size(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix)
+asgml2_poly_size(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix)
 {
 	size_t size;
 	int i;
@@ -366,7 +366,7 @@ asgml2_poly_size(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision,
 }
 
 static size_t
-asgml2_poly_buf(RTCTX *ctx, const RTPOLY *poly, const char *srs, char *output, int precision,
+asgml2_poly_buf(const RTCTX *ctx, const RTPOLY *poly, const char *srs, char *output, int precision,
                 const char *prefix)
 {
 	int i;
@@ -396,7 +396,7 @@ asgml2_poly_buf(RTCTX *ctx, const RTPOLY *poly, const char *srs, char *output, i
 }
 
 static char *
-asgml2_poly(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix)
+asgml2_poly(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, const char *prefix)
 {
 	char *output;
 	int size;
@@ -413,7 +413,7 @@ asgml2_poly(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, cons
  * Don't call this with single-geoms inspected.
  */
 static size_t
-asgml2_multi_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
+asgml2_multi_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
                   const char *prefix)
 {
 	int i;
@@ -454,7 +454,7 @@ asgml2_multi_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int prec
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asgml2_multi_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output,
+asgml2_multi_buf(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output,
                  int precision, const char *prefix)
 {
 	int type = col->type;
@@ -513,7 +513,7 @@ asgml2_multi_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *out
  * Don't call this with single-geoms inspected!
  */
 static char *
-asgml2_multi(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
+asgml2_multi(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
              const char *prefix)
 {
 	char *gml;
@@ -530,7 +530,7 @@ asgml2_multi(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision
  * Don't call this with single-geoms!
  */
 static size_t
-asgml2_collection_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
+asgml2_collection_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
                        const char *prefix)
 {
 	int i;
@@ -576,7 +576,7 @@ asgml2_collection_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asgml2_collection_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output, int precision, const char *prefix)
+asgml2_collection_buf(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output, int precision, const char *prefix)
 {
 	char *ptr;
 	int i;
@@ -632,7 +632,7 @@ asgml2_collection_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char
  * Don't call this with single-geoms inspected!
  */
 static char *
-asgml2_collection(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
+asgml2_collection(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision,
                   const char *prefix)
 {
 	char *gml;
@@ -646,7 +646,7 @@ asgml2_collection(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int prec
 
 
 static size_t
-pointArray_toGML2(RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precision)
+pointArray_toGML2(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precision)
 {
 	int i;
 	char *ptr;
@@ -720,7 +720,7 @@ pointArray_toGML2(RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precision)
 
 /* takes a GEOMETRY and returns a GML representation */
 extern char *
-rtgeom_to_gml3(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix, const char *id)
+rtgeom_to_gml3(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int type = geom->type;
 
@@ -778,7 +778,7 @@ rtgeom_to_gml3(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, i
 }
 
 static size_t
-asgml3_point_size(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_point_size(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int size;
 	size_t prefixlen = strlen(prefix);
@@ -792,7 +792,7 @@ asgml3_point_size(RTCTX *ctx, const RTPOINT *point, const char *srs, int precisi
 }
 
 static size_t
-asgml3_point_buf(RTCTX *ctx, const RTPOINT *point, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_point_buf(const RTCTX *ctx, const RTPOINT *point, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr = output;
 	int dimension=2;
@@ -818,7 +818,7 @@ asgml3_point_buf(RTCTX *ctx, const RTPOINT *point, const char *srs, char *output
 }
 
 static char *
-asgml3_point(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_point(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char *output;
 	int size;
@@ -831,7 +831,7 @@ asgml3_point(RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, i
 
 
 static size_t
-asgml3_line_size(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_line_size(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int size;
 	size_t prefixlen = strlen(prefix);
@@ -858,7 +858,7 @@ asgml3_line_size(RTCTX *ctx, const RTLINE *line, const char *srs, int precision,
 }
 
 static size_t
-asgml3_line_buf(RTCTX *ctx, const RTLINE *line, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_line_buf(const RTCTX *ctx, const RTLINE *line, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr=output;
 	int dimension=2;
@@ -920,7 +920,7 @@ asgml3_line_buf(RTCTX *ctx, const RTLINE *line, const char *srs, char *output, i
 }
 
 static char *
-asgml3_line(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_line(const RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char *output;
 	int size;
@@ -933,7 +933,7 @@ asgml3_line(RTCTX *ctx, const RTLINE *line, const char *srs, int precision, int 
 
 
 static size_t
-asgml3_circstring_size(RTCTX *ctx, const RTCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_circstring_size(const RTCTX *ctx, const RTCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int size = pointArray_GMLsize(ctx,  circ->points, precision );
 	size_t prefixlen = strlen(prefix);
@@ -946,7 +946,7 @@ asgml3_circstring_size(RTCTX *ctx, const RTCIRCSTRING *circ, const char *srs, in
 }
 
 static size_t
-asgml3_circstring_buf(RTCTX *ctx, const RTCIRCSTRING *circ, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_circstring_buf(const RTCTX *ctx, const RTCIRCSTRING *circ, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char* ptr = output;
 	int dimension=2;
@@ -985,7 +985,7 @@ asgml3_circstring_buf(RTCTX *ctx, const RTCIRCSTRING *circ, const char *srs, cha
 }
 
 static char *
-asgml3_circstring(RTCTX *ctx,  const RTCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id )
+asgml3_circstring(const RTCTX *ctx,  const RTCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id )
 {
 	char *output;
 	int size;
@@ -998,7 +998,7 @@ asgml3_circstring(RTCTX *ctx,  const RTCIRCSTRING *circ, const char *srs, int pr
 
 
 static size_t
-asgml3_poly_size(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_poly_size(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	size_t size;
 	size_t prefixlen = strlen(prefix);
@@ -1018,7 +1018,7 @@ asgml3_poly_size(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision,
 }
 
 static size_t
-asgml3_poly_buf(RTCTX *ctx, const RTPOLY *poly, const char *srs, char *output, int precision, int opts, int is_patch, const char *prefix, const char *id)
+asgml3_poly_buf(const RTCTX *ctx, const RTPOLY *poly, const char *srs, char *output, int precision, int opts, int is_patch, const char *prefix, const char *id)
 {
 	int i;
 	char *ptr=output;
@@ -1068,7 +1068,7 @@ asgml3_poly_buf(RTCTX *ctx, const RTPOLY *poly, const char *srs, char *output, i
 }
 
 static char *
-asgml3_poly(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, int is_patch, const char *prefix, const char *id)
+asgml3_poly(const RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int opts, int is_patch, const char *prefix, const char *id)
 {
 	char *output;
 	int size;
@@ -1080,7 +1080,7 @@ asgml3_poly(RTCTX *ctx, const RTPOLY *poly, const char *srs, int precision, int 
 }
 
 static size_t 
-asgml3_compound_size(RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id )
+asgml3_compound_size(const RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id )
 {
 	int i;
 	size_t size;
@@ -1122,7 +1122,7 @@ asgml3_compound_size(RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int pre
 }
 
 static size_t 
-asgml3_compound_buf(RTCTX *ctx, const RTCOMPOUND *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_compound_buf(const RTCTX *ctx, const RTCOMPOUND *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	RTGEOM *subgeom;
 	int i;
@@ -1184,7 +1184,7 @@ asgml3_compound_buf(RTCTX *ctx, const RTCOMPOUND *col, const char *srs, char *ou
 }
 
 static char *
-asgml3_compound(RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id )
+asgml3_compound(const RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id )
 {
 	char* gml;
 	size_t size;
@@ -1195,7 +1195,7 @@ asgml3_compound(RTCTX *ctx, const RTCOMPOUND *col, const char *srs, int precisio
 	return gml;
 }
 
-static size_t asgml3_curvepoly_size(RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
+static size_t asgml3_curvepoly_size(const RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	size_t prefixlen = strlen(prefix);
 	RTGEOM* subgeom;
@@ -1242,7 +1242,7 @@ static size_t asgml3_curvepoly_size(RTCTX *ctx, const RTCURVEPOLY* poly, const c
 	return size;
 }
 
-static size_t asgml3_curvepoly_buf(RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+static size_t asgml3_curvepoly_buf(const RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	int i;
 	RTGEOM* subgeom;
@@ -1321,7 +1321,7 @@ static size_t asgml3_curvepoly_buf(RTCTX *ctx, const RTCURVEPOLY* poly, const ch
 	return (ptr - output);
 }
 
-static char* asgml3_curvepoly(RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
+static char* asgml3_curvepoly(const RTCTX *ctx, const RTCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char* gml;
 	size_t size;
@@ -1334,7 +1334,7 @@ static char* asgml3_curvepoly(RTCTX *ctx, const RTCURVEPOLY* poly, const char *s
 
 
 static size_t
-asgml3_triangle_size(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_triangle_size(const RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	size_t size;
 	size_t prefixlen = strlen(prefix);
@@ -1351,7 +1351,7 @@ asgml3_triangle_size(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, in
 }
 
 static size_t
-asgml3_triangle_buf(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_triangle_buf(const RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr=output;
 	int dimension=2;
@@ -1376,7 +1376,7 @@ asgml3_triangle_buf(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, cha
 }
 
 static char *
-asgml3_triangle(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_triangle(const RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char *output;
 	int size;
@@ -1394,7 +1394,7 @@ asgml3_triangle(RTCTX *ctx, const RTTRIANGLE *triangle, const char *srs, int pre
  * Don't call this with single-geoms inspected.
  */
 static size_t
-asgml3_multi_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_multi_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int i;
 	size_t size;
@@ -1434,7 +1434,7 @@ asgml3_multi_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int prec
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asgml3_multi_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_multi_buf(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	int type = col->type;
 	char *ptr, *gmltype;
@@ -1493,7 +1493,7 @@ asgml3_multi_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *out
  * Don't call this with single-geoms inspected!
  */
 static char *
-asgml3_multi(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_multi(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char *gml;
 	size_t size;
@@ -1506,7 +1506,7 @@ asgml3_multi(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision
 
 
 static size_t
-asgml3_psurface_size(RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_psurface_size(const RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int i;
 	size_t size;
@@ -1529,7 +1529,7 @@ asgml3_psurface_size(RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int pr
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asgml3_psurface_buf(RTCTX *ctx, const RTPSURFACE *psur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_psurface_buf(const RTCTX *ctx, const RTPSURFACE *psur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr;
 	int i;
@@ -1558,7 +1558,7 @@ asgml3_psurface_buf(RTCTX *ctx, const RTPSURFACE *psur, const char *srs, char *o
  * Don't call this with single-geoms inspected!
  */
 static char *
-asgml3_psurface(RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_psurface(const RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char *gml;
 	size_t size;
@@ -1571,7 +1571,7 @@ asgml3_psurface(RTCTX *ctx, const RTPSURFACE *psur, const char *srs, int precisi
 
 
 static size_t
-asgml3_tin_size(RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_tin_size(const RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int i;
 	size_t size;
@@ -1594,7 +1594,7 @@ asgml3_tin_size(RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, in
  * Don't call this with single-geoms inspected!
  */
 static size_t
-asgml3_tin_buf(RTCTX *ctx, const RTTIN *tin, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_tin_buf(const RTCTX *ctx, const RTTIN *tin, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr;
 	int i;
@@ -1623,7 +1623,7 @@ asgml3_tin_buf(RTCTX *ctx, const RTTIN *tin, const char *srs, char *output, int 
  * Don't call this with single-geoms inspected!
  */
 static char *
-asgml3_tin(RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_tin(const RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char *gml;
 	size_t size;
@@ -1635,7 +1635,7 @@ asgml3_tin(RTCTX *ctx, const RTTIN *tin, const char *srs, int precision, int opt
 }
 
 static size_t
-asgml3_collection_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_collection_size(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int i;
 	size_t size;
@@ -1675,7 +1675,7 @@ asgml3_collection_size(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int
 }
 
 static size_t
-asgml3_collection_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+asgml3_collection_buf(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr;
 	int i;
@@ -1734,7 +1734,7 @@ asgml3_collection_buf(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, char
  * Don't call this with single-geoms inspected!
  */
 static char *
-asgml3_collection(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
+asgml3_collection(const RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char *gml;
 	size_t size;
@@ -1745,7 +1745,7 @@ asgml3_collection(RTCTX *ctx, const RTCOLLECTION *col, const char *srs, int prec
 	return gml;
 }
 
-static size_t asgml3_multicurve_size(RTCTX *ctx,  const RTMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id )
+static size_t asgml3_multicurve_size(const RTCTX *ctx,  const RTMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id )
 {
 	size_t prefixlen = strlen(prefix);
 	size_t size = sizeof( "<MultiCurve></MultiCurve>" ) + 2 * prefixlen;
@@ -1774,7 +1774,7 @@ static size_t asgml3_multicurve_size(RTCTX *ctx,  const RTMCURVE* cur, const cha
 	return size;
 }
 
-static size_t asgml3_multicurve_buf(RTCTX *ctx,  const RTMCURVE* cur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id )
+static size_t asgml3_multicurve_buf(const RTCTX *ctx,  const RTMCURVE* cur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id )
 {
 	char* ptr = output;
 	RTGEOM* subgeom;
@@ -1813,7 +1813,7 @@ static size_t asgml3_multicurve_buf(RTCTX *ctx,  const RTMCURVE* cur, const char
 	return (ptr - output);
 }
 
-static char * asgml3_multicurve(RTCTX *ctx,  const RTMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id )
+static char * asgml3_multicurve(const RTCTX *ctx,  const RTMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id )
 {
 	char* gml;
 	size_t size =asgml3_multicurve_size(ctx,  cur, srs, precision, opts, prefix, id );
@@ -1822,7 +1822,7 @@ static char * asgml3_multicurve(RTCTX *ctx,  const RTMCURVE* cur, const char *sr
 	return gml;
 }
 
-static size_t asgml3_multisurface_size(RTCTX *ctx, const RTMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id)
+static size_t asgml3_multisurface_size(const RTCTX *ctx, const RTMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	size_t prefixlen = strlen(prefix);
 	size_t size = sizeof( "<MultiSurface></MultiSurface>" ) + 2 * prefixlen;
@@ -1846,7 +1846,7 @@ static size_t asgml3_multisurface_size(RTCTX *ctx, const RTMSURFACE *sur, const 
 	return size;
 }
 
-static size_t asgml3_multisurface_buf(RTCTX *ctx, const RTMSURFACE *sur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
+static size_t asgml3_multisurface_buf(const RTCTX *ctx, const RTMSURFACE *sur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char* ptr = output;
 	int i;
@@ -1879,7 +1879,7 @@ static size_t asgml3_multisurface_buf(RTCTX *ctx, const RTMSURFACE *sur, const c
 	return ptr - output;
 }
 
-static char * asgml3_multisurface(RTCTX *ctx, const RTMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id)
+static char * asgml3_multisurface(const RTCTX *ctx, const RTMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	char* gml;
 	size_t size = asgml3_multisurface_size(ctx,  sur, srs, precision, opts, prefix, id );
@@ -1893,7 +1893,7 @@ static char * asgml3_multisurface(RTCTX *ctx, const RTMSURFACE *sur, const char 
  * In GML3 also, lat/lon are reversed for geocentric data
  */
 static size_t
-pointArray_toGML3(RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precision, int opts)
+pointArray_toGML3(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precision, int opts)
 {
 	int i;
 	char *ptr;
@@ -1971,7 +1971,7 @@ pointArray_toGML3(RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precision, int
  * Returns maximum size of rendered pointarray in bytes.
  */
 static size_t
-pointArray_GMLsize(RTCTX *ctx, RTPOINTARRAY *pa, int precision)
+pointArray_GMLsize(const RTCTX *ctx, RTPOINTARRAY *pa, int precision)
 {
 	if (RTFLAGS_NDIMS(pa->flags) == 2)
 		return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(", ")) * 2 * pa->npoints;

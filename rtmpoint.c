@@ -17,26 +17,26 @@
 #include "rtgeom_log.h"
 
 void
-rtmpoint_release(RTCTX *ctx, RTMPOINT *rtmpoint)
+rtmpoint_release(const RTCTX *ctx, RTMPOINT *rtmpoint)
 {
 	rtgeom_release(ctx, rtmpoint_as_rtgeom(ctx, rtmpoint));
 }
 
 RTMPOINT *
-rtmpoint_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtmpoint_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTMPOINT *ret = (RTMPOINT*)rtcollection_construct_empty(ctx, RTMULTIPOINTTYPE, srid, hasz, hasm);
 	return ret;
 }
 
-RTMPOINT* rtmpoint_add_rtpoint(RTCTX *ctx, RTMPOINT *mobj, const RTPOINT *obj)
+RTMPOINT* rtmpoint_add_rtpoint(const RTCTX *ctx, RTMPOINT *mobj, const RTPOINT *obj)
 {
 	RTDEBUG(4, "Called");
 	return (RTMPOINT*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
 RTMPOINT *
-rtmpoint_construct(RTCTX *ctx, int srid, const RTPOINTARRAY *pa)
+rtmpoint_construct(const RTCTX *ctx, int srid, const RTPOINTARRAY *pa)
 {
 	int i;
 	int hasz = ptarray_has_z(ctx, pa);
@@ -56,7 +56,7 @@ rtmpoint_construct(RTCTX *ctx, int srid, const RTPOINTARRAY *pa)
 }
 
 
-void rtmpoint_free(RTCTX *ctx, RTMPOINT *mpt)
+void rtmpoint_free(const RTCTX *ctx, RTMPOINT *mpt)
 {
 	int i;
 
@@ -76,7 +76,7 @@ void rtmpoint_free(RTCTX *ctx, RTMPOINT *mpt)
 }
 
 RTGEOM*
-rtmpoint_remove_repeated_points(RTCTX *ctx, const RTMPOINT *mpoint, double tolerance)
+rtmpoint_remove_repeated_points(const RTCTX *ctx, const RTMPOINT *mpoint, double tolerance)
 {
 	uint32_t nnewgeoms;
 	uint32_t i, j;

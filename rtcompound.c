@@ -19,7 +19,7 @@
 
 
 int
-rtcompound_is_closed(RTCTX *ctx, const RTCOMPOUND *compound)
+rtcompound_is_closed(const RTCTX *ctx, const RTCOMPOUND *compound)
 {
 	size_t size;
 	int npoints=0;
@@ -53,7 +53,7 @@ rtcompound_is_closed(RTCTX *ctx, const RTCOMPOUND *compound)
 	return RT_TRUE;
 }
 
-double rtcompound_length(RTCTX *ctx, const RTCOMPOUND *comp)
+double rtcompound_length(const RTCTX *ctx, const RTCOMPOUND *comp)
 {
 	double length = 0.0;
 	RTLINE *line;
@@ -65,7 +65,7 @@ double rtcompound_length(RTCTX *ctx, const RTCOMPOUND *comp)
 	return length;
 }
 
-double rtcompound_length_2d(RTCTX *ctx, const RTCOMPOUND *comp)
+double rtcompound_length_2d(const RTCTX *ctx, const RTCOMPOUND *comp)
 {
 	double length = 0.0;
 	RTLINE *line;
@@ -77,7 +77,7 @@ double rtcompound_length_2d(RTCTX *ctx, const RTCOMPOUND *comp)
 	return length;
 }
 
-int rtcompound_add_rtgeom(RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom)
+int rtcompound_add_rtgeom(const RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom)
 {
 	RTCOLLECTION *col = (RTCOLLECTION*)comp;
 	
@@ -112,13 +112,13 @@ int rtcompound_add_rtgeom(RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom)
 }
 
 RTCOMPOUND *
-rtcompound_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm)
+rtcompound_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 {
 	RTCOMPOUND *ret = (RTCOMPOUND*)rtcollection_construct_empty(ctx, RTCOMPOUNDTYPE, srid, hasz, hasm);
 	return ret;
 }
 
-int rtgeom_contains_point(RTCTX *ctx, const RTGEOM *geom, const RTPOINT2D *pt)
+int rtgeom_contains_point(const RTCTX *ctx, const RTGEOM *geom, const RTPOINT2D *pt)
 {
 	switch( geom->type )
 	{
@@ -134,7 +134,7 @@ int rtgeom_contains_point(RTCTX *ctx, const RTGEOM *geom, const RTPOINT2D *pt)
 }
 
 int 
-rtcompound_contains_point(RTCTX *ctx, const RTCOMPOUND *comp, const RTPOINT2D *pt)
+rtcompound_contains_point(const RTCTX *ctx, const RTCOMPOUND *comp, const RTPOINT2D *pt)
 {
 	int i;
 	RTLINE *rtline;
@@ -193,7 +193,7 @@ rtcompound_contains_point(RTCTX *ctx, const RTCOMPOUND *comp, const RTPOINT2D *p
 }	
 
 RTCOMPOUND *
-rtcompound_construct_from_rtline(RTCTX *ctx, const RTLINE *rtline)
+rtcompound_construct_from_rtline(const RTCTX *ctx, const RTLINE *rtline)
 {
   RTCOMPOUND* ogeom = rtcompound_construct_empty(ctx, rtline->srid, RTFLAGS_GET_Z(rtline->flags), RTFLAGS_GET_M(rtline->flags));
   rtcompound_add_rtgeom(ctx, ogeom, rtgeom_clone(ctx, (RTGEOM*)rtline));
@@ -202,7 +202,7 @@ rtcompound_construct_from_rtline(RTCTX *ctx, const RTLINE *rtline)
 }
 
 RTPOINT* 
-rtcompound_get_rtpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp, int where)
+rtcompound_get_rtpoint(const RTCTX *ctx, const RTCOMPOUND *rtcmp, int where)
 {
 	int i;
 	int count = 0;
@@ -237,13 +237,13 @@ rtcompound_get_rtpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp, int where)
 
 
 RTPOINT *
-rtcompound_get_startpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp)
+rtcompound_get_startpoint(const RTCTX *ctx, const RTCOMPOUND *rtcmp)
 {
 	return rtcompound_get_rtpoint(ctx, rtcmp, 0);
 }
 
 RTPOINT *
-rtcompound_get_endpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp)
+rtcompound_get_endpoint(const RTCTX *ctx, const RTCOMPOUND *rtcmp)
 {
 	RTLINE *rtline;
 	if ( rtcmp->ngeoms < 1 )

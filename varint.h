@@ -27,21 +27,21 @@
 
 /* NEW SIGNATURES */
 
-size_t varint_u32_encode_buf(RTCTX *ctx, uint32_t val, uint8_t *buf);
-size_t varint_s32_encode_buf(RTCTX *ctx, int32_t val, uint8_t *buf);
-size_t varint_u64_encode_buf(RTCTX *ctx, uint64_t val, uint8_t *buf);
-size_t varint_s64_encode_buf(RTCTX *ctx, int64_t val, uint8_t *buf);
-int64_t varint_s64_decode(RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end, size_t *size);
-uint64_t varint_u64_decode(RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end, size_t *size);
+size_t varint_u32_encode_buf(const RTCTX *ctx, uint32_t val, uint8_t *buf);
+size_t varint_s32_encode_buf(const RTCTX *ctx, int32_t val, uint8_t *buf);
+size_t varint_u64_encode_buf(const RTCTX *ctx, uint64_t val, uint8_t *buf);
+size_t varint_s64_encode_buf(const RTCTX *ctx, int64_t val, uint8_t *buf);
+int64_t varint_s64_decode(const RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end, size_t *size);
+uint64_t varint_u64_decode(const RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end, size_t *size);
 
-size_t varint_size(RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end);
+size_t varint_size(const RTCTX *ctx, const uint8_t *the_start, const uint8_t *the_end);
 
-uint64_t zigzag64(RTCTX *ctx, int64_t val);
-uint32_t zigzag32(RTCTX *ctx, int32_t val);
-uint8_t zigzag8(RTCTX *ctx, int8_t val);
-int64_t unzigzag64(RTCTX *ctx, uint64_t val);
-int32_t unzigzag32(RTCTX *ctx, uint32_t val);
-int8_t unzigzag8(RTCTX *ctx, uint8_t val);
+uint64_t zigzag64(const RTCTX *ctx, int64_t val);
+uint32_t zigzag32(const RTCTX *ctx, int32_t val);
+uint8_t zigzag8(const RTCTX *ctx, int8_t val);
+int64_t unzigzag64(const RTCTX *ctx, uint64_t val);
+int32_t unzigzag32(const RTCTX *ctx, uint32_t val);
+int8_t unzigzag8(const RTCTX *ctx, uint8_t val);
 
 #endif /* !defined _LIBRTGEOM_VARINT_H  */
 

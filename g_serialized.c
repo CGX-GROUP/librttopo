@@ -16,43 +16,43 @@
 * GSERIALIZED metadata utility functions.
 */
 
-int gserialized_has_bbox(RTCTX *ctx, const GSERIALIZED *gser)
+int gserialized_has_bbox(const RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_GET_BBOX(gser->flags);
 }
 
-int gserialized_has_z(RTCTX *ctx, const GSERIALIZED *gser)
+int gserialized_has_z(const RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_GET_Z(gser->flags);
 }
 
-int gserialized_has_m(RTCTX *ctx, const GSERIALIZED *gser)
+int gserialized_has_m(const RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_GET_M(gser->flags);
 }
 
-int gserialized_get_zm(RTCTX *ctx, const GSERIALIZED *gser)
+int gserialized_get_zm(const RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return 2 * RTFLAGS_GET_Z(gser->flags) + RTFLAGS_GET_M(gser->flags);
 }
 
-int gserialized_ndims(RTCTX *ctx, const GSERIALIZED *gser)
+int gserialized_ndims(const RTCTX *ctx, const GSERIALIZED *gser)
 {
 	return RTFLAGS_NDIMS(gser->flags);
 }
 
-int gserialized_is_geodetic(RTCTX *ctx, const GSERIALIZED *gser)
+int gserialized_is_geodetic(const RTCTX *ctx, const GSERIALIZED *gser)
 {
 	  return RTFLAGS_GET_GEODETIC(gser->flags);
 }
  
-uint32_t gserialized_max_header_size(RTCTX *ctx) 
+uint32_t gserialized_max_header_size(const RTCTX *ctx) 
 {
 	/* read GSERIALIZED size + max bbox according gbox_serialized_size(ctx, 2 + Z + M) + 1 int for type */
 	return sizeof(GSERIALIZED) + 8 * sizeof(float) + sizeof(int);
 }
 
-uint32_t gserialized_get_type(RTCTX *ctx, const GSERIALIZED *s)
+uint32_t gserialized_get_type(const RTCTX *ctx, const GSERIALIZED *s)
 {
 	uint32_t *ptr;
 	assert(s);
@@ -66,7 +66,7 @@ uint32_t gserialized_get_type(RTCTX *ctx, const GSERIALIZED *s)
 	return *ptr;
 }
 
-int32_t gserialized_get_srid(RTCTX *ctx, const GSERIALIZED *s)
+int32_t gserialized_get_srid(const RTCTX *ctx, const GSERIALIZED *s)
 {
 	int32_t srid = 0;
 	srid = srid | (s->srid[0] << 16);
@@ -83,7 +83,7 @@ int32_t gserialized_get_srid(RTCTX *ctx, const GSERIALIZED *s)
 		return clamp_srid(ctx, srid);
 }
 
-void gserialized_set_srid(RTCTX *ctx, GSERIALIZED *s, int32_t srid)
+void gserialized_set_srid(const RTCTX *ctx, GSERIALIZED *s, int32_t srid)
 {
 	RTDEBUGF(3, "Called with srid = %d", srid);
 
@@ -99,7 +99,7 @@ void gserialized_set_srid(RTCTX *ctx, GSERIALIZED *s, int32_t srid)
 	s->srid[2] = (srid & 0x000000FF);
 }
 
-GSERIALIZED* gserialized_copy(RTCTX *ctx, const GSERIALIZED *g)
+GSERIALIZED* gserialized_copy(const RTCTX *ctx, const GSERIALIZED *g)
 {
 	GSERIALIZED *g_out = NULL;
 	assert(g);
@@ -108,8 +108,8 @@ GSERIALIZED* gserialized_copy(RTCTX *ctx, const GSERIALIZED *g)
 	return g_out;
 }
 
-static size_t gserialized_is_empty_recurse(RTCTX *ctx, const uint8_t *p, int *isempty);
-static size_t gserialized_is_empty_recurse(RTCTX *ctx, const uint8_t *p, int *isempty)
+static size_t gserialized_is_empty_recurse(const RTCTX *ctx, const uint8_t *p, int *isempty);
+static size_t gserialized_is_empty_recurse(const RTCTX *ctx, const uint8_t *p, int *isempty)
 {
 	int i;
 	int32_t type, num;
@@ -136,7 +136,7 @@ static size_t gserialized_is_empty_recurse(RTCTX *ctx, const uint8_t *p, int *is
 	}
 }
 
-int gserialized_is_empty(RTCTX *ctx, const GSERIALIZED *g)
+int gserialized_is_empty(const RTCTX *ctx, const GSERIALIZED *g)
 {
 	uint8_t *p = (uint8_t*)g;
 	int isempty = 0;
@@ -150,12 +150,12 @@ int gserialized_is_empty(RTCTX *ctx, const GSERIALIZED *g)
 	return isempty;
 }
 
-char* gserialized_to_string(RTCTX *ctx, const GSERIALIZED *g)
+char* gserialized_to_string(const RTCTX *ctx, const GSERIALIZED *g)
 {
 	return rtgeom_to_wkt(ctx, rtgeom_from_gserialized(ctx, g), RTWKT_ISO, 12, 0);
 }
 
-int gserialized_read_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox)
+int gserialized_read_gbox_p(const RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox)
 {
 
 	/* Null input! */
@@ -202,7 +202,7 @@ int gserialized_read_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox)
 * Populate a bounding box *without* allocating an RTGEOM. Useful
 * for some performance purposes.
 */
-static int gserialized_peek_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox)
+static int gserialized_peek_gbox_p(const RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox)
 {
 	uint32_t type = gserialized_get_type(ctx, g);
 
@@ -368,7 +368,7 @@ static int gserialized_peek_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbo
 * Read the bounding box off a serialization and calculate one if
 * it is not already there.
 */
-int gserialized_get_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *box)
+int gserialized_get_gbox_p(const RTCTX *ctx, const GSERIALIZED *g, RTGBOX *box)
 {
 	/* Try to just read the serialized box. */
 	if ( gserialized_read_gbox_p(ctx, g, box) == RT_SUCCESS )
@@ -400,9 +400,9 @@ int gserialized_get_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *box)
 
 /* Private functions */
 
-static size_t gserialized_from_any_size(RTCTX *ctx, const RTGEOM *geom); /* Local prototype */
+static size_t gserialized_from_any_size(const RTCTX *ctx, const RTGEOM *geom); /* Local prototype */
 
-static size_t gserialized_from_rtpoint_size(RTCTX *ctx, const RTPOINT *point)
+static size_t gserialized_from_rtpoint_size(const RTCTX *ctx, const RTPOINT *point)
 {
 	size_t size = 4; /* Type number. */
 
@@ -416,7 +416,7 @@ static size_t gserialized_from_rtpoint_size(RTCTX *ctx, const RTPOINT *point)
 	return size;
 }
 
-static size_t gserialized_from_rtline_size(RTCTX *ctx, const RTLINE *line)
+static size_t gserialized_from_rtline_size(const RTCTX *ctx, const RTLINE *line)
 {
 	size_t size = 4; /* Type number. */
 
@@ -430,7 +430,7 @@ static size_t gserialized_from_rtline_size(RTCTX *ctx, const RTLINE *line)
 	return size;
 }
 
-static size_t gserialized_from_rttriangle_size(RTCTX *ctx, const RTTRIANGLE *triangle)
+static size_t gserialized_from_rttriangle_size(const RTCTX *ctx, const RTTRIANGLE *triangle)
 {
 	size_t size = 4; /* Type number. */
 
@@ -444,7 +444,7 @@ static size_t gserialized_from_rttriangle_size(RTCTX *ctx, const RTTRIANGLE *tri
 	return size;
 }
 
-static size_t gserialized_from_rtpoly_size(RTCTX *ctx, const RTPOLY *poly)
+static size_t gserialized_from_rtpoly_size(const RTCTX *ctx, const RTPOLY *poly)
 {
 	size_t size = 4; /* Type number. */
 	int i = 0;
@@ -466,7 +466,7 @@ static size_t gserialized_from_rtpoly_size(RTCTX *ctx, const RTPOLY *poly)
 	return size;
 }
 
-static size_t gserialized_from_rtcircstring_size(RTCTX *ctx, const RTCIRCSTRING *curve)
+static size_t gserialized_from_rtcircstring_size(const RTCTX *ctx, const RTCIRCSTRING *curve)
 {
 	size_t size = 4; /* Type number. */
 
@@ -480,7 +480,7 @@ static size_t gserialized_from_rtcircstring_size(RTCTX *ctx, const RTCIRCSTRING 
 	return size;
 }
 
-static size_t gserialized_from_rtcollection_size(RTCTX *ctx, const RTCOLLECTION *col)
+static size_t gserialized_from_rtcollection_size(const RTCTX *ctx, const RTCOLLECTION *col)
 {
 	size_t size = 4; /* Type number. */
 	int i = 0;
@@ -501,7 +501,7 @@ static size_t gserialized_from_rtcollection_size(RTCTX *ctx, const RTCOLLECTION 
 	return size;
 }
 
-static size_t gserialized_from_any_size(RTCTX *ctx, const RTGEOM *geom)
+static size_t gserialized_from_any_size(const RTCTX *ctx, const RTGEOM *geom)
 {
 	RTDEBUGF(2, "Input type: %s", rttype_name(ctx, geom->type));
 
@@ -536,7 +536,7 @@ static size_t gserialized_from_any_size(RTCTX *ctx, const RTGEOM *geom)
 
 /* Public function */
 
-size_t gserialized_from_rtgeom_size(RTCTX *ctx, const RTGEOM *geom)
+size_t gserialized_from_rtgeom_size(const RTCTX *ctx, const RTGEOM *geom)
 {
 	size_t size = 8; /* Header overhead. */
 	assert(geom);
@@ -556,9 +556,9 @@ size_t gserialized_from_rtgeom_size(RTCTX *ctx, const RTGEOM *geom)
 
 /* Private functions */
 
-static size_t gserialized_from_rtgeom_any(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf);
+static size_t gserialized_from_rtgeom_any(const RTCTX *ctx, const RTGEOM *geom, uint8_t *buf);
 
-static size_t gserialized_from_rtpoint(RTCTX *ctx, const RTPOINT *point, uint8_t *buf)
+static size_t gserialized_from_rtpoint(const RTCTX *ctx, const RTPOINT *point, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize = ptarray_point_size(ctx, point->point);
@@ -591,7 +591,7 @@ static size_t gserialized_from_rtpoint(RTCTX *ctx, const RTPOINT *point, uint8_t
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtline(RTCTX *ctx, const RTLINE *line, uint8_t *buf)
+static size_t gserialized_from_rtline(const RTCTX *ctx, const RTLINE *line, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize;
@@ -632,7 +632,7 @@ static size_t gserialized_from_rtline(RTCTX *ctx, const RTLINE *line, uint8_t *b
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtpoly(RTCTX *ctx, const RTPOLY *poly, uint8_t *buf)
+static size_t gserialized_from_rtpoly(const RTCTX *ctx, const RTPOLY *poly, uint8_t *buf)
 {
 	int i;
 	uint8_t *loc;
@@ -685,7 +685,7 @@ static size_t gserialized_from_rtpoly(RTCTX *ctx, const RTPOLY *poly, uint8_t *b
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rttriangle(RTCTX *ctx, const RTTRIANGLE *triangle, uint8_t *buf)
+static size_t gserialized_from_rttriangle(const RTCTX *ctx, const RTTRIANGLE *triangle, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize;
@@ -726,7 +726,7 @@ static size_t gserialized_from_rttriangle(RTCTX *ctx, const RTTRIANGLE *triangle
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtcircstring(RTCTX *ctx, const RTCIRCSTRING *curve, uint8_t *buf)
+static size_t gserialized_from_rtcircstring(const RTCTX *ctx, const RTCIRCSTRING *curve, uint8_t *buf)
 {
 	uint8_t *loc;
 	int ptsize;
@@ -762,7 +762,7 @@ static size_t gserialized_from_rtcircstring(RTCTX *ctx, const RTCIRCSTRING *curv
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtcollection(RTCTX *ctx, const RTCOLLECTION *coll, uint8_t *buf)
+static size_t gserialized_from_rtcollection(const RTCTX *ctx, const RTCOLLECTION *coll, uint8_t *buf)
 {
 	size_t subsize = 0;
 	uint8_t *loc;
@@ -795,7 +795,7 @@ static size_t gserialized_from_rtcollection(RTCTX *ctx, const RTCOLLECTION *coll
 	return (size_t)(loc - buf);
 }
 
-static size_t gserialized_from_rtgeom_any(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf)
+static size_t gserialized_from_rtgeom_any(const RTCTX *ctx, const RTGEOM *geom, uint8_t *buf)
 {
 	assert(geom);
 	assert(buf);
@@ -835,7 +835,7 @@ static size_t gserialized_from_rtgeom_any(RTCTX *ctx, const RTGEOM *geom, uint8_
 	return 0;
 }
 
-static size_t gserialized_from_gbox(RTCTX *ctx, const RTGBOX *gbox, uint8_t *buf)
+static size_t gserialized_from_gbox(const RTCTX *ctx, const RTGBOX *gbox, uint8_t *buf)
 {
 	uint8_t *loc = buf;
 	float f;
@@ -903,7 +903,7 @@ static size_t gserialized_from_gbox(RTCTX *ctx, const RTGBOX *gbox, uint8_t *buf
 
 /* Public function */
 
-GSERIALIZED* gserialized_from_rtgeom(RTCTX *ctx, RTGEOM *geom, int is_geodetic, size_t *size)
+GSERIALIZED* gserialized_from_rtgeom(const RTCTX *ctx, RTGEOM *geom, int is_geodetic, size_t *size)
 {
 	size_t expected_size = 0;
 	size_t return_size = 0;
@@ -973,9 +973,9 @@ GSERIALIZED* gserialized_from_rtgeom(RTCTX *ctx, RTGEOM *geom, int is_geodetic, 
 * De-serialize GSERIALIZED into an RTGEOM.
 */
 
-static RTGEOM* rtgeom_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size);
+static RTGEOM* rtgeom_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size);
 
-static RTPOINT* rtpoint_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTPOINT* rtpoint_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTPOINT *point;
@@ -1006,7 +1006,7 @@ static RTPOINT* rtpoint_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, u
 	return point;
 }
 
-static RTLINE* rtline_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTLINE* rtline_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTLINE *line;
@@ -1038,7 +1038,7 @@ static RTLINE* rtline_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uin
 	return line;
 }
 
-static RTPOLY* rtpoly_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTPOLY* rtpoly_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTPOLY *poly;
@@ -1093,7 +1093,7 @@ static RTPOLY* rtpoly_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uin
 	return poly;
 }
 
-static RTTRIANGLE* rttriangle_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTTRIANGLE* rttriangle_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTTRIANGLE *triangle;
@@ -1124,7 +1124,7 @@ static RTTRIANGLE* rttriangle_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_
 	return triangle;
 }
 
-static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint8_t *start_ptr = data_ptr;
 	RTCIRCSTRING *circstring;
@@ -1155,7 +1155,7 @@ static RTCIRCSTRING* rtcircstring_from_gserialized_buffer(RTCTX *ctx, uint8_t *d
 	return circstring;
 }
 
-static RTCOLLECTION* rtcollection_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+static RTCOLLECTION* rtcollection_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint32_t type;
 	uint8_t *start_ptr = data_ptr;
@@ -1207,7 +1207,7 @@ static RTCOLLECTION* rtcollection_from_gserialized_buffer(RTCTX *ctx, uint8_t *d
 	return collection;
 }
 
-RTGEOM* rtgeom_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
+RTGEOM* rtgeom_from_gserialized_buffer(const RTCTX *ctx, uint8_t *data_ptr, uint8_t g_flags, size_t *g_size)
 {
 	uint32_t type;
 
@@ -1247,7 +1247,7 @@ RTGEOM* rtgeom_from_gserialized_buffer(RTCTX *ctx, uint8_t *data_ptr, uint8_t g_
 	}
 }
 
-RTGEOM* rtgeom_from_gserialized(RTCTX *ctx, const GSERIALIZED *g)
+RTGEOM* rtgeom_from_gserialized(const RTCTX *ctx, const GSERIALIZED *g)
 {
 	uint8_t g_flags = 0;
 	int32_t g_srid = 0;

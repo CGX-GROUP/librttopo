@@ -31,14 +31,14 @@
 * ../loader/shp2pgsql.c are examples of non-PostGIS applications using librtgeom.
 *
 * Programs using this library can install their custom memory managers and error
-* handlers by calling the rtgeom_set_handlers(RTCTX *ctx) function, otherwise the default 
+* handlers by calling the rtgeom_set_handlers(const RTCTX *ctx) function, otherwise the default 
 * ones will be used.
 */
 
 typedef struct RTCTX_T RTCTX;
 
 /** Return rtgeom version string (not to be freed) */
-const char* rtgeom_version(RTCTX *ctx);
+const char* rtgeom_version(const RTCTX *ctx);
 
 /**
 * Return types for functions with status returns.
@@ -159,10 +159,10 @@ typedef enum RTORD_T {
 * what went in.
 * Raises an error if SRID value is out of bounds.
 */
-extern int clamp_srid(RTCTX *ctx, int srid);
+extern int clamp_srid(const RTCTX *ctx, int srid);
 
 /* Raise an rterror if srids do not match */
-void error_if_srid_mismatch(RTCTX *ctx, int srid1, int srid2);
+void error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2);
 
 /**
  * Global functions for memory/logging handlers.
@@ -181,11 +181,11 @@ typedef void (*rtdebuglogger)(int level, const char* fmt, va_list ap)
 * @ingroup system
 * @todo take a structure ?
 */
-extern void rtgeom_set_handlers(RTCTX *ctx, rtallocator allocator, 
+extern void rtgeom_set_handlers(const RTCTX *ctx, rtallocator allocator, 
         rtreallocator reallocator, rtfreeor freeor, rtreporter errorreporter,
         rtreporter noticereporter);
 
-extern void rtgeom_set_debuglogger(RTCTX *ctx, rtdebuglogger debuglogger);
+extern void rtgeom_set_debuglogger(const RTCTX *ctx, rtdebuglogger debuglogger);
 
 /**
  * Request interruption of any running code
@@ -199,12 +199,12 @@ extern void rtgeom_set_debuglogger(RTCTX *ctx, rtdebuglogger debuglogger);
  * it is the caller responsibility to not take it in consideration.
  * 
  */
-extern void rtgeom_request_interrupt(RTCTX *ctx);
+extern void rtgeom_request_interrupt(const RTCTX *ctx);
 
 /**
  * Cancel any interruption request
  */
-extern void rtgeom_cancel_interrupt(RTCTX *ctx);
+extern void rtgeom_cancel_interrupt(const RTCTX *ctx);
 
 /**
  * Install a callback to be called periodically during
@@ -217,7 +217,7 @@ extern void rtgeom_cancel_interrupt(RTCTX *ctx);
  *
  */
 typedef void (rtinterrupt_callback)();
-extern rtinterrupt_callback *rtgeom_register_interrupt_callback(RTCTX *ctx, rtinterrupt_callback *);
+extern rtinterrupt_callback *rtgeom_register_interrupt_callback(const RTCTX *ctx, rtinterrupt_callback *);
 
 /******************************************************************/
 
@@ -524,44 +524,44 @@ typedef struct
 RTTIN;
 
 /* Casts RTGEOM->RT* (return NULL if cast is illegal) */
-extern RTMPOLY *rtgeom_as_rtmpoly(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTMLINE *rtgeom_as_rtmline(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTMPOINT *rtgeom_as_rtmpoint(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTCOLLECTION *rtgeom_as_rtcollection(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTPOLY *rtgeom_as_rtpoly(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTLINE *rtgeom_as_rtline(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTPOINT *rtgeom_as_rtpoint(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTCIRCSTRING *rtgeom_as_rtcircstring(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTCURVEPOLY *rtgeom_as_rtcurvepoly(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTCOMPOUND *rtgeom_as_rtcompound(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTPSURFACE *rtgeom_as_rtpsurface(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTTRIANGLE *rtgeom_as_rttriangle(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTTIN *rtgeom_as_rttin(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTGEOM *rtgeom_as_multi(RTCTX *ctx, const RTGEOM *rtgeom);
-extern RTGEOM *rtgeom_as_curve(RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTMPOLY *rtgeom_as_rtmpoly(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTMLINE *rtgeom_as_rtmline(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTMPOINT *rtgeom_as_rtmpoint(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTCOLLECTION *rtgeom_as_rtcollection(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTPOLY *rtgeom_as_rtpoly(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTLINE *rtgeom_as_rtline(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTPOINT *rtgeom_as_rtpoint(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTCIRCSTRING *rtgeom_as_rtcircstring(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTCURVEPOLY *rtgeom_as_rtcurvepoly(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTCOMPOUND *rtgeom_as_rtcompound(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTPSURFACE *rtgeom_as_rtpsurface(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTTRIANGLE *rtgeom_as_rttriangle(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTTIN *rtgeom_as_rttin(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTGEOM *rtgeom_as_multi(const RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTGEOM *rtgeom_as_curve(const RTCTX *ctx, const RTGEOM *rtgeom);
 
 /* Casts RT*->RTGEOM (artays cast) */
-extern RTGEOM *rttin_as_rtgeom(RTCTX *ctx, const RTTIN *obj);
-extern RTGEOM *rttriangle_as_rtgeom(RTCTX *ctx, const RTTRIANGLE *obj);
-extern RTGEOM *rtpsurface_as_rtgeom(RTCTX *ctx, const RTPSURFACE *obj);
-extern RTGEOM *rtmpoly_as_rtgeom(RTCTX *ctx, const RTMPOLY *obj);
-extern RTGEOM *rtmline_as_rtgeom(RTCTX *ctx, const RTMLINE *obj);
-extern RTGEOM *rtmpoint_as_rtgeom(RTCTX *ctx, const RTMPOINT *obj);
-extern RTGEOM *rtcollection_as_rtgeom(RTCTX *ctx, const RTCOLLECTION *obj);
-extern RTGEOM *rtcircstring_as_rtgeom(RTCTX *ctx, const RTCIRCSTRING *obj);
-extern RTGEOM *rtcompound_as_rtgeom(RTCTX *ctx, const RTCOMPOUND *obj);
-extern RTGEOM *rtcurvepoly_as_rtgeom(RTCTX *ctx, const RTCURVEPOLY *obj);
-extern RTGEOM *rtpoly_as_rtgeom(RTCTX *ctx, const RTPOLY *obj);
-extern RTGEOM *rtline_as_rtgeom(RTCTX *ctx, const RTLINE *obj);
-extern RTGEOM *rtpoint_as_rtgeom(RTCTX *ctx, const RTPOINT *obj);
+extern RTGEOM *rttin_as_rtgeom(const RTCTX *ctx, const RTTIN *obj);
+extern RTGEOM *rttriangle_as_rtgeom(const RTCTX *ctx, const RTTRIANGLE *obj);
+extern RTGEOM *rtpsurface_as_rtgeom(const RTCTX *ctx, const RTPSURFACE *obj);
+extern RTGEOM *rtmpoly_as_rtgeom(const RTCTX *ctx, const RTMPOLY *obj);
+extern RTGEOM *rtmline_as_rtgeom(const RTCTX *ctx, const RTMLINE *obj);
+extern RTGEOM *rtmpoint_as_rtgeom(const RTCTX *ctx, const RTMPOINT *obj);
+extern RTGEOM *rtcollection_as_rtgeom(const RTCTX *ctx, const RTCOLLECTION *obj);
+extern RTGEOM *rtcircstring_as_rtgeom(const RTCTX *ctx, const RTCIRCSTRING *obj);
+extern RTGEOM *rtcompound_as_rtgeom(const RTCTX *ctx, const RTCOMPOUND *obj);
+extern RTGEOM *rtcurvepoly_as_rtgeom(const RTCTX *ctx, const RTCURVEPOLY *obj);
+extern RTGEOM *rtpoly_as_rtgeom(const RTCTX *ctx, const RTPOLY *obj);
+extern RTGEOM *rtline_as_rtgeom(const RTCTX *ctx, const RTLINE *obj);
+extern RTGEOM *rtpoint_as_rtgeom(const RTCTX *ctx, const RTPOINT *obj);
 
 
-extern RTCOLLECTION* rtcollection_add_rtgeom(RTCTX *ctx, RTCOLLECTION *col, const RTGEOM *geom);
-extern RTMPOINT* rtmpoint_add_rtpoint(RTCTX *ctx, RTMPOINT *mobj, const RTPOINT *obj);
-extern RTMLINE* rtmline_add_rtline(RTCTX *ctx, RTMLINE *mobj, const RTLINE *obj);
-extern RTMPOLY* rtmpoly_add_rtpoly(RTCTX *ctx, RTMPOLY *mobj, const RTPOLY *obj);
-extern RTPSURFACE* rtpsurface_add_rtpoly(RTCTX *ctx, RTPSURFACE *mobj, const RTPOLY *obj);
-extern RTTIN* rttin_add_rttriangle(RTCTX *ctx, RTTIN *mobj, const RTTRIANGLE *obj);
+extern RTCOLLECTION* rtcollection_add_rtgeom(const RTCTX *ctx, RTCOLLECTION *col, const RTGEOM *geom);
+extern RTMPOINT* rtmpoint_add_rtpoint(const RTCTX *ctx, RTMPOINT *mobj, const RTPOINT *obj);
+extern RTMLINE* rtmline_add_rtline(const RTCTX *ctx, RTMLINE *mobj, const RTLINE *obj);
+extern RTMPOLY* rtmpoly_add_rtpoly(const RTCTX *ctx, RTMPOLY *mobj, const RTPOLY *obj);
+extern RTPSURFACE* rtpsurface_add_rtpoly(const RTCTX *ctx, RTPSURFACE *mobj, const RTPOLY *obj);
+extern RTTIN* rttin_add_rttriangle(const RTCTX *ctx, RTTIN *mobj, const RTTRIANGLE *obj);
 
 
 
@@ -572,31 +572,31 @@ extern RTTIN* rttin_add_rttriangle(RTCTX *ctx, RTTIN *mobj, const RTTRIANGLE *ob
 /**
 * Construct a new flags char.
 */
-extern uint8_t gflags(RTCTX *ctx, int hasz, int hasm, int geodetic);
+extern uint8_t gflags(const RTCTX *ctx, int hasz, int hasm, int geodetic);
 
 /**
 * Extract the geometry type from the serialized form (it hides in 
 * the anonymous data area, so this is a handy function).
 */
-extern uint32_t gserialized_get_type(RTCTX *ctx, const GSERIALIZED *g);
+extern uint32_t gserialized_get_type(const RTCTX *ctx, const GSERIALIZED *g);
 
 /** 
 * Returns the size in bytes to read from toast to get the basic 
 * information from a geometry: GSERIALIZED struct, bbox and type 
 */
-extern uint32_t gserialized_max_header_size(RTCTX *ctx);
+extern uint32_t gserialized_max_header_size(const RTCTX *ctx);
 
 /**
 * Extract the SRID from the serialized form (it is packed into
 * three bytes so this is a handy function).
 */
-extern int32_t gserialized_get_srid(RTCTX *ctx, const GSERIALIZED *g);
+extern int32_t gserialized_get_srid(const RTCTX *ctx, const GSERIALIZED *g);
 
 /**
 * Write the SRID into the serialized form (it is packed into
 * three bytes so this is a handy function).
 */
-extern void gserialized_set_srid(RTCTX *ctx, GSERIALIZED *g, int32_t srid);
+extern void gserialized_set_srid(const RTCTX *ctx, GSERIALIZED *g, int32_t srid);
 
 /**
 * Check if a #GSERIALIZED is empty without deserializing first.
@@ -604,38 +604,38 @@ extern void gserialized_set_srid(RTCTX *ctx, GSERIALIZED *g, int32_t srid);
 * is zero, will not catch collections of empty, eg: 
 * GEOMETRYCOLLECTION(POINT EMPTY) 
 */
-extern int gserialized_is_empty(RTCTX *ctx, const GSERIALIZED *g);
+extern int gserialized_is_empty(const RTCTX *ctx, const GSERIALIZED *g);
 
 /**
 * Check if a #GSERIALIZED has a bounding box without deserializing first.
 */
-extern int gserialized_has_bbox(RTCTX *ctx, const GSERIALIZED *gser);
+extern int gserialized_has_bbox(const RTCTX *ctx, const GSERIALIZED *gser);
 
 /**
 * Check if a #GSERIALIZED has a Z ordinate.
 */
-extern int gserialized_has_z(RTCTX *ctx, const GSERIALIZED *gser);
+extern int gserialized_has_z(const RTCTX *ctx, const GSERIALIZED *gser);
 
 /**
 * Check if a #GSERIALIZED has an M ordinate.
 */
-extern int gserialized_has_m(RTCTX *ctx, const GSERIALIZED *gser);
+extern int gserialized_has_m(const RTCTX *ctx, const GSERIALIZED *gser);
 
 /**
 * Check if a #GSERIALIZED is a geography.
 */
-extern int gserialized_is_geodetic(RTCTX *ctx, const GSERIALIZED *gser);
+extern int gserialized_is_geodetic(const RTCTX *ctx, const GSERIALIZED *gser);
 
 /**
 * Return a number indicating presence of Z and M coordinates.
 * 0 = None, 1 = M, 2 = Z, 3 = ZM
 */
-extern int gserialized_get_zm(RTCTX *ctx, const GSERIALIZED *gser);
+extern int gserialized_get_zm(const RTCTX *ctx, const GSERIALIZED *gser);
 
 /**
 * Return the number of dimensions (2, 3, 4) in a geometry
 */
-extern int gserialized_ndims(RTCTX *ctx, const GSERIALIZED *gser);
+extern int gserialized_ndims(const RTCTX *ctx, const GSERIALIZED *gser);
 
 
 /**
@@ -644,8 +644,8 @@ extern int gserialized_ndims(RTCTX *ctx, const GSERIALIZED *gser);
 * with the HASBBOX flag and has a bbox, it
 * will be released.
 */
-extern void rtgeom_drop_bbox(RTCTX *ctx, RTGEOM *rtgeom);
-extern void rtgeom_drop_srid(RTCTX *ctx, RTGEOM *rtgeom);
+extern void rtgeom_drop_bbox(const RTCTX *ctx, RTGEOM *rtgeom);
+extern void rtgeom_drop_srid(const RTCTX *ctx, RTGEOM *rtgeom);
 
 /** 
  * Compute a bbox if not already computed 
@@ -653,11 +653,11 @@ extern void rtgeom_drop_srid(RTCTX *ctx, RTGEOM *rtgeom);
  * After calling this function rtgeom->bbox is only
  * NULL if the geometry is empty.
  */
-extern void rtgeom_add_bbox(RTCTX *ctx, RTGEOM *rtgeom);
+extern void rtgeom_add_bbox(const RTCTX *ctx, RTGEOM *rtgeom);
 /**
 * Compute a box for geom and all sub-geometries, if not already computed
 */
-extern void rtgeom_add_bbox_deep(RTCTX *ctx, RTGEOM *rtgeom, RTGBOX *gbox);
+extern void rtgeom_add_bbox_deep(const RTCTX *ctx, RTGEOM *rtgeom, RTGBOX *gbox);
 
 /** 
  * Get a non-empty geometry bounding box, computing and
@@ -666,12 +666,12 @@ extern void rtgeom_add_bbox_deep(RTCTX *ctx, RTGEOM *rtgeom, RTGBOX *gbox);
  * NOTE: empty geometries don't have a bounding box so
  *       you'd still get a NULL for them.
  */
-extern const RTGBOX *rtgeom_get_bbox(RTCTX *ctx, const RTGEOM *rtgeom);
+extern const RTGBOX *rtgeom_get_bbox(const RTCTX *ctx, const RTGEOM *rtgeom);
 
 /** 
 * Determine whether a RTGEOM can contain sub-geometries or not 
 */
-extern int rtgeom_is_collection(RTCTX *ctx, const RTGEOM *rtgeom);
+extern int rtgeom_is_collection(const RTCTX *ctx, const RTGEOM *rtgeom);
 
 /******************************************************************/
 /* Functions that work on type numbers */
@@ -679,18 +679,18 @@ extern int rtgeom_is_collection(RTCTX *ctx, const RTGEOM *rtgeom);
 /** 
 * Determine whether a type number is a collection or not
 */
-extern int rttype_is_collection(RTCTX *ctx, uint8_t type);
+extern int rttype_is_collection(const RTCTX *ctx, uint8_t type);
 
 /**
 * Given an rttype number, what homogeneous collection can hold it?
 */
-extern int rttype_get_collectiontype(RTCTX *ctx, uint8_t type);
+extern int rttype_get_collectiontype(const RTCTX *ctx, uint8_t type);
 
 /**
 * Return the type name string associated with a type number 
 * (e.g. Point, LineString, Polygon)
 */
-extern const char *rttype_name(RTCTX *ctx, uint8_t type);
+extern const char *rttype_name(const RTCTX *ctx, uint8_t type);
 
 
 /******************************************************************/
@@ -701,7 +701,7 @@ extern const char *rttype_name(RTCTX *ctx, uint8_t type);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT4D getPoint4d(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT4D getPoint4d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
@@ -709,23 +709,23 @@ extern RTPOINT4D getPoint4d(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: this will modify the point4d pointed to by 'point'.
  */
-extern int getPoint4d_p(RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *point);
+extern int getPoint4d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *point);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT3DZ getPoint3dz(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
-extern RTPOINT3DM getPoint3dm(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT3DZ getPoint3dz(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT3DM getPoint3dm(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: this will modify the point3d pointed to by 'point'.
  */
-extern int getPoint3dz_p(RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *point);
-extern int getPoint3dm_p(RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *point);
+extern int getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *point);
+extern int getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *point);
 
 
 /*
@@ -733,14 +733,14 @@ extern int getPoint3dm_p(RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *
  * z value (if present is not returned)
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT2D getPoint2d(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT2D getPoint2d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * z value (if present is not returned)
  * NOTE: this will modify the point2d pointed to by 'point'.
  */
-extern int getPoint2d_p(RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *point);
+extern int getPoint2d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *point);
 
 /**
 * Returns a RTPOINT2D pointer into the RTPOINTARRAY serialized_ptlist, 
@@ -748,7 +748,7 @@ extern int getPoint2d_p(RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *po
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT2D* getPoint2d_cp(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern const RTPOINT2D* getPoint2d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /**
 * Returns a RTPOINT3DZ pointer into the RTPOINTARRAY serialized_ptlist, 
@@ -756,7 +756,7 @@ extern const RTPOINT2D* getPoint2d_cp(RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT3DZ* getPoint3dz_cp(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern const RTPOINT3DZ* getPoint3dz_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /**
 * Returns a RTPOINT4D pointer into the RTPOINTARRAY serialized_ptlist, 
@@ -764,7 +764,7 @@ extern const RTPOINT3DZ* getPoint3dz_cp(RTCTX *ctx, const RTPOINTARRAY *pa, int 
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT4D* getPoint4d_cp(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern const RTPOINT4D* getPoint4d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * set point N to the given value
@@ -774,7 +774,7 @@ extern const RTPOINT4D* getPoint4d_cp(RTCTX *ctx, const RTPOINTARRAY *pa, int n)
  *
  * N must be a valid point index 
  */
-extern void ptarray_set_point4d(RTCTX *ctx, RTPOINTARRAY *pa, int n, const RTPOINT4D *p4d);
+extern void ptarray_set_point4d(const RTCTX *ctx, RTPOINTARRAY *pa, int n, const RTPOINT4D *p4d);
 
 /*
  * get a pointer to nth point of a RTPOINTARRAY
@@ -785,13 +785,13 @@ extern void ptarray_set_point4d(RTCTX *ctx, RTPOINTARRAY *pa, int n, const RTPOI
  * WARNING: Don't cast this to a POINT !
  * it would not be reliable due to memory alignment constraints
  */
-extern uint8_t *getPoint_internal(RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern uint8_t *getPoint_internal(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * size of point represeneted in the RTPOINTARRAY
  * 16 for 2d, 24 for 3d, 32 for 4d
  */
-extern int ptarray_point_size(RTCTX *ctx, const RTPOINTARRAY *pa);
+extern int ptarray_point_size(const RTCTX *ctx, const RTPOINTARRAY *pa);
 
 
 /** 
@@ -799,31 +799,31 @@ extern int ptarray_point_size(RTCTX *ctx, const RTPOINTARRAY *pa);
 * the npoints, but not filling in any information. Should be used in conjunction
 * with ptarray_set_point4d to fill in the information in the array.
 */
-extern RTPOINTARRAY* ptarray_construct(RTCTX *ctx, char hasz, char hasm, uint32_t npoints);
+extern RTPOINTARRAY* ptarray_construct(const RTCTX *ctx, char hasz, char hasm, uint32_t npoints);
 
 /**
 * Construct a new #RTPOINTARRAY, <em>copying</em> in the data from ptlist 
 */
-extern RTPOINTARRAY* ptarray_construct_copy_data(RTCTX *ctx, char hasz, char hasm, uint32_t npoints, const uint8_t *ptlist);
+extern RTPOINTARRAY* ptarray_construct_copy_data(const RTCTX *ctx, char hasz, char hasm, uint32_t npoints, const uint8_t *ptlist);
 
 /**
 * Construct a new #RTPOINTARRAY, <em>referencing</em> to the data from ptlist 
 */
-extern RTPOINTARRAY* ptarray_construct_reference_data(RTCTX *ctx, char hasz, char hasm, uint32_t npoints, uint8_t *ptlist);
+extern RTPOINTARRAY* ptarray_construct_reference_data(const RTCTX *ctx, char hasz, char hasm, uint32_t npoints, uint8_t *ptlist);
 
 /**
 * Create a new #RTPOINTARRAY with no points. Allocate enough storage
 * to hold maxpoints vertices before having to reallocate the storage
 * area.
 */
-extern RTPOINTARRAY* ptarray_construct_empty(RTCTX *ctx, char hasz, char hasm, uint32_t maxpoints);
+extern RTPOINTARRAY* ptarray_construct_empty(const RTCTX *ctx, char hasz, char hasm, uint32_t maxpoints);
 
 /**
 * Append a point to the end of an existing #RTPOINTARRAY 
 * If allow_duplicate is RT_TRUE, then a duplicate point will
 * not be added.
 */
-extern int ptarray_append_point(RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *pt, int allow_duplicates);
+extern int ptarray_append_point(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *pt, int allow_duplicates);
 
 /**
  * Append a #RTPOINTARRAY, pa2 to the end of an existing #RTPOINTARRAY, pa1.
@@ -836,19 +836,19 @@ extern int ptarray_append_point(RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *p
  * If end point of pa1 and start point of pa2 are 2d-equal, then pa2 first
  * point will not be appended.
  */
-extern int ptarray_append_ptarray(RTCTX *ctx, RTPOINTARRAY *pa1, RTPOINTARRAY *pa2, double gap_tolerance);
+extern int ptarray_append_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa1, RTPOINTARRAY *pa2, double gap_tolerance);
 
 /**
 * Insert a point into an existing #RTPOINTARRAY. Zero
 * is the index of the start of the array.
 */
-extern int ptarray_insert_point(RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *p, int where);
+extern int ptarray_insert_point(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *p, int where);
 
 /**
 * Remove a point from an existing #RTPOINTARRAY. Zero
 * is the index of the start of the array.
 */
-extern int ptarray_remove_point(RTCTX *ctx, RTPOINTARRAY *pa, int where);
+extern int ptarray_remove_point(const RTCTX *ctx, RTPOINTARRAY *pa, int where);
 
 /**
  * @brief Add a point in a pointarray.
@@ -861,14 +861,14 @@ extern int ptarray_remove_point(RTCTX *ctx, RTPOINTARRAY *pa, int where);
  * @returns a newly constructed RTPOINTARRAY using a newly allocated buffer
  *          for the actual points, or NULL on error.
  */
-extern RTPOINTARRAY *ptarray_addPoint(RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t where);
+extern RTPOINTARRAY *ptarray_addPoint(const RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t *p, size_t pdims, uint32_t where);
 
 /**
  * @brief Remove a point from a pointarray.
  * 	@param which -  is the offset (starting at 0)
  * @return #RTPOINTARRAY is newly allocated
  */
-extern RTPOINTARRAY *ptarray_removePoint(RTCTX *ctx, RTPOINTARRAY *pa, uint32_t where);
+extern RTPOINTARRAY *ptarray_removePoint(const RTCTX *ctx, RTPOINTARRAY *pa, uint32_t where);
 
 /**
  * @brief Merge two given RTPOINTARRAY and returns a pointer
@@ -876,42 +876,42 @@ extern RTPOINTARRAY *ptarray_removePoint(RTCTX *ctx, RTPOINTARRAY *pa, uint32_t 
  * Warning: this function free the two inputs RTPOINTARRAY
  * @return #RTPOINTARRAY is newly allocated
  */
-extern RTPOINTARRAY *ptarray_merge(RTCTX *ctx, RTPOINTARRAY *pa1, RTPOINTARRAY *pa2);
+extern RTPOINTARRAY *ptarray_merge(const RTCTX *ctx, RTPOINTARRAY *pa1, RTPOINTARRAY *pa2);
 
-extern int ptarray_is_closed(RTCTX *ctx, const RTPOINTARRAY *pa);
-extern int ptarray_is_closed_2d(RTCTX *ctx, const RTPOINTARRAY *pa);
-extern int ptarray_is_closed_3d(RTCTX *ctx, const RTPOINTARRAY *pa);
-extern int ptarray_is_closed_z(RTCTX *ctx, const RTPOINTARRAY *pa);
-extern void ptarray_longitude_shift(RTCTX *ctx, RTPOINTARRAY *pa);
-extern int ptarray_isccw(RTCTX *ctx, const RTPOINTARRAY *pa);
-extern void ptarray_reverse(RTCTX *ctx, RTPOINTARRAY *pa);
-extern RTPOINTARRAY* ptarray_flip_coordinates(RTCTX *ctx, RTPOINTARRAY *pa);
+extern int ptarray_is_closed(const RTCTX *ctx, const RTPOINTARRAY *pa);
+extern int ptarray_is_closed_2d(const RTCTX *ctx, const RTPOINTARRAY *pa);
+extern int ptarray_is_closed_3d(const RTCTX *ctx, const RTPOINTARRAY *pa);
+extern int ptarray_is_closed_z(const RTCTX *ctx, const RTPOINTARRAY *pa);
+extern void ptarray_longitude_shift(const RTCTX *ctx, RTPOINTARRAY *pa);
+extern int ptarray_isccw(const RTCTX *ctx, const RTPOINTARRAY *pa);
+extern void ptarray_reverse(const RTCTX *ctx, RTPOINTARRAY *pa);
+extern RTPOINTARRAY* ptarray_flip_coordinates(const RTCTX *ctx, RTPOINTARRAY *pa);
 
 /**
  * @d1 start location (distance from start / total distance)
  * @d2   end location (distance from start / total distance)
  * @param tolerance snap to vertices at locations < tolerance away from given ones
  */
-extern RTPOINTARRAY *ptarray_substring(RTCTX *ctx, RTPOINTARRAY *pa, double d1, double d2,
+extern RTPOINTARRAY *ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *pa, double d1, double d2,
                                                           double tolerance);
 
 
 /**
 * Strip out the Z/M components of an #RTGEOM
 */
-extern RTGEOM* rtgeom_force_2d(RTCTX *ctx, const RTGEOM *geom);
-extern RTGEOM* rtgeom_force_3dz(RTCTX *ctx, const RTGEOM *geom);
-extern RTGEOM* rtgeom_force_3dm(RTCTX *ctx, const RTGEOM *geom);
-extern RTGEOM* rtgeom_force_4d(RTCTX *ctx, const RTGEOM *geom);
+extern RTGEOM* rtgeom_force_2d(const RTCTX *ctx, const RTGEOM *geom);
+extern RTGEOM* rtgeom_force_3dz(const RTCTX *ctx, const RTGEOM *geom);
+extern RTGEOM* rtgeom_force_3dm(const RTCTX *ctx, const RTGEOM *geom);
+extern RTGEOM* rtgeom_force_4d(const RTCTX *ctx, const RTGEOM *geom);
 
-extern RTGEOM* rtgeom_simplify(RTCTX *ctx, const RTGEOM *igeom, double dist, int preserve_collapsed);
-extern RTGEOM* rtgeom_set_effective_area(RTCTX *ctx, const RTGEOM *igeom, int set_area, double area);
+extern RTGEOM* rtgeom_simplify(const RTCTX *ctx, const RTGEOM *igeom, double dist, int preserve_collapsed);
+extern RTGEOM* rtgeom_set_effective_area(const RTCTX *ctx, const RTGEOM *igeom, int set_area, double area);
 
 /* 
  * Force to use SFS 1.1 geometry type
  * (rather than SFS 1.2 and/or SQL/MM)
  */
-extern RTGEOM* rtgeom_force_sfs(RTCTX *ctx, RTGEOM *geom, int version);
+extern RTGEOM* rtgeom_force_sfs(const RTCTX *ctx, RTGEOM *geom, int version);
 
 
 /*--------------------------------------------------------
@@ -923,10 +923,10 @@ extern RTGEOM* rtgeom_force_sfs(RTCTX *ctx, RTGEOM *geom, int version);
 /*
  * convenience functions to hide the RTPOINTARRAY
  */
-extern int rtpoint_getPoint2d_p(RTCTX *ctx, const RTPOINT *point, RTPOINT2D *out);
-extern int rtpoint_getPoint3dz_p(RTCTX *ctx, const RTPOINT *point, RTPOINT3DZ *out);
-extern int rtpoint_getPoint3dm_p(RTCTX *ctx, const RTPOINT *point, RTPOINT3DM *out);
-extern int rtpoint_getPoint4d_p(RTCTX *ctx, const RTPOINT *point, RTPOINT4D *out);
+extern int rtpoint_getPoint2d_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT2D *out);
+extern int rtpoint_getPoint3dz_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT3DZ *out);
+extern int rtpoint_getPoint3dm_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT3DM *out);
+extern int rtpoint_getPoint4d_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT4D *out);
 
 /******************************************************************
  * RTLINE functions
@@ -935,7 +935,7 @@ extern int rtpoint_getPoint4d_p(RTCTX *ctx, const RTPOINT *point, RTPOINT4D *out
 /**
  * Add a RTPOINT to an RTLINE
  */
-extern int rtline_add_rtpoint(RTCTX *ctx, RTLINE *line, RTPOINT *point, int where);
+extern int rtline_add_rtpoint(const RTCTX *ctx, RTLINE *line, RTPOINT *point, int where);
 
 /******************************************************************
  * RTPOLY functions
@@ -945,49 +945,49 @@ extern int rtline_add_rtpoint(RTCTX *ctx, RTLINE *line, RTPOINT *point, int wher
 * Add a ring, allocating extra space if necessary. The polygon takes
 * ownership of the passed point array.
 */
-extern int rtpoly_add_ring(RTCTX *ctx, RTPOLY *poly, RTPOINTARRAY *pa);
+extern int rtpoly_add_ring(const RTCTX *ctx, RTPOLY *poly, RTPOINTARRAY *pa);
 
 /**
 * Add a ring, allocating extra space if necessary. The curvepolygon takes
 * ownership of the passed point array.
 */
-extern int rtcurvepoly_add_ring(RTCTX *ctx, RTCURVEPOLY *poly, RTGEOM *ring);
+extern int rtcurvepoly_add_ring(const RTCTX *ctx, RTCURVEPOLY *poly, RTGEOM *ring);
 
 /**
 * Add a component, allocating extra space if necessary. The compoundcurve
 * takes owership of the passed geometry.
 */
-extern int rtcompound_add_rtgeom(RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom);
+extern int rtcompound_add_rtgeom(const RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom);
 
 /**
 * Construct an equivalent compound curve from a linestring. 
 * Compound curves can have linear components, so this works fine 
 */
-extern RTCOMPOUND* rtcompound_construct_from_rtline(RTCTX *ctx, const RTLINE *rtpoly);
+extern RTCOMPOUND* rtcompound_construct_from_rtline(const RTCTX *ctx, const RTLINE *rtpoly);
 
 /**
 * Construct an equivalent curve polygon from a polygon. Curve polygons
 * can have linear rings as their rings, so this works fine (in theory?)
 */
-extern RTCURVEPOLY* rtcurvepoly_construct_from_rtpoly(RTCTX *ctx, RTPOLY *rtpoly);
+extern RTCURVEPOLY* rtcurvepoly_construct_from_rtpoly(const RTCTX *ctx, RTPOLY *rtpoly);
 
 
 /******************************************************************
  * RTGEOM functions
  ******************************************************************/
 
-extern int rtcollection_ngeoms(RTCTX *ctx, const RTCOLLECTION *col);
+extern int rtcollection_ngeoms(const RTCTX *ctx, const RTCOLLECTION *col);
 
 /* Given a generic geometry/collection, return the "simplest" form. */
-extern RTGEOM *rtgeom_homogenize(RTCTX *ctx, const RTGEOM *geom);
+extern RTGEOM *rtgeom_homogenize(const RTCTX *ctx, const RTGEOM *geom);
 
 
 /******************************************************************
  * RTMULTIx and RTCOLLECTION functions
  ******************************************************************/
 
-RTGEOM *rtcollection_getsubgeom(RTCTX *ctx, RTCOLLECTION *col, int gnum);
-RTCOLLECTION* rtcollection_extract(RTCTX *ctx, RTCOLLECTION *col, int type);
+RTGEOM *rtcollection_getsubgeom(const RTCTX *ctx, RTCOLLECTION *col, int gnum);
+RTCOLLECTION* rtcollection_extract(const RTCTX *ctx, RTCOLLECTION *col, int type);
 
 
 /******************************************************************
@@ -999,7 +999,7 @@ RTCOLLECTION* rtcollection_extract(RTCTX *ctx, RTCOLLECTION *col, int type);
 * For collections, only the parent gets an SRID, all
 * the children get SRID_UNKNOWN.
 */
-extern void rtgeom_set_srid(RTCTX *ctx, RTGEOM *geom, int srid);
+extern void rtgeom_set_srid(const RTCTX *ctx, RTGEOM *geom, int srid);
 
 /*------------------------------------------------------
  * other stuff
@@ -1009,8 +1009,8 @@ extern void rtgeom_set_srid(RTCTX *ctx, RTGEOM *geom, int srid);
  * between float8 and float4 representations.
  */
 
-extern BOX3D* box3d_from_gbox(RTCTX *ctx, const RTGBOX *gbox);
-extern RTGBOX* box3d_to_gbox(RTCTX *ctx, const BOX3D *b3d);
+extern BOX3D* box3d_from_gbox(const RTCTX *ctx, const RTGBOX *gbox);
+extern RTGBOX* box3d_to_gbox(const RTCTX *ctx, const BOX3D *b3d);
 
 void expand_box3d(BOX3D *box, double d);
 
@@ -1027,19 +1027,19 @@ void expand_box3d(BOX3D *box, double d);
 * from PgSQL use read only point arrays.
 */
 
-extern void ptarray_free(RTCTX *ctx, RTPOINTARRAY *pa);
-extern void rtpoint_free(RTCTX *ctx, RTPOINT *pt);
-extern void rtline_free(RTCTX *ctx, RTLINE *line);
-extern void rtpoly_free(RTCTX *ctx, RTPOLY *poly);
-extern void rttriangle_free(RTCTX *ctx, RTTRIANGLE *triangle);
-extern void rtmpoint_free(RTCTX *ctx, RTMPOINT *mpt);
-extern void rtmline_free(RTCTX *ctx, RTMLINE *mline);
-extern void rtmpoly_free(RTCTX *ctx, RTMPOLY *mpoly);
-extern void rtpsurface_free(RTCTX *ctx, RTPSURFACE *psurf);
-extern void rttin_free(RTCTX *ctx, RTTIN *tin);
-extern void rtcollection_free(RTCTX *ctx, RTCOLLECTION *col);
-extern void rtcircstring_free(RTCTX *ctx, RTCIRCSTRING *curve);
-extern void rtgeom_free(RTCTX *ctx, RTGEOM *geom);
+extern void ptarray_free(const RTCTX *ctx, RTPOINTARRAY *pa);
+extern void rtpoint_free(const RTCTX *ctx, RTPOINT *pt);
+extern void rtline_free(const RTCTX *ctx, RTLINE *line);
+extern void rtpoly_free(const RTCTX *ctx, RTPOLY *poly);
+extern void rttriangle_free(const RTCTX *ctx, RTTRIANGLE *triangle);
+extern void rtmpoint_free(const RTCTX *ctx, RTMPOINT *mpt);
+extern void rtmline_free(const RTCTX *ctx, RTMLINE *mline);
+extern void rtmpoly_free(const RTCTX *ctx, RTMPOLY *mpoly);
+extern void rtpsurface_free(const RTCTX *ctx, RTPSURFACE *psurf);
+extern void rttin_free(const RTCTX *ctx, RTTIN *tin);
+extern void rtcollection_free(const RTCTX *ctx, RTCOLLECTION *col);
+extern void rtcircstring_free(const RTCTX *ctx, RTCIRCSTRING *curve);
+extern void rtgeom_free(const RTCTX *ctx, RTGEOM *geom);
 
 /*
 * The *_release family of functions frees the RTGEOM structures
@@ -1048,111 +1048,111 @@ extern void rtgeom_free(RTCTX *ctx, RTGEOM *geom);
 * or splicing geometries together.
 */
 
-extern void rtpoint_release(RTCTX *ctx, RTPOINT *rtpoint);
-extern void rtline_release(RTCTX *ctx, RTLINE *rtline);
-extern void rtpoly_release(RTCTX *ctx, RTPOLY *rtpoly);
-extern void rttriangle_release(RTCTX *ctx, RTTRIANGLE *rttriangle);
-extern void rtcircstring_release(RTCTX *ctx, RTCIRCSTRING *rtcirc);
-extern void rtmpoint_release(RTCTX *ctx, RTMPOINT *rtpoint);
-extern void rtmline_release(RTCTX *ctx, RTMLINE *rtline);
-extern void rtmpoly_release(RTCTX *ctx, RTMPOLY *rtpoly);
+extern void rtpoint_release(const RTCTX *ctx, RTPOINT *rtpoint);
+extern void rtline_release(const RTCTX *ctx, RTLINE *rtline);
+extern void rtpoly_release(const RTCTX *ctx, RTPOLY *rtpoly);
+extern void rttriangle_release(const RTCTX *ctx, RTTRIANGLE *rttriangle);
+extern void rtcircstring_release(const RTCTX *ctx, RTCIRCSTRING *rtcirc);
+extern void rtmpoint_release(const RTCTX *ctx, RTMPOINT *rtpoint);
+extern void rtmline_release(const RTCTX *ctx, RTMLINE *rtline);
+extern void rtmpoly_release(const RTCTX *ctx, RTMPOLY *rtpoly);
 extern void rtpsurface_release(RTPSURFACE *rtpsurface);
 extern void rttin_release(RTTIN *rttin);
-extern void rtcollection_release(RTCTX *ctx, RTCOLLECTION *rtcollection);
-extern void rtgeom_release(RTCTX *ctx, RTGEOM *rtgeom);
+extern void rtcollection_release(const RTCTX *ctx, RTCOLLECTION *rtcollection);
+extern void rtgeom_release(const RTCTX *ctx, RTGEOM *rtgeom);
 
 
 /****************************************************************
 * Utility
 ****************************************************************/
 
-extern void printBOX3D(RTCTX *ctx, BOX3D *b);
-extern void printPA(RTCTX *ctx, RTPOINTARRAY *pa);
-extern void printRTPOINT(RTCTX *ctx, RTPOINT *point);
-extern void printRTLINE(RTCTX *ctx, RTLINE *line);
-extern void printRTPOLY(RTCTX *ctx, RTPOLY *poly);
-extern void printRTTRIANGLE(RTCTX *ctx, RTTRIANGLE *triangle);
-extern void printRTPSURFACE(RTCTX *ctx, RTPSURFACE *psurf);
-extern void printRTTIN(RTCTX *ctx, RTTIN *tin);
+extern void printBOX3D(const RTCTX *ctx, BOX3D *b);
+extern void printPA(const RTCTX *ctx, RTPOINTARRAY *pa);
+extern void printRTPOINT(const RTCTX *ctx, RTPOINT *point);
+extern void printRTLINE(const RTCTX *ctx, RTLINE *line);
+extern void printRTPOLY(const RTCTX *ctx, RTPOLY *poly);
+extern void printRTTRIANGLE(const RTCTX *ctx, RTTRIANGLE *triangle);
+extern void printRTPSURFACE(const RTCTX *ctx, RTPSURFACE *psurf);
+extern void printRTTIN(const RTCTX *ctx, RTTIN *tin);
 
-extern float  next_float_down(RTCTX *ctx, double d);
-extern float  next_float_up(RTCTX *ctx, double d);
-extern double next_double_down(RTCTX *ctx, float d);
-extern double next_double_up(RTCTX *ctx, float d);
+extern float  next_float_down(const RTCTX *ctx, double d);
+extern float  next_float_up(const RTCTX *ctx, double d);
+extern double next_double_down(const RTCTX *ctx, float d);
+extern double next_double_up(const RTCTX *ctx, float d);
 
 /* general utilities 2D */
-extern double  distance2d_pt_pt(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2);
-extern double  distance2d_sqr_pt_pt(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2);
-extern double  distance2d_pt_seg(RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
-extern double  distance2d_sqr_pt_seg(RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
-extern RTGEOM* rtgeom_closest_line(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern RTGEOM* rtgeom_furthest_line(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern RTGEOM* rtgeom_closest_point(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern RTGEOM* rtgeom_furthest_point(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern double  rtgeom_mindistance2d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern double  rtgeom_mindistance2d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
-extern double  rtgeom_maxdistance2d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern double  rtgeom_maxdistance2d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
+extern double  distance2d_pt_pt(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2);
+extern double  distance2d_sqr_pt_pt(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2);
+extern double  distance2d_pt_seg(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
+extern double  distance2d_sqr_pt_seg(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
+extern RTGEOM* rtgeom_closest_line(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern RTGEOM* rtgeom_furthest_line(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern RTGEOM* rtgeom_closest_point(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern RTGEOM* rtgeom_furthest_point(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern double  rtgeom_mindistance2d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern double  rtgeom_mindistance2d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
+extern double  rtgeom_maxdistance2d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern double  rtgeom_maxdistance2d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
 
 /* 3D */
-extern double distance3d_pt_pt(RTCTX *ctx, const POINT3D *p1, const POINT3D *p2);
+extern double distance3d_pt_pt(const RTCTX *ctx, const POINT3D *p1, const POINT3D *p2);
 extern double distance3d_pt_seg(const POINT3D *p, const POINT3D *A, const POINT3D *B);
 
-extern RTGEOM* rtgeom_furthest_line_3d(RTCTX *ctx, RTGEOM *rt1, RTGEOM *rt2);
-extern RTGEOM* rtgeom_closest_line_3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern RTGEOM* rtgeom_closest_point_3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern RTGEOM* rtgeom_furthest_line_3d(const RTCTX *ctx, RTGEOM *rt1, RTGEOM *rt2);
+extern RTGEOM* rtgeom_closest_line_3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern RTGEOM* rtgeom_closest_point_3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
 
 
-extern double rtgeom_mindistance3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern double rtgeom_mindistance3d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
-extern double rtgeom_maxdistance3d(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
-extern double rtgeom_maxdistance3d_tolerance(RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
+extern double rtgeom_mindistance3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern double rtgeom_mindistance3d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
+extern double rtgeom_maxdistance3d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2);
+extern double rtgeom_maxdistance3d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance);
 
-extern double rtgeom_area(RTCTX *ctx, const RTGEOM *geom);
-extern double rtgeom_length(RTCTX *ctx, const RTGEOM *geom);
-extern double rtgeom_length_2d(RTCTX *ctx, const RTGEOM *geom);
-extern double rtgeom_perimeter(RTCTX *ctx, const RTGEOM *geom);
-extern double rtgeom_perimeter_2d(RTCTX *ctx, const RTGEOM *geom);
-extern void rtgeom_affine(RTCTX *ctx, RTGEOM *geom, const AFFINE *affine);
-extern void rtgeom_scale(RTCTX *ctx, RTGEOM *geom, const RTPOINT4D *factors);
-extern int rtgeom_dimension(RTCTX *ctx, const RTGEOM *geom);
+extern double rtgeom_area(const RTCTX *ctx, const RTGEOM *geom);
+extern double rtgeom_length(const RTCTX *ctx, const RTGEOM *geom);
+extern double rtgeom_length_2d(const RTCTX *ctx, const RTGEOM *geom);
+extern double rtgeom_perimeter(const RTCTX *ctx, const RTGEOM *geom);
+extern double rtgeom_perimeter_2d(const RTCTX *ctx, const RTGEOM *geom);
+extern void rtgeom_affine(const RTCTX *ctx, RTGEOM *geom, const AFFINE *affine);
+extern void rtgeom_scale(const RTCTX *ctx, RTGEOM *geom, const RTPOINT4D *factors);
+extern int rtgeom_dimension(const RTCTX *ctx, const RTGEOM *geom);
 
-extern RTPOINT* rtline_get_rtpoint(RTCTX *ctx, const RTLINE *line, int where);
-extern RTPOINT* rtcircstring_get_rtpoint(RTCTX *ctx, const RTCIRCSTRING *circ, int where);
+extern RTPOINT* rtline_get_rtpoint(const RTCTX *ctx, const RTLINE *line, int where);
+extern RTPOINT* rtcircstring_get_rtpoint(const RTCTX *ctx, const RTCIRCSTRING *circ, int where);
 
-extern RTPOINT* rtcompound_get_startpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp);
-extern RTPOINT* rtcompound_get_endpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp);
-extern RTPOINT* rtcompound_get_rtpoint(RTCTX *ctx, const RTCOMPOUND *rtcmp, int where);
-
-
-extern double ptarray_length_2d(RTCTX *ctx, const RTPOINTARRAY *pts);
-extern double ptarray_length(RTCTX *ctx, const RTPOINTARRAY *pts);
-extern double ptarray_arc_length_2d(RTCTX *ctx, const RTPOINTARRAY *pts);
+extern RTPOINT* rtcompound_get_startpoint(const RTCTX *ctx, const RTCOMPOUND *rtcmp);
+extern RTPOINT* rtcompound_get_endpoint(const RTCTX *ctx, const RTCOMPOUND *rtcmp);
+extern RTPOINT* rtcompound_get_rtpoint(const RTCTX *ctx, const RTCOMPOUND *rtcmp, int where);
 
 
-extern int pt_in_ring_2d(RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring);
-extern int azimuth_pt_pt(RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, double *ret);
-extern int rtpoint_inside_circle(RTCTX *ctx, const RTPOINT *p, double cx, double cy, double rad);
-extern void rtgeom_reverse(RTCTX *ctx, RTGEOM *rtgeom);
-extern void rtline_reverse(RTCTX *ctx, RTLINE *line);
-extern void rtpoly_reverse(RTCTX *ctx, RTPOLY *poly);
-extern void rttriangle_reverse(RTCTX *ctx, RTTRIANGLE *triangle);
-extern char* rtgeom_summary(RTCTX *ctx, const RTGEOM *rtgeom, int offset);
-extern char* rtpoint_to_latlon(RTCTX *ctx, const RTPOINT *p, const char *format);
-extern int rtgeom_startpoint(RTCTX *ctx, const RTGEOM* rtgeom, RTPOINT4D* pt);
+extern double ptarray_length_2d(const RTCTX *ctx, const RTPOINTARRAY *pts);
+extern double ptarray_length(const RTCTX *ctx, const RTPOINTARRAY *pts);
+extern double ptarray_arc_length_2d(const RTCTX *ctx, const RTPOINTARRAY *pts);
+
+
+extern int pt_in_ring_2d(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring);
+extern int azimuth_pt_pt(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, double *ret);
+extern int rtpoint_inside_circle(const RTCTX *ctx, const RTPOINT *p, double cx, double cy, double rad);
+extern void rtgeom_reverse(const RTCTX *ctx, RTGEOM *rtgeom);
+extern void rtline_reverse(const RTCTX *ctx, RTLINE *line);
+extern void rtpoly_reverse(const RTCTX *ctx, RTPOLY *poly);
+extern void rttriangle_reverse(const RTCTX *ctx, RTTRIANGLE *triangle);
+extern char* rtgeom_summary(const RTCTX *ctx, const RTGEOM *rtgeom, int offset);
+extern char* rtpoint_to_latlon(const RTCTX *ctx, const RTPOINT *p, const char *format);
+extern int rtgeom_startpoint(const RTCTX *ctx, const RTGEOM* rtgeom, RTPOINT4D* pt);
 
 /**
 * Ensure the outer ring is clockwise oriented and all inner rings 
 * are counter-clockwise.
 */
-extern void rtgeom_force_clockwise(RTCTX *ctx, RTGEOM *rtgeom);
-extern void rtpoly_force_clockwise(RTCTX *ctx, RTPOLY *poly);
-extern void rttriangle_force_clockwise(RTCTX *ctx, RTTRIANGLE *triangle);
+extern void rtgeom_force_clockwise(const RTCTX *ctx, RTGEOM *rtgeom);
+extern void rtpoly_force_clockwise(const RTCTX *ctx, RTPOLY *poly);
+extern void rttriangle_force_clockwise(const RTCTX *ctx, RTTRIANGLE *triangle);
 
 
-extern void interpolate_point4d(RTCTX *ctx, RTPOINT4D *A, RTPOINT4D *B, RTPOINT4D *I, double F);
+extern void interpolate_point4d(const RTCTX *ctx, RTPOINT4D *A, RTPOINT4D *B, RTPOINT4D *I, double F);
 
-void rtgeom_longitude_shift(RTCTX *ctx, RTGEOM *rtgeom);
+void rtgeom_longitude_shift(const RTCTX *ctx, RTGEOM *rtgeom);
 
 
 /**
@@ -1164,51 +1164,51 @@ void rtgeom_longitude_shift(RTCTX *ctx, RTGEOM *rtgeom);
 * index operations can generate a large number of box-retrieval operations
 * when scanning keys.
 */
-extern int rtgeom_needs_bbox(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_needs_bbox(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Count the total number of vertices in any #RTGEOM.
 */
-extern int rtgeom_count_vertices(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_count_vertices(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Count the total number of rings in any #RTGEOM. Multipolygons
 * and other collections get counted, not the same as OGC st_numrings.
 */
-extern int rtgeom_count_rings(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_count_rings(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return true or false depending on whether a geometry has
 * a valid SRID set.
 */
-extern int rtgeom_has_srid(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_has_srid(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return true or false depending on whether a geometry is an "empty"
 * geometry (no vertices members)
 */
-extern int rtgeom_is_empty(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_is_empty(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return true or false depending on whether a geometry is a linear
 * feature that closes on itself.
 */
-extern int rtgeom_is_closed(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_is_closed(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return the dimensionality (relating to point/line/poly) of an rtgeom
 */
-extern int rtgeom_dimensionality(RTCTX *ctx, RTGEOM *geom);
+extern int rtgeom_dimensionality(const RTCTX *ctx, RTGEOM *geom);
 
 /* Is rtgeom1 geometrically equal to rtgeom2 ? */
-char rtgeom_same(RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2);
-char ptarray_same(RTCTX *ctx, const RTPOINTARRAY *pa1, const RTPOINTARRAY *pa2);
-char rtpoint_same(RTCTX *ctx, const RTPOINT *p1, const RTPOINT *p2);
-char rtline_same(RTCTX *ctx, const RTLINE *p1, const RTLINE *p2);
-char rtpoly_same(RTCTX *ctx, const RTPOLY *p1, const RTPOLY *p2);
-char rttriangle_same(RTCTX *ctx, const RTTRIANGLE *p1, const RTTRIANGLE *p2);
-char rtcollection_same(RTCTX *ctx, const RTCOLLECTION *p1, const RTCOLLECTION *p2);
-char rtcircstring_same(RTCTX *ctx, const RTCIRCSTRING *p1, const RTCIRCSTRING *p2);
+char rtgeom_same(const RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2);
+char ptarray_same(const RTCTX *ctx, const RTPOINTARRAY *pa1, const RTPOINTARRAY *pa2);
+char rtpoint_same(const RTCTX *ctx, const RTPOINT *p1, const RTPOINT *p2);
+char rtline_same(const RTCTX *ctx, const RTLINE *p1, const RTLINE *p2);
+char rtpoly_same(const RTCTX *ctx, const RTPOLY *p1, const RTPOLY *p2);
+char rttriangle_same(const RTCTX *ctx, const RTTRIANGLE *p1, const RTTRIANGLE *p2);
+char rtcollection_same(const RTCTX *ctx, const RTCOLLECTION *p1, const RTCOLLECTION *p2);
+char rtcircstring_same(const RTCTX *ctx, const RTCIRCSTRING *p1, const RTCIRCSTRING *p2);
 
 
 /**
@@ -1218,16 +1218,16 @@ char rtcircstring_same(RTCTX *ctx, const RTCIRCSTRING *p1, const RTCIRCSTRING *p
  *
  * @see ptarray_clone 
  */
-extern RTGEOM *rtgeom_clone(RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTGEOM *rtgeom_clone(const RTCTX *ctx, const RTGEOM *rtgeom);
 
 /**
 * Deep clone an RTGEOM, everything is copied
 */
-extern RTGEOM *rtgeom_clone_deep(RTCTX *ctx, const RTGEOM *rtgeom);
+extern RTGEOM *rtgeom_clone_deep(const RTCTX *ctx, const RTGEOM *rtgeom);
 
 /* TODO Move to Internal */
-RTPOINT *rtpoint_clone(RTCTX *ctx, const RTPOINT *rtgeom);
-RTPOINTARRAY *ptarray_clone_deep(RTCTX *ctx, const RTPOINTARRAY *ptarray);
+RTPOINT *rtpoint_clone(const RTCTX *ctx, const RTPOINT *rtgeom);
+RTPOINTARRAY *ptarray_clone_deep(const RTCTX *ctx, const RTPOINTARRAY *ptarray);
 
 
 /*
@@ -1235,77 +1235,77 @@ RTPOINTARRAY *ptarray_clone_deep(RTCTX *ctx, const RTPOINTARRAY *ptarray);
 * passed to them, they just take references, so do not free them out
 * from underneath the geometries.
 */
-extern RTPOINT* rtpoint_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *point);
-extern RTMPOINT *rtmpoint_construct(RTCTX *ctx, int srid, const RTPOINTARRAY *pa);
-extern RTLINE* rtline_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points);
-extern RTCIRCSTRING* rtcircstring_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points);
-extern RTPOLY* rtpoly_construct(RTCTX *ctx, int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points);
+extern RTPOINT* rtpoint_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *point);
+extern RTMPOINT *rtmpoint_construct(const RTCTX *ctx, int srid, const RTPOINTARRAY *pa);
+extern RTLINE* rtline_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points);
+extern RTCIRCSTRING* rtcircstring_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points);
+extern RTPOLY* rtpoly_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, uint32_t nrings, RTPOINTARRAY **points);
 extern RTCURVEPOLY* rtcurvepoly_construct(int srid, RTGBOX *bbox, uint32_t nrings, RTGEOM **geoms);
-extern RTTRIANGLE* rttriangle_construct(RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points);
-extern RTCOLLECTION* rtcollection_construct(RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox, uint32_t ngeoms, RTGEOM **geoms); 
+extern RTTRIANGLE* rttriangle_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points);
+extern RTCOLLECTION* rtcollection_construct(const RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox, uint32_t ngeoms, RTGEOM **geoms); 
 /*
 * Empty geometry constructors.
 */
-extern RTGEOM* rtgeom_construct_empty(RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm);
-extern RTPOINT* rtpoint_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTLINE* rtline_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTPOLY* rtpoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTCURVEPOLY* rtcurvepoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTCIRCSTRING* rtcircstring_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTCOMPOUND* rtcompound_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTTRIANGLE* rttriangle_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTMPOINT* rtmpoint_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTMLINE* rtmline_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTMPOLY* rtmpoly_construct_empty(RTCTX *ctx, int srid, char hasz, char hasm);
-extern RTCOLLECTION* rtcollection_construct_empty(RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm);
+extern RTGEOM* rtgeom_construct_empty(const RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm);
+extern RTPOINT* rtpoint_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTLINE* rtline_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTPOLY* rtpoly_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTCURVEPOLY* rtcurvepoly_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTCIRCSTRING* rtcircstring_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTCOMPOUND* rtcompound_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTTRIANGLE* rttriangle_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTMPOINT* rtmpoint_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTMLINE* rtmline_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTMPOLY* rtmpoly_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm);
+extern RTCOLLECTION* rtcollection_construct_empty(const RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm);
 
 
 /* Other constructors */
-extern RTPOINT *rtpoint_make2d(RTCTX *ctx, int srid, double x, double y);
-extern RTPOINT *rtpoint_make3dz(RTCTX *ctx, int srid, double x, double y, double z);
-extern RTPOINT *rtpoint_make3dm(RTCTX *ctx, int srid, double x, double y, double m);
-extern RTPOINT *rtpoint_make4d(RTCTX *ctx, int srid, double x, double y, double z, double m);
-extern RTPOINT *rtpoint_make(RTCTX *ctx, int srid, int hasz, int hasm, const RTPOINT4D *p);
-extern RTLINE *rtline_from_rtgeom_array(RTCTX *ctx, int srid, uint32_t ngeoms, RTGEOM **geoms);
-extern RTLINE *rtline_from_ptarray(RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points); /* TODO: deprecate */
-extern RTLINE *rtline_from_rtmpoint(RTCTX *ctx, int srid, const RTMPOINT *mpoint);
+extern RTPOINT *rtpoint_make2d(const RTCTX *ctx, int srid, double x, double y);
+extern RTPOINT *rtpoint_make3dz(const RTCTX *ctx, int srid, double x, double y, double z);
+extern RTPOINT *rtpoint_make3dm(const RTCTX *ctx, int srid, double x, double y, double m);
+extern RTPOINT *rtpoint_make4d(const RTCTX *ctx, int srid, double x, double y, double z, double m);
+extern RTPOINT *rtpoint_make(const RTCTX *ctx, int srid, int hasz, int hasm, const RTPOINT4D *p);
+extern RTLINE *rtline_from_rtgeom_array(const RTCTX *ctx, int srid, uint32_t ngeoms, RTGEOM **geoms);
+extern RTLINE *rtline_from_ptarray(const RTCTX *ctx, int srid, uint32_t npoints, RTPOINT **points); /* TODO: deprecate */
+extern RTLINE *rtline_from_rtmpoint(const RTCTX *ctx, int srid, const RTMPOINT *mpoint);
 extern RTLINE *rtline_addpoint(RTLINE *line, RTPOINT *point, uint32_t where);
-extern RTLINE *rtline_removepoint(RTCTX *ctx, RTLINE *line, uint32_t which);
-extern void rtline_setPoint4d(RTCTX *ctx, RTLINE *line, uint32_t which, RTPOINT4D *newpoint);
-extern RTPOLY *rtpoly_from_rtlines(RTCTX *ctx, const RTLINE *shell, uint32_t nholes, const RTLINE **holes);
-extern RTTRIANGLE *rttriangle_from_rtline(RTCTX *ctx, const RTLINE *shell);
+extern RTLINE *rtline_removepoint(const RTCTX *ctx, RTLINE *line, uint32_t which);
+extern void rtline_setPoint4d(const RTCTX *ctx, RTLINE *line, uint32_t which, RTPOINT4D *newpoint);
+extern RTPOLY *rtpoly_from_rtlines(const RTCTX *ctx, const RTLINE *shell, uint32_t nholes, const RTLINE **holes);
+extern RTTRIANGLE *rttriangle_from_rtline(const RTCTX *ctx, const RTLINE *shell);
 
 
 /* Some point accessors */
-extern double rtpoint_get_x(RTCTX *ctx, const RTPOINT *point);
-extern double rtpoint_get_y(RTCTX *ctx, const RTPOINT *point);
-extern double rtpoint_get_z(RTCTX *ctx, const RTPOINT *point);
-extern double rtpoint_get_m(RTCTX *ctx, const RTPOINT *point);
+extern double rtpoint_get_x(const RTCTX *ctx, const RTPOINT *point);
+extern double rtpoint_get_y(const RTCTX *ctx, const RTPOINT *point);
+extern double rtpoint_get_z(const RTCTX *ctx, const RTPOINT *point);
+extern double rtpoint_get_m(const RTCTX *ctx, const RTPOINT *point);
 
 /**
 * Return SRID number
 */
-extern int32_t rtgeom_get_srid(RTCTX *ctx, const RTGEOM *geom);
+extern int32_t rtgeom_get_srid(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return RTRTTYPE number
 */
-extern uint32_t rtgeom_get_type(RTCTX *ctx, const RTGEOM *geom);
+extern uint32_t rtgeom_get_type(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return #RT_TRUE if geometry has Z ordinates
 */
-extern int rtgeom_has_z(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_has_z(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return #RT_TRUE if geometry has M ordinates.
 */
-extern int rtgeom_has_m(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_has_m(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Return the number of dimensions (2, 3, 4) in a geometry
 */
-extern int rtgeom_ndims(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_ndims(const RTCTX *ctx, const RTGEOM *geom);
 
 /*
  * Given a point, returns the location of closest point on pointarray
@@ -1314,32 +1314,32 @@ extern int rtgeom_ndims(RTCTX *ctx, const RTGEOM *geom);
  * If not-null, the third argument will be set to the actual distance
  * of the point from the pointarray.
  */
-extern double ptarray_locate_point(RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINT4D *pt, double *dist, RTPOINT4D *p_located);
+extern double ptarray_locate_point(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINT4D *pt, double *dist, RTPOINT4D *p_located);
 
 /**
 * Add a measure dimension to a line, interpolating linearly from the start 
 * to the end value.
 */
-extern RTLINE *rtline_measured_from_rtline(RTCTX *ctx, const RTLINE *rtline, double m_start, double m_end);
-extern RTMLINE* rtmline_measured_from_rtmline(RTCTX *ctx, const RTMLINE *rtmline, double m_start, double m_end);
+extern RTLINE *rtline_measured_from_rtline(const RTCTX *ctx, const RTLINE *rtline, double m_start, double m_end);
+extern RTMLINE* rtmline_measured_from_rtmline(const RTCTX *ctx, const RTMLINE *rtmline, double m_start, double m_end);
 
 /**
 * Determine the location(s) along a measured line where m occurs and 
 * return as a multipoint. Offset to left (positive) or right (negative).
 */
-extern RTGEOM* rtgeom_locate_along(RTCTX *ctx, const RTGEOM *rtin, double m, double offset);
+extern RTGEOM* rtgeom_locate_along(const RTCTX *ctx, const RTGEOM *rtin, double m, double offset);
 
 /**
 * Determine the segments along a measured line that fall within the m-range
 * given. Return as a multiline or geometrycollection.
 * Offset to left (positive) or right (negative).
 */
-extern RTCOLLECTION* rtgeom_locate_between(RTCTX *ctx, const RTGEOM *rtin, double from, double to, double offset);
+extern RTCOLLECTION* rtgeom_locate_between(const RTCTX *ctx, const RTGEOM *rtin, double from, double to, double offset);
 
 /**
 * Find the measure value at the location on the line closest to the point.
 */
-extern double rtgeom_interpolate_point(RTCTX *ctx, const RTGEOM *rtin, const RTPOINT *rtpt);
+extern double rtgeom_interpolate_point(const RTCTX *ctx, const RTGEOM *rtin, const RTPOINT *rtpt);
 
 /**
 * Find the time of closest point of approach
@@ -1351,41 +1351,41 @@ extern double rtgeom_interpolate_point(RTCTX *ctx, const RTGEOM *rtin, const RTP
 *         if inputs are invalid (rterror is called in that case),
 *         -2 if the trajectories do not share any point in time.
 */
-extern double rtgeom_tcpa(RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double *mindist);
+extern double rtgeom_tcpa(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double *mindist);
 
 /**
 * Is the closest point of approach within a distance ?
 *
 * @return RT_TRUE or RT_FALSE
 */
-extern int rtgeom_cpa_within(RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double maxdist);
+extern int rtgeom_cpa_within(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double maxdist);
 
 /**
 * Return RT_TRUE or RT_FALSE depending on whether or not a geometry is
 * a linestring with measure value growing from start to end vertex
 */
-extern int rtgeom_is_trajectory(RTCTX *ctx, const RTGEOM *geom);
-extern int rtline_is_trajectory(RTCTX *ctx, const RTLINE *geom);
+extern int rtgeom_is_trajectory(const RTCTX *ctx, const RTGEOM *geom);
+extern int rtline_is_trajectory(const RTCTX *ctx, const RTLINE *geom);
 
 /*
  * Ensure every segment is at most 'dist' long.
  * Returned RTGEOM might is unchanged if a POINT.
  */
-extern RTGEOM *rtgeom_segmentize2d(RTCTX *ctx, RTGEOM *line, double dist);
-extern RTPOINTARRAY *ptarray_segmentize2d(RTCTX *ctx, const RTPOINTARRAY *ipa, double dist);
-extern RTLINE *rtline_segmentize2d(RTCTX *ctx, RTLINE *line, double dist);
-extern RTPOLY *rtpoly_segmentize2d(RTCTX *ctx, RTPOLY *line, double dist);
-extern RTCOLLECTION *rtcollection_segmentize2d(RTCTX *ctx, RTCOLLECTION *coll, double dist);
+extern RTGEOM *rtgeom_segmentize2d(const RTCTX *ctx, RTGEOM *line, double dist);
+extern RTPOINTARRAY *ptarray_segmentize2d(const RTCTX *ctx, const RTPOINTARRAY *ipa, double dist);
+extern RTLINE *rtline_segmentize2d(const RTCTX *ctx, RTLINE *line, double dist);
+extern RTPOLY *rtpoly_segmentize2d(const RTCTX *ctx, RTPOLY *line, double dist);
+extern RTCOLLECTION *rtcollection_segmentize2d(const RTCTX *ctx, RTCOLLECTION *coll, double dist);
 
 /**
 * Calculate the GeoHash (http://geohash.org) string for a geometry. Caller must free.
 */
-char *rtgeom_geohash(RTCTX *ctx, const RTGEOM *rtgeom, int precision);
-unsigned int geohash_point_as_int(RTCTX *ctx, RTPOINT2D *pt);
+char *rtgeom_geohash(const RTCTX *ctx, const RTGEOM *rtgeom, int precision);
+unsigned int geohash_point_as_int(const RTCTX *ctx, RTPOINT2D *pt);
 
 
 /**
-* The return values of rtline_crossing_direction(RTCTX *ctx)
+* The return values of rtline_crossing_direction(const RTCTX *ctx)
 */
 enum RTCG_LINE_CROSS_TYPE {
     LINE_NO_CROSS = 0,
@@ -1400,12 +1400,12 @@ enum RTCG_LINE_CROSS_TYPE {
 /**
 * Given two lines, characterize how (and if) they cross each other
 */
-int rtline_crossing_direction(RTCTX *ctx, const RTLINE *l1, const RTLINE *l2);
+int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *l2);
 
 /**
 * Given a geometry clip  based on the from/to range of one of its ordinates (x, y, z, m). Use for m- and z- clipping.
 */
-RTCOLLECTION* rtgeom_clip_to_ordinate_range(RTCTX *ctx, const RTGEOM *rtin, char ordinate, double from, double to, double offset);
+RTCOLLECTION* rtgeom_clip_to_ordinate_range(const RTCTX *ctx, const RTGEOM *rtin, char ordinate, double from, double to, double offset);
 
 /**
  * Macros for specifying GML options. 
@@ -1436,17 +1436,17 @@ RTCOLLECTION* rtgeom_clip_to_ordinate_range(RTCTX *ctx, const RTGEOM *rtin, char
 
 
 
-extern char* rtgeom_to_gml2(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char *prefix);
-extern char* rtgeom_extent_to_gml2(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char *prefix);
+extern char* rtgeom_to_gml2(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char *prefix);
+extern char* rtgeom_extent_to_gml2(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, const char *prefix);
 /**
  * @param opts output options bitfield, see RT_GML macros for meaning
  */
-extern char* rtgeom_extent_to_gml3(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix);
-extern char* rtgeom_to_gml3(RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix, const char *id);
-extern char* rtgeom_to_kml2(RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix);
-extern char* rtgeom_to_geojson(RTCTX *ctx, const RTGEOM *geo, char *srs, int precision, int has_bbox);
-extern char* rtgeom_to_svg(RTCTX *ctx, const RTGEOM *geom, int precision, int relative);
-extern char* rtgeom_to_x3d3(RTCTX *ctx, const RTGEOM *geom, char *srs, int precision, int opts, const char *defid);
+extern char* rtgeom_extent_to_gml3(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix);
+extern char* rtgeom_to_gml3(const RTCTX *ctx, const RTGEOM *geom, const char *srs, int precision, int opts, const char *prefix, const char *id);
+extern char* rtgeom_to_kml2(const RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix);
+extern char* rtgeom_to_geojson(const RTCTX *ctx, const RTGEOM *geo, char *srs, int precision, int has_bbox);
+extern char* rtgeom_to_svg(const RTCTX *ctx, const RTGEOM *geom, int precision, int relative);
+extern char* rtgeom_to_x3d3(const RTCTX *ctx, const RTGEOM *geom, char *srs, int precision, int opts, const char *defid);
 
 /**
  * Create an RTGEOM object from a GeoJSON representation
@@ -1457,26 +1457,26 @@ extern char* rtgeom_to_x3d3(RTCTX *ctx, const RTGEOM *geom, char *srs, int preci
  *            if no such parameter is found in input.
  *            If not null, the pointer must be freed with rtfree.
  */
-extern RTGEOM* rtgeom_from_geojson(RTCTX *ctx, const char *geojson, char **srs);
+extern RTGEOM* rtgeom_from_geojson(const RTCTX *ctx, const char *geojson, char **srs);
 
 /**
 * Derive a new geometry with vertices added to ensure no vertex is more 
 * than max_seg_length (in radians) from any other vertex.
 */
-extern RTGEOM* rtgeom_segmentize_sphere(RTCTX *ctx, const RTGEOM *rtg_in, double max_seg_length);
+extern RTGEOM* rtgeom_segmentize_sphere(const RTCTX *ctx, const RTGEOM *rtg_in, double max_seg_length);
 
 /**
 * Calculate covers predicate for two rtgeoms on the sphere. Currently
 * only handles point-in-polygon.
 */
-extern int rtgeom_covers_rtgeom_sphere(RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2);
+extern int rtgeom_covers_rtgeom_sphere(const RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2);
 
 /**
 * Remove repeated points!
 */
-extern RTGEOM* rtgeom_remove_repeated_points(RTCTX *ctx, const RTGEOM *in, double tolerance);
+extern RTGEOM* rtgeom_remove_repeated_points(const RTCTX *ctx, const RTGEOM *in, double tolerance);
 
-extern char rttriangle_is_repeated_points(RTCTX *ctx, RTTRIANGLE *triangle);
+extern char rttriangle_is_repeated_points(const RTCTX *ctx, RTTRIANGLE *triangle);
 
 /**
  * Swap ordinate values in every vertex of the geometry.
@@ -1490,7 +1490,7 @@ extern char rttriangle_is_repeated_points(RTCTX *ctx, RTTRIANGLE *triangle);
  *
  * Availability: 2.2.0
  */
-extern void rtgeom_swap_ordinates(RTCTX *ctx, RTGEOM *in, RTORD o1, RTORD o2);
+extern void rtgeom_swap_ordinates(const RTCTX *ctx, RTGEOM *in, RTORD o1, RTORD o2);
 
 /**
 * Reverse the X and Y coordinate order. Useful for geometries in lat/lon order
@@ -1499,7 +1499,7 @@ extern void rtgeom_swap_ordinates(RTCTX *ctx, RTGEOM *in, RTORD o1, RTORD o2);
 * NOTE: uses rtgeom_swap_ordinates internally,
 *       kept for backward compatibility
 */
-extern RTGEOM* rtgeom_flip_coordinates(RTCTX *ctx, RTGEOM *in);
+extern RTGEOM* rtgeom_flip_coordinates(const RTCTX *ctx, RTGEOM *in);
 
 struct RTPOINTITERATOR;
 typedef struct RTPOINTITERATOR RTPOINTITERATOR;
@@ -1507,30 +1507,30 @@ typedef struct RTPOINTITERATOR RTPOINTITERATOR;
 /**
  * Create a new RTPOINTITERATOR over supplied RTGEOM*
  */
-extern RTPOINTITERATOR* rtpointiterator_create(RTCTX *ctx, const RTGEOM* g);
+extern RTPOINTITERATOR* rtpointiterator_create(const RTCTX *ctx, const RTGEOM* g);
 
 /**
  * Create a new RTPOINTITERATOR over supplied RTGEOM*
  * Supports modification of coordinates during iteration.
  */
-extern RTPOINTITERATOR* rtpointiterator_create_rw(RTCTX *ctx, RTGEOM* g);
+extern RTPOINTITERATOR* rtpointiterator_create_rw(const RTCTX *ctx, RTGEOM* g);
 
 /** 
  * Free all memory associated with the iterator
  */
-extern void rtpointiterator_destroy(RTCTX *ctx, RTPOINTITERATOR* s);
+extern void rtpointiterator_destroy(const RTCTX *ctx, RTPOINTITERATOR* s);
 
 /**
  * Returns RT_TRUE if there is another point available in the iterator.
  */
-extern int rtpointiterator_has_next(RTCTX *ctx, RTPOINTITERATOR* s);
+extern int rtpointiterator_has_next(const RTCTX *ctx, RTPOINTITERATOR* s);
 
 /**
  * Attempts to replace the next point int the iterator with p, and advances
  * the iterator to the next point.
  * Returns RT_SUCCESS if the assignment was successful, RT_FAILURE otherwise.
  * */
-extern int rtpointiterator_modify_next(RTCTX *ctx, RTPOINTITERATOR* s, const RTPOINT4D* p);
+extern int rtpointiterator_modify_next(const RTCTX *ctx, RTPOINTITERATOR* s, const RTPOINT4D* p);
 
 /**
  * Attempts to assign the next point in the iterator to p, and advances
@@ -1538,24 +1538,24 @@ extern int rtpointiterator_modify_next(RTCTX *ctx, RTPOINTITERATOR* s, const RTP
  * advanced without reading a point.
  * Returns RT_SUCCESS if the assignment was successful, RT_FAILURE otherwise.
  * */
-extern int rtpointiterator_next(RTCTX *ctx, RTPOINTITERATOR* s, RTPOINT4D* p);
+extern int rtpointiterator_next(const RTCTX *ctx, RTPOINTITERATOR* s, RTPOINT4D* p);
 
 /**
  * Attempts to assigns the next point in the iterator to p.  Does not advance.
  * Returns RT_SUCCESS if the assignment was successful, RT_FAILURE otherwise.
  */
-extern int rtpointiterator_peek(RTCTX *ctx, RTPOINTITERATOR* s, RTPOINT4D* p);
+extern int rtpointiterator_peek(const RTCTX *ctx, RTPOINTITERATOR* s, RTPOINT4D* p);
 
 
 /**
 * Convert a single hex digit into the corresponding char
 */
-extern uint8_t parse_hex(RTCTX *ctx, char *str);
+extern uint8_t parse_hex(const RTCTX *ctx, char *str);
 
 /**
 * Convert a char into a human readable hex digit 
 */
-extern void deparse_hex(RTCTX *ctx, uint8_t str, char *result);
+extern void deparse_hex(const RTCTX *ctx, uint8_t str, char *result);
 
 
 
@@ -1581,32 +1581,32 @@ int gserialized_calculate_gbox_geocentric_p(const GSERIALIZED *g, RTGBOX *g_box)
 * Return a RTWKT representation of the gserialized geometry. 
 * Caller is responsible for disposing of the char*.
 */
-extern char* gserialized_to_string(RTCTX *ctx, const GSERIALIZED *g);
+extern char* gserialized_to_string(const RTCTX *ctx, const GSERIALIZED *g);
 
 /**
 * Return a copy of the input serialized geometry. 
 */ 
-extern GSERIALIZED* gserialized_copy(RTCTX *ctx, const GSERIALIZED *g);
+extern GSERIALIZED* gserialized_copy(const RTCTX *ctx, const GSERIALIZED *g);
 
 /**
 * Check that coordinates of RTGEOM are all within the geodetic range (-180, -90, 180, 90)
 */
-extern int rtgeom_check_geodetic(RTCTX *ctx, const RTGEOM *geom);
+extern int rtgeom_check_geodetic(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Gently move coordinates of RTGEOM if they are close enough into geodetic range.
 */
-extern int rtgeom_nudge_geodetic(RTCTX *ctx, RTGEOM *geom);
+extern int rtgeom_nudge_geodetic(const RTCTX *ctx, RTGEOM *geom);
 
 /**
 * Force coordinates of RTGEOM into geodetic range (-180, -90, 180, 90)
 */
-extern int rtgeom_force_geodetic(RTCTX *ctx, RTGEOM *geom);
+extern int rtgeom_force_geodetic(const RTCTX *ctx, RTGEOM *geom);
 
 /**
 * Set the RTFLAGS geodetic bit on geometry an all sub-geometries and pointlists
 */
-extern void rtgeom_set_geodetic(RTCTX *ctx, RTGEOM *geom, int value);
+extern void rtgeom_set_geodetic(const RTCTX *ctx, RTGEOM *geom, int value);
 
 /**
 * Calculate the geodetic bounding box for an RTGEOM. Z/M coordinates are 
@@ -1614,140 +1614,140 @@ extern void rtgeom_set_geodetic(RTCTX *ctx, RTGEOM *geom, int value);
 * to fill out. RTGEOM must have been built from a GSERIALIZED to provide
 * double aligned point arrays.
 */
-extern int rtgeom_calculate_gbox_geodetic(RTCTX *ctx, const RTGEOM *geom, RTGBOX *gbox);
+extern int rtgeom_calculate_gbox_geodetic(const RTCTX *ctx, const RTGEOM *geom, RTGBOX *gbox);
 
 /**
 * Calculate the 2-4D bounding box of a geometry. Z/M coordinates are honored 
 * for this calculation, though for curves they are not included in calculations
 * of curvature.
 */
-extern int rtgeom_calculate_gbox_cartesian(RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox);
+extern int rtgeom_calculate_gbox_cartesian(const RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox);
 
 /**
 * Calculate bounding box of a geometry, automatically taking into account
 * whether it is cartesian or geodetic.
 */
-extern int rtgeom_calculate_gbox(RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox);
+extern int rtgeom_calculate_gbox(const RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox);
 
 /**
 * New function to read doubles directly from the double* coordinate array
 * of an aligned rtgeom #RTPOINTARRAY (built by de-serializing a #GSERIALIZED).
 */
-extern int getPoint2d_p_ro(RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D **point);
+extern int getPoint2d_p_ro(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D **point);
 
 /**
 * Calculate geodetic (x/y/z) box and add values to gbox. Return #RT_SUCCESS on success.
 */
-extern int ptarray_calculate_gbox_geodetic(RTCTX *ctx, const RTPOINTARRAY *pa, RTGBOX *gbox);
+extern int ptarray_calculate_gbox_geodetic(const RTCTX *ctx, const RTPOINTARRAY *pa, RTGBOX *gbox);
 
 /**
 * Calculate box (x/y) and add values to gbox. Return #RT_SUCCESS on success.
 */
-extern int ptarray_calculate_gbox_cartesian(RTCTX *ctx, const RTPOINTARRAY *pa, RTGBOX *gbox );
+extern int ptarray_calculate_gbox_cartesian(const RTCTX *ctx, const RTPOINTARRAY *pa, RTGBOX *gbox );
 
 /**
 * Calculate a spherical point that falls outside the geocentric gbox
 */
-void gbox_pt_outside(RTCTX *ctx, const RTGBOX *gbox, RTPOINT2D *pt_outside);
+void gbox_pt_outside(const RTCTX *ctx, const RTGBOX *gbox, RTPOINT2D *pt_outside);
 
 /**
 * Create a new gbox with the dimensionality indicated by the flags. Caller
 * is responsible for freeing.
 */
-extern RTGBOX* gbox_new(RTCTX *ctx, uint8_t flags);
+extern RTGBOX* gbox_new(const RTCTX *ctx, uint8_t flags);
 
 /**
 * Zero out all the entries in the #RTGBOX. Useful for cleaning
 * statically allocated gboxes.
 */
-extern void gbox_init(RTCTX *ctx, RTGBOX *gbox);
+extern void gbox_init(const RTCTX *ctx, RTGBOX *gbox);
 
 /**
 * Update the merged #RTGBOX to be large enough to include itself and the new box.
 */
-extern int gbox_merge(RTCTX *ctx, const RTGBOX *new_box, RTGBOX *merged_box);
+extern int gbox_merge(const RTCTX *ctx, const RTGBOX *new_box, RTGBOX *merged_box);
 
 /**
 * Update the output #RTGBOX to be large enough to include both inputs.
 */
-extern int gbox_union(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2, RTGBOX *gout);
+extern int gbox_union(const RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2, RTGBOX *gout);
 
 /**
 * Move the box minimums down and the maximums up by the distance provided.
 */
-extern void gbox_expand(RTCTX *ctx, RTGBOX *g, double d);
+extern void gbox_expand(const RTCTX *ctx, RTGBOX *g, double d);
 
 /**
 * Initialize a #RTGBOX using the values of the point.
 */
-extern int gbox_init_point3d(RTCTX *ctx, const POINT3D *p, RTGBOX *gbox);
+extern int gbox_init_point3d(const RTCTX *ctx, const POINT3D *p, RTGBOX *gbox);
 
 /**
 * Update the #RTGBOX to be large enough to include itself and the new point.
 */
-extern int gbox_merge_point3d(RTCTX *ctx, const POINT3D *p, RTGBOX *gbox);
+extern int gbox_merge_point3d(const RTCTX *ctx, const POINT3D *p, RTGBOX *gbox);
 
 /**
 * Return true if the point is inside the gbox
 */
-extern int gbox_contains_point3d(RTCTX *ctx, const RTGBOX *gbox, const POINT3D *pt);
+extern int gbox_contains_point3d(const RTCTX *ctx, const RTGBOX *gbox, const POINT3D *pt);
 
 /**
 * Allocate a string representation of the #RTGBOX, based on dimensionality of flags.
 */
-extern char* gbox_to_string(RTCTX *ctx, const RTGBOX *gbox);
+extern char* gbox_to_string(const RTCTX *ctx, const RTGBOX *gbox);
 
 /**
 * Return a copy of the #RTGBOX, based on dimensionality of flags.
 */
-extern RTGBOX* gbox_copy(RTCTX *ctx, const RTGBOX *gbox);
+extern RTGBOX* gbox_copy(const RTCTX *ctx, const RTGBOX *gbox);
 
 /**
 * Warning, do not use this function, it is very particular about inputs.
 */
-extern RTGBOX* gbox_from_string(RTCTX *ctx, const char *str);
+extern RTGBOX* gbox_from_string(const RTCTX *ctx, const char *str);
 
 /**
 * Return #RT_TRUE if the #RTGBOX overlaps, #RT_FALSE otherwise. 
 */
-extern int gbox_overlaps(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
+extern int gbox_overlaps(const RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
 
 /**
 * Return #RT_TRUE if the #RTGBOX overlaps on the 2d plane, #RT_FALSE otherwise. 
 */
-extern int gbox_overlaps_2d(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
+extern int gbox_overlaps_2d(const RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
 
 /**
 * Return #RT_TRUE if the first #RTGBOX contains the second on the 2d plane, #RT_FALSE otherwise. 
 */
-extern int  gbox_contains_2d(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
+extern int  gbox_contains_2d(const RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
 
 /**
 * Copy the values of original #RTGBOX into duplicate.
 */
-extern void gbox_duplicate(RTCTX *ctx, const RTGBOX *original, RTGBOX *duplicate);
+extern void gbox_duplicate(const RTCTX *ctx, const RTGBOX *original, RTGBOX *duplicate);
 
 /**
 * Return the number of bytes necessary to hold a #RTGBOX of this dimension in 
 * serialized form.
 */
-extern size_t gbox_serialized_size(RTCTX *ctx, uint8_t flags);
+extern size_t gbox_serialized_size(const RTCTX *ctx, uint8_t flags);
 
 /**
 * Check if 2 given Gbox are the same
 */
-extern int gbox_same(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
+extern int gbox_same(const RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
 
 /**
 * Check if 2 given RTGBOX are the same in x and y
 */
-extern int gbox_same_2d(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
+extern int gbox_same_2d(const RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
 
 /**
 * Check if two given RTGBOX are the same in x and y, or would round to the same
 * RTGBOX in x and if serialized in GSERIALIZED
 */
-extern int gbox_same_2d_float(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
+extern int gbox_same_2d_float(const RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
 
 /**
  * Round given RTGBOX to float boundaries
@@ -1755,25 +1755,25 @@ extern int gbox_same_2d_float(RTCTX *ctx, const RTGBOX *g1, const RTGBOX *g2);
  * This turns a RTGBOX into the version it would become
  * after a serialize/deserialize round trip.
  */
-extern void gbox_float_round(RTCTX *ctx, RTGBOX *gbox);
+extern void gbox_float_round(const RTCTX *ctx, RTGBOX *gbox);
 
 /**
 * Return false if any of the dimensions is NaN or infinite
 */
-extern int gbox_is_valid(RTCTX *ctx, const RTGBOX *gbox);
+extern int gbox_is_valid(const RTCTX *ctx, const RTGBOX *gbox);
 
 /**
 * Utility function to get type number from string. For example, a string 'POINTZ' 
 * would return type of 1 and z of 1 and m of 0. Valid 
 */
-extern int geometry_type_from_string(RTCTX *ctx, const char *str, uint8_t *type, int *z, int *m);
+extern int geometry_type_from_string(const RTCTX *ctx, const char *str, uint8_t *type, int *z, int *m);
 
 /**
 * Calculate required memory segment to contain a serialized form of the RTGEOM.
 * Primarily used internally by the serialization code. Exposed to allow the cunit
 * tests to exercise it.
 */
-extern size_t gserialized_from_rtgeom_size(RTCTX *ctx, const RTGEOM *geom);
+extern size_t gserialized_from_rtgeom_size(const RTCTX *ctx, const RTGEOM *geom);
 
 /**
 * Allocate a new #GSERIALIZED from an #RTGEOM. For all non-point types, a bounding
@@ -1782,20 +1782,20 @@ extern size_t gserialized_from_rtgeom_size(RTCTX *ctx, const RTGEOM *geom);
 * will contain the size of the final output, which is useful for setting the PgSQL 
 * VARSIZE information.
 */
-extern GSERIALIZED* gserialized_from_rtgeom(RTCTX *ctx, RTGEOM *geom, int is_geodetic, size_t *size);
+extern GSERIALIZED* gserialized_from_rtgeom(const RTCTX *ctx, RTGEOM *geom, int is_geodetic, size_t *size);
 
 /**
 * Allocate a new #RTGEOM from a #GSERIALIZED. The resulting #RTGEOM will have coordinates
 * that are double aligned and suitable for direct reading using getPoint2d_p_ro
 */
-extern RTGEOM* rtgeom_from_gserialized(RTCTX *ctx, const GSERIALIZED *g);
+extern RTGEOM* rtgeom_from_gserialized(const RTCTX *ctx, const GSERIALIZED *g);
 
 /**
 * Pull a #RTGBOX from the header of a #GSERIALIZED, if one is available. If
 * it is not, calculate it from the geometry. If that doesn't work (null
 * or empty) return RT_FAILURE.
 */
-extern int gserialized_get_gbox_p(RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox);
+extern int gserialized_get_gbox_p(const RTCTX *ctx, const GSERIALIZED *g, RTGBOX *gbox);
 
 
 /**
@@ -1902,42 +1902,42 @@ RTGEOM_UNPARSER_RESULT;
 * @param rtgeom geometry to convert to RTWKT
 * @param variant output format to use (RTWKT_ISO, RTWKT_SFSQL, RTWKT_EXTENDED)
 */
-extern char*   rtgeom_to_wkt(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, int precision, size_t *size_out);
+extern char*   rtgeom_to_wkt(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, int precision, size_t *size_out);
 
 /**
 * @param rtgeom geometry to convert to RTWKT
 * @param variant output format to use
 *                (RTWKB_ISO, RTWKB_SFSQL, RTWKB_EXTENDED, RTWKB_NDR, RTWKB_XDR)
 */
-extern uint8_t*  rtgeom_to_wkb(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out);
+extern uint8_t*  rtgeom_to_wkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out);
 
 /**
 * @param rtgeom geometry to convert to HEXWKB
 * @param variant output format to use
 *                (RTWKB_ISO, RTWKB_SFSQL, RTWKB_EXTENDED, RTWKB_NDR, RTWKB_XDR)
 */
-extern char*   rtgeom_to_hexwkb(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out);
+extern char*   rtgeom_to_hexwkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out);
 
 /**
 * @param rtgeom geometry to convert to EWKT
 */
-extern char *rtgeom_to_ewkt(RTCTX *ctx, const RTGEOM *rtgeom);
+extern char *rtgeom_to_ewkt(const RTCTX *ctx, const RTGEOM *rtgeom);
 
 /**
  * @param check parser check flags, see RT_PARSER_CHECK_* macros
  * @param size length of RTWKB byte buffer
  * @param wkb RTWKB byte buffer
  */
-extern RTGEOM* rtgeom_from_wkb(RTCTX *ctx, const uint8_t *wkb, const size_t wkb_size, const char check);
+extern RTGEOM* rtgeom_from_wkb(const RTCTX *ctx, const uint8_t *wkb, const size_t wkb_size, const char check);
 
 /**
  * @param check parser check flags, see RT_PARSER_CHECK_* macros
  */
-extern RTGEOM* rtgeom_from_hexwkb(RTCTX *ctx, const char *hexwkb, const char check);
+extern RTGEOM* rtgeom_from_hexwkb(const RTCTX *ctx, const char *hexwkb, const char check);
 
-extern uint8_t*  bytes_from_hexbytes(RTCTX *ctx, const char *hexbuf, size_t hexsize);
+extern uint8_t*  bytes_from_hexbytes(const RTCTX *ctx, const char *hexbuf, size_t hexsize);
 
-extern char*   hexbytes_from_bytes(RTCTX *ctx, uint8_t *bytes, size_t size);
+extern char*   hexbytes_from_bytes(const RTCTX *ctx, uint8_t *bytes, size_t size);
 
 
 /* Memory management */
@@ -1946,7 +1946,7 @@ extern void *rtrealloc(const RTCTX *ctx, void *mem, size_t size);
 extern void rtfree(const RTCTX *ctx, void *mem);
 
 /* Utilities */
-extern char *rtmessage_truncate(RTCTX *ctx, char *str, int startpos, int endpos, int maxlength, int truncdirection);
+extern char *rtmessage_truncate(const RTCTX *ctx, char *str, int startpos, int endpos, int maxlength, int truncdirection);
 
 /*
 * TWKB functions
@@ -1956,44 +1956,44 @@ extern char *rtmessage_truncate(RTCTX *ctx, char *str, int startpos, int endpos,
  * @param check parser check flags, see RT_PARSER_CHECK_* macros
  * @param size parser check flags, see RT_PARSER_CHECK_* macros
  */
-extern RTGEOM* rtgeom_from_twkb(RTCTX *ctx, uint8_t *twkb, size_t twkb_size, char check);
+extern RTGEOM* rtgeom_from_twkb(const RTCTX *ctx, uint8_t *twkb, size_t twkb_size, char check);
 
 /**
  * @param geom input geometry
  * @param variant what variations on TWKB are requested?
  * @param twkb_size returns the length of the output TWKB in bytes if set
  */
-extern uint8_t* rtgeom_to_twkb(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, int8_t precision_xy, int8_t precision_z, int8_t precision_m, size_t *twkb_size);
+extern uint8_t* rtgeom_to_twkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, int8_t precision_xy, int8_t precision_z, int8_t precision_m, size_t *twkb_size);
 
-extern uint8_t* rtgeom_to_twkb_with_idlist(RTCTX *ctx, const RTGEOM *geom, int64_t *idlist, uint8_t variant, int8_t precision_xy, int8_t precision_z, int8_t precision_m, size_t *twkb_size);
+extern uint8_t* rtgeom_to_twkb_with_idlist(const RTCTX *ctx, const RTGEOM *geom, int64_t *idlist, uint8_t variant, int8_t precision_xy, int8_t precision_z, int8_t precision_m, size_t *twkb_size);
 
 /*******************************************************************************
  * SQLMM internal functions - TODO: Move into separate header files
  ******************************************************************************/
 
-int rtgeom_has_arc(RTCTX *ctx, const RTGEOM *geom);
-RTGEOM *rtgeom_stroke(RTCTX *ctx, const RTGEOM *geom, uint32_t perQuad);
-RTGEOM *rtgeom_unstroke(RTCTX *ctx, const RTGEOM *geom);
+int rtgeom_has_arc(const RTCTX *ctx, const RTGEOM *geom);
+RTGEOM *rtgeom_stroke(const RTCTX *ctx, const RTGEOM *geom, uint32_t perQuad);
+RTGEOM *rtgeom_unstroke(const RTCTX *ctx, const RTGEOM *geom);
 
 /*******************************************************************************
  * GEOS proxy functions on RTGEOM
  ******************************************************************************/
 
 /** Return GEOS version string (not to be freed) */
-const char* rtgeom_geos_version(RTCTX *ctx);
+const char* rtgeom_geos_version(const RTCTX *ctx);
 
 /** Convert an RTGEOM to a GEOS Geometry and convert back -- for debug only */
-RTGEOM* rtgeom_geos_noop(RTCTX *ctx, const RTGEOM *geom) ;
+RTGEOM* rtgeom_geos_noop(const RTCTX *ctx, const RTGEOM *geom) ;
 
-RTGEOM *rtgeom_normalize(RTCTX *ctx, const RTGEOM *geom);
-RTGEOM *rtgeom_intersection(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2);
-RTGEOM *rtgeom_difference(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2);
-RTGEOM *rtgeom_symdifference(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2);
-RTGEOM *rtgeom_union(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2);
-RTGEOM *rtgeom_linemerge(RTCTX *ctx, const RTGEOM *geom1);
-RTGEOM *rtgeom_unaryunion(RTCTX *ctx, const RTGEOM *geom1);
-RTGEOM *rtgeom_clip_by_rect(RTCTX *ctx, const RTGEOM *geom1, double x0, double y0, double x1, double y1);
-RTCOLLECTION *rtgeom_subdivide(RTCTX *ctx, const RTGEOM *geom, int maxvertices);
+RTGEOM *rtgeom_normalize(const RTCTX *ctx, const RTGEOM *geom);
+RTGEOM *rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2);
+RTGEOM *rtgeom_difference(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2);
+RTGEOM *rtgeom_symdifference(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2);
+RTGEOM *rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2);
+RTGEOM *rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1);
+RTGEOM *rtgeom_unaryunion(const RTCTX *ctx, const RTGEOM *geom1);
+RTGEOM *rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0, double x1, double y1);
+RTCOLLECTION *rtgeom_subdivide(const RTCTX *ctx, const RTGEOM *geom, int maxvertices);
 
 /**
  * Snap vertices and segments of a geometry to another using a given tolerance.
@@ -2004,7 +2004,7 @@ RTCOLLECTION *rtgeom_subdivide(RTCTX *ctx, const RTGEOM *geom, int maxvertices);
  * 
  * Requires GEOS-3.3.0+
  */
-RTGEOM* rtgeom_snap(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double tolerance);
+RTGEOM* rtgeom_snap(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double tolerance);
 
 /*
  * Return the set of paths shared between two linear geometries,
@@ -2015,7 +2015,7 @@ RTGEOM* rtgeom_snap(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double
  *
  * Requires GEOS-3.3.0+
  */
-RTGEOM* rtgeom_sharedpaths(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2);
+RTGEOM* rtgeom_sharedpaths(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2);
 
 /*
  * An offset curve against the input line.
@@ -2029,7 +2029,7 @@ RTGEOM* rtgeom_sharedpaths(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
  *
  * Requires GEOS-3.2.0+
  */
-RTGEOM* rtgeom_offsetcurve(RTCTX *ctx, const RTLINE *rtline, double size, int quadsegs, int joinStyle, double mitreLimit);
+RTGEOM* rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quadsegs, int joinStyle, double mitreLimit);
 
 /*
  * Return true if the input geometry is "simple" as per OGC defn.
@@ -2037,7 +2037,7 @@ RTGEOM* rtgeom_offsetcurve(RTCTX *ctx, const RTLINE *rtline, double size, int qu
  * @return 1 if simple, 0 if non-simple, -1 on exception (rterror is called
  *         in that case)
  */
-int rtgeom_is_simple(RTCTX *ctx, const RTGEOM *rtgeom);
+int rtgeom_is_simple(const RTCTX *ctx, const RTGEOM *rtgeom);
 
 
 /*******************************************************************************
@@ -2051,7 +2051,7 @@ int rtgeom_is_simple(RTCTX *ctx, const RTGEOM *rtgeom);
  * transforming the resulting collection into
  * a valid polygon Geometry.
  */
-RTGEOM* rtgeom_buildarea(RTCTX *ctx, const RTGEOM *geom) ;
+RTGEOM* rtgeom_buildarea(const RTCTX *ctx, const RTGEOM *geom) ;
 
 
 /**
@@ -2060,7 +2060,7 @@ RTGEOM* rtgeom_buildarea(RTCTX *ctx, const RTGEOM *geom) ;
  * NOTE: this is only available when librtgeom is built against
  *       GEOS 3.3.0 or higher
  */
-RTGEOM* rtgeom_make_valid(RTCTX *ctx, RTGEOM* geom);
+RTGEOM* rtgeom_make_valid(const RTCTX *ctx, RTGEOM* geom);
 
 /*
  * Split (multi)polygon by line; (multi)line by (multi)line,
@@ -2069,7 +2069,7 @@ RTGEOM* rtgeom_make_valid(RTCTX *ctx, RTGEOM* geom);
  * Collections are accepted as first argument.
  * Returns all obtained pieces as a collection.
  */
-RTGEOM* rtgeom_split(RTCTX *ctx, const RTGEOM* rtgeom_in, const RTGEOM* blade_in);
+RTGEOM* rtgeom_split(const RTCTX *ctx, const RTGEOM* rtgeom_in, const RTGEOM* blade_in);
 
 /*
  * Fully node a set of linestrings, using the least nodes preserving
@@ -2077,7 +2077,7 @@ RTGEOM* rtgeom_split(RTCTX *ctx, const RTGEOM* rtgeom_in, const RTGEOM* blade_in
  *
  * Requires GEOS-3.3.0 or higher
  */
-RTGEOM* rtgeom_node(RTCTX *ctx, const RTGEOM* rtgeom_in);
+RTGEOM* rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in);
 
 /**
  * Take vertices of a geometry and build a delaunay
@@ -2088,7 +2088,7 @@ RTGEOM* rtgeom_node(RTCTX *ctx, const RTGEOM* rtgeom_in);
  * @param edgeOnly if non-zero the result will be a MULTILINESTRING,
  *                 otherwise it'll be a COLLECTION of polygons.
  */
-RTGEOM* rtgeom_delaunay_triangulation(RTCTX *ctx, const RTGEOM *geom, double tolerance, int edgeOnly);
+RTGEOM* rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *geom, double tolerance, int edgeOnly);
 
 #endif /* !defined _LIBRTGEOM_H  */
 

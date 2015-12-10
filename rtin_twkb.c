@@ -56,7 +56,7 @@ typedef struct
 /**
 * Internal function declarations.
 */
-RTGEOM* rtgeom_from_twkb_state(RTCTX *ctx, twkb_parse_state *s);
+RTGEOM* rtgeom_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s);
 
 
 /**********************************************************************/
@@ -65,7 +65,7 @@ RTGEOM* rtgeom_from_twkb_state(RTCTX *ctx, twkb_parse_state *s);
 * Check that we are not about to read off the end of the RTWKB
 * array.
 */
-static inline void twkb_parse_state_advance(RTCTX *ctx, twkb_parse_state *s, size_t next)
+static inline void twkb_parse_state_advance(const RTCTX *ctx, twkb_parse_state *s, size_t next)
 {
 	if( (s->pos + next) > s->twkb_end)
 	{
@@ -76,7 +76,7 @@ static inline void twkb_parse_state_advance(RTCTX *ctx, twkb_parse_state *s, siz
 	s->pos += next;
 }
 
-static inline int64_t twkb_parse_state_varint(RTCTX *ctx, twkb_parse_state *s)
+static inline int64_t twkb_parse_state_varint(const RTCTX *ctx, twkb_parse_state *s)
 {
 	size_t size;
 	int64_t val = varint_s64_decode(ctx, s->pos, s->twkb_end, &size);
@@ -84,7 +84,7 @@ static inline int64_t twkb_parse_state_varint(RTCTX *ctx, twkb_parse_state *s)
 	return val;
 }
 
-static inline uint64_t twkb_parse_state_uvarint(RTCTX *ctx, twkb_parse_state *s)
+static inline uint64_t twkb_parse_state_uvarint(const RTCTX *ctx, twkb_parse_state *s)
 {
 	size_t size;
 	uint64_t val = varint_u64_decode(ctx, s->pos, s->twkb_end, &size);
@@ -92,7 +92,7 @@ static inline uint64_t twkb_parse_state_uvarint(RTCTX *ctx, twkb_parse_state *s)
 	return val;
 }
 
-static inline double twkb_parse_state_double(RTCTX *ctx, twkb_parse_state *s, double factor)
+static inline double twkb_parse_state_double(const RTCTX *ctx, twkb_parse_state *s, double factor)
 {
 	size_t size;
 	int64_t val = varint_s64_decode(ctx, s->pos, s->twkb_end, &size);
@@ -100,7 +100,7 @@ static inline double twkb_parse_state_double(RTCTX *ctx, twkb_parse_state *s, do
 	return val / factor;
 }
 
-static inline void twkb_parse_state_varint_skip(RTCTX *ctx, twkb_parse_state *s)
+static inline void twkb_parse_state_varint_skip(const RTCTX *ctx, twkb_parse_state *s)
 {
 	size_t size = varint_size(ctx, s->pos, s->twkb_end);
 
@@ -113,7 +113,7 @@ static inline void twkb_parse_state_varint_skip(RTCTX *ctx, twkb_parse_state *s)
 
 
 
-static uint32_t rttype_from_twkb_type(RTCTX *ctx, uint8_t twkb_type)
+static uint32_t rttype_from_twkb_type(const RTCTX *ctx, uint8_t twkb_type)
 {
 	switch (twkb_type)
 	{
@@ -143,7 +143,7 @@ static uint32_t rttype_from_twkb_type(RTCTX *ctx, uint8_t twkb_type)
 * Byte
 * Read a byte and advance the parse state forward.
 */
-static uint8_t byte_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static uint8_t byte_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	uint8_t val = *(s->pos);
 	twkb_parse_state_advance(ctx, s, RTWKB_BYTE_SIZE);
@@ -155,7 +155,7 @@ static uint8_t byte_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
 * RTPOINTARRAY
 * Read a dynamically sized point array and advance the parse state forward.
 */
-static RTPOINTARRAY* ptarray_from_twkb_state(RTCTX *ctx, twkb_parse_state *s, uint32_t npoints)
+static RTPOINTARRAY* ptarray_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s, uint32_t npoints)
 {
 	RTPOINTARRAY *pa = NULL;
 	uint32_t ndims = s->ndims;
@@ -204,7 +204,7 @@ static RTPOINTARRAY* ptarray_from_twkb_state(RTCTX *ctx, twkb_parse_state *s, ui
 /**
 * POINT
 */
-static RTPOINT* rtpoint_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static RTPOINT* rtpoint_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	static uint32_t npoints = 1;
 	RTPOINTARRAY *pa;
@@ -221,7 +221,7 @@ static RTPOINT* rtpoint_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
 /**
 * LINESTRING
 */
-static RTLINE* rtline_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static RTLINE* rtline_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	uint32_t npoints;
 	RTPOINTARRAY *pa;
@@ -255,7 +255,7 @@ static RTLINE* rtline_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
 /**
 * POLYGON
 */
-static RTPOLY* rtpoly_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static RTPOLY* rtpoly_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	uint32_t nrings;
 	int i;
@@ -319,7 +319,7 @@ static RTPOLY* rtpoly_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
 /**
 * MULTIPOINT
 */
-static RTCOLLECTION* rtmultipoint_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static RTCOLLECTION* rtmultipoint_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	int ngeoms, i;
 	RTGEOM *geom = NULL;
@@ -357,7 +357,7 @@ static RTCOLLECTION* rtmultipoint_from_twkb_state(RTCTX *ctx, twkb_parse_state *
 /**
 * MULTILINESTRING
 */
-static RTCOLLECTION* rtmultiline_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static RTCOLLECTION* rtmultiline_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	int ngeoms, i;
 	RTGEOM *geom = NULL;
@@ -396,7 +396,7 @@ static RTCOLLECTION* rtmultiline_from_twkb_state(RTCTX *ctx, twkb_parse_state *s
 /**
 * MULTIPOLYGON
 */
-static RTCOLLECTION* rtmultipoly_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static RTCOLLECTION* rtmultipoly_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	int ngeoms, i;
 	RTGEOM *geom = NULL;
@@ -435,7 +435,7 @@ static RTCOLLECTION* rtmultipoly_from_twkb_state(RTCTX *ctx, twkb_parse_state *s
 /**
 * COLLECTION, RTMULTIPOINTTYPE, RTMULTILINETYPE, RTMULTIPOLYGONTYPE
 **/
-static RTCOLLECTION* rtcollection_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static RTCOLLECTION* rtcollection_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	int ngeoms, i;
 	RTGEOM *geom = NULL;
@@ -473,7 +473,7 @@ static RTCOLLECTION* rtcollection_from_twkb_state(RTCTX *ctx, twkb_parse_state *
 }
 
 
-static void header_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+static void header_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	RTDEBUG(2,"Entering magicbyte_from_twkb_state");
 
@@ -545,7 +545,7 @@ static void header_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
 * then optional size, bbox, etc. Read those, then switch to particular type
 * handling code.
 */
-RTGEOM* rtgeom_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
+RTGEOM* rtgeom_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
 	RTGBOX bbox;
 	RTGEOM *geom = NULL;
@@ -639,7 +639,7 @@ RTGEOM* rtgeom_from_twkb_state(RTCTX *ctx, twkb_parse_state *s)
 * Check is a bitmask of: RT_PARSER_CHECK_MINPOINTS, RT_PARSER_CHECK_ODD,
 * RT_PARSER_CHECK_CLOSURE, RT_PARSER_CHECK_NONE, RT_PARSER_CHECK_ALL
 */
-RTGEOM* rtgeom_from_twkb(RTCTX *ctx, uint8_t *twkb, size_t twkb_size, char check)
+RTGEOM* rtgeom_from_twkb(const RTCTX *ctx, uint8_t *twkb, size_t twkb_size, char check)
 {
 	int64_t coords[TWKB_IN_MAXCOORDS] = {0, 0, 0, 0};
 	twkb_parse_state s;

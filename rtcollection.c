@@ -20,14 +20,14 @@
 #define CHECK_RTGEOM_ZM 1
 
 void
-rtcollection_release(RTCTX *ctx, RTCOLLECTION *rtcollection)
+rtcollection_release(const RTCTX *ctx, RTCOLLECTION *rtcollection)
 {
 	rtgeom_release(ctx, rtcollection_as_rtgeom(ctx, rtcollection));
 }
 
 
 RTCOLLECTION *
-rtcollection_construct(RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox,
+rtcollection_construct(const RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox,
                        uint32_t ngeoms, RTGEOM **geoms)
 {
 	RTCOLLECTION *ret;
@@ -78,7 +78,7 @@ rtcollection_construct(RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox,
 }
 
 RTCOLLECTION *
-rtcollection_construct_empty(RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm)
+rtcollection_construct_empty(const RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm)
 {
 	RTCOLLECTION *ret;
 	if( ! rttype_is_collection(ctx, type) )
@@ -97,7 +97,7 @@ rtcollection_construct_empty(RTCTX *ctx, uint8_t type, int srid, char hasz, char
 }
 
 RTGEOM *
-rtcollection_getsubgeom(RTCTX *ctx, RTCOLLECTION *col, int gnum)
+rtcollection_getsubgeom(const RTCTX *ctx, RTCOLLECTION *col, int gnum)
 {
 	return (RTGEOM *)col->geoms[gnum];
 }
@@ -107,7 +107,7 @@ rtcollection_getsubgeom(RTCTX *ctx, RTCOLLECTION *col, int gnum)
  * 			Bbox is cloned if present in input.
  */
 RTCOLLECTION *
-rtcollection_clone(RTCTX *ctx, const RTCOLLECTION *g)
+rtcollection_clone(const RTCTX *ctx, const RTCOLLECTION *g)
 {
 	uint32_t i;
 	RTCOLLECTION *ret = rtalloc(ctx, sizeof(RTCOLLECTION));
@@ -133,7 +133,7 @@ rtcollection_clone(RTCTX *ctx, const RTCOLLECTION *g)
 * @brief Deep clone #RTCOLLECTION object. #RTPOINTARRAY are copied.
 */
 RTCOLLECTION *
-rtcollection_clone_deep(RTCTX *ctx, const RTCOLLECTION *g)
+rtcollection_clone_deep(const RTCTX *ctx, const RTCOLLECTION *g)
 {
 	uint32_t i;
 	RTCOLLECTION *ret = rtalloc(ctx, sizeof(RTCOLLECTION));
@@ -158,7 +158,7 @@ rtcollection_clone_deep(RTCTX *ctx, const RTCOLLECTION *g)
 /**
  * Ensure the collection can hold up at least ngeoms
  */
-void rtcollection_reserve(RTCTX *ctx, RTCOLLECTION *col, int ngeoms)
+void rtcollection_reserve(const RTCTX *ctx, RTCOLLECTION *col, int ngeoms)
 {
 	if ( ngeoms <= col->maxgeoms ) return;
 
@@ -171,7 +171,7 @@ void rtcollection_reserve(RTCTX *ctx, RTCOLLECTION *col, int ngeoms)
 * Appends geom to the collection managed by col. Does not copy or
 * clone, simply takes a reference on the passed geom.
 */
-RTCOLLECTION* rtcollection_add_rtgeom(RTCTX *ctx, RTCOLLECTION *col, const RTGEOM *geom)
+RTCOLLECTION* rtcollection_add_rtgeom(const RTCTX *ctx, RTCOLLECTION *col, const RTGEOM *geom)
 {
 	if ( col == NULL || geom == NULL ) return NULL;
 
@@ -220,7 +220,7 @@ RTCOLLECTION* rtcollection_add_rtgeom(RTCTX *ctx, RTCOLLECTION *col, const RTGEO
 
 
 RTCOLLECTION *
-rtcollection_segmentize2d(RTCTX *ctx, RTCOLLECTION *col, double dist)
+rtcollection_segmentize2d(const RTCTX *ctx, RTCOLLECTION *col, double dist)
 {
 	uint32_t i;
 	RTGEOM **newgeoms;
@@ -245,7 +245,7 @@ rtcollection_segmentize2d(RTCTX *ctx, RTCOLLECTION *col, double dist)
  *
  */
 char
-rtcollection_same(RTCTX *ctx, const RTCOLLECTION *c1, const RTCOLLECTION *c2)
+rtcollection_same(const RTCTX *ctx, const RTCOLLECTION *c1, const RTCOLLECTION *c2)
 {
 	uint32_t i;
 
@@ -285,7 +285,7 @@ rtcollection_same(RTCTX *ctx, const RTCOLLECTION *c1, const RTCOLLECTION *c2)
 	return RT_TRUE;
 }
 
-int rtcollection_ngeoms(RTCTX *ctx, const RTCOLLECTION *col)
+int rtcollection_ngeoms(const RTCTX *ctx, const RTCOLLECTION *col)
 {
 	int i;
 	int ngeoms = 0;
@@ -323,7 +323,7 @@ int rtcollection_ngeoms(RTCTX *ctx, const RTCOLLECTION *col)
 	return ngeoms;
 }
 
-void rtcollection_free(RTCTX *ctx, RTCOLLECTION *col)
+void rtcollection_free(const RTCTX *ctx, RTCOLLECTION *col)
 {
 	int i;
 	if ( ! col ) return;
@@ -350,7 +350,7 @@ void rtcollection_free(RTCTX *ctx, RTCOLLECTION *col)
 * Takes a potentially heterogeneous collection and returns a homogeneous
 * collection consisting only of the specified type.
 */
-RTCOLLECTION* rtcollection_extract(RTCTX *ctx, RTCOLLECTION *col, int type)
+RTCOLLECTION* rtcollection_extract(const RTCTX *ctx, RTCOLLECTION *col, int type)
 {
 	int i = 0;
 	RTGEOM **geomlist;
@@ -437,7 +437,7 @@ RTCOLLECTION* rtcollection_extract(RTCTX *ctx, RTCOLLECTION *col, int type)
 }
 
 RTGEOM*
-rtcollection_remove_repeated_points(RTCTX *ctx, const RTCOLLECTION *coll, double tolerance)
+rtcollection_remove_repeated_points(const RTCTX *ctx, const RTCOLLECTION *coll, double tolerance)
 {
 	uint32_t i;
 	RTGEOM **newgeoms;
@@ -455,7 +455,7 @@ rtcollection_remove_repeated_points(RTCTX *ctx, const RTCOLLECTION *coll, double
 
 
 RTCOLLECTION*
-rtcollection_force_dims(RTCTX *ctx, const RTCOLLECTION *col, int hasz, int hasm)
+rtcollection_force_dims(const RTCTX *ctx, const RTCOLLECTION *col, int hasz, int hasm)
 {
 	RTCOLLECTION *colout;
 	
@@ -478,7 +478,7 @@ rtcollection_force_dims(RTCTX *ctx, const RTCOLLECTION *col, int hasz, int hasm)
 	return colout;
 }
 
-int rtcollection_is_empty(RTCTX *ctx, const RTCOLLECTION *col)
+int rtcollection_is_empty(const RTCTX *ctx, const RTCOLLECTION *col)
 {
 	int i;
 	if ( (col->ngeoms == 0) || (!col->geoms) )
@@ -491,7 +491,7 @@ int rtcollection_is_empty(RTCTX *ctx, const RTCOLLECTION *col)
 }
 
 
-int rtcollection_count_vertices(RTCTX *ctx, RTCOLLECTION *col)
+int rtcollection_count_vertices(const RTCTX *ctx, RTCOLLECTION *col)
 {
 	int i = 0;
 	int v = 0; /* vertices */
@@ -503,7 +503,7 @@ int rtcollection_count_vertices(RTCTX *ctx, RTCOLLECTION *col)
 	return v;
 }
 
-RTCOLLECTION* rtcollection_simplify(RTCTX *ctx, const RTCOLLECTION *igeom, double dist, int preserve_collapsed)
+RTCOLLECTION* rtcollection_simplify(const RTCTX *ctx, const RTCOLLECTION *igeom, double dist, int preserve_collapsed)
 {
  	int i;
 	RTCOLLECTION *out = rtcollection_construct_empty(ctx, igeom->type, igeom->srid, RTFLAGS_GET_Z(igeom->flags), RTFLAGS_GET_M(igeom->flags));
@@ -520,7 +520,7 @@ RTCOLLECTION* rtcollection_simplify(RTCTX *ctx, const RTCOLLECTION *igeom, doubl
 	return out;
 }
 
-int rtcollection_allows_subtype(RTCTX *ctx, int collectiontype, int subtype)
+int rtcollection_allows_subtype(const RTCTX *ctx, int collectiontype, int subtype)
 {
 	if ( collectiontype == RTCOLLECTIONTYPE )
 		return RT_TRUE;
@@ -557,7 +557,7 @@ int rtcollection_allows_subtype(RTCTX *ctx, int collectiontype, int subtype)
 }
 
 int
-rtcollection_startpoint(RTCTX *ctx, const RTCOLLECTION* col, RTPOINT4D* pt)
+rtcollection_startpoint(const RTCTX *ctx, const RTCOLLECTION* col, RTPOINT4D* pt)
 {
 	if ( col->ngeoms < 1 )
 		return RT_FAILURE;
@@ -566,7 +566,7 @@ rtcollection_startpoint(RTCTX *ctx, const RTCOLLECTION* col, RTPOINT4D* pt)
 }
 
 
-RTCOLLECTION* rtcollection_grid(RTCTX *ctx, const RTCOLLECTION *coll, const gridspec *grid)
+RTCOLLECTION* rtcollection_grid(const RTCTX *ctx, const RTCOLLECTION *coll, const gridspec *grid)
 {
 	uint32_t i;
 	RTCOLLECTION *newcoll;

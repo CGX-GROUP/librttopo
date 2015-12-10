@@ -18,12 +18,12 @@
 #include "rtgeom_log.h"
 
 
-RTTIN* rttin_add_rttriangle(RTCTX *ctx, RTTIN *mobj, const RTTRIANGLE *obj)
+RTTIN* rttin_add_rttriangle(const RTCTX *ctx, RTTIN *mobj, const RTTRIANGLE *obj)
 {
 	return (RTTIN*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 
-void rttin_free(RTCTX *ctx, RTTIN *tin)
+void rttin_free(const RTCTX *ctx, RTTIN *tin)
 {
 	int i;
 	if ( ! tin ) return;
@@ -41,7 +41,7 @@ void rttin_free(RTCTX *ctx, RTTIN *tin)
 }
 
 
-void printRTTIN(RTCTX *ctx, RTTIN *tin)
+void printRTTIN(const RTCTX *ctx, RTTIN *tin)
 {
 	int i;
 	RTTRIANGLE *triangle;
@@ -77,7 +77,7 @@ typedef struct struct_tin_arcs *tin_arcs;
 
 /* We supposed that the geometry is valid
    we could have wrong result if not */
-int rttin_is_closed(RTCTX *ctx, const RTTIN *tin)
+int rttin_is_closed(const RTCTX *ctx, const RTTIN *tin)
 {
 	int i, j, k;
 	int narcs, carc;

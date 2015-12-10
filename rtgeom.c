@@ -20,7 +20,7 @@
 
 /** Force Right-hand-rule on RTGEOM polygons **/
 void
-rtgeom_force_clockwise(RTCTX *ctx, RTGEOM *rtgeom)
+rtgeom_force_clockwise(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 	RTCOLLECTION *coll;
 	int i;
@@ -48,7 +48,7 @@ rtgeom_force_clockwise(RTCTX *ctx, RTGEOM *rtgeom)
 
 /** Reverse vertex order of RTGEOM **/
 void
-rtgeom_reverse(RTCTX *ctx, RTGEOM *rtgeom)
+rtgeom_reverse(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 	int i;
 	RTCOLLECTION *col;
@@ -77,7 +77,7 @@ rtgeom_reverse(RTCTX *ctx, RTGEOM *rtgeom)
 }
 
 RTPOINT *
-rtgeom_as_rtpoint(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtpoint(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTPOINTTYPE )
@@ -86,7 +86,7 @@ rtgeom_as_rtpoint(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTLINE *
-rtgeom_as_rtline(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtline(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTLINETYPE )
@@ -95,7 +95,7 @@ rtgeom_as_rtline(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTCIRCSTRING *
-rtgeom_as_rtcircstring(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtcircstring(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTCIRCSTRINGTYPE )
@@ -104,7 +104,7 @@ rtgeom_as_rtcircstring(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTCOMPOUND *
-rtgeom_as_rtcompound(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtcompound(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTCOMPOUNDTYPE )
@@ -113,7 +113,7 @@ rtgeom_as_rtcompound(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTCURVEPOLY *
-rtgeom_as_rtcurvepoly(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtcurvepoly(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTCURVEPOLYTYPE )
@@ -122,7 +122,7 @@ rtgeom_as_rtcurvepoly(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTPOLY *
-rtgeom_as_rtpoly(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtpoly(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTPOLYGONTYPE )
@@ -131,7 +131,7 @@ rtgeom_as_rtpoly(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTTRIANGLE *
-rtgeom_as_rttriangle(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rttriangle(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTTRIANGLETYPE )
@@ -140,7 +140,7 @@ rtgeom_as_rttriangle(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTCOLLECTION *
-rtgeom_as_rtcollection(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtcollection(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom_is_collection(ctx, rtgeom) )
@@ -149,7 +149,7 @@ rtgeom_as_rtcollection(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTMPOINT *
-rtgeom_as_rtmpoint(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtmpoint(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTMULTIPOINTTYPE )
@@ -158,7 +158,7 @@ rtgeom_as_rtmpoint(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTMLINE *
-rtgeom_as_rtmline(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtmline(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTMULTILINETYPE )
@@ -167,7 +167,7 @@ rtgeom_as_rtmline(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTMPOLY *
-rtgeom_as_rtmpoly(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtmpoly(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom == NULL ) return NULL;
 	if ( rtgeom->type == RTMULTIPOLYGONTYPE )
@@ -176,7 +176,7 @@ rtgeom_as_rtmpoly(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTPSURFACE *
-rtgeom_as_rtpsurface(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rtpsurface(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom->type == RTPOLYHEDRALSURFACETYPE )
 		return (RTPSURFACE *)rtgeom;
@@ -184,74 +184,74 @@ rtgeom_as_rtpsurface(RTCTX *ctx, const RTGEOM *rtgeom)
 }
 
 RTTIN *
-rtgeom_as_rttin(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_rttin(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	if ( rtgeom->type == RTTINTYPE )
 		return (RTTIN *)rtgeom;
 	else return NULL;
 }
 
-RTGEOM * rttin_as_rtgeom(RTCTX *ctx, const RTTIN *obj)
+RTGEOM * rttin_as_rtgeom(const RTCTX *ctx, const RTTIN *obj)
 {
 	return (RTGEOM *)obj;
 }
 
-RTGEOM * rtpsurface_as_rtgeom(RTCTX *ctx, const RTPSURFACE *obj)
+RTGEOM * rtpsurface_as_rtgeom(const RTCTX *ctx, const RTPSURFACE *obj)
 {
 	return (RTGEOM *)obj;
 }
 
-RTGEOM * rtmpoly_as_rtgeom(RTCTX *ctx, const RTMPOLY *obj)
+RTGEOM * rtmpoly_as_rtgeom(const RTCTX *ctx, const RTMPOLY *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtmline_as_rtgeom(RTCTX *ctx, const RTMLINE *obj)
+RTGEOM * rtmline_as_rtgeom(const RTCTX *ctx, const RTMLINE *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtmpoint_as_rtgeom(RTCTX *ctx, const RTMPOINT *obj)
+RTGEOM * rtmpoint_as_rtgeom(const RTCTX *ctx, const RTMPOINT *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtcollection_as_rtgeom(RTCTX *ctx, const RTCOLLECTION *obj)
+RTGEOM * rtcollection_as_rtgeom(const RTCTX *ctx, const RTCOLLECTION *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtcircstring_as_rtgeom(RTCTX *ctx, const RTCIRCSTRING *obj)
+RTGEOM * rtcircstring_as_rtgeom(const RTCTX *ctx, const RTCIRCSTRING *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtcurvepoly_as_rtgeom(RTCTX *ctx, const RTCURVEPOLY *obj)
+RTGEOM * rtcurvepoly_as_rtgeom(const RTCTX *ctx, const RTCURVEPOLY *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtcompound_as_rtgeom(RTCTX *ctx, const RTCOMPOUND *obj)
+RTGEOM * rtcompound_as_rtgeom(const RTCTX *ctx, const RTCOMPOUND *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtpoly_as_rtgeom(RTCTX *ctx, const RTPOLY *obj)
+RTGEOM * rtpoly_as_rtgeom(const RTCTX *ctx, const RTPOLY *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rttriangle_as_rtgeom(RTCTX *ctx, const RTTRIANGLE *obj)
+RTGEOM * rttriangle_as_rtgeom(const RTCTX *ctx, const RTTRIANGLE *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtline_as_rtgeom(RTCTX *ctx, const RTLINE *obj)
+RTGEOM * rtline_as_rtgeom(const RTCTX *ctx, const RTLINE *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
 }
-RTGEOM * rtpoint_as_rtgeom(RTCTX *ctx, const RTPOINT *obj)
+RTGEOM * rtpoint_as_rtgeom(const RTCTX *ctx, const RTPOINT *obj)
 {
 	if ( obj == NULL ) return NULL;
 	return (RTGEOM *)obj;
@@ -281,7 +281,7 @@ uint8_t RTMULTITYPE[RTNUMTYPES] =
 * Create a new RTGEOM of the appropriate MULTI* type.
 */
 RTGEOM *
-rtgeom_as_multi(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_multi(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	RTGEOM **ogeoms;
 	RTGEOM *ogeom = NULL;
@@ -321,7 +321,7 @@ rtgeom_as_multi(RTCTX *ctx, const RTGEOM *rtgeom)
 * Create a new RTGEOM of the appropriate CURVE* type.
 */
 RTGEOM *
-rtgeom_as_curve(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_as_curve(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	RTGEOM *ogeom;
 	int type = rtgeom->type;
@@ -369,7 +369,7 @@ rtgeom_as_curve(RTCTX *ctx, const RTGEOM *rtgeom)
 * on top of subcomponents.
 */
 void
-rtgeom_release(RTCTX *ctx, RTGEOM *rtgeom)
+rtgeom_release(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 	if ( ! rtgeom )
 		rterror(ctx, "rtgeom_release: someone called on 0x0");
@@ -392,7 +392,7 @@ rtgeom_release(RTCTX *ctx, RTGEOM *rtgeom)
  * @see ptarray_clone 
  */
 RTGEOM *
-rtgeom_clone(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_clone(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	RTDEBUGF(2, "rtgeom_clone called with %p, %s",
 	         rtgeom, rttype_name(ctx, rtgeom->type));
@@ -430,7 +430,7 @@ rtgeom_clone(RTCTX *ctx, const RTGEOM *rtgeom)
 * Deep-clone an #RTGEOM object. #RTPOINTARRAY <em>are</em> copied. 
 */
 RTGEOM *
-rtgeom_clone_deep(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_clone_deep(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	RTDEBUGF(2, "rtgeom_clone called with %p, %s",
 	         rtgeom, rttype_name(ctx, rtgeom->type));
@@ -466,7 +466,7 @@ rtgeom_clone_deep(RTCTX *ctx, const RTGEOM *rtgeom)
  * Return an alloced string
  */
 char*
-rtgeom_to_ewkt(RTCTX *ctx, const RTGEOM *rtgeom)
+rtgeom_to_ewkt(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
 	char* wkt = NULL;
 	size_t wkt_size = 0;
@@ -492,7 +492,7 @@ rtgeom_to_ewkt(RTCTX *ctx, const RTGEOM *rtgeom)
  *	@param rtgeom2
  */
 char
-rtgeom_same(RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
+rtgeom_same(const RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 {
 	RTDEBUGF(2, "rtgeom_same(ctx, %s, %s) called",
 	         rttype_name(ctx, rtgeom1->type),
@@ -563,7 +563,7 @@ rtgeom_same(RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 }
 
 int
-rtpoint_inside_circle(RTCTX *ctx, const RTPOINT *p, double cx, double cy, double rad)
+rtpoint_inside_circle(const RTCTX *ctx, const RTPOINT *p, double cx, double cy, double rad)
 {
 	const RTPOINT2D *pt;
 	RTPOINT2D center;
@@ -583,7 +583,7 @@ rtpoint_inside_circle(RTCTX *ctx, const RTPOINT *p, double cx, double cy, double
 }
 
 void
-rtgeom_drop_bbox(RTCTX *ctx, RTGEOM *rtgeom)
+rtgeom_drop_bbox(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 	if ( rtgeom->bbox ) rtfree(ctx, rtgeom->bbox);
 	rtgeom->bbox = NULL;
@@ -596,7 +596,7 @@ rtgeom_drop_bbox(RTCTX *ctx, RTGEOM *rtgeom)
  * else compute it.
  */
 void
-rtgeom_add_bbox(RTCTX *ctx, RTGEOM *rtgeom)
+rtgeom_add_bbox(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 	/* an empty RTGEOM has no bbox */
 	if ( rtgeom_is_empty(ctx, rtgeom) ) return;
@@ -608,7 +608,7 @@ rtgeom_add_bbox(RTCTX *ctx, RTGEOM *rtgeom)
 }
 
 void 
-rtgeom_add_bbox_deep(RTCTX *ctx, RTGEOM *rtgeom, RTGBOX *gbox)
+rtgeom_add_bbox_deep(const RTCTX *ctx, RTGEOM *rtgeom, RTGBOX *gbox)
 {
 	if ( rtgeom_is_empty(ctx, rtgeom) ) return;
 
@@ -637,7 +637,7 @@ rtgeom_add_bbox_deep(RTCTX *ctx, RTGEOM *rtgeom, RTGBOX *gbox)
 }
 
 const RTGBOX *
-rtgeom_get_bbox(RTCTX *ctx, const RTGEOM *rtg)
+rtgeom_get_bbox(const RTCTX *ctx, const RTGEOM *rtg)
 {
 	/* add it if not already there */
 	rtgeom_add_bbox(ctx, (RTGEOM *)rtg);
@@ -649,7 +649,7 @@ rtgeom_get_bbox(RTCTX *ctx, const RTGEOM *rtg)
 * Calculate the gbox for this goemetry, a cartesian box or
 * geodetic box, depending on how it is flagged.
 */
-int rtgeom_calculate_gbox(RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox)
+int rtgeom_calculate_gbox(const RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox)
 {
 	gbox->flags = rtgeom->flags;
 	if( RTFLAGS_GET_GEODETIC(rtgeom->flags) )
@@ -659,13 +659,13 @@ int rtgeom_calculate_gbox(RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox)
 }
 
 void
-rtgeom_drop_srid(RTCTX *ctx, RTGEOM *rtgeom)
+rtgeom_drop_srid(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 	rtgeom->srid = SRID_UNKNOWN;	/* TODO: To be changed to SRID_UNKNOWN */
 }
 
 RTGEOM *
-rtgeom_segmentize2d(RTCTX *ctx, RTGEOM *rtgeom, double dist)
+rtgeom_segmentize2d(const RTCTX *ctx, RTGEOM *rtgeom, double dist)
 {
 	switch (rtgeom->type)
 	{
@@ -687,31 +687,31 @@ rtgeom_segmentize2d(RTCTX *ctx, RTGEOM *rtgeom, double dist)
 }
 
 RTGEOM*
-rtgeom_force_2d(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_force_2d(const RTCTX *ctx, const RTGEOM *geom)
 {	
 	return rtgeom_force_dims(ctx, geom, 0, 0);
 }
 
 RTGEOM*
-rtgeom_force_3dz(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_force_3dz(const RTCTX *ctx, const RTGEOM *geom)
 {	
 	return rtgeom_force_dims(ctx, geom, 1, 0);
 }
 
 RTGEOM*
-rtgeom_force_3dm(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_force_3dm(const RTCTX *ctx, const RTGEOM *geom)
 {	
 	return rtgeom_force_dims(ctx, geom, 0, 1);
 }
 
 RTGEOM*
-rtgeom_force_4d(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_force_4d(const RTCTX *ctx, const RTGEOM *geom)
 {	
 	return rtgeom_force_dims(ctx, geom, 1, 1);
 }
 
 RTGEOM*
-rtgeom_force_dims(RTCTX *ctx, const RTGEOM *geom, int hasz, int hasm)
+rtgeom_force_dims(const RTCTX *ctx, const RTGEOM *geom, int hasz, int hasm)
 {	
 	switch(geom->type)
 	{
@@ -741,7 +741,7 @@ rtgeom_force_dims(RTCTX *ctx, const RTGEOM *geom, int hasz, int hasm)
 }
 
 RTGEOM*
-rtgeom_force_sfs(RTCTX *ctx, RTGEOM *geom, int version)
+rtgeom_force_sfs(const RTCTX *ctx, RTGEOM *geom, int version)
 {	
 	RTCOLLECTION *col;
 	int i;
@@ -819,35 +819,35 @@ rtgeom_force_sfs(RTCTX *ctx, RTGEOM *geom, int version)
 }
 
 int32_t 
-rtgeom_get_srid(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_get_srid(const RTCTX *ctx, const RTGEOM *geom)
 {
 	if ( ! geom ) return SRID_UNKNOWN;
 	return geom->srid;
 }
 
 uint32_t 
-rtgeom_get_type(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_get_type(const RTCTX *ctx, const RTGEOM *geom)
 {
 	if ( ! geom ) return 0;
 	return geom->type;
 }
 
 int 
-rtgeom_has_z(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_has_z(const RTCTX *ctx, const RTGEOM *geom)
 {
 	if ( ! geom ) return RT_FALSE;
 	return RTFLAGS_GET_Z(geom->flags);
 }
 
 int 
-rtgeom_has_m(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_has_m(const RTCTX *ctx, const RTGEOM *geom)
 {
 	if ( ! geom ) return RT_FALSE;
 	return RTFLAGS_GET_M(geom->flags);
 }
 
 int 
-rtgeom_ndims(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_ndims(const RTCTX *ctx, const RTGEOM *geom)
 {
 	if ( ! geom ) return 0;
 	return RTFLAGS_NDIMS(geom->flags);
@@ -855,7 +855,7 @@ rtgeom_ndims(RTCTX *ctx, const RTGEOM *geom)
 
 
 void
-rtgeom_set_geodetic(RTCTX *ctx, RTGEOM *geom, int value)
+rtgeom_set_geodetic(const RTCTX *ctx, RTGEOM *geom, int value)
 {
 	RTPOINT *pt;
 	RTLINE *ln;
@@ -899,7 +899,7 @@ rtgeom_set_geodetic(RTCTX *ctx, RTGEOM *geom, int value)
 }
 
 void
-rtgeom_longitude_shift(RTCTX *ctx, RTGEOM *rtgeom)
+rtgeom_longitude_shift(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 	int i;
 	switch (rtgeom->type)
@@ -944,7 +944,7 @@ rtgeom_longitude_shift(RTCTX *ctx, RTGEOM *rtgeom)
 }
 
 int 
-rtgeom_is_closed(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_is_closed(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int type = geom->type;
 	
@@ -988,7 +988,7 @@ rtgeom_is_closed(RTCTX *ctx, const RTGEOM *geom)
 }
 
 int 
-rtgeom_is_collection(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_is_collection(const RTCTX *ctx, const RTGEOM *geom)
 {
 	if( ! geom ) return RT_FALSE;
 	return rttype_is_collection(ctx, geom->type);
@@ -996,7 +996,7 @@ rtgeom_is_collection(RTCTX *ctx, const RTGEOM *geom)
 
 /** Return TRUE if the geometry may contain sub-geometries, i.e. it is a MULTI* or COMPOUNDCURVE */
 int
-rttype_is_collection(RTCTX *ctx, uint8_t type)
+rttype_is_collection(const RTCTX *ctx, uint8_t type)
 {
 
 	switch (type)
@@ -1023,7 +1023,7 @@ rttype_is_collection(RTCTX *ctx, uint8_t type)
 * Given an rttype number, what homogeneous collection can hold it?
 */
 int 
-rttype_get_collectiontype(RTCTX *ctx, uint8_t type)
+rttype_get_collectiontype(const RTCTX *ctx, uint8_t type)
 {
 	switch (type)
 	{
@@ -1047,7 +1047,7 @@ rttype_get_collectiontype(RTCTX *ctx, uint8_t type)
 }
 
 
-void rtgeom_free(RTCTX *ctx, RTGEOM *rtgeom)
+void rtgeom_free(const RTCTX *ctx, RTGEOM *rtgeom)
 {
 
 	/* There's nothing here to free... */
@@ -1100,7 +1100,7 @@ void rtgeom_free(RTCTX *ctx, RTGEOM *rtgeom)
 	return;
 }
 
-int rtgeom_needs_bbox(RTCTX *ctx, const RTGEOM *geom)
+int rtgeom_needs_bbox(const RTCTX *ctx, const RTGEOM *geom)
 {
 	assert(geom);
 	if ( geom->type == RTPOINTTYPE )
@@ -1137,7 +1137,7 @@ int rtgeom_needs_bbox(RTCTX *ctx, const RTGEOM *geom)
 /**
 * Count points in an #RTGEOM.
 */
-int rtgeom_count_vertices(RTCTX *ctx, const RTGEOM *geom)
+int rtgeom_count_vertices(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int result = 0;
 	
@@ -1189,7 +1189,7 @@ int rtgeom_count_vertices(RTCTX *ctx, const RTGEOM *geom)
 * 2 for polygons, 3 for volume, and the max dimension 
 * of a collection.
 */
-int rtgeom_dimension(RTCTX *ctx, const RTGEOM *geom)
+int rtgeom_dimension(const RTCTX *ctx, const RTGEOM *geom)
 {
 
 	/* Null? Zero. */
@@ -1246,7 +1246,7 @@ int rtgeom_dimension(RTCTX *ctx, const RTGEOM *geom)
 /**
 * Count rings in an #RTGEOM.
 */
-int rtgeom_count_rings(RTCTX *ctx, const RTGEOM *geom)
+int rtgeom_count_rings(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int result = 0;
 	
@@ -1294,7 +1294,7 @@ int rtgeom_count_rings(RTCTX *ctx, const RTGEOM *geom)
 	return result;
 }
 
-int rtgeom_is_empty(RTCTX *ctx, const RTGEOM *geom)
+int rtgeom_is_empty(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int result = RT_FALSE;
 	RTDEBUGF(4, "rtgeom_is_empty: got type %s",
@@ -1337,7 +1337,7 @@ int rtgeom_is_empty(RTCTX *ctx, const RTGEOM *geom)
 	return result;
 }
 
-int rtgeom_has_srid(RTCTX *ctx, const RTGEOM *geom)
+int rtgeom_has_srid(const RTCTX *ctx, const RTGEOM *geom)
 {
 	if ( geom->srid != SRID_UNKNOWN )
 		return RT_TRUE;
@@ -1346,7 +1346,7 @@ int rtgeom_has_srid(RTCTX *ctx, const RTGEOM *geom)
 }
 
 
-static int rtcollection_dimensionality(RTCTX *ctx, RTCOLLECTION *col)
+static int rtcollection_dimensionality(const RTCTX *ctx, RTCOLLECTION *col)
 {
 	int i;
 	int dimensionality = 0;
@@ -1359,7 +1359,7 @@ static int rtcollection_dimensionality(RTCTX *ctx, RTCOLLECTION *col)
 	return dimensionality;
 }
 
-extern int rtgeom_dimensionality(RTCTX *ctx, RTGEOM *geom)
+extern int rtgeom_dimensionality(const RTCTX *ctx, RTGEOM *geom)
 {
 	int dim;
 
@@ -1404,7 +1404,7 @@ extern int rtgeom_dimensionality(RTCTX *ctx, RTGEOM *geom)
 	return 0;
 }
 
-extern RTGEOM* rtgeom_remove_repeated_points(RTCTX *ctx, const RTGEOM *in, double tolerance)
+extern RTGEOM* rtgeom_remove_repeated_points(const RTCTX *ctx, const RTGEOM *in, double tolerance)
 {
 	RTDEBUGF(4, "rtgeom_remove_repeated_points got type %s",
 	         rttype_name(ctx, in->type));
@@ -1455,13 +1455,13 @@ extern RTGEOM* rtgeom_remove_repeated_points(RTCTX *ctx, const RTGEOM *in, doubl
 	return 0;
 }
 
-RTGEOM* rtgeom_flip_coordinates(RTCTX *ctx, RTGEOM *in)
+RTGEOM* rtgeom_flip_coordinates(const RTCTX *ctx, RTGEOM *in)
 {
   rtgeom_swap_ordinates(ctx, in,RTORD_X,RTORD_Y);
   return in;
 }
 
-void rtgeom_swap_ordinates(RTCTX *ctx, RTGEOM *in, RTORD o1, RTORD o2)
+void rtgeom_swap_ordinates(const RTCTX *ctx, RTGEOM *in, RTORD o1, RTORD o2)
 {
 	RTCOLLECTION *col;
 	RTPOLY *poly;
@@ -1536,7 +1536,7 @@ void rtgeom_swap_ordinates(RTCTX *ctx, RTGEOM *in, RTORD o1, RTORD o2)
 	}
 }
 
-void rtgeom_set_srid(RTCTX *ctx, RTGEOM *geom, int32_t srid)
+void rtgeom_set_srid(const RTCTX *ctx, RTGEOM *geom, int32_t srid)
 {
 	int i;
 
@@ -1555,7 +1555,7 @@ void rtgeom_set_srid(RTCTX *ctx, RTGEOM *geom, int32_t srid)
 	}
 }
 
-RTGEOM* rtgeom_simplify(RTCTX *ctx, const RTGEOM *igeom, double dist, int preserve_collapsed)
+RTGEOM* rtgeom_simplify(const RTCTX *ctx, const RTGEOM *igeom, double dist, int preserve_collapsed)
 {
 	switch (igeom->type)
 	{
@@ -1576,7 +1576,7 @@ RTGEOM* rtgeom_simplify(RTCTX *ctx, const RTGEOM *igeom, double dist, int preser
 	return NULL;
 }
 
-double rtgeom_area(RTCTX *ctx, const RTGEOM *geom)
+double rtgeom_area(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int type = geom->type;
 	
@@ -1599,7 +1599,7 @@ double rtgeom_area(RTCTX *ctx, const RTGEOM *geom)
 		return 0.0;
 }
 
-double rtgeom_perimeter(RTCTX *ctx, const RTGEOM *geom)
+double rtgeom_perimeter(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int type = geom->type;
 	if ( type == RTPOLYGONTYPE )
@@ -1621,7 +1621,7 @@ double rtgeom_perimeter(RTCTX *ctx, const RTGEOM *geom)
 		return 0.0;
 }
 
-double rtgeom_perimeter_2d(RTCTX *ctx, const RTGEOM *geom)
+double rtgeom_perimeter_2d(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int type = geom->type;
 	if ( type == RTPOLYGONTYPE )
@@ -1643,7 +1643,7 @@ double rtgeom_perimeter_2d(RTCTX *ctx, const RTGEOM *geom)
 		return 0.0;
 }
 
-double rtgeom_length(RTCTX *ctx, const RTGEOM *geom)
+double rtgeom_length(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int type = geom->type;
 	if ( type == RTLINETYPE )
@@ -1665,7 +1665,7 @@ double rtgeom_length(RTCTX *ctx, const RTGEOM *geom)
 		return 0.0;
 }
 
-double rtgeom_length_2d(RTCTX *ctx, const RTGEOM *geom)
+double rtgeom_length_2d(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int type = geom->type;
 	if ( type == RTLINETYPE )
@@ -1688,7 +1688,7 @@ double rtgeom_length_2d(RTCTX *ctx, const RTGEOM *geom)
 }
 
 void
-rtgeom_affine(RTCTX *ctx, RTGEOM *geom, const AFFINE *affine)
+rtgeom_affine(const RTCTX *ctx, RTGEOM *geom, const AFFINE *affine)
 {
 	int type = geom->type;
 	int i;
@@ -1739,7 +1739,7 @@ rtgeom_affine(RTCTX *ctx, RTGEOM *geom, const AFFINE *affine)
 }
 
 void
-rtgeom_scale(RTCTX *ctx, RTGEOM *geom, const RTPOINT4D *factor)
+rtgeom_scale(const RTCTX *ctx, RTGEOM *geom, const RTPOINT4D *factor)
 {
 	int type = geom->type;
 	int i;
@@ -1804,7 +1804,7 @@ rtgeom_scale(RTCTX *ctx, RTGEOM *geom, const RTPOINT4D *factor)
 }
 
 RTGEOM*
-rtgeom_construct_empty(RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm)
+rtgeom_construct_empty(const RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm)
 {
 	switch(type) 
 	{
@@ -1834,7 +1834,7 @@ rtgeom_construct_empty(RTCTX *ctx, uint8_t type, int srid, char hasz, char hasm)
 }
 
 int
-rtgeom_startpoint(RTCTX *ctx, const RTGEOM* rtgeom, RTPOINT4D* pt)
+rtgeom_startpoint(const RTCTX *ctx, const RTGEOM* rtgeom, RTPOINT4D* pt)
 {
 	if ( ! rtgeom )
 		return RT_FAILURE;
@@ -1865,7 +1865,7 @@ rtgeom_startpoint(RTCTX *ctx, const RTGEOM* rtgeom, RTPOINT4D* pt)
 
 
 RTGEOM *
-rtgeom_grid(RTCTX *ctx, const RTGEOM *rtgeom, const gridspec *grid)
+rtgeom_grid(const RTCTX *ctx, const RTGEOM *rtgeom, const gridspec *grid)
 {
 	switch ( rtgeom->type )
 	{
@@ -1893,10 +1893,10 @@ rtgeom_grid(RTCTX *ctx, const RTGEOM *rtgeom, const gridspec *grid)
 
 /* Prototype for recursion */
 static int 
-rtgeom_subdivide_recursive(RTCTX *ctx, const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const RTGBOX *clip);
+rtgeom_subdivide_recursive(const RTCTX *ctx, const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const RTGBOX *clip);
 
 static int
-rtgeom_subdivide_recursive(RTCTX *ctx, const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const RTGBOX *clip)
+rtgeom_subdivide_recursive(const RTCTX *ctx, const RTGEOM *geom, int maxvertices, int depth, RTCOLLECTION *col, const RTGBOX *clip)
 {
 	const int maxdepth = 50;
 	int nvertices = 0;
@@ -1995,7 +1995,7 @@ rtgeom_subdivide_recursive(RTCTX *ctx, const RTGEOM *geom, int maxvertices, int 
 }
 
 RTCOLLECTION *
-rtgeom_subdivide(RTCTX *ctx, const RTGEOM *geom, int maxvertices)
+rtgeom_subdivide(const RTCTX *ctx, const RTGEOM *geom, int maxvertices)
 {
 	static int startdepth = 0;
 	static int minmaxvertices = 8;
@@ -2021,7 +2021,7 @@ rtgeom_subdivide(RTCTX *ctx, const RTGEOM *geom, int maxvertices)
 
 
 int
-rtgeom_is_trajectory(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_is_trajectory(const RTCTX *ctx, const RTGEOM *geom)
 {
 	int type = geom->type;
 

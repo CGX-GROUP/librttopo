@@ -52,9 +52,9 @@
  * Return Nth vertex in GEOSGeometry as a POINT.
  * May return NULL if the geometry has NO vertexex.
  */
-GEOSGeometry* RTGEOM_GEOS_getPointN(RTCTX *ctx, const GEOSGeometry*, uint32_t);
+GEOSGeometry* RTGEOM_GEOS_getPointN(const RTCTX *ctx, const GEOSGeometry*, uint32_t);
 GEOSGeometry*
-RTGEOM_GEOS_getPointN(RTCTX *ctx, const GEOSGeometry* g_in, uint32_t n)
+RTGEOM_GEOS_getPointN(const RTCTX *ctx, const GEOSGeometry* g_in, uint32_t n)
 {
 	uint32_t dims;
 	const GEOSCoordSequence* seq_in;
@@ -125,10 +125,10 @@ RTGEOM_GEOS_getPointN(RTCTX *ctx, const GEOSGeometry* g_in, uint32_t n)
 
 
 
-RTGEOM * rtcollection_make_geos_friendly(RTCTX *ctx, RTCOLLECTION *g);
-RTGEOM * rtline_make_geos_friendly(RTCTX *ctx, RTLINE *line);
-RTGEOM * rtpoly_make_geos_friendly(RTCTX *ctx, RTPOLY *poly);
-RTPOINTARRAY* ring_make_geos_friendly(RTCTX *ctx, RTPOINTARRAY* ring);
+RTGEOM * rtcollection_make_geos_friendly(const RTCTX *ctx, RTCOLLECTION *g);
+RTGEOM * rtline_make_geos_friendly(const RTCTX *ctx, RTLINE *line);
+RTGEOM * rtpoly_make_geos_friendly(const RTCTX *ctx, RTPOLY *poly);
+RTPOINTARRAY* ring_make_geos_friendly(const RTCTX *ctx, RTPOINTARRAY* ring);
 
 /*
  * Ensure the geometry is "structurally" valid
@@ -137,7 +137,7 @@ RTPOINTARRAY* ring_make_geos_friendly(RTCTX *ctx, RTPOINTARRAY* ring);
  * May return geometries of lower dimension (on collapses)
  */
 static RTGEOM *
-rtgeom_make_geos_friendly(RTCTX *ctx, RTGEOM *geom)
+rtgeom_make_geos_friendly(const RTCTX *ctx, RTGEOM *geom)
 {
 	RTDEBUGF(2, "rtgeom_make_geos_friendly enter (type %d)", geom->type);
 	switch (geom->type)
@@ -182,9 +182,9 @@ rtgeom_make_geos_friendly(RTCTX *ctx, RTGEOM *geom)
  * constructed RTPOINTARRAY.
  * TODO: move in ptarray.c
  */
-RTPOINTARRAY* ptarray_close2d(RTCTX *ctx, RTPOINTARRAY* ring);
+RTPOINTARRAY* ptarray_close2d(const RTCTX *ctx, RTPOINTARRAY* ring);
 RTPOINTARRAY*
-ptarray_close2d(RTCTX *ctx, RTPOINTARRAY* ring)
+ptarray_close2d(const RTCTX *ctx, RTPOINTARRAY* ring)
 {
 	RTPOINTARRAY* newring;
 
@@ -203,7 +203,7 @@ ptarray_close2d(RTCTX *ctx, RTPOINTARRAY* ring)
 
 /* May return the same input or a new one (never zero) */
 RTPOINTARRAY*
-ring_make_geos_friendly(RTCTX *ctx, RTPOINTARRAY* ring)
+ring_make_geos_friendly(const RTCTX *ctx, RTPOINTARRAY* ring)
 {
 	RTPOINTARRAY* closedring;
 	RTPOINTARRAY* ring_in = ring;
@@ -237,7 +237,7 @@ ring_make_geos_friendly(RTCTX *ctx, RTPOINTARRAY* ring)
  * May return the input untouched.
  */
 RTGEOM *
-rtpoly_make_geos_friendly(RTCTX *ctx, RTPOLY *poly)
+rtpoly_make_geos_friendly(const RTCTX *ctx, RTPOLY *poly)
 {
 	RTGEOM* ret;
 	RTPOINTARRAY **new_rings;
@@ -278,7 +278,7 @@ rtpoly_make_geos_friendly(RTCTX *ctx, RTPOLY *poly)
 
 /* Need NO or >1 points. Duplicate first if only one. */
 RTGEOM *
-rtline_make_geos_friendly(RTCTX *ctx, RTLINE *line)
+rtline_make_geos_friendly(const RTCTX *ctx, RTLINE *line)
 {
 	RTGEOM *ret;
 
@@ -305,7 +305,7 @@ rtline_make_geos_friendly(RTCTX *ctx, RTLINE *line)
 }
 
 RTGEOM *
-rtcollection_make_geos_friendly(RTCTX *ctx, RTCOLLECTION *g)
+rtcollection_make_geos_friendly(const RTCTX *ctx, RTCOLLECTION *g)
 {
 	RTGEOM **new_geoms;
 	uint32_t i, new_ngeoms=0;
@@ -345,7 +345,7 @@ rtcollection_make_geos_friendly(RTCTX *ctx, RTCOLLECTION *g)
  * Fully node given linework
  */
 static GEOSGeometry*
-RTGEOM_GEOS_nodeLines(RTCTX *ctx, const GEOSGeometry* lines)
+RTGEOM_GEOS_nodeLines(const RTCTX *ctx, const GEOSGeometry* lines)
 {
 	GEOSGeometry* noded;
 	GEOSGeometry* point;
@@ -388,7 +388,7 @@ RTGEOM_GEOS_nodeLines(RTCTX *ctx, const GEOSGeometry* lines)
  *
  */
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidPolygon(RTCTX *ctx, const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidPolygon(const RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeom gout;
 	GEOSGeom geos_bound;
@@ -679,7 +679,7 @@ RTGEOM_GEOS_makeValidPolygon(RTCTX *ctx, const GEOSGeometry* gin)
 }
 
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidLine(RTCTX *ctx, const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidLine(const RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeometry* noded;
 	noded = RTGEOM_GEOS_nodeLines(ctx, gin);
@@ -687,7 +687,7 @@ RTGEOM_GEOS_makeValidLine(RTCTX *ctx, const GEOSGeometry* gin)
 }
 
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidMultiLine(RTCTX *ctx, const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidMultiLine(const RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeometry** lines;
 	GEOSGeometry** points;
@@ -795,14 +795,14 @@ RTGEOM_GEOS_makeValidMultiLine(RTCTX *ctx, const GEOSGeometry* gin)
 	return gout;
 }
 
-static GEOSGeometry* RTGEOM_GEOS_makeValid(RTCTX *ctx, const GEOSGeometry*);
+static GEOSGeometry* RTGEOM_GEOS_makeValid(const RTCTX *ctx, const GEOSGeometry*);
 
 /*
  * We expect initGEOS being called already.
  * Will return NULL on error (expect error handler being called by then)
  */
 static GEOSGeometry*
-RTGEOM_GEOS_makeValidCollection(RTCTX *ctx, const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValidCollection(const RTCTX *ctx, const GEOSGeometry* gin)
 {
 	int nvgeoms;
 	GEOSGeometry **vgeoms;
@@ -850,7 +850,7 @@ RTGEOM_GEOS_makeValidCollection(RTCTX *ctx, const GEOSGeometry* gin)
 
 
 static GEOSGeometry*
-RTGEOM_GEOS_makeValid(RTCTX *ctx, const GEOSGeometry* gin)
+RTGEOM_GEOS_makeValid(const RTCTX *ctx, const GEOSGeometry* gin)
 {
 	GEOSGeometry* gout;
 	char ret_char;
@@ -988,7 +988,7 @@ RTGEOM_GEOS_makeValid(RTCTX *ctx, const GEOSGeometry* gin)
 
 /* Exported. Uses GEOS internally */
 RTGEOM*
-rtgeom_make_valid(RTCTX *ctx, RTGEOM* rtgeom_in)
+rtgeom_make_valid(const RTCTX *ctx, RTGEOM* rtgeom_in)
 {
 	int is3d;
 	GEOSGeom geosgeom;

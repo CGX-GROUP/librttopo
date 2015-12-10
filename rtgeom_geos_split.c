@@ -41,17 +41,17 @@
 #include <string.h>
 #include <assert.h>
 
-static RTGEOM* rtline_split_by_line(RTCTX *ctx, const RTLINE* rtgeom_in, const RTGEOM* blade_in);
-static RTGEOM* rtline_split_by_point(RTCTX *ctx, const RTLINE* rtgeom_in, const RTPOINT* blade_in);
-static RTGEOM* rtline_split_by_mpoint(RTCTX *ctx, const RTLINE* rtgeom_in, const RTMPOINT* blade_in);
-static RTGEOM* rtline_split(RTCTX *ctx, const RTLINE* rtgeom_in, const RTGEOM* blade_in);
-static RTGEOM* rtpoly_split_by_line(RTCTX *ctx, const RTPOLY* rtgeom_in, const RTLINE* blade_in);
-static RTGEOM* rtcollection_split(RTCTX *ctx, const RTCOLLECTION* rtcoll_in, const RTGEOM* blade_in);
-static RTGEOM* rtpoly_split(RTCTX *ctx, const RTPOLY* rtpoly_in, const RTGEOM* blade_in);
+static RTGEOM* rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtgeom_in, const RTGEOM* blade_in);
+static RTGEOM* rtline_split_by_point(const RTCTX *ctx, const RTLINE* rtgeom_in, const RTPOINT* blade_in);
+static RTGEOM* rtline_split_by_mpoint(const RTCTX *ctx, const RTLINE* rtgeom_in, const RTMPOINT* blade_in);
+static RTGEOM* rtline_split(const RTCTX *ctx, const RTLINE* rtgeom_in, const RTGEOM* blade_in);
+static RTGEOM* rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtgeom_in, const RTLINE* blade_in);
+static RTGEOM* rtcollection_split(const RTCTX *ctx, const RTCOLLECTION* rtcoll_in, const RTGEOM* blade_in);
+static RTGEOM* rtpoly_split(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTGEOM* blade_in);
 
 /* Initializes and uses GEOS internally */
 static RTGEOM*
-rtline_split_by_line(RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* blade_in)
+rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* blade_in)
 {
 	RTGEOM** components;
 	RTGEOM* diff;
@@ -161,7 +161,7 @@ rtline_split_by_line(RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* blade_in
 }
 
 static RTGEOM*
-rtline_split_by_point(RTCTX *ctx, const RTLINE* rtline_in, const RTPOINT* blade_in)
+rtline_split_by_point(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOINT* blade_in)
 {
 	RTMLINE* out;
 
@@ -180,7 +180,7 @@ rtline_split_by_point(RTCTX *ctx, const RTLINE* rtline_in, const RTPOINT* blade_
 }
 
 static RTGEOM*
-rtline_split_by_mpoint(RTCTX *ctx, const RTLINE* rtline_in, const RTMPOINT* mp)
+rtline_split_by_mpoint(const RTCTX *ctx, const RTLINE* rtline_in, const RTMPOINT* mp)
 {
   RTMLINE* out;
   int i, j;
@@ -217,7 +217,7 @@ rtline_split_by_mpoint(RTCTX *ctx, const RTLINE* rtline_in, const RTMPOINT* mp)
 }
 
 int
-rtline_split_by_point_to(RTCTX *ctx, const RTLINE* rtline_in, const RTPOINT* blade_in,
+rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOINT* blade_in,
                          RTMLINE* v)
 {
 	double loc, dist;
@@ -279,7 +279,7 @@ rtline_split_by_point_to(RTCTX *ctx, const RTLINE* rtline_in, const RTPOINT* bla
 }
 
 static RTGEOM*
-rtline_split(RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* blade_in)
+rtline_split(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* blade_in)
 {
 	switch (blade_in->type)
 	{
@@ -304,7 +304,7 @@ rtline_split(RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* blade_in)
 
 /* Initializes and uses GEOS internally */
 static RTGEOM*
-rtpoly_split_by_line(RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* blade_in)
+rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* blade_in)
 {
 	RTCOLLECTION* out;
 	GEOSGeometry* g1;
@@ -457,7 +457,7 @@ rtpoly_split_by_line(RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* blade_in
 }
 
 static RTGEOM*
-rtcollection_split(RTCTX *ctx, const RTCOLLECTION* rtcoll_in, const RTGEOM* blade_in)
+rtcollection_split(const RTCTX *ctx, const RTCOLLECTION* rtcoll_in, const RTGEOM* blade_in)
 {
 	RTGEOM** split_vector=NULL;
 	RTCOLLECTION* out;
@@ -515,7 +515,7 @@ rtcollection_split(RTCTX *ctx, const RTCOLLECTION* rtcoll_in, const RTGEOM* blad
 }
 
 static RTGEOM*
-rtpoly_split(RTCTX *ctx, const RTPOLY* rtpoly_in, const RTGEOM* blade_in)
+rtpoly_split(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTGEOM* blade_in)
 {
 	switch (blade_in->type)
 	{
@@ -531,7 +531,7 @@ rtpoly_split(RTCTX *ctx, const RTPOLY* rtpoly_in, const RTGEOM* blade_in)
 
 /* exported */
 RTGEOM*
-rtgeom_split(RTCTX *ctx, const RTGEOM* rtgeom_in, const RTGEOM* blade_in)
+rtgeom_split(const RTCTX *ctx, const RTGEOM* rtgeom_in, const RTGEOM* blade_in)
 {
 	switch (rtgeom_in->type)
 	{

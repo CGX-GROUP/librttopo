@@ -43,7 +43,7 @@
 * Allocate a new bytebuffer_t. Use bytebuffer_destroy to free.
 */
 bytebuffer_t* 
-bytebuffer_create(RTCTX *ctx)
+bytebuffer_create(const RTCTX *ctx)
 {
 	RTDEBUG(2,"Entered bytebuffer_create");
 	return bytebuffer_create_with_size(ctx, BYTEBUFFER_STARTSIZE);
@@ -53,7 +53,7 @@ bytebuffer_create(RTCTX *ctx)
 * Allocate a new bytebuffer_t. Use bytebuffer_destroy to free.
 */
 bytebuffer_t* 
-bytebuffer_create_with_size(RTCTX *ctx, size_t size)
+bytebuffer_create_with_size(const RTCTX *ctx, size_t size)
 {
 	RTDEBUGF(2,"Entered bytebuffer_create_with_size %d", size);
 	bytebuffer_t *s;
@@ -72,7 +72,7 @@ bytebuffer_create_with_size(RTCTX *ctx, size_t size)
 * struct. Useful for allocating short-lived bytebuffers off the stack.
 */
 void 
-bytebuffer_init_with_size(RTCTX *ctx, bytebuffer_t *b, size_t size)
+bytebuffer_init_with_size(const RTCTX *ctx, bytebuffer_t *b, size_t size)
 {
 	b->buf_start = rtalloc(ctx, size);
 	b->readcursor = b->writecursor = b->buf_start;
@@ -84,7 +84,7 @@ bytebuffer_init_with_size(RTCTX *ctx, bytebuffer_t *b, size_t size)
 * Free the bytebuffer_t and all memory managed within it.
 */
 void 
-bytebuffer_destroy(RTCTX *ctx, bytebuffer_t *s)
+bytebuffer_destroy(const RTCTX *ctx, bytebuffer_t *s)
 {
 	RTDEBUG(2,"Entered bytebuffer_destroy");
 	RTDEBUGF(4,"The buffer has used %d bytes",bytebuffer_getlength(ctx, s));
@@ -107,7 +107,7 @@ bytebuffer_destroy(RTCTX *ctx, bytebuffer_t *s)
 * Set the read cursor to the beginning
 */
 void 
-bytebuffer_reset_reading(RTCTX *ctx, bytebuffer_t *s)
+bytebuffer_reset_reading(const RTCTX *ctx, bytebuffer_t *s)
 {
 	s->readcursor = s->buf_start;
 }
@@ -118,7 +118,7 @@ bytebuffer_reset_reading(RTCTX *ctx, bytebuffer_t *s)
 * bytebuffer_t.
 */
 void 
-bytebuffer_clear(RTCTX *ctx, bytebuffer_t *s)
+bytebuffer_clear(const RTCTX *ctx, bytebuffer_t *s)
 {
 	s->readcursor = s->writecursor = s->buf_start;
 }
@@ -128,7 +128,7 @@ bytebuffer_clear(RTCTX *ctx, bytebuffer_t *s)
 * specified additional size.
 */
 static inline void 
-bytebuffer_makeroom(RTCTX *ctx, bytebuffer_t *s, size_t size_to_add)
+bytebuffer_makeroom(const RTCTX *ctx, bytebuffer_t *s, size_t size_to_add)
 {
 	RTDEBUGF(2,"Entered bytebuffer_makeroom with space need of %d", size_to_add);
 	size_t current_write_size = (s->writecursor - s->buf_start);
@@ -154,7 +154,7 @@ bytebuffer_makeroom(RTCTX *ctx, bytebuffer_t *s, size_t size_to_add)
 * Writes a uint8_t value to the buffer
 */
 void 
-bytebuffer_append_byte(RTCTX *ctx, bytebuffer_t *s, const uint8_t val)
+bytebuffer_append_byte(const RTCTX *ctx, bytebuffer_t *s, const uint8_t val)
 {	
 	RTDEBUGF(2,"Entered bytebuffer_append_byte with value %d", val);	
 	bytebuffer_makeroom(ctx, s, 1);
@@ -168,7 +168,7 @@ bytebuffer_append_byte(RTCTX *ctx, bytebuffer_t *s, const uint8_t val)
 * Writes a uint8_t value to the buffer
 */
 void 
-bytebuffer_append_bulk(RTCTX *ctx, bytebuffer_t *s, void * start, size_t size)
+bytebuffer_append_bulk(const RTCTX *ctx, bytebuffer_t *s, void * start, size_t size)
 {	
 	RTDEBUGF(2,"bytebuffer_append_bulk with size %d",size);	
 	bytebuffer_makeroom(ctx, s, size);
@@ -181,7 +181,7 @@ bytebuffer_append_bulk(RTCTX *ctx, bytebuffer_t *s, void * start, size_t size)
 * Writes a uint8_t value to the buffer
 */
 void 
-bytebuffer_append_bytebuffer(RTCTX *ctx, bytebuffer_t *write_to,bytebuffer_t *write_from )
+bytebuffer_append_bytebuffer(const RTCTX *ctx, bytebuffer_t *write_to,bytebuffer_t *write_from )
 {	
 	RTDEBUG(2,"bytebuffer_append_bytebuffer");	
 	size_t size = bytebuffer_getlength(ctx, write_from);
@@ -196,7 +196,7 @@ bytebuffer_append_bytebuffer(RTCTX *ctx, bytebuffer_t *write_to,bytebuffer_t *wr
 * Writes a signed varInt to the buffer
 */
 void 
-bytebuffer_append_varint(RTCTX *ctx, bytebuffer_t *b, const int64_t val)
+bytebuffer_append_varint(const RTCTX *ctx, bytebuffer_t *b, const int64_t val)
 {	
 	size_t size;
 	bytebuffer_makeroom(ctx, b, 8);
@@ -209,7 +209,7 @@ bytebuffer_append_varint(RTCTX *ctx, bytebuffer_t *b, const int64_t val)
 * Writes a unsigned varInt to the buffer
 */
 void 
-bytebuffer_append_uvarint(RTCTX *ctx, bytebuffer_t *b, const uint64_t val)
+bytebuffer_append_uvarint(const RTCTX *ctx, bytebuffer_t *b, const uint64_t val)
 {	
 	size_t size;
 	bytebuffer_makeroom(ctx, b, 8);
@@ -223,7 +223,7 @@ bytebuffer_append_uvarint(RTCTX *ctx, bytebuffer_t *b, const uint64_t val)
 * Writes Integer to the buffer
 */
 void
-bytebuffer_append_int(RTCTX *ctx, bytebuffer_t *buf, const int val, int swap)
+bytebuffer_append_int(const RTCTX *ctx, bytebuffer_t *buf, const int val, int swap)
 {
 	RTDEBUGF(2,"Entered bytebuffer_append_int with value %d, swap = %d", val, swap);	
 	
@@ -268,7 +268,7 @@ bytebuffer_append_int(RTCTX *ctx, bytebuffer_t *buf, const int val, int swap)
 * Writes a float64 to the buffer
 */
 void
-bytebuffer_append_double(RTCTX *ctx, bytebuffer_t *buf, const double val, int swap)
+bytebuffer_append_double(const RTCTX *ctx, bytebuffer_t *buf, const double val, int swap)
 {
 	RTDEBUGF(2,"Entered bytebuffer_append_double with value %lf swap = %d", val, swap);	
 	
@@ -310,7 +310,7 @@ bytebuffer_append_double(RTCTX *ctx, bytebuffer_t *buf, const double val, int sw
 * Reads a signed varInt from the buffer
 */
 int64_t 
-bytebuffer_read_varint(RTCTX *ctx, bytebuffer_t *b)
+bytebuffer_read_varint(const RTCTX *ctx, bytebuffer_t *b)
 {
 	size_t size;
 	int64_t val = varint_s64_decode(ctx, b->readcursor, b->buf_start + b->capacity, &size);
@@ -322,7 +322,7 @@ bytebuffer_read_varint(RTCTX *ctx, bytebuffer_t *b)
 * Reads a unsigned varInt from the buffer
 */
 uint64_t 
-bytebuffer_read_uvarint(RTCTX *ctx, bytebuffer_t *b)
+bytebuffer_read_uvarint(const RTCTX *ctx, bytebuffer_t *b)
 {	
 	size_t size;
 	uint64_t val = varint_u64_decode(ctx, b->readcursor, b->buf_start + b->capacity, &size);
@@ -334,7 +334,7 @@ bytebuffer_read_uvarint(RTCTX *ctx, bytebuffer_t *b)
 * Returns the length of the current buffer
 */
 size_t 
-bytebuffer_getlength(RTCTX *ctx, bytebuffer_t *s)
+bytebuffer_getlength(const RTCTX *ctx, bytebuffer_t *s)
 {
 	return (size_t) (s->writecursor - s->buf_start);
 }
@@ -345,7 +345,7 @@ bytebuffer_getlength(RTCTX *ctx, bytebuffer_t *s)
 * Caller is responsible for freeing both incoming bytefyffers and resulting bytebuffer
 */
 bytebuffer_t*
-bytebuffer_merge(RTCTX *ctx, bytebuffer_t **buff_array, int nbuffers)
+bytebuffer_merge(const RTCTX *ctx, bytebuffer_t **buff_array, int nbuffers)
 {
 	size_t total_size = 0, current_size, acc_size = 0;
 	int i;

@@ -6,7 +6,7 @@
 /**
 * Internal nodes have their point references set to NULL.
 */
-static int rect_node_is_leaf(RTCTX *ctx, const RECT_NODE *node)
+static int rect_node_is_leaf(const RTCTX *ctx, const RECT_NODE *node)
 {
 	return (node->p1 != NULL);
 }
@@ -15,7 +15,7 @@ static int rect_node_is_leaf(RTCTX *ctx, const RECT_NODE *node)
 * Recurse from top of node tree and free all children.
 * does not free underlying point array.
 */
-void rect_tree_free(RTCTX *ctx, RECT_NODE *node)
+void rect_tree_free(const RTCTX *ctx, RECT_NODE *node)
 {
 	if ( node->left_node )
 	{
@@ -31,7 +31,7 @@ void rect_tree_free(RTCTX *ctx, RECT_NODE *node)
 }
 
 /* 0 => no containment */
-int rect_tree_contains_point(RTCTX *ctx, const RECT_NODE *node, const RTPOINT2D *pt, int *on_boundary)
+int rect_tree_contains_point(const RTCTX *ctx, const RECT_NODE *node, const RTPOINT2D *pt, int *on_boundary)
 {
 	if ( FP_CONTAINS_INCL(node->ymin, pt->y, node->ymax) )
 	{
@@ -52,7 +52,7 @@ int rect_tree_contains_point(RTCTX *ctx, const RECT_NODE *node, const RTPOINT2D 
 	return 0;
 }
 
-int rect_tree_intersects_tree(RTCTX *ctx, const RECT_NODE *n1, const RECT_NODE *n2)
+int rect_tree_intersects_tree(const RTCTX *ctx, const RECT_NODE *n1, const RECT_NODE *n2)
 {
 	RTDEBUGF(4,"n1 (%.9g %.9g,%.9g %.9g) vs n2 (%.9g %.9g,%.9g %.9g)",n1->xmin,n1->ymin,n1->xmax,n1->ymax,n2->xmin,n2->ymin,n2->xmax,n2->ymax);
 	/* There can only be an edge intersection if the rectangles overlap */
@@ -101,7 +101,7 @@ int rect_tree_intersects_tree(RTCTX *ctx, const RECT_NODE *n1, const RECT_NODE *
 * Create a new leaf node, calculating a measure value for each point on the
 * edge and storing pointers back to the end points for later.
 */
-RECT_NODE* rect_node_leaf_new(RTCTX *ctx, const RTPOINTARRAY *pa, int i)
+RECT_NODE* rect_node_leaf_new(const RTCTX *ctx, const RTPOINTARRAY *pa, int i)
 {
 	RTPOINT2D *p1, *p2;
 	RECT_NODE *node;
@@ -129,7 +129,7 @@ RECT_NODE* rect_node_leaf_new(RTCTX *ctx, const RTPOINTARRAY *pa, int i)
 * Create a new internal node, calculating the new measure range for the node,
 * and storing pointers to the child nodes.
 */
-RECT_NODE* rect_node_internal_new(RTCTX *ctx, RECT_NODE *left_node, RECT_NODE *right_node)
+RECT_NODE* rect_node_internal_new(const RTCTX *ctx, RECT_NODE *left_node, RECT_NODE *right_node)
 {
 	RECT_NODE *node = rtalloc(ctx, sizeof(RECT_NODE));
 	node->p1 = NULL;
@@ -148,7 +148,7 @@ RECT_NODE* rect_node_internal_new(RTCTX *ctx, RECT_NODE *left_node, RECT_NODE *r
 * with an associated measure range along a one-dimensional space. We
 * can then search that space as a range tree.
 */
-RECT_NODE* rect_tree_new(RTCTX *ctx, const RTPOINTARRAY *pa)
+RECT_NODE* rect_tree_new(const RTCTX *ctx, const RTPOINTARRAY *pa)
 {
 	int num_edges, num_children, num_parents;
 	int i, j;

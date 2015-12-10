@@ -14,7 +14,7 @@
 /*
 * GeometryType, and dimensions
 */
-static uint8_t rtgeom_twkb_type(RTCTX *ctx, const RTGEOM *geom)
+static uint8_t rtgeom_twkb_type(const RTCTX *ctx, const RTGEOM *geom)
 {
 	uint8_t twkb_type = 0;
 
@@ -55,7 +55,7 @@ static uint8_t rtgeom_twkb_type(RTCTX *ctx, const RTGEOM *geom)
 * Calculates the size of the bbox in varints in the form:
 * xmin, xdelta, ymin, ydelta
 */
-static size_t sizeof_bbox(RTCTX *ctx, TWKB_STATE *ts, int ndims)
+static size_t sizeof_bbox(const RTCTX *ctx, TWKB_STATE *ts, int ndims)
 {
 	int i;
 	uint8_t buf[16];
@@ -72,7 +72,7 @@ static size_t sizeof_bbox(RTCTX *ctx, TWKB_STATE *ts, int ndims)
 * Writes the bbox in varints in the form:
 * xmin, xdelta, ymin, ydelta
 */
-static void write_bbox(RTCTX *ctx, TWKB_STATE *ts, int ndims)
+static void write_bbox(const RTCTX *ctx, TWKB_STATE *ts, int ndims)
 {
 	int i;
 	RTDEBUGF(2, "Entered %s", __func__);
@@ -89,7 +89,7 @@ static void write_bbox(RTCTX *ctx, TWKB_STATE *ts, int ndims)
 * @register_npoints, controls whether an npoints entry is added to the buffer (used to skip npoints for point types)
 * @dimension, states the dimensionality of object this array is part of (0 = point, 1 = linear, 2 = areal)
 */
-static int ptarray_to_twkb_buf(RTCTX *ctx, const RTPOINTARRAY *pa, TWKB_GLOBALS *globals, TWKB_STATE *ts, int register_npoints, int minpoints)
+static int ptarray_to_twkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, TWKB_GLOBALS *globals, TWKB_STATE *ts, int register_npoints, int minpoints)
 {
 	int ndims = RTFLAGS_NDIMS(pa->flags);
 	int i, j;
@@ -214,7 +214,7 @@ static int ptarray_to_twkb_buf(RTCTX *ctx, const RTPOINTARRAY *pa, TWKB_GLOBALS 
 * POINTS
 *******************************************************************/
 
-static int rtpoint_to_twkb_buf(RTCTX *ctx, const RTPOINT *pt, TWKB_GLOBALS *globals, TWKB_STATE *ts)
+static int rtpoint_to_twkb_buf(const RTCTX *ctx, const RTPOINT *pt, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
 	RTDEBUGF(2, "Entered %s", __func__);
 
@@ -227,7 +227,7 @@ static int rtpoint_to_twkb_buf(RTCTX *ctx, const RTPOINT *pt, TWKB_GLOBALS *glob
 * LINESTRINGS
 *******************************************************************/
 
-static int rtline_to_twkb_buf(RTCTX *ctx, const RTLINE *line, TWKB_GLOBALS *globals, TWKB_STATE *ts)
+static int rtline_to_twkb_buf(const RTCTX *ctx, const RTLINE *line, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
 	RTDEBUGF(2, "Entered %s", __func__);
 
@@ -240,7 +240,7 @@ static int rtline_to_twkb_buf(RTCTX *ctx, const RTLINE *line, TWKB_GLOBALS *glob
 * POLYGONS
 *******************************************************************/
 
-static int rtpoly_to_twkb_buf(RTCTX *ctx, const RTPOLY *poly, TWKB_GLOBALS *globals, TWKB_STATE *ts)
+static int rtpoly_to_twkb_buf(const RTCTX *ctx, const RTPOLY *poly, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
 	int i;
 
@@ -262,7 +262,7 @@ static int rtpoly_to_twkb_buf(RTCTX *ctx, const RTPOLY *poly, TWKB_GLOBALS *glob
 * MULTI-GEOMETRYS (MultiPoint, MultiLinestring, MultiPolygon)
 *******************************************************************/
 
-static int rtmulti_to_twkb_buf(RTCTX *ctx, const RTCOLLECTION *col, TWKB_GLOBALS *globals, TWKB_STATE *ts)
+static int rtmulti_to_twkb_buf(const RTCTX *ctx, const RTCOLLECTION *col, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
 	int i;
 	int nempty = 0;
@@ -312,7 +312,7 @@ static int rtmulti_to_twkb_buf(RTCTX *ctx, const RTCOLLECTION *col, TWKB_GLOBALS
 * GEOMETRYCOLLECTIONS
 *******************************************************************/
 
-static int rtcollection_to_twkb_buf(RTCTX *ctx, const RTCOLLECTION *col, TWKB_GLOBALS *globals, TWKB_STATE *ts)
+static int rtcollection_to_twkb_buf(const RTCTX *ctx, const RTCOLLECTION *col, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
 	int i;
 
@@ -345,7 +345,7 @@ static int rtcollection_to_twkb_buf(RTCTX *ctx, const RTCOLLECTION *col, TWKB_GL
 * Handle whole TWKB
 *******************************************************************/
 
-static int rtgeom_to_twkb_buf(RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *globals, TWKB_STATE *ts)
+static int rtgeom_to_twkb_buf(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
 	RTDEBUGF(2, "Entered %s", __func__);
 
@@ -390,7 +390,7 @@ static int rtgeom_to_twkb_buf(RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *glob
 }
 
 
-static int rtgeom_write_to_buffer(RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *globals, TWKB_STATE *parent_state)
+static int rtgeom_write_to_buffer(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *globals, TWKB_STATE *parent_state)
 {
 	int i, is_empty, has_z, has_m, ndims;
 	size_t bbox_size = 0, optional_precision_byte = 0;
@@ -543,7 +543,7 @@ static int rtgeom_write_to_buffer(RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *
 * the returned array.
 */
 uint8_t*
-rtgeom_to_twkb_with_idlist(RTCTX *ctx, const RTGEOM *geom, int64_t *idlist, uint8_t variant,
+rtgeom_to_twkb_with_idlist(const RTCTX *ctx, const RTGEOM *geom, int64_t *idlist, uint8_t variant,
                int8_t precision_xy, int8_t precision_z, int8_t precision_m,
                size_t *twkb_size)
 {
@@ -591,7 +591,7 @@ rtgeom_to_twkb_with_idlist(RTCTX *ctx, const RTGEOM *geom, int64_t *idlist, uint
 
 
 uint8_t*
-rtgeom_to_twkb(RTCTX *ctx, const RTGEOM *geom, uint8_t variant,
+rtgeom_to_twkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant,
                int8_t precision_xy, int8_t precision_z, int8_t precision_m,
                size_t *twkb_size)
 {

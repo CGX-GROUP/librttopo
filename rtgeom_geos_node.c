@@ -21,7 +21,7 @@
 #include <assert.h>
 
 static int
-rtgeom_ngeoms(RTCTX *ctx, const RTGEOM* n)
+rtgeom_ngeoms(const RTCTX *ctx, const RTGEOM* n)
 {
 	const RTCOLLECTION* c = rtgeom_as_rtcollection(ctx, n);
 	if ( c ) return c->ngeoms;
@@ -29,7 +29,7 @@ rtgeom_ngeoms(RTCTX *ctx, const RTGEOM* n)
 }
 
 static const RTGEOM*
-rtgeom_subgeom(RTCTX *ctx, const RTGEOM* g, int n)
+rtgeom_subgeom(const RTCTX *ctx, const RTGEOM* g, int n)
 {
 	const RTCOLLECTION* c = rtgeom_as_rtcollection(ctx, g);
 	if ( c ) return rtcollection_getsubgeom(ctx, (RTCOLLECTION*)c, n);
@@ -38,7 +38,7 @@ rtgeom_subgeom(RTCTX *ctx, const RTGEOM* g, int n)
 
 
 static void
-rtgeom_collect_endpoints(RTCTX *ctx, const RTGEOM* rtg, RTMPOINT* col)
+rtgeom_collect_endpoints(const RTCTX *ctx, const RTGEOM* rtg, RTMPOINT* col)
 {
 	int i, n;
 	RTLINE* l;
@@ -70,7 +70,7 @@ rtgeom_collect_endpoints(RTCTX *ctx, const RTGEOM* rtg, RTMPOINT* col)
 }
 
 static RTMPOINT*
-rtgeom_extract_endpoints(RTCTX *ctx, const RTGEOM* rtg)
+rtgeom_extract_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
 {
 	RTMPOINT* col = rtmpoint_construct_empty(ctx, SRID_UNKNOWN,
 	                              RTFLAGS_GET_Z(rtg->flags),
@@ -83,7 +83,7 @@ rtgeom_extract_endpoints(RTCTX *ctx, const RTGEOM* rtg)
 /* Assumes initGEOS was called already */
 /* May return RTPOINT or RTMPOINT */
 static RTGEOM*
-rtgeom_extract_unique_endpoints(RTCTX *ctx, const RTGEOM* rtg)
+rtgeom_extract_unique_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
 {
 #if RTGEOM_GEOS_VERSION < 33
 	rterror(ctx, "The GEOS version this postgis binary "
@@ -124,9 +124,9 @@ rtgeom_extract_unique_endpoints(RTCTX *ctx, const RTGEOM* rtg)
 }
 
 /* exported */
-extern RTGEOM* rtgeom_node(RTCTX *ctx, const RTGEOM* rtgeom_in);
+extern RTGEOM* rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in);
 RTGEOM*
-rtgeom_node(RTCTX *ctx, const RTGEOM* rtgeom_in)
+rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 {
 #if RTGEOM_GEOS_VERSION < 33
 	rterror(ctx, "The GEOS version this postgis binary "

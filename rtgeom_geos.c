@@ -17,7 +17,7 @@
 
 #include <stdlib.h>
 
-RTTIN * rttin_from_geos(RTCTX *ctx, const GEOSGeometry *geom, int want3d);
+RTTIN * rttin_from_geos(const RTCTX *ctx, const GEOSGeometry *geom, int want3d);
 
 #undef RTGEOM_PROFILE_BUILDAREA
 
@@ -67,7 +67,7 @@ rtgeom_geos_error(const char *fmt, ...)
 
 /* Return a RTPOINTARRAY from a GEOSCoordSeq */
 RTPOINTARRAY *
-ptarray_from_GEOSCoordSeq(RTCTX *ctx, const GEOSCoordSequence *cs, char want3d)
+ptarray_from_GEOSCoordSeq(const RTCTX *ctx, const GEOSCoordSequence *cs, char want3d)
 {
 	uint32_t dims=2;
 	uint32_t size, i;
@@ -109,7 +109,7 @@ ptarray_from_GEOSCoordSeq(RTCTX *ctx, const GEOSCoordSequence *cs, char want3d)
 
 /* Return an RTGEOM from a Geometry */
 RTGEOM *
-GEOS2RTGEOM(RTCTX *ctx, const GEOSGeometry *geom, char want3d)
+GEOS2RTGEOM(const RTCTX *ctx, const GEOSGeometry *geom, char want3d)
 {
 	int type = GEOSGeomTypeId(geom) ;
 	int hasZ;
@@ -211,11 +211,11 @@ GEOS2RTGEOM(RTCTX *ctx, const GEOSGeometry *geom, char want3d)
 
 
 
-GEOSCoordSeq ptarray_to_GEOSCoordSeq(RTCTX *ctx, const RTPOINTARRAY *);
+GEOSCoordSeq ptarray_to_GEOSCoordSeq(const RTCTX *ctx, const RTPOINTARRAY *);
 
 
 GEOSCoordSeq
-ptarray_to_GEOSCoordSeq(RTCTX *ctx, const RTPOINTARRAY *pa)
+ptarray_to_GEOSCoordSeq(const RTCTX *ctx, const RTPOINTARRAY *pa)
 {
 	uint32_t dims = 2;
 	uint32_t i;
@@ -262,7 +262,7 @@ ptarray_to_GEOSCoordSeq(RTCTX *ctx, const RTPOINTARRAY *pa)
 }
 
 static GEOSGeometry *
-ptarray_to_GEOSLinearRing(RTCTX *ctx, const RTPOINTARRAY *pa, int autofix)
+ptarray_to_GEOSLinearRing(const RTCTX *ctx, const RTPOINTARRAY *pa, int autofix)
 {
 	GEOSCoordSeq sq;
 	GEOSGeom g;
@@ -292,7 +292,7 @@ ptarray_to_GEOSLinearRing(RTCTX *ctx, const RTPOINTARRAY *pa, int autofix)
 }
 
 GEOSGeometry *
-GBOX2GEOS(RTCTX *ctx, const RTGBOX *box)
+GBOX2GEOS(const RTCTX *ctx, const RTGBOX *box)
 {
 	GEOSGeometry* envelope;
 	GEOSGeometry* ring;
@@ -335,7 +335,7 @@ GBOX2GEOS(RTCTX *ctx, const RTGBOX *box)
 }
 
 GEOSGeometry *
-RTGEOM2GEOS(RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
+RTGEOM2GEOS(const RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
 {
 	GEOSCoordSeq sq;
 	GEOSGeom g, shell;
@@ -505,14 +505,14 @@ RTGEOM2GEOS(RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
 }
 
 const char*
-rtgeom_geos_version(RTCTX *ctx)
+rtgeom_geos_version(const RTCTX *ctx)
 {
 	const char *ver = GEOSversion();
 	return ver;
 }
 
 RTGEOM *
-rtgeom_normalize(RTCTX *ctx, const RTGEOM *geom1)
+rtgeom_normalize(const RTCTX *ctx, const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1;
@@ -552,7 +552,7 @@ rtgeom_normalize(RTCTX *ctx, const RTGEOM *geom1)
 }
 
 RTGEOM *
-rtgeom_intersection(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
+rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g2, *g3 ;
@@ -635,7 +635,7 @@ rtgeom_intersection(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 }
 
 RTGEOM *
-rtgeom_linemerge(RTCTX *ctx, const RTGEOM *geom1)
+rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g3 ;
@@ -696,7 +696,7 @@ rtgeom_linemerge(RTCTX *ctx, const RTGEOM *geom1)
 }
 
 RTGEOM *
-rtgeom_unaryunion(RTCTX *ctx, const RTGEOM *geom1)
+rtgeom_unaryunion(const RTCTX *ctx, const RTGEOM *geom1)
 {
 	RTGEOM *result ;
 	GEOSGeometry *g1, *g3 ;
@@ -748,7 +748,7 @@ rtgeom_unaryunion(RTCTX *ctx, const RTGEOM *geom1)
 }
 
 RTGEOM *
-rtgeom_difference(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
+rtgeom_difference(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 {
 	GEOSGeometry *g1, *g2, *g3;
 	RTGEOM *result;
@@ -822,7 +822,7 @@ rtgeom_difference(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 }
 
 RTGEOM *
-rtgeom_symdifference(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
+rtgeom_symdifference(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 {
 	GEOSGeometry *g1, *g2, *g3;
 	RTGEOM *result;
@@ -895,7 +895,7 @@ rtgeom_symdifference(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 }
 
 RTGEOM*
-rtgeom_union(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
+rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 {
 	int is3d;
 	int srid;
@@ -972,7 +972,7 @@ rtgeom_union(RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 }
 
 RTGEOM *
-rtgeom_clip_by_rect(RTCTX *ctx, const RTGEOM *geom1, double x0, double y0, double x1, double y1)
+rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0, double x1, double y1)
 {
 #if RTGEOM_GEOS_VERSION < 35
 	rterror(ctx, "The GEOS version this postgis binary "
@@ -1044,13 +1044,13 @@ typedef struct Face_t {
   struct Face_t* parent; /* if this face is an hole of another one, or NULL */
 } Face;
 
-static Face* newFace(RTCTX *ctx, const GEOSGeometry* g);
-static void delFace(RTCTX *ctx, Face* f);
-static unsigned int countParens(RTCTX *ctx, const Face* f);
-static void findFaceHoles(RTCTX *ctx, Face** faces, int nfaces);
+static Face* newFace(const RTCTX *ctx, const GEOSGeometry* g);
+static void delFace(const RTCTX *ctx, Face* f);
+static unsigned int countParens(const RTCTX *ctx, const Face* f);
+static void findFaceHoles(const RTCTX *ctx, Face** faces, int nfaces);
 
 static Face*
-newFace(RTCTX *ctx, const GEOSGeometry* g)
+newFace(const RTCTX *ctx, const GEOSGeometry* g)
 {
   Face* f = rtalloc(ctx, sizeof(Face));
   f->geom = g;
@@ -1062,7 +1062,7 @@ newFace(RTCTX *ctx, const GEOSGeometry* g)
 }
 
 static unsigned int
-countParens(RTCTX *ctx, const Face* f)
+countParens(const RTCTX *ctx, const Face* f)
 {
   unsigned int pcount = 0;
   while ( f->parent ) {
@@ -1074,7 +1074,7 @@ countParens(RTCTX *ctx, const Face* f)
 
 /* Destroy the face and release memory associated with it */
 static void
-delFace(RTCTX *ctx, Face* f)
+delFace(const RTCTX *ctx, Face* f)
 {
   GEOSGeom_destroy(f->env);
   rtfree(ctx, f);
@@ -1096,7 +1096,7 @@ compare_by_envarea(const void* g1, const void* g2)
 
 /* Find holes of each face */
 static void
-findFaceHoles(RTCTX *ctx, Face** faces, int nfaces)
+findFaceHoles(const RTCTX *ctx, Face** faces, int nfaces)
 {
   int i, j, h;
 
@@ -1131,7 +1131,7 @@ findFaceHoles(RTCTX *ctx, Face** faces, int nfaces)
 }
 
 static GEOSGeometry*
-collectFacesWithEvenAncestors(RTCTX *ctx, Face** faces, int nfaces)
+collectFacesWithEvenAncestors(const RTCTX *ctx, Face** faces, int nfaces)
 {
   GEOSGeometry **geoms = rtalloc(ctx, sizeof(GEOSGeometry*)*nfaces);
   GEOSGeometry *ret;
@@ -1150,7 +1150,7 @@ collectFacesWithEvenAncestors(RTCTX *ctx, Face** faces, int nfaces)
 }
 
 GEOSGeometry*
-RTGEOM_GEOS_buildArea(RTCTX *ctx, const GEOSGeometry* geom_in)
+RTGEOM_GEOS_buildArea(const RTCTX *ctx, const GEOSGeometry* geom_in)
 {
   GEOSGeometry *tmp;
   GEOSGeometry *geos_result, *shp;
@@ -1309,7 +1309,7 @@ RTGEOM_GEOS_buildArea(RTCTX *ctx, const GEOSGeometry* geom_in)
 }
 
 RTGEOM*
-rtgeom_buildarea(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_buildarea(const RTCTX *ctx, const RTGEOM *geom)
 {
 	GEOSGeometry* geos_in;
 	GEOSGeometry* geos_out;
@@ -1368,7 +1368,7 @@ rtgeom_buildarea(RTCTX *ctx, const RTGEOM *geom)
 }
 
 int
-rtgeom_is_simple(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_is_simple(const RTCTX *ctx, const RTGEOM *geom)
 {
 	GEOSGeometry* geos_in;
 	int simple;
@@ -1402,7 +1402,7 @@ rtgeom_is_simple(RTCTX *ctx, const RTGEOM *geom)
 /* ------------ end of BuildArea stuff ---------------------------------------------------------------------} */
 
 RTGEOM*
-rtgeom_geos_noop(RTCTX *ctx, const RTGEOM* geom_in)
+rtgeom_geos_noop(const RTCTX *ctx, const RTGEOM* geom_in)
 {
 	GEOSGeometry *geosgeom;
 	RTGEOM* geom_out;
@@ -1427,7 +1427,7 @@ rtgeom_geos_noop(RTCTX *ctx, const RTGEOM* geom_in)
 }
 
 RTGEOM*
-rtgeom_snap(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
+rtgeom_snap(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 {
 #if RTGEOM_GEOS_VERSION < 33
 	rterror(ctx, "The GEOS version this rtgeom library "
@@ -1491,7 +1491,7 @@ rtgeom_snap(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double toleran
 }
 
 RTGEOM*
-rtgeom_sharedpaths(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
+rtgeom_sharedpaths(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 {
 #if RTGEOM_GEOS_VERSION < 33
 	rterror(ctx, "The GEOS version this postgis binary "
@@ -1552,7 +1552,7 @@ rtgeom_sharedpaths(RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 }
 
 RTGEOM*
-rtgeom_offsetcurve(RTCTX *ctx, const RTLINE *rtline, double size, int quadsegs, int joinStyle, double mitreLimit)
+rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quadsegs, int joinStyle, double mitreLimit)
 {
 #if RTGEOM_GEOS_VERSION < 32
 	rterror(ctx, "rtgeom_offsetcurve: GEOS 3.2 or higher required");
@@ -1604,7 +1604,7 @@ rtgeom_offsetcurve(RTCTX *ctx, const RTLINE *rtline, double size, int quadsegs, 
 #endif /* RTGEOM_GEOS_VERSION < 32 */
 }
 
-RTTIN * rttin_from_geos(RTCTX *ctx, const GEOSGeometry *geom, int want3d) {
+RTTIN * rttin_from_geos(const RTCTX *ctx, const GEOSGeometry *geom, int want3d) {
 	int type = GEOSGeomTypeId(geom);
 	int hasZ;
 	int SRID = GEOSGetSRID(geom);
@@ -1669,7 +1669,7 @@ RTTIN * rttin_from_geos(RTCTX *ctx, const GEOSGeometry *geom, int want3d) {
 /*
  * output = 1 for edges, 2 for TIN, 0 for polygons
  */
-RTGEOM* rtgeom_delaunay_triangulation(RTCTX *ctx, const RTGEOM *rtgeom_in, double tolerance, int output) {
+RTGEOM* rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *rtgeom_in, double tolerance, int output) {
 #if RTGEOM_GEOS_VERSION < 34
 	rterror(ctx, "rtgeom_delaunay_triangulation: GEOS 3.4 or higher required");
 	return NULL;

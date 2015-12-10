@@ -21,16 +21,16 @@
 #include "rtgeom_log.h"
 
 
-RTMLINE* rtmcurve_stroke(RTCTX *ctx, const RTMCURVE *mcurve, uint32_t perQuad);
-RTMPOLY* rtmsurface_stroke(RTCTX *ctx, const RTMSURFACE *msurface, uint32_t perQuad);
-RTCOLLECTION* rtcollection_stroke(RTCTX *ctx, const RTCOLLECTION *collection, uint32_t perQuad);
+RTMLINE* rtmcurve_stroke(const RTCTX *ctx, const RTMCURVE *mcurve, uint32_t perQuad);
+RTMPOLY* rtmsurface_stroke(const RTCTX *ctx, const RTMSURFACE *msurface, uint32_t perQuad);
+RTCOLLECTION* rtcollection_stroke(const RTCTX *ctx, const RTCOLLECTION *collection, uint32_t perQuad);
 
-RTGEOM* pta_unstroke(RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid);
-RTGEOM* rtline_unstroke(RTCTX *ctx, const RTLINE *line);
-RTGEOM* rtpolygon_unstroke(RTCTX *ctx, const RTPOLY *poly);
-RTGEOM* rtmline_unstroke(RTCTX *ctx, const RTMLINE *mline);
-RTGEOM* rtmpolygon_unstroke(RTCTX *ctx, const RTMPOLY *mpoly);
-RTGEOM* rtgeom_unstroke(RTCTX *ctx, const RTGEOM *geom);
+RTGEOM* pta_unstroke(const RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid);
+RTGEOM* rtline_unstroke(const RTCTX *ctx, const RTLINE *line);
+RTGEOM* rtpolygon_unstroke(const RTCTX *ctx, const RTPOLY *poly);
+RTGEOM* rtmline_unstroke(const RTCTX *ctx, const RTMLINE *mline);
+RTGEOM* rtmpolygon_unstroke(const RTCTX *ctx, const RTMPOLY *mpoly);
+RTGEOM* rtgeom_unstroke(const RTCTX *ctx, const RTGEOM *geom);
 
 
 /*
@@ -38,7 +38,7 @@ RTGEOM* rtgeom_unstroke(RTCTX *ctx, const RTGEOM *geom);
  * contains at least on arc geometry or segment.
  */
 int
-rtgeom_has_arc(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_has_arc(const RTCTX *ctx, const RTGEOM *geom)
 {
 	RTCOLLECTION *col;
 	int i;
@@ -77,7 +77,7 @@ rtgeom_has_arc(RTCTX *ctx, const RTGEOM *geom)
  * Begin curve segmentize functions
  ******************************************************************************/
 
-static double interpolate_arc(RTCTX *ctx, double angle, double a1, double a2, double a3, double zm1, double zm2, double zm3)
+static double interpolate_arc(const RTCTX *ctx, double angle, double a1, double a2, double a3, double zm1, double zm2, double zm3)
 {
 	RTDEBUGF(4,"angle %.05g a1 %.05g a2 %.05g a3 %.05g zm1 %.05g zm2 %.05g zm3 %.05g",angle,a1,a2,a3,zm1,zm2,zm3);
 	/* Counter-clockwise sweep */
@@ -99,7 +99,7 @@ static double interpolate_arc(RTCTX *ctx, double angle, double a1, double a2, do
 }
 
 static RTPOINTARRAY *
-rtcircle_stroke(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, uint32_t perQuad)
+rtcircle_stroke(const RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPOINT4D *p3, uint32_t perQuad)
 {
 	RTPOINT2D center;
 	RTPOINT2D *t1 = (RTPOINT2D*)p1;
@@ -187,7 +187,7 @@ rtcircle_stroke(RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, const RTPO
 }
 
 RTLINE *
-rtcircstring_stroke(RTCTX *ctx, const RTCIRCSTRING *icurve, uint32_t perQuad)
+rtcircstring_stroke(const RTCTX *ctx, const RTCIRCSTRING *icurve, uint32_t perQuad)
 {
 	RTLINE *oline;
 	RTPOINTARRAY *ptarray;
@@ -239,7 +239,7 @@ rtcircstring_stroke(RTCTX *ctx, const RTCIRCSTRING *icurve, uint32_t perQuad)
 }
 
 RTLINE *
-rtcompound_stroke(RTCTX *ctx, const RTCOMPOUND *icompound, uint32_t perQuad)
+rtcompound_stroke(const RTCTX *ctx, const RTCOMPOUND *icompound, uint32_t perQuad)
 {
 	RTGEOM *geom;
 	RTPOINTARRAY *ptarray = NULL, *ptarray_out = NULL;
@@ -286,7 +286,7 @@ rtcompound_stroke(RTCTX *ctx, const RTCOMPOUND *icompound, uint32_t perQuad)
 }
 
 RTPOLY *
-rtcurvepoly_stroke(RTCTX *ctx, const RTCURVEPOLY *curvepoly, uint32_t perQuad)
+rtcurvepoly_stroke(const RTCTX *ctx, const RTCURVEPOLY *curvepoly, uint32_t perQuad)
 {
 	RTPOLY *ogeom;
 	RTGEOM *tmp;
@@ -330,7 +330,7 @@ rtcurvepoly_stroke(RTCTX *ctx, const RTCURVEPOLY *curvepoly, uint32_t perQuad)
 }
 
 RTMLINE *
-rtmcurve_stroke(RTCTX *ctx, const RTMCURVE *mcurve, uint32_t perQuad)
+rtmcurve_stroke(const RTCTX *ctx, const RTMCURVE *mcurve, uint32_t perQuad)
 {
 	RTMLINE *ogeom;
 	RTGEOM **lines;
@@ -367,7 +367,7 @@ rtmcurve_stroke(RTCTX *ctx, const RTMCURVE *mcurve, uint32_t perQuad)
 }
 
 RTMPOLY *
-rtmsurface_stroke(RTCTX *ctx, const RTMSURFACE *msurface, uint32_t perQuad)
+rtmsurface_stroke(const RTCTX *ctx, const RTMSURFACE *msurface, uint32_t perQuad)
 {
 	RTMPOLY *ogeom;
 	RTGEOM *tmp;
@@ -403,7 +403,7 @@ rtmsurface_stroke(RTCTX *ctx, const RTMSURFACE *msurface, uint32_t perQuad)
 }
 
 RTCOLLECTION *
-rtcollection_stroke(RTCTX *ctx, const RTCOLLECTION *collection, uint32_t perQuad)
+rtcollection_stroke(const RTCTX *ctx, const RTCOLLECTION *collection, uint32_t perQuad)
 {
 	RTCOLLECTION *ocol;
 	RTGEOM *tmp;
@@ -441,7 +441,7 @@ rtcollection_stroke(RTCTX *ctx, const RTCOLLECTION *collection, uint32_t perQuad
 }
 
 RTGEOM *
-rtgeom_stroke(RTCTX *ctx, const RTGEOM *geom, uint32_t perQuad)
+rtgeom_stroke(const RTCTX *ctx, const RTGEOM *geom, uint32_t perQuad)
 {
 	RTGEOM * ogeom = NULL;
 	switch (geom->type)
@@ -475,7 +475,7 @@ rtgeom_stroke(RTCTX *ctx, const RTGEOM *geom, uint32_t perQuad)
  * TODO: move to rtalgorithm
  */
 static double
-rt_arc_angle(RTCTX *ctx, const RTPOINT2D *a, const RTPOINT2D *b, const RTPOINT2D *c)
+rt_arc_angle(const RTCTX *ctx, const RTPOINT2D *a, const RTPOINT2D *b, const RTPOINT2D *c)
 {
   RTPOINT2D ab, cb;
 
@@ -497,7 +497,7 @@ rt_arc_angle(RTCTX *ctx, const RTPOINT2D *a, const RTPOINT2D *b, const RTPOINT2D
 * Returns RT_TRUE if b is on the arc formed by a1/a2/a3, but not within
 * that portion already described by a1/a2/a3
 */
-static int pt_continues_arc(RTCTX *ctx, const RTPOINT4D *a1, const RTPOINT4D *a2, const RTPOINT4D *a3, const RTPOINT4D *b)
+static int pt_continues_arc(const RTCTX *ctx, const RTPOINT4D *a1, const RTPOINT4D *a2, const RTPOINT4D *a3, const RTPOINT4D *b)
 {
 	RTPOINT2D center;
 	RTPOINT2D *t1 = (RTPOINT2D*)a1;
@@ -540,7 +540,7 @@ static int pt_continues_arc(RTCTX *ctx, const RTPOINT4D *a1, const RTPOINT4D *a2
 }
 
 static RTGEOM*
-linestring_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int end)
+linestring_from_pa(const RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int end)
 {
 	int i = 0, j = 0;
 	RTPOINT4D p;
@@ -555,7 +555,7 @@ linestring_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int 
 }
 
 static RTGEOM*
-circstring_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int end)
+circstring_from_pa(const RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int end)
 {
 	
 	RTPOINT4D p0, p1, p2;
@@ -571,7 +571,7 @@ circstring_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start, int 
 }
 
 static RTGEOM*
-geom_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int is_arc, int start, int end)
+geom_from_pa(const RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int is_arc, int start, int end)
 {
 	RTDEBUGF(4, "srid=%d, is_arc=%d, start=%d, end=%d", srid, is_arc, start, end);
 	if ( is_arc )
@@ -581,7 +581,7 @@ geom_from_pa(RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int is_arc, int start
 }
 
 RTGEOM*
-pta_unstroke(RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid)
+pta_unstroke(const RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid)
 {
 	int i = 0, j, k;
 	RTPOINT4D a1, a2, a3, b;
@@ -743,7 +743,7 @@ pta_unstroke(RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid)
 
 
 RTGEOM *
-rtline_unstroke(RTCTX *ctx, const RTLINE *line)
+rtline_unstroke(const RTCTX *ctx, const RTLINE *line)
 {
 	RTDEBUG(2, "rtline_unstroke called.");
 
@@ -752,7 +752,7 @@ rtline_unstroke(RTCTX *ctx, const RTLINE *line)
 }
 
 RTGEOM *
-rtpolygon_unstroke(RTCTX *ctx, const RTPOLY *poly)
+rtpolygon_unstroke(const RTCTX *ctx, const RTPOLY *poly)
 {
 	RTGEOM **geoms;
 	int i, hascurve = 0;
@@ -781,7 +781,7 @@ rtpolygon_unstroke(RTCTX *ctx, const RTPOLY *poly)
 }
 
 RTGEOM *
-rtmline_unstroke(RTCTX *ctx, const RTMLINE *mline)
+rtmline_unstroke(const RTCTX *ctx, const RTMLINE *mline)
 {
 	RTGEOM **geoms;
 	int i, hascurve = 0;
@@ -809,7 +809,7 @@ rtmline_unstroke(RTCTX *ctx, const RTMLINE *mline)
 }
 
 RTGEOM * 
-rtmpolygon_unstroke(RTCTX *ctx, const RTMPOLY *mpoly)
+rtmpolygon_unstroke(const RTCTX *ctx, const RTMPOLY *mpoly)
 {
 	RTGEOM **geoms;
 	int i, hascurve = 0;
@@ -837,7 +837,7 @@ rtmpolygon_unstroke(RTCTX *ctx, const RTMPOLY *mpoly)
 }
 
 RTGEOM *
-rtgeom_unstroke(RTCTX *ctx, const RTGEOM *geom)
+rtgeom_unstroke(const RTCTX *ctx, const RTGEOM *geom)
 {
 	RTDEBUG(2, "rtgeom_unstroke called.");
 

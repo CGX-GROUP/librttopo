@@ -14,15 +14,15 @@
 #include "librtgeom_internal.h"
 #include "rtgeom_log.h"
 
-static uint8_t* rtgeom_to_wkb_buf(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, uint8_t variant);
-static size_t rtgeom_to_wkb_size(RTCTX *ctx, const RTGEOM *geom, uint8_t variant);
+static uint8_t* rtgeom_to_wkb_buf(const RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, uint8_t variant);
+static size_t rtgeom_to_wkb_size(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant);
 
 /*
 * Look-up table for hex writer
 */
 static char *hexchr = "0123456789ABCDEF";
 
-char* hexbytes_from_bytes(RTCTX *ctx, uint8_t *bytes, size_t size) 
+char* hexbytes_from_bytes(const RTCTX *ctx, uint8_t *bytes, size_t size) 
 {
 	char *hex;
 	int i;
@@ -46,7 +46,7 @@ char* hexbytes_from_bytes(RTCTX *ctx, uint8_t *bytes, size_t size)
 /*
 * Optional SRID
 */
-static int rtgeom_wkb_needs_srid(RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
+static int rtgeom_wkb_needs_srid(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
 {
 	/* Sub-components of collections inherit their SRID from the parent.
 	   We force that behavior with the RTWKB_NO_SRID flag */
@@ -65,7 +65,7 @@ static int rtgeom_wkb_needs_srid(RTCTX *ctx, const RTGEOM *geom, uint8_t variant
 /*
 * GeometryType
 */
-static uint32_t rtgeom_wkb_type(RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
+static uint32_t rtgeom_wkb_type(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
 {
 	uint32_t wkb_type = 0;
 
@@ -147,7 +147,7 @@ static uint32_t rtgeom_wkb_type(RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
 /*
 * Endian
 */
-static uint8_t* endian_to_wkb_buf(RTCTX *ctx, uint8_t *buf, uint8_t variant)
+static uint8_t* endian_to_wkb_buf(const RTCTX *ctx, uint8_t *buf, uint8_t variant)
 {
 	if ( variant & RTWKB_HEX )
 	{
@@ -165,7 +165,7 @@ static uint8_t* endian_to_wkb_buf(RTCTX *ctx, uint8_t *buf, uint8_t variant)
 /*
 * SwapBytes?
 */
-static inline int wkb_swap_bytes(RTCTX *ctx, uint8_t variant)
+static inline int wkb_swap_bytes(const RTCTX *ctx, uint8_t variant)
 {
 	/* If requested variant matches machine arch, we don't have to swap! */
 	if ( ((variant & RTWKB_NDR) && (getMachineEndian(ctx) == NDR)) ||
@@ -179,7 +179,7 @@ static inline int wkb_swap_bytes(RTCTX *ctx, uint8_t variant)
 /*
 * Integer32
 */
-static uint8_t* integer_to_wkb_buf(RTCTX *ctx, const int ival, uint8_t *buf, uint8_t variant)
+static uint8_t* integer_to_wkb_buf(const RTCTX *ctx, const int ival, uint8_t *buf, uint8_t variant)
 {
 	char *iptr = (char*)(&ival);
 	int i = 0;
@@ -226,7 +226,7 @@ static uint8_t* integer_to_wkb_buf(RTCTX *ctx, const int ival, uint8_t *buf, uin
 /*
 * Float64
 */
-static uint8_t* double_to_wkb_buf(RTCTX *ctx, const double d, uint8_t *buf, uint8_t variant)
+static uint8_t* double_to_wkb_buf(const RTCTX *ctx, const double d, uint8_t *buf, uint8_t variant)
 {
 	char *dptr = (char*)(&d);
 	int i = 0;
@@ -274,7 +274,7 @@ static uint8_t* double_to_wkb_buf(RTCTX *ctx, const double d, uint8_t *buf, uint
 /*
 * Empty
 */
-static size_t empty_to_wkb_size(RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
+static size_t empty_to_wkb_size(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
 {
 	/* endian byte + type integer */
 	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE;
@@ -298,7 +298,7 @@ static size_t empty_to_wkb_size(RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
 	return size;
 }
 
-static uint8_t* empty_to_wkb_buf(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, uint8_t variant)
+static uint8_t* empty_to_wkb_buf(const RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, uint8_t variant)
 {
 	uint32_t wkb_type = rtgeom_wkb_type(ctx, geom, variant);
 
@@ -336,7 +336,7 @@ static uint8_t* empty_to_wkb_buf(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, u
 /*
 * RTPOINTARRAY
 */
-static size_t ptarray_to_wkb_size(RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t variant)
+static size_t ptarray_to_wkb_size(const RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t variant)
 {
 	int dims = 2;
 	size_t size = 0;
@@ -354,7 +354,7 @@ static size_t ptarray_to_wkb_size(RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t va
 	return size;
 }
 
-static uint8_t* ptarray_to_wkb_buf(RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t *buf, uint8_t variant)
+static uint8_t* ptarray_to_wkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t *buf, uint8_t variant)
 {
 	int dims = 2;
 	int pa_dims = RTFLAGS_NDIMS(pa->flags);
@@ -398,7 +398,7 @@ static uint8_t* ptarray_to_wkb_buf(RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t *
 /*
 * POINT
 */
-static size_t rtpoint_to_wkb_size(RTCTX *ctx, const RTPOINT *pt, uint8_t variant)
+static size_t rtpoint_to_wkb_size(const RTCTX *ctx, const RTPOINT *pt, uint8_t variant)
 {
 	/* Endian flag + type number */
 	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE;
@@ -416,7 +416,7 @@ static size_t rtpoint_to_wkb_size(RTCTX *ctx, const RTPOINT *pt, uint8_t variant
 	return size;
 }
 
-static uint8_t* rtpoint_to_wkb_buf(RTCTX *ctx, const RTPOINT *pt, uint8_t *buf, uint8_t variant)
+static uint8_t* rtpoint_to_wkb_buf(const RTCTX *ctx, const RTPOINT *pt, uint8_t *buf, uint8_t variant)
 {
 	/* Only process empty at this level in the EXTENDED case */
 	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty(ctx, (RTGEOM*)pt) )
@@ -444,7 +444,7 @@ static uint8_t* rtpoint_to_wkb_buf(RTCTX *ctx, const RTPOINT *pt, uint8_t *buf, 
 /*
 * LINESTRING, CIRCULARSTRING
 */
-static size_t rtline_to_wkb_size(RTCTX *ctx, const RTLINE *line, uint8_t variant)
+static size_t rtline_to_wkb_size(const RTCTX *ctx, const RTLINE *line, uint8_t variant)
 {
 	/* Endian flag + type number */
 	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE;
@@ -462,7 +462,7 @@ static size_t rtline_to_wkb_size(RTCTX *ctx, const RTLINE *line, uint8_t variant
 	return size;
 }
 
-static uint8_t* rtline_to_wkb_buf(RTCTX *ctx, const RTLINE *line, uint8_t *buf, uint8_t variant)
+static uint8_t* rtline_to_wkb_buf(const RTCTX *ctx, const RTLINE *line, uint8_t *buf, uint8_t variant)
 {
 	/* Only process empty at this level in the EXTENDED case */
 	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty(ctx, (RTGEOM*)line) )
@@ -483,7 +483,7 @@ static uint8_t* rtline_to_wkb_buf(RTCTX *ctx, const RTLINE *line, uint8_t *buf, 
 /*
 * TRIANGLE
 */
-static size_t rttriangle_to_wkb_size(RTCTX *ctx, const RTTRIANGLE *tri, uint8_t variant)
+static size_t rttriangle_to_wkb_size(const RTCTX *ctx, const RTTRIANGLE *tri, uint8_t variant)
 {
 	/* endian flag + type number + number of rings */
 	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE + RTWKB_INT_SIZE;
@@ -502,7 +502,7 @@ static size_t rttriangle_to_wkb_size(RTCTX *ctx, const RTTRIANGLE *tri, uint8_t 
 	return size;
 }
 
-static uint8_t* rttriangle_to_wkb_buf(RTCTX *ctx, const RTTRIANGLE *tri, uint8_t *buf, uint8_t variant)
+static uint8_t* rttriangle_to_wkb_buf(const RTCTX *ctx, const RTTRIANGLE *tri, uint8_t *buf, uint8_t variant)
 {
 	/* Only process empty at this level in the EXTENDED case */
 	if ( (variant & RTWKB_EXTENDED) && rtgeom_is_empty(ctx, (RTGEOM*)tri) )
@@ -530,7 +530,7 @@ static uint8_t* rttriangle_to_wkb_buf(RTCTX *ctx, const RTTRIANGLE *tri, uint8_t
 /*
 * POLYGON
 */
-static size_t rtpoly_to_wkb_size(RTCTX *ctx, const RTPOLY *poly, uint8_t variant)
+static size_t rtpoly_to_wkb_size(const RTCTX *ctx, const RTPOLY *poly, uint8_t variant)
 {
 	/* endian flag + type number + number of rings */
 	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE + RTWKB_INT_SIZE;
@@ -553,7 +553,7 @@ static size_t rtpoly_to_wkb_size(RTCTX *ctx, const RTPOLY *poly, uint8_t variant
 	return size;
 }
 
-static uint8_t* rtpoly_to_wkb_buf(RTCTX *ctx, const RTPOLY *poly, uint8_t *buf, uint8_t variant)
+static uint8_t* rtpoly_to_wkb_buf(const RTCTX *ctx, const RTPOLY *poly, uint8_t *buf, uint8_t variant)
 {
 	int i;
 
@@ -585,7 +585,7 @@ static uint8_t* rtpoly_to_wkb_buf(RTCTX *ctx, const RTPOLY *poly, uint8_t *buf, 
 * MULTICURVE, COMPOUNDCURVE, MULTISURFACE, CURVEPOLYGON, TIN, 
 * POLYHEDRALSURFACE
 */
-static size_t rtcollection_to_wkb_size(RTCTX *ctx, const RTCOLLECTION *col, uint8_t variant)
+static size_t rtcollection_to_wkb_size(const RTCTX *ctx, const RTCOLLECTION *col, uint8_t variant)
 {
 	/* Endian flag + type number + number of subgeoms */
 	size_t size = RTWKB_BYTE_SIZE + RTWKB_INT_SIZE + RTWKB_INT_SIZE;
@@ -604,7 +604,7 @@ static size_t rtcollection_to_wkb_size(RTCTX *ctx, const RTCOLLECTION *col, uint
 	return size;
 }
 
-static uint8_t* rtcollection_to_wkb_buf(RTCTX *ctx, const RTCOLLECTION *col, uint8_t *buf, uint8_t variant)
+static uint8_t* rtcollection_to_wkb_buf(const RTCTX *ctx, const RTCOLLECTION *col, uint8_t *buf, uint8_t variant)
 {
 	int i;
 
@@ -631,7 +631,7 @@ static uint8_t* rtcollection_to_wkb_buf(RTCTX *ctx, const RTCOLLECTION *col, uin
 /*
 * GEOMETRY
 */
-static size_t rtgeom_to_wkb_size(RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
+static size_t rtgeom_to_wkb_size(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant)
 {
 	size_t size = 0;
 
@@ -690,7 +690,7 @@ static size_t rtgeom_to_wkb_size(RTCTX *ctx, const RTGEOM *geom, uint8_t variant
 
 /* TODO handle the TRIANGLE type properly */
 
-static uint8_t* rtgeom_to_wkb_buf(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, uint8_t variant)
+static uint8_t* rtgeom_to_wkb_buf(const RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, uint8_t variant)
 {
 
 	/* Do not simplify empties when outputting to canonical form */
@@ -747,7 +747,7 @@ static uint8_t* rtgeom_to_wkb_buf(RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, 
 * @param size_out If supplied, will return the size of the returned memory segment,
 * including the null terminator in the case of ASCII.
 */
-uint8_t* rtgeom_to_wkb(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out)
+uint8_t* rtgeom_to_wkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out)
 {
 	size_t buf_size;
 	uint8_t *buf = NULL;
@@ -831,7 +831,7 @@ uint8_t* rtgeom_to_wkb(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *
 	return wkb_out;
 }
 
-char* rtgeom_to_hexwkb(RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out)
+char* rtgeom_to_hexwkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, size_t *size_out)
 {
 	return (char*)rtgeom_to_wkb(ctx, geom, variant | RTWKB_HEX, size_out);
 }
