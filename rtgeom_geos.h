@@ -34,3 +34,5 @@ RTPOINTARRAY *ptarray_from_GEOSCoordSeq(const RTCTX *ctx, const GEOSCoordSequenc
 extern char rtgeom_geos_errmsg[];
 extern void rtgeom_geos_error(const char *fmt, ...);
 
+extern void rtgeom_geos_ensure_init(const RTCTX *ctx);
+

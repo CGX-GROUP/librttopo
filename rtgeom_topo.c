@@ -74,6 +74,11 @@ void rtt_FreeBackendIface(RTT_BE_IFACE* iface)
   rtfree(iface->ctx, iface);
 }
 
+static void _rtt_EnsureGeos(const RTCTX *ctx)
+{
+  rtgeom_geos_ensure_init(ctx);
+}
+
 /*********************************************************************
  *
  * Backend wrappers
@@ -569,14 +574,14 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   const GEOSPreparedGeometry* prepared_edge;
   const RTT_BE_IFACE *iface = topo->be_iface;
 
-  initGEOS(rtnotice, rtgeom_geos_error);
+  _rtt_EnsureGeos(iface->ctx);
 
   edgegg = RTGEOM2GEOS(iface->ctx,  rtline_as_rtgeom(iface->ctx, geom), 0);
   if ( ! edgegg ) {
     rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
     return -1;
   }
-  prepared_edge = GEOSPrepare( edgegg );
+  prepared_edge = GEOSPrepare_r(iface->ctx->gctx,  edgegg );
   if ( ! prepared_edge ) {
     rterror(iface->ctx, "Could not prepare edge geometry: %s", rtgeom_geos_errmsg);
     return -1;
@@ -588,8 +593,8 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
                                             RTT_COL_NODE_ALL, 0 );
   RTDEBUGF(1, "rtt_be_getNodeWithinBox2D returned %d nodes", num_nodes);
   if ( num_nodes == -1 ) {
-    GEOSPreparedGeom_destroy(prepared_edge);
-    GEOSGeom_destroy(edgegg);
+    GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+    GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
     rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
@@ -603,20 +608,20 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
     /* check if the edge contains this node (not on boundary) */
     nodegg = RTGEOM2GEOS(iface->ctx,  rtpoint_as_rtgeom(iface->ctx, node->geom) , 0);
     /* ST_RelateMatch(rec.relate, 'T********') */
-    contains = GEOSPreparedContains( prepared_edge, nodegg );
-    GEOSGeom_destroy(nodegg);
+    contains = GEOSPreparedContains_r(iface->ctx->gctx,  prepared_edge, nodegg );
+    GEOSGeom_destroy_r(iface->ctx->gctx, nodegg);
     if (contains == 2)
     {
-      GEOSPreparedGeom_destroy(prepared_edge);
-      GEOSGeom_destroy(edgegg);
+      GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+      GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
       _rtt_release_nodes(iface->ctx, nodes, num_nodes);
       rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
       return -1;
     }
     if ( contains )
     {
-      GEOSPreparedGeom_destroy(prepared_edge);
-      GEOSGeom_destroy(edgegg);
+      GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+      GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
       _rtt_release_nodes(iface->ctx, nodes, num_nodes);
       rterror(iface->ctx, "SQL/MM Spatial exception - geometry crosses a node");
       return -1;
@@ -629,8 +634,8 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   edges = rtt_be_getEdgeWithinBox2D( topo, edgebox, &num_edges, RTT_COL_EDGE_ALL, 0 );
   RTDEBUGF(1, "rtt_be_getEdgeWithinBox2D returned %d edges", num_edges);
   if ( num_edges == -1 ) {
-    GEOSPreparedGeom_destroy(prepared_edge);
-    GEOSGeom_destroy(edgegg);
+    GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+    GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
     rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
@@ -652,8 +657,8 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
     eegg = RTGEOM2GEOS(iface->ctx,  rtline_as_rtgeom(iface->ctx, edge->geom), 0 );
     if ( ! eegg ) {
-      GEOSPreparedGeom_destroy(prepared_edge);
-      GEOSGeom_destroy(edgegg);
+      GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+      GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
       _rtt_release_edges(iface->ctx, edges, num_edges);
       rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
       return -1;
@@ -663,11 +668,11 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
     /* check if the edge crosses our edge (not boundary-boundary) */
 
-    relate = GEOSRelateBoundaryNodeRule(eegg, edgegg, 2);
+    relate = GEOSRelateBoundaryNodeRule_r(iface->ctx->gctx, eegg, edgegg, 2);
     if ( ! relate ) {
-      GEOSGeom_destroy(eegg);
-      GEOSPreparedGeom_destroy(prepared_edge);
-      GEOSGeom_destroy(edgegg);
+      GEOSGeom_destroy_r(iface->ctx->gctx, eegg);
+      GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+      GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
       _rtt_release_edges(iface->ctx, edges, num_edges);
       rterror(iface->ctx, "GEOSRelateBoundaryNodeRule error: %s", rtgeom_geos_errmsg);
       return -1;
@@ -675,28 +680,28 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
     RTDEBUGF(2, "Edge %d relate pattern is %s", edge_id, relate);
 
-    match = GEOSRelatePatternMatch(relate, "F********");
+    match = GEOSRelatePatternMatch_r(iface->ctx->gctx, relate, "F********");
     if ( match ) {
       /* error or no interior intersection */
-      GEOSGeom_destroy(eegg);
-      GEOSFree(relate);
+      GEOSGeom_destroy_r(iface->ctx->gctx, eegg);
+      GEOSFree_r(iface->ctx->gctx, relate);
       if ( match == 2 ) {
         _rtt_release_edges(iface->ctx, edges, num_edges);
-        GEOSPreparedGeom_destroy(prepared_edge);
-        GEOSGeom_destroy(edgegg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+        GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
         rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
         return -1;
       }
       else continue; /* no interior intersection */
     }
 
-    match = GEOSRelatePatternMatch(relate, "1FFF*FFF2");
+    match = GEOSRelatePatternMatch_r(iface->ctx->gctx, relate, "1FFF*FFF2");
     if ( match ) {
       _rtt_release_edges(iface->ctx, edges, num_edges);
-      GEOSPreparedGeom_destroy(prepared_edge);
-      GEOSGeom_destroy(edgegg);
-      GEOSGeom_destroy(eegg);
-      GEOSFree(relate);
+      GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+      GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
+      GEOSGeom_destroy_r(iface->ctx->gctx, eegg);
+      GEOSFree_r(iface->ctx->gctx, relate);
       if ( match == 2 ) {
         rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
       } else {
@@ -706,13 +711,13 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
       return -1;
     }
 
-    match = GEOSRelatePatternMatch(relate, "1********");
+    match = GEOSRelatePatternMatch_r(iface->ctx->gctx, relate, "1********");
     if ( match ) {
       _rtt_release_edges(iface->ctx, edges, num_edges);
-      GEOSPreparedGeom_destroy(prepared_edge);
-      GEOSGeom_destroy(edgegg);
-      GEOSGeom_destroy(eegg);
-      GEOSFree(relate);
+      GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+      GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
+      GEOSGeom_destroy_r(iface->ctx->gctx, eegg);
+      GEOSFree_r(iface->ctx->gctx, relate);
       if ( match == 2 ) {
         rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
       } else {
@@ -722,13 +727,13 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
       return -1;
     }
 
-    match = GEOSRelatePatternMatch(relate, "T********");
+    match = GEOSRelatePatternMatch_r(iface->ctx->gctx, relate, "T********");
     if ( match ) {
       _rtt_release_edges(iface->ctx, edges, num_edges);
-      GEOSPreparedGeom_destroy(prepared_edge);
-      GEOSGeom_destroy(edgegg);
-      GEOSGeom_destroy(eegg);
-      GEOSFree(relate);
+      GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+      GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
+      GEOSGeom_destroy_r(iface->ctx->gctx, eegg);
+      GEOSFree_r(iface->ctx->gctx, relate);
       if ( match == 2 ) {
         rterror(iface->ctx, "GEOSRelatePatternMatch error: %s", rtgeom_geos_errmsg);
       } else {
@@ -740,14 +745,14 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
     RTDEBUGF(2, "Edge %d analisys completed, it does no harm", edge_id);
 
-    GEOSFree(relate);
-    GEOSGeom_destroy(eegg);
+    GEOSFree_r(iface->ctx->gctx, relate);
+    GEOSGeom_destroy_r(iface->ctx->gctx, eegg);
   }
   if ( edges ) _rtt_release_edges(iface->ctx, edges, num_edges);
               /* would be NULL if num_edges was 0 */
 
-  GEOSPreparedGeom_destroy(prepared_edge);
-  GEOSGeom_destroy(edgegg);
+  GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
+  GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
 
   return 0;
 }
@@ -2015,9 +2020,9 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
     rterror(iface->ctx, "Could not convert shell geometry to GEOS: %s", rtgeom_geos_errmsg);
     return -2;
   }
-  prepshell = GEOSPrepare( shellgg );
+  prepshell = GEOSPrepare_r(iface->ctx->gctx,  shellgg );
   if ( ! prepshell ) {
-    GEOSGeom_destroy(shellgg);
+    GEOSGeom_destroy_r(iface->ctx->gctx, shellgg);
     rtpoly_free(iface->ctx, shell);
     rtfree(iface->ctx, signed_edge_ids);
     _rtt_release_edges(iface->ctx, ring_edges, numedges);
@@ -2075,8 +2080,8 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
        */
       if ( ! _rtt_GetInteriorEdgePoint(iface->ctx, e->geom, &ep) )
       {
-        GEOSPreparedGeom_destroy(prepshell);
-        GEOSGeom_destroy(shellgg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepshell);
+        GEOSGeom_destroy_r(iface->ctx->gctx, shellgg);
         rtfree(iface->ctx, signed_edge_ids);
         rtpoly_free(iface->ctx, shell);
         rtfree(iface->ctx, forward_edges); /* contents owned by ring_edges */
@@ -2092,8 +2097,8 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       egg = RTGEOM2GEOS(iface->ctx,  rtpoint_as_rtgeom(iface->ctx, epgeom) , 0);
       rtpoint_free(iface->ctx, epgeom);
       if ( ! egg ) {
-        GEOSPreparedGeom_destroy(prepshell);
-        GEOSGeom_destroy(shellgg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepshell);
+        GEOSGeom_destroy_r(iface->ctx->gctx, shellgg);
         rtfree(iface->ctx, signed_edge_ids);
         rtpoly_free(iface->ctx, shell);
         rtfree(iface->ctx, forward_edges); /* contents owned by ring_edges */
@@ -2105,15 +2110,15 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
         return -2;
       }
       /* IDEA: can be optimized by computing this on our side rather
-       *       than on GEOS (saves conversion of big edges) */
+       *       than on GEOS _r(iface->ctx->gctx, saves conversion of big edges) */
       /* IDEA: check that bounding box shortcut is taken, or use
        *       shellbox to do it here */
-      contains = GEOSPreparedContains( prepshell, egg );
-      GEOSGeom_destroy(egg);
+      contains = GEOSPreparedContains_r(iface->ctx->gctx,  prepshell, egg );
+      GEOSGeom_destroy_r(iface->ctx->gctx, egg);
       if ( contains == 2 )
       {
-        GEOSPreparedGeom_destroy(prepshell);
-        GEOSGeom_destroy(shellgg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepshell);
+        GEOSGeom_destroy_r(iface->ctx->gctx, shellgg);
         rtfree(iface->ctx, signed_edge_ids);
         rtpoly_free(iface->ctx, shell);
         rtfree(iface->ctx, forward_edges); /* contents owned by ring_edges */
@@ -2234,21 +2239,21 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       int contains;
       if ( ! ngg ) {
         _rtt_release_nodes(iface->ctx, nodes, numisonodes);
-        if ( prepshell ) GEOSPreparedGeom_destroy(prepshell);
-        if ( shellgg ) GEOSGeom_destroy(shellgg);
+        if ( prepshell ) GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepshell);
+        if ( shellgg ) GEOSGeom_destroy_r(iface->ctx->gctx, shellgg);
         rtfree(iface->ctx, signed_edge_ids);
         rtpoly_free(iface->ctx, shell);
         rterror(iface->ctx, "Could not convert node geometry to GEOS: %s",
                 rtgeom_geos_errmsg);
         return -2;
       }
-      contains = GEOSPreparedContains( prepshell, ngg );
-      GEOSGeom_destroy(ngg);
+      contains = GEOSPreparedContains_r(iface->ctx->gctx,  prepshell, ngg );
+      GEOSGeom_destroy_r(iface->ctx->gctx, ngg);
       if ( contains == 2 )
       {
         _rtt_release_nodes(iface->ctx, nodes, numisonodes);
-        if ( prepshell ) GEOSPreparedGeom_destroy(prepshell);
-        if ( shellgg ) GEOSGeom_destroy(shellgg);
+        if ( prepshell ) GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepshell);
+        if ( shellgg ) GEOSGeom_destroy_r(iface->ctx->gctx, shellgg);
         rtfree(iface->ctx, signed_edge_ids);
         rtpoly_free(iface->ctx, shell);
         rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
@@ -2295,8 +2300,8 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
     rtfree(iface->ctx, updated_nodes);
   }
 
-  GEOSPreparedGeom_destroy(prepshell);
-  GEOSGeom_destroy(shellgg);
+  GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepshell);
+  GEOSGeom_destroy_r(iface->ctx->gctx, shellgg);
   rtfree(iface->ctx, signed_edge_ids);
   rtpoly_free(iface->ctx, shell);
 
@@ -3188,7 +3193,7 @@ _rtt_EdgeMotionArea(const RTCTX *ctx, RTLINE *geom, int isclosed)
 
   pas = rtalloc(ctx, sizeof(RTPOINTARRAY*));
 
-  initGEOS(rtnotice, rtgeom_geos_error);
+  _rtt_EnsureGeos(ctx);
 
   if ( isclosed )
   {
@@ -3383,7 +3388,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     GEOSGeometry *oarea, *narea;
     const GEOSPreparedGeometry *oareap, *nareap;
 
-    initGEOS(rtnotice, rtgeom_geos_error);
+    _rtt_EnsureGeos(iface->ctx);
 
     oarea = _rtt_EdgeMotionArea(iface->ctx, oldedge->geom, isclosed);
     if ( ! oarea )
@@ -3396,15 +3401,15 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     narea = _rtt_EdgeMotionArea(iface->ctx, geom, isclosed);
     if ( ! narea )
     {
-      GEOSGeom_destroy(oarea);
+      GEOSGeom_destroy_r(iface->ctx->gctx, oarea);
       _rtt_release_edges(iface->ctx, oldedge, 1);
       rterror(iface->ctx, "Could not compute edge motion area for new edge");
       return -1;
     }
 
     //   3.2. bail out if any node is in one and not the other
-    oareap = GEOSPrepare( oarea );
-    nareap = GEOSPrepare( narea );
+    oareap = GEOSPrepare_r(iface->ctx->gctx,  oarea );
+    nareap = GEOSPrepare_r(iface->ctx->gctx,  narea );
     for (i=0; i<numnodes; ++i)
     {
       RTT_ISO_NODE *n = &(nodes[i]);
@@ -3415,25 +3420,25 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
       if ( n->node_id == oldedge->start_node ) continue;
       if ( n->node_id == oldedge->end_node ) continue;
       ngg = RTGEOM2GEOS(iface->ctx,  rtpoint_as_rtgeom(iface->ctx, n->geom) , 0);
-      ocont = GEOSPreparedContains( oareap, ngg );
-      ncont = GEOSPreparedContains( nareap, ngg );
-      GEOSGeom_destroy(ngg);
+      ocont = GEOSPreparedContains_r(iface->ctx->gctx,  oareap, ngg );
+      ncont = GEOSPreparedContains_r(iface->ctx->gctx,  nareap, ngg );
+      GEOSGeom_destroy_r(iface->ctx->gctx, ngg);
       if (ocont == 2 || ncont == 2)
       {
         _rtt_release_nodes(iface->ctx, nodes, numnodes);
-        GEOSPreparedGeom_destroy(oareap);
-        GEOSGeom_destroy(oarea);
-        GEOSPreparedGeom_destroy(nareap);
-        GEOSGeom_destroy(narea);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, oareap);
+        GEOSGeom_destroy_r(iface->ctx->gctx, oarea);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, nareap);
+        GEOSGeom_destroy_r(iface->ctx->gctx, narea);
         rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_geos_errmsg);
         return -1;
       }
       if (ocont != ncont)
       {
-        GEOSPreparedGeom_destroy(oareap);
-        GEOSGeom_destroy(oarea);
-        GEOSPreparedGeom_destroy(nareap);
-        GEOSGeom_destroy(narea);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, oareap);
+        GEOSGeom_destroy_r(iface->ctx->gctx, oarea);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, nareap);
+        GEOSGeom_destroy_r(iface->ctx->gctx, narea);
         wkt = rtgeom_to_wkt(iface->ctx, rtpoint_as_rtgeom(iface->ctx, n->geom), RTWKT_ISO, 6, &sz);
         _rtt_release_nodes(iface->ctx, nodes, numnodes);
         rterror(iface->ctx, "Edge motion collision at %s", wkt);
@@ -3441,10 +3446,10 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
         return -1;
       }
     }
-    GEOSPreparedGeom_destroy(oareap);
-    GEOSGeom_destroy(oarea);
-    GEOSPreparedGeom_destroy(nareap);
-    GEOSGeom_destroy(narea);
+    GEOSPreparedGeom_destroy_r(iface->ctx->gctx, oareap);
+    GEOSGeom_destroy_r(iface->ctx->gctx, oarea);
+    GEOSPreparedGeom_destroy_r(iface->ctx->gctx, nareap);
+    GEOSGeom_destroy_r(iface->ctx->gctx, narea);
   }}
   if ( numnodes ) _rtt_release_nodes(iface->ctx, nodes, numnodes);
 
@@ -5028,7 +5033,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     }
   }
 
-  initGEOS(rtnotice, rtgeom_geos_error);
+  _rtt_EnsureGeos(iface->ctx);
 
   /*
   -- 2. Check if any existing edge falls within tolerance
@@ -5122,13 +5127,13 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     if ( ! gg ) {
       rtgeom_free(iface->ctx, prj);
       _rtt_release_edges(iface->ctx, edges, num);
-      GEOSGeom_destroy(prjg);
+      GEOSGeom_destroy_r(iface->ctx->gctx, prjg);
       rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
       return -1;
     }
-    contains = GEOSContains(gg, prjg);
-    GEOSGeom_destroy(prjg);
-    GEOSGeom_destroy(gg);
+    contains = GEOSContains_r(iface->ctx->gctx, gg, prjg);
+    GEOSGeom_destroy_r(iface->ctx->gctx, prjg);
+    GEOSGeom_destroy_r(iface->ctx->gctx, gg);
     if ( contains == 2 )
     {
       rtgeom_free(iface->ctx, prj);
@@ -5293,7 +5298,7 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
   }
   if ( num )
   {
-    initGEOS(rtnotice, rtgeom_geos_error);
+    _rtt_EnsureGeos(iface->ctx);
 
     edgeg = RTGEOM2GEOS(iface->ctx,  rtline_as_rtgeom(iface->ctx, edge), 0 );
     if ( ! edgeg )
@@ -5311,16 +5316,16 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
       gg = RTGEOM2GEOS(iface->ctx,  g, 0 );
       if ( ! gg )
       {
-        GEOSGeom_destroy(edgeg);
+        GEOSGeom_destroy_r(iface->ctx->gctx, edgeg);
         _rtt_release_edges(iface->ctx, edges, num);
         rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
         return -1;
       }
-      equals = GEOSEquals(gg, edgeg);
-      GEOSGeom_destroy(gg);
+      equals = GEOSEquals_r(iface->ctx->gctx, gg, edgeg);
+      GEOSGeom_destroy_r(iface->ctx->gctx, gg);
       if ( equals == 2 )
       {
-        GEOSGeom_destroy(edgeg);
+        GEOSGeom_destroy_r(iface->ctx->gctx, edgeg);
         _rtt_release_edges(iface->ctx, edges, num);
         rterror(iface->ctx, "GEOSEquals exception: %s", rtgeom_geos_errmsg);
         return -1;
@@ -5328,12 +5333,12 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
       if ( equals )
       {
         id = e->edge_id;
-        GEOSGeom_destroy(edgeg);
+        GEOSGeom_destroy_r(iface->ctx->gctx, edgeg);
         _rtt_release_edges(iface->ctx, edges, num);
         return id;
       }
     }
-    GEOSGeom_destroy(edgeg);
+    GEOSGeom_destroy_r(iface->ctx->gctx, edgeg);
     _rtt_release_edges(iface->ctx, edges, num);
   }
 
@@ -5818,7 +5823,7 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
       rterror(iface->ctx, "Could not convert poly geometry to GEOS: %s", rtgeom_geos_errmsg);
       return NULL;
     }
-    ppoly = GEOSPrepare(polyg);
+    ppoly = GEOSPrepare_r(iface->ctx->gctx, polyg);
     ids = rtalloc(iface->ctx, sizeof(RTT_ELEMID)*nfacesinbox);
     for ( i=0; i<nfacesinbox; ++i )
     {
@@ -5832,8 +5837,8 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
       if ( ! fg )
       {
         i = f->face_id; /* so we can destroy faces */
-        GEOSPreparedGeom_destroy(ppoly);
-        GEOSGeom_destroy(polyg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, ppoly);
+        GEOSGeom_destroy_r(iface->ctx->gctx, polyg);
         rtfree(iface->ctx, ids);
         _rtt_release_faces(iface->ctx, faces, nfacesinbox);
         rterror(iface->ctx, "Could not get geometry of face %" RTTFMT_ELEMID, i);
@@ -5844,28 +5849,28 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
       rtgeom_free(iface->ctx, fg);
       if ( ! fgg )
       {
-        GEOSPreparedGeom_destroy(ppoly);
-        GEOSGeom_destroy(polyg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, ppoly);
+        GEOSGeom_destroy_r(iface->ctx->gctx, polyg);
         _rtt_release_faces(iface->ctx, faces, nfacesinbox);
         rterror(iface->ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_geos_errmsg);
         return NULL;
       }
-      sp = GEOSPointOnSurface(fgg);
-      GEOSGeom_destroy(fgg);
+      sp = GEOSPointOnSurface_r(iface->ctx->gctx, fgg);
+      GEOSGeom_destroy_r(iface->ctx->gctx, fgg);
       if ( ! sp )
       {
-        GEOSPreparedGeom_destroy(ppoly);
-        GEOSGeom_destroy(polyg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, ppoly);
+        GEOSGeom_destroy_r(iface->ctx->gctx, polyg);
         _rtt_release_faces(iface->ctx, faces, nfacesinbox);
         rterror(iface->ctx, "Could not find point on face surface: %s", rtgeom_geos_errmsg);
         return NULL;
       }
-      covers = GEOSPreparedCovers( ppoly, sp );
-      GEOSGeom_destroy(sp);
+      covers = GEOSPreparedCovers_r(iface->ctx->gctx,  ppoly, sp );
+      GEOSGeom_destroy_r(iface->ctx->gctx, sp);
       if (covers == 2)
       {
-        GEOSPreparedGeom_destroy(ppoly);
-        GEOSGeom_destroy(polyg);
+        GEOSPreparedGeom_destroy_r(iface->ctx->gctx, ppoly);
+        GEOSGeom_destroy_r(iface->ctx->gctx, polyg);
         _rtt_release_faces(iface->ctx, faces, nfacesinbox);
         rterror(iface->ctx, "PreparedCovers error: %s", rtgeom_geos_errmsg);
         return NULL;
@@ -5878,8 +5883,8 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
       /* TODO: avoid duplicates ? */
       ids[num++] = f->face_id;
     }
-    GEOSPreparedGeom_destroy(ppoly);
-    GEOSGeom_destroy(polyg);
+    GEOSPreparedGeom_destroy_r(iface->ctx->gctx, ppoly);
+    GEOSGeom_destroy_r(iface->ctx->gctx, polyg);
     _rtt_release_faces(iface->ctx, faces, nfacesinbox);
   }
 

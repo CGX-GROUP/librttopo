@@ -56,6 +56,13 @@ rtgeom_geos_error(const char *fmt, ...)
 	va_end(ap);
 }
 
+void
+rtgeom_geos_ensure_init(const RTCTX *ctx)
+{
+  ((RTCTX*)ctx)->gctx = GEOS_init_r();
+  /* TODO: register notice and error handlers ? */
+}
+
 
 /*
 **  GEOS <==> PostGIS conversion functions

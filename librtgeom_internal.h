@@ -21,6 +21,7 @@
 
 #include "rtgeom_log.h"
 #include "proj_api.h"
+#include "geos_c.h"
 
 #include <assert.h>
 #include <stdarg.h>
@@ -139,6 +140,10 @@
 #define RT_INSIDE 1
 #define RT_BOUNDARY 0
 #define RT_OUTSIDE -1
+
+struct RTCTX_T {
+  GEOSContextHandle_t gctx;
+};
 
 /*
 * Internal prototypes

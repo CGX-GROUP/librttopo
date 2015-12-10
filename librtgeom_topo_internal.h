@@ -14,6 +14,7 @@
 #define LIBRTGEOM_TOPO_INTERNAL_H 1
 
 #include "rttopo_config.h"
+#include "geos_c.h"
 
 #include "librtgeom.h"
 #include "librtgeom_topo.h"
