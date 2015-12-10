@@ -1447,7 +1447,6 @@ extern char* rtgeom_to_kml2(RTCTX *ctx, const RTGEOM *geom, int precision, const
 extern char* rtgeom_to_geojson(RTCTX *ctx, const RTGEOM *geo, char *srs, int precision, int has_bbox);
 extern char* rtgeom_to_svg(RTCTX *ctx, const RTGEOM *geom, int precision, int relative);
 extern char* rtgeom_to_x3d3(RTCTX *ctx, const RTGEOM *geom, char *srs, int precision, int opts, const char *defid);
-extern char* rtgeom_to_encoded_polyline(RTCTX *ctx, const RTGEOM *geom, int precision);
 
 /**
  * Create an RTGEOM object from a GeoJSON representation
@@ -1459,13 +1458,6 @@ extern char* rtgeom_to_encoded_polyline(RTCTX *ctx, const RTGEOM *geom, int prec
  *            If not null, the pointer must be freed with rtfree.
  */
 extern RTGEOM* rtgeom_from_geojson(RTCTX *ctx, const char *geojson, char **srs);
-
-/**
- * Create an RTGEOM object from an Encoded Polyline representation
- *
- * @param encodedpolyline the Encoded Polyline input
- */
-extern RTGEOM* rtgeom_from_encoded_polyline(RTCTX *ctx, const char *encodedpolyline, int precision);
 
 /**
 * Derive a new geometry with vertices added to ensure no vertex is more 

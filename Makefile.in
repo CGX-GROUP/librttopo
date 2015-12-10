@@ -65,7 +65,6 @@ SA_OBJS = \
 	rtiterator.o \
 	rtout_wkt.o \
 	rtout_twkb.o \
-	rtin_encoded_polyline.o \
 	rtutil.o \
 	rthomogenize.o \
 	rtalgorithm.o \
@@ -81,16 +80,13 @@ SA_OBJS = \
 	rtout_geojson.o \
 	rtout_svg.o \
 	rtout_x3d.o \
-	rtout_encoded_polyline.o \
 	rtgeom_debug.o \
 	rtgeom_geos.o \
 	rtgeom_geos_clean.o \
-	rtgeom_geos_cluster.o \
 	rtgeom_geos_node.o \
 	rtgeom_geos_split.o \
 	rtgeom_topo.o \
 	rtgeom_transform.o \
-	rtunionfind.o \
 	varint.o
 
 LDFLAGS += -no-undefined

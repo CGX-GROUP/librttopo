@@ -28,9 +28,6 @@ GEOSGeometry * RTGEOM2GEOS(RTCTX *ctx, const RTGEOM *g, int autofix);
 GEOSGeometry * GBOX2GEOS(RTCTX *ctx, const RTGBOX *g);
 GEOSGeometry * RTGEOM_GEOS_buildArea(RTCTX *ctx, const GEOSGeometry* geom_in);
 
-int cluster_intersecting(RTCTX *ctx, GEOSGeometry** geoms, uint32_t num_geoms, GEOSGeometry*** clusterGeoms, uint32_t* num_clusters);
-int cluster_within_distance(RTCTX *ctx, RTGEOM** geoms, uint32_t num_geoms, double tolerance, RTGEOM*** clusterGeoms, uint32_t* num_clusters);
-
 RTPOINTARRAY *ptarray_from_GEOSCoordSeq(RTCTX *ctx, const GEOSCoordSequence *cs, char want3d);
 
 
