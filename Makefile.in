@@ -65,9 +65,6 @@ SA_OBJS = \
 	rtiterator.o \
 	rtout_wkt.o \
 	rtout_twkb.o \
-	rtin_wkt_parse.o \
-	rtin_wkt_lex.o \
-	rtin_wkt.o \
 	rtin_encoded_polyline.o \
 	rtutil.o \
 	rthomogenize.o \
@@ -117,8 +114,6 @@ SA_HEADERS = \
 	rtgeom_log.h \
 	rtgeom_geos.h \
 	rtgeom_log.h \
-	rtin_wkt.h \
-	rtin_wkt_parse.h \
 	rtout_twkb.h \
 	rttree.h \
 	measures3d.h \
@@ -149,9 +144,6 @@ librtgeom.la: $(LT_OBJS)
              -version-info $(VERSION_INFO) $(LDFLAGS) -o $@
 
 maintainer-clean: distclean
-	rm -f rtin_wkt_lex.c
-	rm -f rtin_wkt_parse.h
-	rm -f rtin_wkt_parse.c
 	rm -f configure
 	rm -f config.guess config.rpath config.sub
 	rm -f libtool install-sh ltmain.sh
@@ -170,12 +162,6 @@ distclean: clean
 # Command to build each of the .lo files
 $(LT_SA_OBJS): %.lo: %.c
 	$(LIBTOOL) --mode=compile $(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
-
-rtin_wkt_parse.c rtin_wkt_parse.h: rtin_wkt_parse.y
-	$(YACC) -o'rtin_wkt_parse.c' -d rtin_wkt_parse.y
-
-rtin_wkt_lex.c: rtin_wkt_lex.l
-	$(LEX) -i rtin_wkt_lex.l
 
 librtgeom.h: librtgeom.h.in
 	./config.status

@@ -1871,7 +1871,6 @@ extern int gserialized_get_gbox_p(const GSERIALIZED *g, RTGBOX *gbox);
  * 
  *  @see rtgeom_from_wkb
  *  @see rtgeom_from_hexwkb
- *  @see rtgeom_parse_wkt
  */
 #define RT_PARSER_CHECK_MINPOINTS  1
 #define RT_PARSER_CHECK_ODD        2
@@ -2000,12 +1999,6 @@ extern char *rtgeom_to_ewkt(const RTGEOM *rtgeom);
 extern RTGEOM* rtgeom_from_wkb(const uint8_t *wkb, const size_t wkb_size, const char check);
 
 /**
- * @param wkt RTWKT string
- * @param check parser check flags, see RT_PARSER_CHECK_* macros
- */
-extern RTGEOM* rtgeom_from_wkt(const char *wkt, const char check);
-
-/**
  * @param check parser check flags, see RT_PARSER_CHECK_* macros
  */
 extern RTGEOM* rtgeom_from_hexwkb(const char *hexwkb, const char check);
@@ -2013,13 +2006,6 @@ extern RTGEOM* rtgeom_from_hexwkb(const char *hexwkb, const char check);
 extern uint8_t*  bytes_from_hexbytes(const char *hexbuf, size_t hexsize);
 
 extern char*   hexbytes_from_bytes(uint8_t *bytes, size_t size);
-
-/*
-* RTWKT detailed parsing support
-*/
-extern int rtgeom_parse_wkt(RTGEOM_PARSER_RESULT *parser_result, char *wktstr, int parse_flags);
-void rtgeom_parser_result_init(RTGEOM_PARSER_RESULT *parser_result);
-void rtgeom_parser_result_free(RTGEOM_PARSER_RESULT *parser_result);
 
 
 /* Memory management */
