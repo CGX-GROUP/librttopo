@@ -75,8 +75,6 @@ SA_OBJS = \
 	g_box.o \
 	g_serialized.o \
 	g_util.o \
-	rtgeodetic.o \
-	rtgeodetic_tree.o \
 	rttree.o \
 	rtout_gml.o \
 	rtout_kml.o \
@@ -94,8 +92,7 @@ SA_OBJS = \
 	rtgeom_transform.o \
 	rtunionfind.o \
 	effectivearea.o \
-	varint.o \
-	rtspheroid.o
+	varint.o
 
 LDFLAGS += -no-undefined
 
@@ -107,8 +104,6 @@ SA_HEADERS = \
 	effectivearea.h \
 	librtgeom.h \
 	librtgeom_internal.h \
-	rtgeodetic.h \
-	rtgeodetic_tree.h \
 	librtgeom_topo.h \
 	librtgeom_topo_internal.h \
 	rtgeom_log.h \
