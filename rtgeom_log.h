@@ -66,7 +66,7 @@
  * For debugging, use RTDEBUG() or RTDEBUGF().
  * @ingroup logging
  */
-void rtnotice(RTCTX *ctx, const char *fmt, ...);
+void rtnotice(const RTCTX *ctx, const char *fmt, ...);
 
 /**
  * Write a notice out to the error handler.
@@ -85,7 +85,7 @@ void rterror(const RTCTX *ctx, const char *fmt, ...);
  * efficiency.
  * @ingroup logging
  */
-void rtdebug(RTCTX *ctx, int level, const char *fmt, ...);
+void rtdebug(const RTCTX *ctx, int level, const char *fmt, ...);
 
 
 

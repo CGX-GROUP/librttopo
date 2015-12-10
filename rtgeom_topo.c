@@ -483,7 +483,7 @@ rtt_LoadTopology( RTT_BE_IFACE *iface, const char *name )
 void
 rtt_FreeTopology( RTT_TOPOLOGY* topo )
 {
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( ! rtt_be_freeTopology(topo) ) {
     rtnotice(topo->be_iface->ctx, "Could not release backend topology memory: %s",
@@ -497,7 +497,7 @@ rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
                 RTPOINT* pt, int skipISOChecks )
 {
   RTT_ELEMID foundInFace = -1;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( ! skipISOChecks )
   {
@@ -568,7 +568,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   const RTGBOX *edgebox;
   GEOSGeometry *edgegg;
   const GEOSPreparedGeometry* prepared_edge;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   initGEOS(rtnotice, rtgeom_geos_error);
 
@@ -767,7 +767,7 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
   RTT_ISO_NODE updated_nodes[2];
   int skipISOChecks = 0;
   RTPOINT2D p1, p2;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   /* NOT IN THE SPECS:
    * A closed edge is never isolated (as it forms a face)
@@ -926,7 +926,7 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
   RTGEOM *split;
   RTCOLLECTION *split_col;
   int i;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   /* Get edge */
   i = 1;
@@ -1017,7 +1017,7 @@ rtt_ModEdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   RTT_ISO_EDGE newedge1;
   RTT_ISO_EDGE seledge, updedge, excedge;
   int ret;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   split_col = _rtt_EdgeSplit( topo, edge, pt, skipISOChecks, &oldedge );
   if ( ! split_col ) return -1; /* should have raised an exception */
@@ -1175,7 +1175,7 @@ rtt_NewEdgesSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge,
   RTT_ISO_EDGE newedges[2];
   RTT_ISO_EDGE seledge, updedge;
   int ret;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   split_col = _rtt_EdgeSplit( topo, edge, pt, skipISOChecks, &oldedge );
   if ( ! split_col ) return -1; /* should have raised an exception */
@@ -1489,7 +1489,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
   int i;
   double minaz, maxaz;
   double az, azdif;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   data->nextCW = data->nextCCW = 0;
   data->cwFace = data->ccwFace = -1;
@@ -1755,7 +1755,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   int forward_edges_count = 0;
   RTT_ISO_EDGE *backward_edges = NULL;
   int backward_edges_count = 0;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   signed_edge_ids = rtt_be_getRingEdges(topo, sedge,
                                         &num_signed_edge_ids, 0);
@@ -2325,7 +2325,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   int prev_right;
   RTT_ISO_EDGE seledge;
   RTT_ISO_EDGE updedge;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( ! skipChecks )
   {
@@ -2748,7 +2748,7 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
 {
   RTGEOM *outg;
   RTCOLLECTION *bounds;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTGEOM **geoms = rtalloc(iface->ctx,  sizeof(RTGEOM*) * numfaceedges );
   int i, validedges = 0;
 
@@ -2801,7 +2801,7 @@ rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID faceid)
   RTGEOM *outg;
   int i;
   int fields;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( faceid == 0 )
   {
@@ -3024,7 +3024,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
   int nseid = 0; /* number of signed edge ids */
   int prevseid;
   RTT_ELEMID *seid; /* signed edge ids */
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   /* Get list of face edges */
   numfaceedges = 1;
@@ -3241,7 +3241,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   RTPOINT2D p1, p2, pt;
   int i;
   int isclosed = 0;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   /* curve must be simple */
   if ( ! rtgeom_is_simple(iface->ctx, rtline_as_rtgeom(iface->ctx, geom)) )
@@ -3610,7 +3610,7 @@ _rtt_GetIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid)
 {
   RTT_ISO_NODE *node;
   int n = 1;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   node = rtt_be_getNodeById( topo, &nid, &n, RTT_COL_NODE_CONTAINING_FACE );
   if ( n < 0 ) {
@@ -3636,7 +3636,7 @@ rtt_MoveIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid, RTPOINT *pt)
 {
   RTT_ISO_NODE *node;
   int ret;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   node = _rtt_GetIsoNode( topo, nid );
   if ( ! node ) return -1;
@@ -3678,7 +3678,7 @@ rtt_RemoveIsoNode(RTT_TOPOLOGY* topo, RTT_ELEMID nid)
 {
   RTT_ISO_NODE *node;
   int n = 1;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   node = _rtt_GetIsoNode( topo, nid );
   if ( ! node ) return -1;
@@ -3715,7 +3715,7 @@ rtt_RemIsoEdge(RTT_TOPOLOGY* topo, RTT_ELEMID id)
   RTT_ELEMID containing_face;
   int n = 1;
   int i;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   edge = rtt_be_getEdgeById( topo, &id, &n, RTT_COL_EDGE_START_NODE|
                                             RTT_COL_EDGE_END_NODE |
@@ -3870,7 +3870,7 @@ _rtt_UpdateNodeFaceRef( RTT_TOPOLOGY *topo, RTT_ELEMID of, RTT_ELEMID nf)
 static RTT_ELEMID
 _rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
 {
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   int i, nedges, nfaces, fields;
   RTT_ISO_EDGE *edge = NULL;
   RTT_ISO_EDGE *upd_edge = NULL;
@@ -4262,7 +4262,7 @@ static RTT_ELEMID
 _rtt_HealEdges( RTT_TOPOLOGY* topo, RTT_ELEMID eid1, RTT_ELEMID eid2,
                 int modEdge )
 {
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTT_ELEMID ids[2];
   RTT_ELEMID commonnode = -1;
   int caseno = 0;
@@ -4726,7 +4726,7 @@ rtt_GetNodeByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   int flds = RTT_COL_NODE_NODE_ID|RTT_COL_NODE_GEOM; /* geom not needed */
   RTT_ELEMID id = 0;
   RTPOINT2D qp; /* query point */
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
 
   if ( ! getPoint2d_p(iface->ctx, pt->point, 0, &qp) )
   {
@@ -4761,7 +4761,7 @@ rtt_GetEdgeByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   int num, i;
   int flds = RTT_COL_EDGE_EDGE_ID|RTT_COL_EDGE_GEOM; /* GEOM is not needed */
   RTT_ELEMID id = 0;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTGEOM *qp = rtpoint_as_rtgeom(iface->ctx, pt); /* query point */
 
   if ( rtgeom_is_empty(iface->ctx, qp) )
@@ -4821,7 +4821,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
              RTT_COL_EDGE_GEOM |
              RTT_COL_EDGE_FACE_LEFT |
              RTT_COL_EDGE_FACE_RIGHT;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTGEOM *qp = rtpoint_as_rtgeom(iface->ctx, pt);
 
   id = rtt_be_getFaceContainingPoint(topo, pt);
@@ -4960,7 +4960,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   double mindist = FLT_MAX;
   RTT_ISO_NODE *nodes, *nodes2;
   RTT_ISO_EDGE *edges, *edges2;
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTGEOM *pt = rtpoint_as_rtgeom(iface->ctx, point);
   int flds;
   RTT_ELEMID id = 0;
@@ -5278,7 +5278,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
 static RTT_ELEMID
 _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
 {
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTT_ELEMID id;
   RTT_ISO_EDGE *edges;
   int num, i;
@@ -5348,7 +5348,7 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
 static RTT_ELEMID
 _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
 {
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTCOLLECTION *col;
   RTPOINT *start_point, *end_point;
   RTGEOM *tmp;
@@ -5514,7 +5514,7 @@ _rtt_split_by_nodes(const RTCTX *ctx, const RTGEOM *g, const RTGEOM *nodes)
 RTT_ELEMID*
 rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 {
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   RTGEOM *geomsbuf[1];
   RTGEOM **geoms;
   int ngeoms;
@@ -5758,7 +5758,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 RTT_ELEMID*
 rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
 {
-  RTT_BE_IFACE *iface = topo->be_iface;
+  const RTT_BE_IFACE *iface = topo->be_iface;
   int i;
   *nfaces = -1; /* error condition, by default */
   int num;

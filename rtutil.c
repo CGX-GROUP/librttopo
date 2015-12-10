@@ -58,7 +58,7 @@ static char *rtgeomTypeName[] =
  */
 
 void
-rtnotice(RTCTX *ctx, const char *fmt, ...)
+rtnotice(const RTCTX *ctx, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -84,7 +84,7 @@ rterror(const RTCTX *ctx, const char *fmt, ...)
 }
 
 void
-rtdebug(RTCTX *ctx, int level, const char *fmt, ...)
+rtdebug(const RTCTX *ctx, int level, const char *fmt, ...)
 {
 	va_list ap;
 
