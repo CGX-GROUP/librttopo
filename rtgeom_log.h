@@ -20,6 +20,7 @@
 #ifndef RTGEOM_LOG_H
 #define RTGEOM_LOG_H 1
 
+#include "librtgeom_internal.h"
 #include <stdarg.h>
 
 /*
