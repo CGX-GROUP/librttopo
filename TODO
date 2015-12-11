@@ -1,31 +1,16 @@
-# Status of topology functions (X = done)
+Expose all of these functions, in addition to the topology ones:
 
-rtt_CreateBackendIface X
-rtt_BackendIfaceRegisterCallbacks X
-rtt_FreeBackendIface  X
-rtt_LoadTopology      X
-rtt_FreeTopology      X
-rtt_AddIsoNode        X
-rtt_AddEdgeModFace    X
-rtt_AddEdgeNewFaces   X
-rtt_ModEdgeSplit      X
-rtt_NewEdgesSplit     X
-
-rtt_AddIsoEdge        X
-rtt_GetFaceGeometry   X
-rtt_GetFaceEdges      X
-rtt_ChangeEdgeGeom    X
-rtt_RemoveIsoNode     X
-rtt_RemoveIsoEdge     X
-rtt_MoveIsoNode       X
-rtt_RemEdgeModFace    X
-rtt_RemEdgeNewFace    X
-rtt_ModEdgeHeal       X
-rtt_NewEdgeHeal       X
-
-rtt_GetFaceByPoint    X
-rtt_GetNodeByPoint    X
-rtt_GetEdgeByPoint    X
-rtt_TopoGeo_AddPoint  X
-rtt_TopoGeo_AddLineString X
-rtt_TopoGeo_AddPolygon X
+rtgeom_make_valid()
+rtgeom_segmentize2d()
+rtgeom_azumith_spheroid()
+rtgeom_project_spheroid()
+rtgeom_calculate_gbox_geodetic()
+rtgeom_area_spheroid()
+rtgeom_area_sphere()
+rtgeom_geohash()
+rtgeom_to_x3d3()
+rtgeom_length()
+rtgeom_mindistance3d()
+rtgeom_maxdistance2d()
+rtgeom_split()
+rtgeom_node()
