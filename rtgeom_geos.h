@@ -30,8 +30,9 @@ GEOSGeometry * RTGEOM_GEOS_buildArea(const RTCTX *ctx, const GEOSGeometry* geom_
 
 RTPOINTARRAY *ptarray_from_GEOSCoordSeq(const RTCTX *ctx, const GEOSCoordSequence *cs, char want3d);
 
+/* Return (read-only) last geos error message */
+const char *rtgeom_get_last_geos_error(const RTCTX *ctx);
 
-extern char rtgeom_geos_errmsg[];
 extern void rtgeom_geos_error(const char *msg, void *ctx);
 
 extern void rtgeom_geos_ensure_init(const RTCTX *ctx);

@@ -80,14 +80,14 @@ rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* bl
 	g1 = RTGEOM2GEOS(ctx, (RTGEOM*)rtline_in, 0);
 	if ( ! g1 )
 	{
-		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 	g2 = RTGEOM2GEOS(ctx, blade_in, 0);
 	if ( ! g2 )
 	{
 		GEOSGeom_destroy(g1);
-		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -99,7 +99,7 @@ rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* bl
 		if ( ! gdiff )
 		{
 			GEOSGeom_destroy(g1);
-			rterror(ctx, "GEOSBoundary: %s", rtgeom_geos_errmsg);
+			rterror(ctx, "GEOSBoundary: %s", rtgeom_get_last_geos_error(ctx));
 			return NULL;
 		}
 		g2 = gdiff; gdiff = NULL;
@@ -109,7 +109,7 @@ rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* bl
 	ret = GEOSRelatePattern(g1, g2, "1********");
 	if ( 2 == ret )
 	{
-		rterror(ctx, "GEOSRelatePattern: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSRelatePattern: %s", rtgeom_get_last_geos_error(ctx));
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
 		return NULL;
@@ -128,7 +128,7 @@ rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* bl
 	GEOSGeom_destroy(g2);
 	if (gdiff == NULL)
 	{
-		rterror(ctx, "GEOSDifference: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSDifference: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -136,7 +136,7 @@ rtline_split_by_line(const RTCTX *ctx, const RTLINE* rtline_in, const RTGEOM* bl
 	GEOSGeom_destroy(gdiff);
 	if (NULL == diff)
 	{
-		rterror(ctx, "GEOS2RTGEOM: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOS2RTGEOM: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -329,14 +329,14 @@ rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* bl
 	g1 = RTGEOM2GEOS(ctx, (RTGEOM*)rtpoly_in, 0);
 	if ( NULL == g1 )
 	{
-		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 	g1_bounds = GEOSBoundary(g1);
 	if ( NULL == g1_bounds )
 	{
 		GEOSGeom_destroy(g1);
-		rterror(ctx, "GEOSBoundary: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSBoundary: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -345,7 +345,7 @@ rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* bl
 	{
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g1_bounds);
-		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -355,7 +355,7 @@ rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* bl
 		GEOSGeom_destroy(g1);
 		GEOSGeom_destroy(g2);
 		GEOSGeom_destroy(g1_bounds);
-		rterror(ctx, "GEOSUnion: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSUnion: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -376,7 +376,7 @@ rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* bl
 		GEOSGeom_destroy(g2);
 		GEOSGeom_destroy(g1_bounds);
 		GEOSGeom_destroy((GEOSGeometry*)vgeoms[0]);
-		rterror(ctx, "GEOSPolygonize: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSPolygonize: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -417,7 +417,7 @@ rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* bl
 			GEOSGeom_destroy(g1_bounds);
 			GEOSGeom_destroy((GEOSGeometry*)vgeoms[0]);
 			GEOSGeom_destroy(polygons);
-			rterror(ctx, "GEOSPointOnSurface: %s", rtgeom_geos_errmsg);
+			rterror(ctx, "GEOSPointOnSurface: %s", rtgeom_get_last_geos_error(ctx));
 			return NULL;
 		}
 
@@ -430,7 +430,7 @@ rtpoly_split_by_line(const RTCTX *ctx, const RTPOLY* rtpoly_in, const RTLINE* bl
 			GEOSGeom_destroy((GEOSGeometry*)vgeoms[0]);
 			GEOSGeom_destroy(polygons);
 			GEOSGeom_destroy(pos);
-			rterror(ctx, "GEOSContains: %s", rtgeom_geos_errmsg);
+			rterror(ctx, "GEOSContains: %s", rtgeom_get_last_geos_error(ctx));
 			return NULL;
 		}
 

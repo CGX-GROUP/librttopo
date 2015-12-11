@@ -141,8 +141,11 @@
 #define RT_BOUNDARY 0
 #define RT_OUTSIDE -1
 
+#define RTGEOM_GEOS_ERRMSG_MAXSIZE 256
+
 struct RTCTX_T {
   GEOSContextHandle_t gctx;
+  char rtgeom_geos_errmsg[RTGEOM_GEOS_ERRMSG_MAXSIZE];
 };
 
 /*

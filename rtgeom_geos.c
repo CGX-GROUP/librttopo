@@ -21,8 +21,11 @@ RTTIN * rttin_from_geos(const RTCTX *ctx, const GEOSGeometry *geom, int want3d);
 
 #undef RTGEOM_PROFILE_BUILDAREA
 
-#define RTGEOM_GEOS_ERRMSG_MAXSIZE 256
-char rtgeom_geos_errmsg[RTGEOM_GEOS_ERRMSG_MAXSIZE];
+const char *
+rtgeom_get_last_geos_error(const RTCTX *ctx)
+{
+  return ctx->rtgeom_geos_errmsg;
+}
 
 static void
 rtgeom_geos_notice(const char *msg, void *ctx)
@@ -38,9 +41,9 @@ rtgeom_geos_error(const char *msg, void *ptr)
   /* TODO:  write in the context, not in the global ! */
 
 	/* Call the supplied function */
-	if ( RTGEOM_GEOS_ERRMSG_MAXSIZE-1 < snprintf(rtgeom_geos_errmsg, RTGEOM_GEOS_ERRMSG_MAXSIZE-1, "%s", msg) )
+	if ( RTGEOM_GEOS_ERRMSG_MAXSIZE-1 < snprintf(ctx->rtgeom_geos_errmsg, RTGEOM_GEOS_ERRMSG_MAXSIZE-1, "%s", msg) )
 	{
-		rtgeom_geos_errmsg[RTGEOM_GEOS_ERRMSG_MAXSIZE-1] = '\0';
+		ctx->rtgeom_geos_errmsg[RTGEOM_GEOS_ERRMSG_MAXSIZE-1] = '\0';
 	}
 }
 
@@ -519,13 +522,13 @@ rtgeom_normalize(const RTCTX *ctx, const RTGEOM *geom1)
 	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL ;
 	}
 
 	if ( -1 == GEOSNormalize_r(ctx->gctx, g1) )
 	{
-	  rterror(ctx, "Error in GEOSNormalize: %s", rtgeom_geos_errmsg);
+	  rterror(ctx, "Error in GEOSNormalize: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL; /* never get here */
 	}
 
@@ -536,7 +539,7 @@ rtgeom_normalize(const RTCTX *ctx, const RTGEOM *geom1)
 	if (result == NULL)
 	{
 	  rterror(ctx, "Error performing intersection: GEOS2RTGEOM: %s",
-	                rtgeom_geos_errmsg);
+	                rtgeom_get_last_geos_error(ctx));
 		return NULL ; /* never get here */
 	}
 
@@ -572,7 +575,7 @@ rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL ;
 	}
 
@@ -599,7 +602,7 @@ rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		GEOSGeom_destroy_r(ctx->gctx, g2);
 		rterror(ctx, "Error performing intersection: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL; /* never get here */
 	}
 
@@ -615,7 +618,7 @@ rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 		GEOSGeom_destroy_r(ctx->gctx, g2);
 		GEOSGeom_destroy_r(ctx->gctx, g3);
 		rterror(ctx, "Error performing intersection: GEOS2RTGEOM: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL ; /* never get here */
 	}
 
@@ -646,7 +649,7 @@ rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1)
 	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL ;
 	}
 
@@ -662,7 +665,7 @@ rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1)
 	{
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		rterror(ctx, "Error performing linemerge: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL; /* never get here */
 	}
 
@@ -677,7 +680,7 @@ rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1)
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		GEOSGeom_destroy_r(ctx->gctx, g3);
 		rterror(ctx, "Error performing linemerge: GEOS2RTGEOM: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL ; /* never get here */
 	}
 
@@ -704,7 +707,7 @@ rtgeom_unaryunion(const RTCTX *ctx, const RTGEOM *geom1)
 	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL ;
 	}
 
@@ -714,7 +717,7 @@ rtgeom_unaryunion(const RTCTX *ctx, const RTGEOM *geom1)
 	{
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		rterror(ctx, "Error performing unaryunion: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL; /* never get here */
 	}
 
@@ -729,7 +732,7 @@ rtgeom_unaryunion(const RTCTX *ctx, const RTGEOM *geom1)
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		GEOSGeom_destroy_r(ctx->gctx, g3);
 		rterror(ctx, "Error performing unaryunion: GEOS2RTGEOM: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL ; /* never get here */
 	}
 
@@ -766,7 +769,7 @@ rtgeom_difference(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 	g1 = RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -774,7 +777,7 @@ rtgeom_difference(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
 		GEOSGeom_destroy_r(ctx->gctx, g1);
-		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -784,7 +787,7 @@ rtgeom_difference(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 	{
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		GEOSGeom_destroy_r(ctx->gctx, g2);
-		rterror(ctx, "GEOSDifference: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSDifference: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL ; /* never get here */
 	}
 
@@ -800,7 +803,7 @@ rtgeom_difference(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 		GEOSGeom_destroy_r(ctx->gctx, g2);
 		GEOSGeom_destroy_r(ctx->gctx, g3);
 		rterror(ctx, "Error performing difference: GEOS2RTGEOM: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL; /* never get here */
 	}
 
@@ -841,7 +844,7 @@ rtgeom_symdifference(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -849,7 +852,7 @@ rtgeom_symdifference(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		return NULL;
 	}
@@ -860,7 +863,7 @@ rtgeom_symdifference(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 	{
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		GEOSGeom_destroy_r(ctx->gctx, g2);
-		rterror(ctx, "GEOSSymDifference: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSSymDifference: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL; /*never get here */
 	}
 
@@ -917,7 +920,7 @@ rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -926,7 +929,7 @@ rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
 		GEOSGeom_destroy_r(ctx->gctx, g1);
-		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -942,7 +945,7 @@ rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 
 	if (g3 == NULL)
 	{
-		rterror(ctx, "GEOSUnion: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSUnion: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL; /* never get here */
 	}
 
@@ -956,7 +959,7 @@ rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 	if (result == NULL)
 	{
 		rterror(ctx, "Error performing union: GEOS2RTGEOM: %s",
-		        rtgeom_geos_errmsg);
+		        rtgeom_get_last_geos_error(ctx));
 		return NULL; /*never get here */
 	}
 
@@ -990,7 +993,7 @@ rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0,
 	g1 = RTGEOM2GEOS(ctx, geom1, 1); /* auto-fix structure */
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL ;
 	}
 
@@ -1005,7 +1008,7 @@ rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0,
 
 	if (g3 == NULL)
 	{
-		rtnotice(ctx, "Error performing rectangular clipping: %s", rtgeom_geos_errmsg);
+		rtnotice(ctx, "Error performing rectangular clipping: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -1016,7 +1019,7 @@ rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0,
 
 	if (result == NULL)
 	{
-		rterror(ctx, "Error performing intersection: GEOS2RTGEOM: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Error performing intersection: GEOS2RTGEOM: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL ; /* never get here */
 	}
 
@@ -1325,7 +1328,7 @@ rtgeom_buildarea(const RTCTX *ctx, const RTGEOM *geom)
 	
 	if ( 0 == geos_in )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 	geos_out = RTGEOM_GEOS_buildArea(ctx, geos_in);
@@ -1333,7 +1336,7 @@ rtgeom_buildarea(const RTCTX *ctx, const RTGEOM *geom)
 
 	if ( ! geos_out ) /* exception thrown.. */
 	{
-		rterror(ctx, "RTGEOM_GEOS_buildArea: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM_GEOS_buildArea: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -1376,7 +1379,7 @@ rtgeom_is_simple(const RTCTX *ctx, const RTGEOM *geom)
 	geos_in = RTGEOM2GEOS(ctx, geom, 0);
 	if ( 0 == geos_in )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return -1;
 	}
 	simple = GEOSisSimple_r(ctx->gctx, geos_in);
@@ -1384,7 +1387,7 @@ rtgeom_is_simple(const RTCTX *ctx, const RTGEOM *geom)
 
 	if ( simple == 2 ) /* exception thrown */
 	{
-		rterror(ctx, "rtgeom_is_simple: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "rtgeom_is_simple: %s", rtgeom_get_last_geos_error(ctx));
 		return -1;
 	}
 
@@ -1405,14 +1408,14 @@ rtgeom_geos_noop(const RTCTX *ctx, const RTGEOM* geom_in)
 	geosgeom = RTGEOM2GEOS(ctx, geom_in, 0);
 	if ( ! geosgeom ) {
 		rterror(ctx, "Geometry could not be converted to GEOS: %s",
-			rtgeom_geos_errmsg);
+			rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 	geom_out = GEOS2RTGEOM(ctx, geosgeom, is3d);
 	GEOSGeom_destroy_r(ctx->gctx, geosgeom);
 	if ( ! geom_out ) {
 		rterror(ctx, "GEOS Geometry could not be converted to RTGEOM: %s",
-			rtgeom_geos_errmsg);
+			rtgeom_get_last_geos_error(ctx));
 	}
 	return geom_out;
 	
@@ -1443,14 +1446,14 @@ rtgeom_snap(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double t
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
 	g2 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom2, 0);
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		return NULL;
 	}
@@ -1460,7 +1463,7 @@ rtgeom_snap(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double t
 	{
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		GEOSGeom_destroy_r(ctx->gctx, g2);
-		rterror(ctx, "GEOSSnap: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSSnap: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -1506,14 +1509,14 @@ rtgeom_sharedpaths(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom1, 0);
 	if ( 0 == g1 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "First argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
 	g2 = (GEOSGeometry *)RTGEOM2GEOS(ctx, geom2, 0);
 	if ( 0 == g2 )   /* exception thrown at construction */
 	{
-		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "Second argument geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		GEOSGeom_destroy_r(ctx->gctx, g1);
 		return NULL;
 	}
@@ -1525,7 +1528,7 @@ rtgeom_sharedpaths(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 
 	if (g3 == NULL)
 	{
-		rterror(ctx, "GEOSSharedPaths: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSSharedPaths: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -1558,7 +1561,7 @@ rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quad
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, rtgeom_in, 0);
 	if ( ! g1 ) 
 	{
-		rterror(ctx, "rtgeom_offsetcurve: Geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "rtgeom_offsetcurve: Geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -1575,7 +1578,7 @@ rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quad
 
 	if (g3 == NULL)
 	{
-		rterror(ctx, "GEOSOffsetCurve: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSOffsetCurve: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -1679,7 +1682,7 @@ RTGEOM* rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *rtgeom_in,
 	g1 = (GEOSGeometry *)RTGEOM2GEOS(ctx, rtgeom_in, 0);
 	if ( ! g1 ) 
 	{
-		rterror(ctx, "rtgeom_delaunay_triangulation: Geometry could not be converted to GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "rtgeom_delaunay_triangulation: Geometry could not be converted to GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -1691,7 +1694,7 @@ RTGEOM* rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *rtgeom_in,
 
 	if (g3 == NULL)
 	{
-		rterror(ctx, "GEOSDelaunayTriangulation: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSDelaunayTriangulation: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 

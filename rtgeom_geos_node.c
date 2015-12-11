@@ -98,7 +98,7 @@ rtgeom_extract_unique_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
 	GEOSGeometry *gepall = RTGEOM2GEOS(ctx, (RTGEOM*)epall, 1);
 	rtmpoint_free(ctx, epall);
 	if ( ! gepall ) {
-		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -107,7 +107,7 @@ rtgeom_extract_unique_endpoints(const RTCTX *ctx, const RTGEOM* rtg)
 	gepu = GEOSUnaryUnion_r(ctx->gctx, gepall);
 	if ( ! gepu ) {
 		GEOSGeom_destroy_r(ctx->gctx, gepall);
-		rterror(ctx, "GEOSUnaryUnion: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSUnaryUnion: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 	GEOSGeom_destroy_r(ctx->gctx, gepall);
@@ -148,7 +148,7 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 	rtgeom_geos_ensure_init(ctx);
 	g1 = RTGEOM2GEOS(ctx, rtgeom_in, 1);
 	if ( ! g1 ) {
-		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "RTGEOM2GEOS: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -164,7 +164,7 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 	GEOSGeom_destroy_r(ctx->gctx, g1);
 	if ( ! gu ) {
 		rtgeom_free(ctx, ep);
-		rterror(ctx, "GEOSUnaryUnion: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSUnaryUnion: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
@@ -173,7 +173,7 @@ rtgeom_node(const RTCTX *ctx, const RTGEOM* rtgeom_in)
 	GEOSGeom_destroy_r(ctx->gctx, gu);
 	if ( ! gm ) {
 		rtgeom_free(ctx, ep);
-		rterror(ctx, "GEOSLineMerge: %s", rtgeom_geos_errmsg);
+		rterror(ctx, "GEOSLineMerge: %s", rtgeom_get_last_geos_error(ctx));
 		return NULL;
 	}
 
