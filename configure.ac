@@ -272,60 +272,6 @@ AC_SUBST([RTGEOM_GEOS_VERSION])
 AC_SUBST([GEOS_NUMERIC_VERSION])
 
 dnl ===========================================================================
-dnl Detect the version of PROJ.4 installed
-dnl ===========================================================================
-
-AC_ARG_WITH([projdir], 
-	[AS_HELP_STRING([--with-projdir=PATH], [specify the PROJ.4 installation directory])], 
-	[PROJDIR="$withval"], [PROJDIR=""])
-
-if test ! "x$PROJDIR" = "x"; then
-	dnl Make sure that the directory exists 
-	if test "x$PROJDIR" = "xyes"; then
-		AC_MSG_ERROR([you must specify a parameter to --with-projdir, e.g. --with-projdir=/path/to])
-	else
-		if test -d "$PROJDIR"; then
-			AC_MSG_RESULT([Using user-specified proj directory: $PROJDIR])
-
-			dnl Add the include directory to PROJ_CPPFLAGS	
-			PROJ_CPPFLAGS="-I$PROJDIR/include"	
-			PROJ_LDFLAGS="-L$PROJDIR/lib"
-		else
-			AC_MSG_ERROR([the --with-projdir directory "$PROJDIR" cannot be found]) 
-		fi
-	fi
-fi
-
-
-dnl Check that we can find the proj_api.h header file
-CPPFLAGS_SAVE="$CPPFLAGS"
-CPPFLAGS="$PROJ_CPPFLAGS"
-AC_CHECK_HEADER([proj_api.h], [], [AC_MSG_ERROR([could not find proj_api.h - you may need to specify the directory of a PROJ.4 installation using --with-projdir])])	
-
-dnl Return the PROJ.4 version number
-AC_PROJ_VERSION([RTGEOM_PROJ_VERSION])
-AC_DEFINE_UNQUOTED([RTGEOM_PROJ_VERSION], [$RTGEOM_PROJ_VERSION], [PROJ library version])
-AC_SUBST([RTGEOM_PROJ_VERSION])
-CPPFLAGS="$CPPFLAGS_SAVE"
-
-AC_SUBST([PROJ_CPPFLAGS])
-AC_SUBST([PROJ_LDFLAGS])
-
-dnl Ensure that we are using PROJ >= 4.6.0 (requires pj_set_searchpath) 
-if test ! "$RTGEOM_PROJ_VERSION" -ge 46; then
-	AC_MSG_ERROR([PostGIS requires PROJ >= 4.6.0])
-fi
-
-dnl Ensure we can link against libproj
-LIBS_SAVE="$LIBS"
-LIBS="$PROJ_LDFLAGS"
-AC_CHECK_LIB([proj], [pj_get_release],
-	[],
-	[AC_MSG_ERROR([could not find libproj - you may need to specify the directory of a PROJ.4 installation using --with-projdir])],
-	[])
-LIBS="$LIBS_SAVE"
-
-dnl ===========================================================================
 dnl Detect if json-c installed
 dnl ===========================================================================
 
@@ -413,10 +359,10 @@ dnl Define version macros
 dnl
 
 
-CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $XML2_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $CPPFLAGS"
+CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $XML2_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $CPPFLAGS"
 dnl AC_MSG_RESULT([CPPFLAGS: $CPPFLAGS])
 
-SHLIB_LINK="$PGSQL_LDFLAGS $GEOS_LDFLAGS $PROJ_LDFLAGS -lgeos_c -lproj $JSON_LDFLAGS $XML2_LDFLAGS $PCRE_LDFLAGS $EXCLUDELIBS_LDFLAGS"
+SHLIB_LINK="$PGSQL_LDFLAGS $GEOS_LDFLAGS -lgeos_c -lproj $JSON_LDFLAGS $XML2_LDFLAGS $PCRE_LDFLAGS $EXCLUDELIBS_LDFLAGS"
 AC_SUBST([SHLIB_LINK])
 dnl AC_MSG_RESULT([SHLIB_LINK: $SHLIB_LINK])
 
@@ -462,7 +408,6 @@ AC_MSG_RESULT()
 AC_MSG_RESULT([ -------------- Dependencies -------------- ])
 AC_MSG_RESULT([  GEOS config:          ${GEOSCONFIG}])
 AC_MSG_RESULT([  GEOS version:         ${GEOS_FULL_VERSION}])
-AC_MSG_RESULT([  PROJ4 version:        ${RTGEOM_PROJ_VERSION}])
 AC_MSG_RESULT([  Libxml2 config:       ${XML2CONFIG}])
 AC_MSG_RESULT([  Libxml2 version:      ${RTGEOM_LIBXML2_VERSION}])
 AC_MSG_RESULT([  JSON-C support:       ${HAVE_JSON}])

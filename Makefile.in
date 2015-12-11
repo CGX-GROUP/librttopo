@@ -11,8 +11,8 @@
 
 CC = @CC@
 CPPFLAGS = @CPPFLAGS@
-CFLAGS = @CFLAGS@ @PICFLAGS@ @WARNFLAGS@ @GEOS_CPPFLAGS@ @PROJ_CPPFLAGS@ @JSON_CPPFLAGS@
-LDFLAGS = @LDFLAGS@ @GEOS_LDFLAGS@ -lgeos_c @PROJ_LDFLAGS@ -lproj @JSON_LDFLAGS@
+CFLAGS = @CFLAGS@ @PICFLAGS@ @WARNFLAGS@ @GEOS_CPPFLAGS@ @JSON_CPPFLAGS@
+LDFLAGS = @LDFLAGS@ @GEOS_LDFLAGS@ -lgeos_c @JSON_LDFLAGS@
 NUMERICFLAGS = @NUMERICFLAGS@
 top_builddir = @top_builddir@
 prefix = @prefix@
@@ -86,7 +86,6 @@ SA_OBJS = \
 	rtgeom_geos_node.o \
 	rtgeom_geos_split.o \
 	rtgeom_topo.o \
-	rtgeom_transform.o \
 	varint.o
 
 LDFLAGS += -no-undefined

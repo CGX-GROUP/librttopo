@@ -20,13 +20,14 @@
 #include "librtgeom.h"
 
 #include "rtgeom_log.h"
-#include "proj_api.h"
 
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #if HAVE_IEEEFP_H
 #include <ieeefp.h>
@@ -472,26 +473,5 @@ extern int _rtgeom_interrupt_requested;
 int ptarray_npoints_in_rect(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTGBOX *gbox);
 int gbox_contains_point2d(const RTCTX *ctx, const RTGBOX *g, const RTPOINT2D *p);
 int rtpoly_contains_point(const RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D *pt);
-
-/*******************************************************************************
- * PROJ4-dependent extra functions on RTGEOM
- ******************************************************************************/
-
-/**
- * Get a projection from a string representation
- *
- * Eg: "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
- */
-projPJ rtproj_from_string(const RTCTX *ctx, const char* txt);
-
-/**
- * Transform (reproject) a geometry in-place.
- * @param geom the geometry to transform
- * @param inpj the input (or current, or source) projection
- * @param outpj the output (or destination) projection
- */
-int rtgeom_transform(const RTCTX *ctx, RTGEOM *geom, projPJ inpj, projPJ outpj) ;
-int ptarray_transform(const RTCTX *ctx, RTPOINTARRAY *geom, projPJ inpj, projPJ outpj) ;
-int point4d_transform(const RTCTX *ctx, RTPOINT4D *pt, projPJ srcpj, projPJ dstpj) ;
 
 #endif /* _LIBRTGEOM_INTERNAL_H */

@@ -12,7 +12,6 @@
 # PARTICULAR PURPOSE.
 
 m4_ifndef([AC_CONFIG_MACRO_DIRS], [m4_defun([_AM_CONFIG_MACRO_DIRS], [])m4_defun([AC_CONFIG_MACRO_DIRS], [_AM_CONFIG_MACRO_DIRS($@)])])
-m4_include([macros/ac_proj4_version.m4])
 m4_include([macros/libtool.m4])
 m4_include([macros/ltoptions.m4])
 m4_include([macros/ltsugar.m4])
