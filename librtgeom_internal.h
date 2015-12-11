@@ -21,7 +21,6 @@
 
 #include "rtgeom_log.h"
 #include "proj_api.h"
-#include "geos_c.h"
 
 #include <assert.h>
 #include <stdarg.h>

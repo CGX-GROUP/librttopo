@@ -15,6 +15,7 @@
 #ifndef _LIBRTGEOM_H
 #define _LIBRTGEOM_H 1
 
+#define GEOS_USE_ONLY_R_API 1
 #include <geos_c.h>
 
 #include <stdarg.h>
