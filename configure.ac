@@ -10,7 +10,7 @@ dnl *
 dnl **********************************************************************
 
 AC_INIT()
-AC_CONFIG_HEADERS([rttopo_config.h])
+AC_CONFIG_HEADERS([src/rttopo_config.h])
 AC_CONFIG_MACRO_DIR([macros])
 
 
@@ -391,8 +391,8 @@ AC_SUBST([SRID_MAX])
 AC_SUBST([SRID_USR_MAX])
 
 AC_OUTPUT([
-   Makefile 
-   librtgeom.h
+   src/Makefile 
+   src/librtgeom.h
    ])
     
 dnl ===========================================================================

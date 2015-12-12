@@ -20,7 +20,7 @@ exec_prefix = @exec_prefix@
 libdir = @libdir@
 includedir = @includedir@
 SHELL = @SHELL@
-INSTALL = $(SHELL) install-sh
+INSTALL = $(SHELL) ../install-sh
 LIBTOOL = @LIBTOOL@
 
 IFACE_CURRENT = @LIBRTGEOM_CURRENT@
@@ -134,11 +134,6 @@ $(LT_OBJS): rttopo_config.h $(SA_HEADERS)
 librtgeom.la: $(LT_OBJS)
 	$(LIBTOOL) --tag=CC --mode=link $(CC) -rpath $(libdir) $(LT_OBJS) \
              -version-info $(VERSION_INFO) $(LDFLAGS) -o $@
-
-maintainer-clean: distclean
-	rm -f configure
-	rm -f config.guess config.rpath config.sub
-	rm -f libtool install-sh ltmain.sh
 
 clean:
 	rm -f $(LT_OBJS) $(SA_OBJS)
