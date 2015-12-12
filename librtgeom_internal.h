@@ -318,7 +318,7 @@ RTPOLY *rtcurvepoly_stroke(const RTCTX *ctx, const RTCURVEPOLY *curvepoly, uint3
 /*
 * Affine
 */
-void ptarray_affine(const RTCTX *ctx, RTPOINTARRAY *pa, const AFFINE *affine);
+void ptarray_affine(const RTCTX *ctx, RTPOINTARRAY *pa, const RTAFFINE *affine);
 
 /*
 * Scale

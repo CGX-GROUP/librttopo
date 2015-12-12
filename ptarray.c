@@ -1705,7 +1705,7 @@ rt_getPoint_internal(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
  * Affine transform a pointarray.
  */
 void
-ptarray_affine(const RTCTX *ctx, RTPOINTARRAY *pa, const AFFINE *a)
+ptarray_affine(const RTCTX *ctx, RTPOINTARRAY *pa, const RTAFFINE *a)
 {
 	int i;
 	double x,y,z;

@@ -243,7 +243,7 @@ extern rtinterrupt_callback *rtgeom_register_interrupt_callback(const RTCTX *ctx
 
 typedef struct {
 	double afac, bfac, cfac, dfac, efac, ffac, gfac, hfac, ifac, xoff, yoff, zoff;
-} AFFINE;
+} RTAFFINE;
 
 /******************************************************************/
 
@@ -1153,7 +1153,7 @@ extern double rtgeom_length(const RTCTX *ctx, const RTGEOM *geom);
 extern double rtgeom_length_2d(const RTCTX *ctx, const RTGEOM *geom);
 extern double rtgeom_perimeter(const RTCTX *ctx, const RTGEOM *geom);
 extern double rtgeom_perimeter_2d(const RTCTX *ctx, const RTGEOM *geom);
-extern void rtgeom_affine(const RTCTX *ctx, RTGEOM *geom, const AFFINE *affine);
+extern void rtgeom_affine(const RTCTX *ctx, RTGEOM *geom, const RTAFFINE *affine);
 extern void rtgeom_scale(const RTCTX *ctx, RTGEOM *geom, const RTPOINT4D *factors);
 extern int rtgeom_dimension(const RTCTX *ctx, const RTGEOM *geom);
 

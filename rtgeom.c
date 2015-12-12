@@ -1688,7 +1688,7 @@ double rtgeom_length_2d(const RTCTX *ctx, const RTGEOM *geom)
 }
 
 void
-rtgeom_affine(const RTCTX *ctx, RTGEOM *geom, const AFFINE *affine)
+rtgeom_affine(const RTCTX *ctx, RTGEOM *geom, const RTAFFINE *affine)
 {
 	int type = geom->type;
 	int i;
