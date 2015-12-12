@@ -26,24 +26,24 @@
 int
 rtpoint_getPoint2d_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT2D *out)
 {
-	return getPoint2d_p(ctx, point->point, 0, out);
+	return rt_getPoint2d_p(ctx, point->point, 0, out);
 }
 
 /* convenience functions to hide the RTPOINTARRAY */
 int
 rtpoint_getPoint3dz_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT3DZ *out)
 {
-	return getPoint3dz_p(ctx, point->point,0,out);
+	return rt_getPoint3dz_p(ctx, point->point,0,out);
 }
 int
 rtpoint_getPoint3dm_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT3DM *out)
 {
-	return getPoint3dm_p(ctx, point->point,0,out);
+	return rt_getPoint3dm_p(ctx, point->point,0,out);
 }
 int
 rtpoint_getPoint4d_p(const RTCTX *ctx, const RTPOINT *point, RTPOINT4D *out)
 {
-	return getPoint4d_p(ctx, point->point,0,out);
+	return rt_getPoint4d_p(ctx, point->point,0,out);
 }
 
 double
@@ -52,7 +52,7 @@ rtpoint_get_x(const RTCTX *ctx, const RTPOINT *point)
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(ctx, point) )
 		rterror(ctx, "rtpoint_get_x called with empty geometry");
-	getPoint4d_p(ctx, point->point, 0, &pt);
+	rt_getPoint4d_p(ctx, point->point, 0, &pt);
 	return pt.x;
 }
 
@@ -62,7 +62,7 @@ rtpoint_get_y(const RTCTX *ctx, const RTPOINT *point)
 	RTPOINT4D pt;
 	if ( rtpoint_is_empty(ctx, point) )
 		rterror(ctx, "rtpoint_get_y called with empty geometry");
-	getPoint4d_p(ctx, point->point, 0, &pt);
+	rt_getPoint4d_p(ctx, point->point, 0, &pt);
 	return pt.y;
 }
 
@@ -74,7 +74,7 @@ rtpoint_get_z(const RTCTX *ctx, const RTPOINT *point)
 		rterror(ctx, "rtpoint_get_z called with empty geometry");
 	if ( ! RTFLAGS_GET_Z(point->flags) )
 		rterror(ctx, "rtpoint_get_z called without z dimension");
-	getPoint4d_p(ctx, point->point, 0, &pt);
+	rt_getPoint4d_p(ctx, point->point, 0, &pt);
 	return pt.z;
 }
 
@@ -86,7 +86,7 @@ rtpoint_get_m(const RTCTX *ctx, const RTPOINT *point)
 		rterror(ctx, "rtpoint_get_m called with empty geometry");
 	if ( ! RTFLAGS_GET_M(point->flags) )
 		rterror(ctx, "rtpoint_get_m called without m dimension");
-	getPoint4d_p(ctx, point->point, 0, &pt);
+	rt_getPoint4d_p(ctx, point->point, 0, &pt);
 	return pt.m;
 }
 

@@ -192,7 +192,7 @@ ptarray_close2d(const RTCTX *ctx, RTPOINTARRAY* ring)
 	{
 		/* close it up */
 		newring = ptarray_addPoint(ctx, ring,
-		                           getPoint_internal(ctx, ring, 0),
+		                           rt_getPoint_internal(ctx, ring, 0),
 		                           RTFLAGS_NDIMS(ring->flags),
 		                           ring->npoints);
 		ring = newring;
@@ -222,7 +222,7 @@ ring_make_geos_friendly(const RTCTX *ctx, RTPOINTARRAY* ring)
 		RTDEBUGF(4, "ring has %d points, adding another", ring->npoints);
 		/* let's add another... */
 		ring = ptarray_addPoint(ctx, ring,
-		                        getPoint_internal(ctx, ring, 0),
+		                        rt_getPoint_internal(ctx, ring, 0),
 		                        RTFLAGS_NDIMS(ring->flags),
 		                        ring->npoints);
 		if ( oring != ring_in ) ptarray_free(ctx, oring);
@@ -286,7 +286,7 @@ rtline_make_geos_friendly(const RTCTX *ctx, RTLINE *line)
 #if 1
 		/* Duplicate point */
 		line->points = ptarray_addPoint(ctx, line->points,
-		                                getPoint_internal(ctx, line->points, 0),
+		                                rt_getPoint_internal(ctx, line->points, 0),
 		                                RTFLAGS_NDIMS(line->points->flags),
 		                                line->points->npoints);
 		ret = (RTGEOM*)line;

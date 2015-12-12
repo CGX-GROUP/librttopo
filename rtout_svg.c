@@ -109,7 +109,7 @@ assvg_point_buf(const RTCTX *ctx, const RTPOINT *point, char * output, int circl
 	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
 	RTPOINT2D pt;
 
-	getPoint2d_p(ctx, point->point, 0, &pt);
+	rt_getPoint2d_p(ctx, point->point, 0, &pt);
 
 	if (fabs(pt.x) < OUT_MAX_DOUBLE)
 		sprintf(x, "%.*f", precision, pt.x);
@@ -557,7 +557,7 @@ pointArray_svg_rel(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int close_r
 	else end = pa->npoints - 1;
 
 	/* Starting point */
-	getPoint2d_p(ctx, pa, 0, &pt);
+	rt_getPoint2d_p(ctx, pa, 0, &pt);
 
 	if (fabs(pt.x) < OUT_MAX_DOUBLE)
 		sprintf(x, "%.*f", precision, pt.x);
@@ -578,7 +578,7 @@ pointArray_svg_rel(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int close_r
 	{
 		lpt = pt;
 
-		getPoint2d_p(ctx, pa, i, &pt);
+		rt_getPoint2d_p(ctx, pa, i, &pt);
 		if (fabs(pt.x -lpt.x) < OUT_MAX_DOUBLE)
 			sprintf(x, "%.*f", precision, pt.x -lpt.x);
 		else
@@ -620,7 +620,7 @@ pointArray_svg_abs(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int close_r
 
 	for (i=0 ; i < end ; i++)
 	{
-		getPoint2d_p(ctx, pa, i, &pt);
+		rt_getPoint2d_p(ctx, pa, i, &pt);
 
 		if (fabs(pt.x) < OUT_MAX_DOUBLE)
 			sprintf(x, "%.*f", precision, pt.x);

@@ -584,7 +584,7 @@ static size_t gserialized_from_rtpoint(const RTCTX *ctx, const RTPOINT *point, u
 	/* Copy in the ordinates. */
 	if ( point->point->npoints > 0 )
 	{
-		memcpy(loc, getPoint_internal(ctx, point->point, 0), ptsize);
+		memcpy(loc, rt_getPoint_internal(ctx, point->point, 0), ptsize);
 		loc += ptsize;
 	}
 
@@ -624,7 +624,7 @@ static size_t gserialized_from_rtline(const RTCTX *ctx, const RTLINE *line, uint
 	if ( line->points->npoints > 0 )
 	{
 		size = line->points->npoints * ptsize;
-		memcpy(loc, getPoint_internal(ctx, line->points, 0), size);
+		memcpy(loc, rt_getPoint_internal(ctx, line->points, 0), size);
 		loc += size;
 	}
 	RTDEBUGF(3, "rtline_to_gserialized copied serialized_pointlist (%d bytes)", ptsize * line->points->npoints);
@@ -679,7 +679,7 @@ static size_t gserialized_from_rtpoly(const RTCTX *ctx, const RTPOLY *poly, uint
 			rterror(ctx, "Dimensions mismatch in rtpoly");
 
 		pasize = pa->npoints * ptsize;
-		memcpy(loc, getPoint_internal(ctx, pa, 0), pasize);
+		memcpy(loc, rt_getPoint_internal(ctx, pa, 0), pasize);
 		loc += pasize;
 	}
 	return (size_t)(loc - buf);
@@ -718,7 +718,7 @@ static size_t gserialized_from_rttriangle(const RTCTX *ctx, const RTTRIANGLE *tr
 	if ( triangle->points->npoints > 0 )
 	{
 		size = triangle->points->npoints * ptsize;
-		memcpy(loc, getPoint_internal(ctx, triangle->points, 0), size);
+		memcpy(loc, rt_getPoint_internal(ctx, triangle->points, 0), size);
 		loc += size;
 	}
 	RTDEBUGF(3, "rttriangle_to_gserialized copied serialized_pointlist (%d bytes)", ptsize * triangle->points->npoints);
@@ -755,7 +755,7 @@ static size_t gserialized_from_rtcircstring(const RTCTX *ctx, const RTCIRCSTRING
 	if ( curve->points->npoints > 0 )
 	{
 		size = curve->points->npoints * ptsize;
-		memcpy(loc, getPoint_internal(ctx, curve->points, 0), size);
+		memcpy(loc, rt_getPoint_internal(ctx, curve->points, 0), size);
 		loc += size;
 	}
 

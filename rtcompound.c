@@ -42,8 +42,8 @@ rtcompound_is_closed(const RTCTX *ctx, const RTCOMPOUND *compound)
 		npoints = ((RTLINE *)compound->geoms[compound->ngeoms - 1])->points->npoints;
 	}
 
-	if ( memcmp(getPoint_internal(ctx,  (RTPOINTARRAY *)compound->geoms[0]->data, 0),
-	            getPoint_internal(ctx,  (RTPOINTARRAY *)compound->geoms[compound->ngeoms - 1]->data,
+	if ( memcmp(rt_getPoint_internal(ctx,  (RTPOINTARRAY *)compound->geoms[0]->data, 0),
+	            rt_getPoint_internal(ctx,  (RTPOINTARRAY *)compound->geoms[compound->ngeoms - 1]->data,
 	                               npoints - 1),
 	            size) ) 
 	{
@@ -96,8 +96,8 @@ int rtcompound_add_rtgeom(const RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom)
 		/* Last point of the previous component */
 		RTLINE *prevline = (RTLINE*)(col->geoms[col->ngeoms-1]);
 
-		getPoint4d_p(ctx, newline->points, 0, &first);
-		getPoint4d_p(ctx, prevline->points, prevline->points->npoints-1, &last);
+		rt_getPoint4d_p(ctx, newline->points, 0, &first);
+		rt_getPoint4d_p(ctx, prevline->points, prevline->points->npoints-1, &last);
 		
 		if ( !(FP_EQUALS(first.x,last.x) && FP_EQUALS(first.y,last.y)) )
 		{

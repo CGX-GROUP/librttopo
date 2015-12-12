@@ -401,6 +401,6 @@ char* rtpoint_to_latlon(const RTCTX *ctx, const RTPOINT * pt, const char *format
 	{
 		rterror(ctx, "Cannot convert an empty point into formatted text.");
 	}
-	p = getPoint2d_cp(ctx, pt->point, 0);
+	p = rt_getPoint2d_cp(ctx, pt->point, 0);
 	return rtdoubles_to_latlon(ctx, p->y, p->x, format);
 }

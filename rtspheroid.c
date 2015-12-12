@@ -137,7 +137,7 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
 	/* Pass points from point array; don't close the linearring */
 	for ( i = 0; i < pa->npoints - 1; i++ )
 	{
-		getPoint2d_p(ctx, pa, i, &p);
+		rt_getPoint2d_p(ctx, pa, i, &p);
 		geod_polygon_addpoint(&gd, &poly, p.y, p.x);
 		RTDEBUGF(4, "geod_polygon_addpoint %d: %.12g %.12g", i, p.y, p.x);
 	}
@@ -519,7 +519,7 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
 	}
 
 	/* Initialize first point */
-	getPoint2d_p(ctx, pa, 0, &p);
+	rt_getPoint2d_p(ctx, pa, 0, &p);
 	geographic_point_init(ctx, p.x, p.y, &a);
 
 	for ( i = 1; i < pa->npoints; i++ )
@@ -529,7 +529,7 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
 		double delta_lon = 0.0;
 		RTDEBUGF(4, "edge #%d", i);
 
-		getPoint2d_p(ctx, pa, i, &p);
+		rt_getPoint2d_p(ctx, pa, i, &p);
 		geographic_point_init(ctx, p.x, p.y, &b);
 
 		a1 = a;

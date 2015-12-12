@@ -374,7 +374,7 @@ static uint8_t* ptarray_to_wkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, uin
 	if ( pa->npoints && (dims == pa_dims) && ! wkb_swap_bytes(ctx, variant) && ! (variant & RTWKB_HEX)  )
 	{
 		size_t size = pa->npoints * dims * RTWKB_DOUBLE_SIZE;
-		memcpy(buf, getPoint_internal(ctx, pa, 0), size);
+		memcpy(buf, rt_getPoint_internal(ctx, pa, 0), size);
 		buf += size;
 	}
 	/* Copy coordinates one-by-one otherwise */
@@ -383,7 +383,7 @@ static uint8_t* ptarray_to_wkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, uin
 		for ( i = 0; i < pa->npoints; i++ )
 		{
 			RTDEBUGF(4, "Writing point #%d", i);
-			dbl_ptr = (double*)getPoint_internal(ctx, pa, i);
+			dbl_ptr = (double*)rt_getPoint_internal(ctx, pa, i);
 			for ( j = 0; j < dims; j++ )
 			{
 				RTDEBUGF(4, "Writing dimension #%d (buf = %p)", j, buf);

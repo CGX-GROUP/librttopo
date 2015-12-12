@@ -141,7 +141,7 @@ static int ptarray_to_twkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, TWKB_GL
 	
 	for ( i = 0; i < pa->npoints; i++ )
 	{
-		double *dbl_ptr = (double*)getPoint_internal(ctx, pa, i);
+		double *dbl_ptr = (double*)rt_getPoint_internal(ctx, pa, i);
 		int diff = 0;
 
 		/* Write this coordinate to the buffer as a varint */

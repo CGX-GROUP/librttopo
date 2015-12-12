@@ -62,14 +62,14 @@ char * pointarray_to_encoded_polyline(const RTCTX *ctx, const RTPOINTARRAY *pa, 
 	double scale = pow(10,precision);
 
 	/* Take the double value and multiply it by 1x10^percision, rounding the result */
-	prevPoint = getPoint2d_cp(ctx, pa, 0);
+	prevPoint = rt_getPoint2d_cp(ctx, pa, 0);
 	delta[0] = round(prevPoint->y*scale);
 	delta[1] = round(prevPoint->x*scale);
 
 	/*  points only include the offset from the previous point */
 	for (i=1; i<pa->npoints; i++)
 	{
-		const RTPOINT2D *point = getPoint2d_cp(ctx, pa, i);
+		const RTPOINT2D *point = rt_getPoint2d_cp(ctx, pa, i);
 		delta[2*i] = round(point->y*scale) - round(prevPoint->y*scale);
 		delta[(2*i)+1] = round(point->x*scale) - round(prevPoint->x*scale);
 		prevPoint = point;

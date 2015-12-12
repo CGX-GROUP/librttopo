@@ -228,13 +228,13 @@ ptarray_to_GEOSCoordSeq(const RTCTX *ctx, const RTPOINTARRAY *pa)
 	{
 		if ( dims == 3 )
 		{
-			p3d = getPoint3dz_cp(ctx, pa, i);
+			p3d = rt_getPoint3dz_cp(ctx, pa, i);
 			p2d = (const RTPOINT2D *)p3d;
 			RTDEBUGF(4, "Point: %g,%g,%g", p3d->x, p3d->y, p3d->z);
 		}
 		else
 		{
-			p2d = getPoint2d_cp(ctx, pa, i);
+			p2d = rt_getPoint2d_cp(ctx, pa, i);
 			RTDEBUGF(4, "Point: %g,%g", p2d->x, p2d->y);
 		}
 
@@ -268,14 +268,14 @@ ptarray_to_GEOSLinearRing(const RTCTX *ctx, const RTPOINTARRAY *pa, int autofix)
 		/* check ring for being closed and fix if not */
 		if ( ! ptarray_is_closed_2d(ctx, pa) ) 
 		{
-			npa = ptarray_addPoint(ctx, pa, getPoint_internal(ctx, pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
+			npa = ptarray_addPoint(ctx, pa, rt_getPoint_internal(ctx, pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
 			pa = npa;
 		}
 		/* TODO: check ring for having at least 4 vertices */
 #if 0
 		while ( pa->npoints < 4 ) 
 		{
-			npa = ptarray_addPoint(ctx, npa, getPoint_internal(ctx, pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
+			npa = ptarray_addPoint(ctx, npa, rt_getPoint_internal(ctx, pa, 0), RTFLAGS_NDIMS(pa->flags), pa->npoints);
 		}
 #endif
 	}
@@ -395,7 +395,7 @@ RTGEOM2GEOS(const RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
 		if ( rtl->points->npoints == 1 ) {
 			/* Duplicate point, to make geos-friendly */
 			rtl->points = ptarray_addPoint(ctx, rtl->points,
-		                           getPoint_internal(ctx, rtl->points, 0),
+		                           rt_getPoint_internal(ctx, rtl->points, 0),
 		                           RTFLAGS_NDIMS(rtl->points->flags),
 		                           rtl->points->npoints);
 		}

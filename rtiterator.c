@@ -184,7 +184,7 @@ rtpointiterator_peek(const RTCTX *ctx, RTPOINTITERATOR* s, RTPOINT4D* p)
 	if (!rtpointiterator_has_next(ctx, s))
 		return RT_FAILURE;
 
-	return getPoint4d_p(ctx, s->pointarrays->item, s->i, p);
+	return rt_getPoint4d_p(ctx, s->pointarrays->item, s->i, p);
 }
 
 int

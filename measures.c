@@ -562,8 +562,8 @@ rt_dist2d_point_point(const RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPT
 {
 	const RTPOINT2D *p1, *p2;
 
-	p1 = getPoint2d_cp(ctx, point1->point, 0);
-	p2 = getPoint2d_cp(ctx, point2->point, 0);
+	p1 = rt_getPoint2d_cp(ctx, point1->point, 0);
+	p2 = rt_getPoint2d_cp(ctx, point2->point, 0);
 
 	return rt_dist2d_pt_pt(ctx, p1, p2, dl);
 }
@@ -576,7 +576,7 @@ rt_dist2d_point_line(const RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS *dl
 {
 	const RTPOINT2D *p;
 	RTDEBUG(2, "rt_dist2d_point_line is called");
-	p = getPoint2d_cp(ctx, point->point, 0);
+	p = rt_getPoint2d_cp(ctx, point->point, 0);
 	return rt_dist2d_pt_ptarray(ctx, p, line->points, dl);
 }
 
@@ -584,7 +584,7 @@ int
 rt_dist2d_point_circstring(const RTCTX *ctx, RTPOINT *point, RTCIRCSTRING *circ, DISTPTS *dl)
 {
 	const RTPOINT2D *p;
-	p = getPoint2d_cp(ctx, point->point, 0);
+	p = rt_getPoint2d_cp(ctx, point->point, 0);
 	return rt_dist2d_pt_ptarrayarc(ctx, p, circ->points, dl);
 }
 
@@ -601,7 +601,7 @@ rt_dist2d_point_poly(const RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS *dl
 
 	RTDEBUG(2, "rt_dist2d_point_poly called");
 
-	p = getPoint2d_cp(ctx, point->point, 0);
+	p = rt_getPoint2d_cp(ctx, point->point, 0);
 
 	if (dl->mode == DIST_MAX)
 	{
@@ -647,7 +647,7 @@ rt_dist2d_point_curvepoly(const RTCTX *ctx, RTPOINT *point, RTCURVEPOLY *poly, D
 	const RTPOINT2D *p;
 	int i;
 
-	p = getPoint2d_cp(ctx, point->point, 0);
+	p = rt_getPoint2d_cp(ctx, point->point, 0);
 
 	if (dl->mode == DIST_MAX)
 		rterror(ctx, "rt_dist2d_point_curvepoly cannot calculate max distance");
@@ -723,7 +723,7 @@ rt_dist2d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
 
 	RTDEBUGF(2, "rt_dist2d_line_poly called (%d rings)", poly->nrings);
 
-	pt = getPoint2d_cp(ctx, line->points, 0);
+	pt = rt_getPoint2d_cp(ctx, line->points, 0);
 	if ( ptarray_contains_point(ctx, poly->rings[0], pt) == RT_OUTSIDE )
 	{
 		return rt_dist2d_ptarray_ptarray(ctx, line->points, poly->rings[0], dl);
@@ -743,7 +743,7 @@ rt_dist2d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
 	 * No intersection, have to check if a point is
 	 * inside polygon
 	 */
-	pt = getPoint2d_cp(ctx, line->points, 0);
+	pt = rt_getPoint2d_cp(ctx, line->points, 0);
 
 	/*
 	 * Outside outer ring, so min distance to a ring
@@ -781,7 +781,7 @@ rt_dist2d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
 int
 rt_dist2d_line_curvepoly(const RTCTX *ctx, RTLINE *line, RTCURVEPOLY *poly, DISTPTS *dl)
 {
-	const RTPOINT2D *pt = getPoint2d_cp(ctx, line->points, 0);
+	const RTPOINT2D *pt = rt_getPoint2d_cp(ctx, line->points, 0);
 	int i;
 
 	if ( rtgeom_contains_point(ctx, poly->rings[0], pt) == RT_OUTSIDE )
@@ -843,10 +843,10 @@ rt_dist2d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 
 	/* 2	check if poly1 has first point outside poly2 and vice versa, if so, just check outer rings
 	here it would be possible to handle the information about wich one is inside wich one and only search for the smaller ones in the bigger ones holes.*/
-	pt = getPoint2d_cp(ctx, poly1->rings[0], 0);
+	pt = rt_getPoint2d_cp(ctx, poly1->rings[0], 0);
 	if ( ptarray_contains_point(ctx, poly2->rings[0], pt) == RT_OUTSIDE )
 	{
-		pt = getPoint2d_cp(ctx, poly2->rings[0], 0);
+		pt = rt_getPoint2d_cp(ctx, poly2->rings[0], 0);
 		if ( ptarray_contains_point(ctx, poly1->rings[0], pt) == RT_OUTSIDE )
 		{
 			return rt_dist2d_ptarray_ptarray(ctx, poly1->rings[0], poly2->rings[0], dl);
@@ -854,7 +854,7 @@ rt_dist2d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 	}
 
 	/*3	check if first point of poly2 is in a hole of poly1. If so check outer ring of poly2 against that hole of poly1*/
-	pt = getPoint2d_cp(ctx, poly2->rings[0], 0);
+	pt = rt_getPoint2d_cp(ctx, poly2->rings[0], 0);
 	for (i=1; i<poly1->nrings; i++)
 	{
 		/* Inside a hole */
@@ -865,7 +865,7 @@ rt_dist2d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 	}
 
 	/*4	check if first point of poly1 is in a hole of poly2. If so check outer ring of poly1 against that hole of poly2*/
-	pt = getPoint2d_cp(ctx, poly1->rings[0], 0);
+	pt = rt_getPoint2d_cp(ctx, poly1->rings[0], 0);
 	for (i=1; i<poly2->nrings; i++)
 	{
 		/* Inside a hole */
@@ -877,7 +877,7 @@ rt_dist2d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 
 
 	/*5	If we have come all the way here we know that the first point of one of them is inside the other ones outer ring and not in holes so we check wich one is inside.*/
-	pt = getPoint2d_cp(ctx, poly1->rings[0], 0);
+	pt = rt_getPoint2d_cp(ctx, poly1->rings[0], 0);
 	if ( ptarray_contains_point(ctx, poly2->rings[0], pt) != RT_OUTSIDE )
 	{
 		dl->distance = 0.0;
@@ -886,7 +886,7 @@ rt_dist2d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
 		return RT_TRUE;
 	}
 
-	pt = getPoint2d_cp(ctx, poly2->rings[0], 0);
+	pt = rt_getPoint2d_cp(ctx, poly2->rings[0], 0);
 	if ( ptarray_contains_point(ctx, poly1->rings[0], pt) != RT_OUTSIDE )
 	{
 		dl->distance = 0.0;
@@ -937,14 +937,14 @@ rt_curvering_getfirstpoint2d_cp(const RTCTX *ctx, RTGEOM *geom)
 	switch( geom->type )
 	{
 		case RTLINETYPE:
-			return getPoint2d_cp(ctx, ((RTLINE*)geom)->points, 0);
+			return rt_getPoint2d_cp(ctx, ((RTLINE*)geom)->points, 0);
 		case RTCIRCSTRINGTYPE:
-			return getPoint2d_cp(ctx, ((RTCIRCSTRING*)geom)->points, 0);
+			return rt_getPoint2d_cp(ctx, ((RTCIRCSTRING*)geom)->points, 0);
 		case RTCOMPOUNDTYPE:
 		{
 			RTCOMPOUND *comp = (RTCOMPOUND*)geom;
 			RTLINE *line = (RTLINE*)(comp->geoms[0]);
-			return getPoint2d_cp(ctx, line->points, 0);			
+			return rt_getPoint2d_cp(ctx, line->points, 0);			
 		}
 		default:
 			rterror(ctx, "rt_curvering_getfirstpoint2d_cp: unknown type");
@@ -1040,14 +1040,14 @@ rt_dist2d_pt_ptarray(const RTCTX *ctx, const RTPOINT2D *p, RTPOINTARRAY *pa,DIST
 
 	RTDEBUG(2, "rt_dist2d_pt_ptarray is called");
 
-	start = getPoint2d_cp(ctx, pa, 0);
+	start = rt_getPoint2d_cp(ctx, pa, 0);
 
 	if ( !rt_dist2d_pt_pt(ctx, p, start, dl) ) return RT_FALSE;
 
 	for (t=1; t<pa->npoints; t++)
 	{
 		dl->twisted=twist;
-		end = getPoint2d_cp(ctx, pa, t);
+		end = rt_getPoint2d_cp(ctx, pa, t);
 		if (!rt_dist2d_pt_seg(ctx, p, start, end, dl)) return RT_FALSE;
 
 		if (dl->distance<=dl->tolerance && dl->mode == DIST_MIN) return RT_TRUE; /*just a check if  the answer is already given*/
@@ -1084,7 +1084,7 @@ rt_dist2d_pt_ptarrayarc(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY
 		return RT_FALSE;
 	}
 
-	A1 = getPoint2d_cp(ctx, pa, 0);
+	A1 = rt_getPoint2d_cp(ctx, pa, 0);
 
 	if ( ! rt_dist2d_pt_pt(ctx, p, A1, dl) ) 
 		return RT_FALSE;
@@ -1092,8 +1092,8 @@ rt_dist2d_pt_ptarrayarc(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY
 	for ( t=1; t<pa->npoints; t += 2 )
 	{
 		dl->twisted = twist;
-		A2 = getPoint2d_cp(ctx, pa, t);
-		A3 = getPoint2d_cp(ctx, pa, t+1);
+		A2 = rt_getPoint2d_cp(ctx, pa, t);
+		A3 = rt_getPoint2d_cp(ctx, pa, t+1);
 		
 		if ( rt_dist2d_pt_arc(ctx, p, A1, A2, A3, dl) == RT_FALSE ) 
 			return RT_FALSE;
@@ -1127,10 +1127,10 @@ rt_dist2d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,D
 	{
 		for (t=0; t<l1->npoints; t++) /*for each segment in L1 */
 		{
-			start = getPoint2d_cp(ctx, l1, t);
+			start = rt_getPoint2d_cp(ctx, l1, t);
 			for (u=0; u<l2->npoints; u++) /*for each segment in L2 */
 			{
-				start2 = getPoint2d_cp(ctx, l2, u);
+				start2 = rt_getPoint2d_cp(ctx, l2, u);
 				rt_dist2d_pt_pt(ctx, start, start2, dl);
 				RTDEBUGF(4, "maxdist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
 				RTDEBUGF(3, " seg%d-seg%d dist: %f, mindist: %f",
@@ -1140,14 +1140,14 @@ rt_dist2d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,D
 	}
 	else
 	{
-		start = getPoint2d_cp(ctx, l1, 0);
+		start = rt_getPoint2d_cp(ctx, l1, 0);
 		for (t=1; t<l1->npoints; t++) /*for each segment in L1 */
 		{
-			end = getPoint2d_cp(ctx, l1, t);
-			start2 = getPoint2d_cp(ctx, l2, 0);
+			end = rt_getPoint2d_cp(ctx, l1, t);
+			start2 = rt_getPoint2d_cp(ctx, l2, 0);
 			for (u=1; u<l2->npoints; u++) /*for each segment in L2 */
 			{
-				end2 = getPoint2d_cp(ctx, l2, u);
+				end2 = rt_getPoint2d_cp(ctx, l2, u);
 				dl->twisted=twist;
 				rt_dist2d_seg_seg(ctx, start, end, start2, end2, dl);
 				RTDEBUGF(4, "mindist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
@@ -1191,15 +1191,15 @@ rt_dist2d_ptarray_ptarrayarc(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTP
 	}
 	else
 	{
-		A1 = getPoint2d_cp(ctx, pa, 0);
+		A1 = rt_getPoint2d_cp(ctx, pa, 0);
 		for ( t=1; t < pa->npoints; t++ ) /* For each segment in pa */
 		{
-			A2 = getPoint2d_cp(ctx, pa, t);
-			B1 = getPoint2d_cp(ctx, pb, 0);
+			A2 = rt_getPoint2d_cp(ctx, pa, t);
+			B1 = rt_getPoint2d_cp(ctx, pb, 0);
 			for ( u=1; u < pb->npoints; u += 2 ) /* For each arc in pb */
 			{
-				B2 = getPoint2d_cp(ctx, pb, u);
-				B3 = getPoint2d_cp(ctx, pb, u+1);
+				B2 = rt_getPoint2d_cp(ctx, pb, u);
+				B3 = rt_getPoint2d_cp(ctx, pb, u+1);
 				dl->twisted = twist;
 
 				rt_dist2d_seg_arc(ctx, A1, A2, B1, B2, B3, dl);
@@ -1240,16 +1240,16 @@ rt_dist2d_ptarrayarc_ptarrayarc(const RTCTX *ctx, const RTPOINTARRAY *pa, const 
 	}
 	else
 	{
-		A1 = getPoint2d_cp(ctx, pa, 0);
+		A1 = rt_getPoint2d_cp(ctx, pa, 0);
 		for ( t=1; t < pa->npoints; t += 2 ) /* For each segment in pa */
 		{
-			A2 = getPoint2d_cp(ctx, pa, t);
-			A3 = getPoint2d_cp(ctx, pa, t+1);
-			B1 = getPoint2d_cp(ctx, pb, 0);
+			A2 = rt_getPoint2d_cp(ctx, pa, t);
+			A3 = rt_getPoint2d_cp(ctx, pa, t+1);
+			B1 = rt_getPoint2d_cp(ctx, pb, 0);
 			for ( u=1; u < pb->npoints; u += 2 ) /* For each arc in pb */
 			{
-				B2 = getPoint2d_cp(ctx, pb, u);
-				B3 = getPoint2d_cp(ctx, pb, u+1);
+				B2 = rt_getPoint2d_cp(ctx, pb, u);
+				B3 = rt_getPoint2d_cp(ctx, pb, u+1);
 				dl->twisted = twist;
 
 				rt_dist2d_arc_arc(ctx, A1, A2, A3, B1, B2, B3, dl);
@@ -1817,7 +1817,7 @@ rt_dist2d_fast_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY 
 		k = -deltaX/deltaY;
 		for (t=0; t<n1; t++) /*for each segment in L1 */
 		{
-			theP = getPoint2d_cp(ctx, l1, t);
+			theP = rt_getPoint2d_cp(ctx, l1, t);
 			thevalue = theP->y - (k * theP->x);
 			list1[t].themeasure=thevalue;
 			list1[t].pnr=t;
@@ -1825,7 +1825,7 @@ rt_dist2d_fast_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY 
 		}
 		for (t=0; t<n2; t++) /*for each segment in L2*/
 		{
-			theP = getPoint2d_cp(ctx, l2, t);
+			theP = rt_getPoint2d_cp(ctx, l2, t);
 			thevalue = theP->y - (k * theP->x);
 			list2[t].themeasure=thevalue;
 			list2[t].pnr=t;
@@ -1843,7 +1843,7 @@ rt_dist2d_fast_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY 
 		k = -deltaY/deltaX;
 		for (t=0; t<n1; t++) /*for each segment in L1 */
 		{
-			theP = getPoint2d_cp(ctx, l1, t);
+			theP = rt_getPoint2d_cp(ctx, l1, t);
 			thevalue = theP->x - (k * theP->y);
 			list1[t].themeasure=thevalue;
 			list1[t].pnr=t;
@@ -1851,7 +1851,7 @@ rt_dist2d_fast_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY 
 		}
 		for (t=0; t<n2; t++) /*for each segment in L2*/
 		{
-			theP = getPoint2d_cp(ctx, l2, t);
+			theP = rt_getPoint2d_cp(ctx, l2, t);
 			thevalue = theP->x - (k * theP->y);
 			list2[t].themeasure=thevalue;
 			list2[t].pnr=t;
@@ -1911,8 +1911,8 @@ rt_dist2d_pre_seg_seg(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTS
 
 	RTDEBUG(2, "rt_dist2d_pre_seg_seg is called");
 
-	p1 = getPoint2d_cp(ctx, l1, list1[0].pnr);
-	p3 = getPoint2d_cp(ctx, l2, list2[0].pnr);
+	p1 = rt_getPoint2d_cp(ctx, l1, list1[0].pnr);
+	p3 = rt_getPoint2d_cp(ctx, l2, list2[0].pnr);
 	rt_dist2d_pt_pt(ctx, p1, p3, dl);
 	maxmeasure = sqrt(dl->distance*dl->distance + (dl->distance*dl->distance*k*k));
 	twist = dl->twisted; /*to keep the incomming order between iterations*/
@@ -1925,51 +1925,51 @@ rt_dist2d_pre_seg_seg(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTS
 		for (r=-1; r<=1; r +=2) /*because we are not iterating in the original pointorder we have to check the segment before and after every point*/
 		{
 			pnr1 = list1[i].pnr;
-			p1 = getPoint2d_cp(ctx, l1, pnr1);
+			p1 = rt_getPoint2d_cp(ctx, l1, pnr1);
 			if (pnr1+r<0)
 			{
-				p01 = getPoint2d_cp(ctx, l1, (n1-1));
+				p01 = rt_getPoint2d_cp(ctx, l1, (n1-1));
 				if (( p1->x == p01->x) && (p1->y == p01->y)) pnr2 = (n1-1);
 				else pnr2 = pnr1; /* if it is a line and the last and first point is not the same we avoid the edge between start and end this way*/
 			}
 
 			else if (pnr1+r>(n1-1))
 			{
-				p01 = getPoint2d_cp(ctx, l1, 0);
+				p01 = rt_getPoint2d_cp(ctx, l1, 0);
 				if (( p1->x == p01->x) && (p1->y == p01->y)) pnr2 = 0;
 				else pnr2 = pnr1; /* if it is a line and the last and first point is not the same we avoid the edge between start and end this way*/
 			}
 			else pnr2 = pnr1+r;
 
 
-			p2 = getPoint2d_cp(ctx, l1, pnr2);
+			p2 = rt_getPoint2d_cp(ctx, l1, pnr2);
 			for (u=0; u<n2; ++u)
 			{
 				if (((list2[u].themeasure-list1[i].themeasure)) >= maxmeasure) break;
 				pnr3 = list2[u].pnr;
-				p3 = getPoint2d_cp(ctx, l2, pnr3);
+				p3 = rt_getPoint2d_cp(ctx, l2, pnr3);
 				if (pnr3==0)
 				{
-					p02 = getPoint2d_cp(ctx, l2, (n2-1));
+					p02 = rt_getPoint2d_cp(ctx, l2, (n2-1));
 					if (( p3->x == p02->x) && (p3->y == p02->y)) pnr4 = (n2-1);
 					else pnr4 = pnr3; /* if it is a line and the last and first point is not the same we avoid the edge between start and end this way*/
 				}
 				else pnr4 = pnr3-1;
 
-				p4 = getPoint2d_cp(ctx, l2, pnr4);
+				p4 = rt_getPoint2d_cp(ctx, l2, pnr4);
 				dl->twisted=twist;
 				if (!rt_dist2d_selected_seg_seg(ctx, p1, p2, p3, p4, dl)) return RT_FALSE;
 
 				if (pnr3>=(n2-1))
 				{
-					p02 = getPoint2d_cp(ctx, l2, 0);
+					p02 = rt_getPoint2d_cp(ctx, l2, 0);
 					if (( p3->x == p02->x) && (p3->y == p02->y)) pnr4 = 0;
 					else pnr4 = pnr3; /* if it is a line and the last and first point is not the same we avoid the edge between start and end this way*/
 				}
 
 				else pnr4 = pnr3+1;
 
-				p4 = getPoint2d_cp(ctx, l2, pnr4);
+				p4 = rt_getPoint2d_cp(ctx, l2, pnr4);
 				dl->twisted=twist; /*we reset the "twist" for each iteration*/
 				if (!rt_dist2d_selected_seg_seg(ctx, p1, p2, p3, p4, dl)) return RT_FALSE;
 

@@ -113,8 +113,8 @@ int rtpsurface_is_closed(const RTCTX *ctx, const RTPSURFACE *psurface)
 		for (j=0; j < patch->rings[0]->npoints - 1; j++)
 		{
 
-			getPoint4d_p(ctx, patch->rings[0], j,   &pa);
-			getPoint4d_p(ctx, patch->rings[0], j+1, &pb);
+			rt_getPoint4d_p(ctx, patch->rings[0], j,   &pa);
+			rt_getPoint4d_p(ctx, patch->rings[0], j+1, &pb);
 
 			/* remove redundant points if any */
 			if (pa.x == pb.x && pa.y == pb.y && pa.z == pb.z) continue;
@@ -125,7 +125,7 @@ int rtpsurface_is_closed(const RTCTX *ctx, const RTPSURFACE *psurface)
 			        (pa.x == pb.x && pa.y == pb.y && pa.z > pb.z) )
 			{
 				pa = pb;
-				getPoint4d_p(ctx, patch->rings[0], j, &pb);
+				rt_getPoint4d_p(ctx, patch->rings[0], j, &pb);
 			}
 
 			for (found=0, k=0; k < carc ; k++)

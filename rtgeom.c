@@ -571,7 +571,7 @@ rtpoint_inside_circle(const RTCTX *ctx, const RTPOINT *p, double cx, double cy, 
 	if ( ! p || ! p->point )
 		return RT_FALSE;
 		
-	pt = getPoint2d_cp(ctx, p->point, 0);
+	pt = rt_getPoint2d_cp(ctx, p->point, 0);
 
 	center.x = cx;
 	center.y = cy;

@@ -278,7 +278,7 @@ rtline_from_rtmpoint(const RTCTX *ctx, int srid, const RTMPOINT *mpoint)
 
 	for (i=0; i < npoints; i++)
 	{
-		getPoint4d_p(ctx, mpoint->geoms[i]->point, 0, &pt);
+		rt_getPoint4d_p(ctx, mpoint->geoms[i]->point, 0, &pt);
 		ptarray_set_point4d(ctx, pa, i, &pt);
 	}
 	
@@ -302,7 +302,7 @@ rtline_get_rtpoint(const RTCTX *ctx, const RTLINE *line, int where)
 		return NULL;
 
 	pa = ptarray_construct_empty(ctx, RTFLAGS_GET_Z(line->flags), RTFLAGS_GET_M(line->flags), 1);
-	pt = getPoint4d(ctx, line->points, where);
+	pt = rt_getPoint4d(ctx, line->points, where);
 	ptarray_append_point(ctx, pa, &pt, RT_TRUE);
 	rtpoint = rtpoint_construct(ctx, line->srid, NULL, pa);
 	return rtpoint;
@@ -313,7 +313,7 @@ int
 rtline_add_rtpoint(const RTCTX *ctx, RTLINE *line, RTPOINT *point, int where)
 {
 	RTPOINT4D pt;	
-	getPoint4d_p(ctx, point->point, 0, &pt);
+	rt_getPoint4d_p(ctx, point->point, 0, &pt);
 
 	if ( ptarray_insert_point(ctx, line->points, &pt, where) != RT_SUCCESS )
 		return RT_FAILURE;
@@ -390,7 +390,7 @@ rtline_measured_from_rtline(const RTCTX *ctx, const RTLINE *rtline, double m_sta
 	{
 		npoints = rtline->points->npoints;
 		length = ptarray_length_2d(ctx, rtline->points);
-		getPoint3dz_p(ctx, rtline->points, 0, &p1);
+		rt_getPoint3dz_p(ctx, rtline->points, 0, &p1);
 	}
 
 	pa = ptarray_construct(ctx, hasz, hasm, npoints);
@@ -399,7 +399,7 @@ rtline_measured_from_rtline(const RTCTX *ctx, const RTLINE *rtline, double m_sta
 	{
 		RTPOINT4D q;
 		RTPOINT2D a, b;
-		getPoint3dz_p(ctx, rtline->points, i, &p2);
+		rt_getPoint3dz_p(ctx, rtline->points, i, &p2);
 		a.x = p1.x;
 		a.y = p1.y;
 		b.x = p2.x;
@@ -460,7 +460,7 @@ rtline_is_trajectory(const RTCTX *ctx, const RTLINE *line)
   if ( n < 2 ) return RT_TRUE; /* empty or single-point are "good" */
 
   for (i=0; i<n; ++i) {
-    getPoint3dm_p(ctx, line->points, i, &p);
+    rt_getPoint3dm_p(ctx, line->points, i, &p);
     if ( p.m <= m ) {
       rtnotice(ctx, "Measure of vertex %d (%g) not bigger than measure of vertex %d (%g)",
         i, p.m, i-1, m);
@@ -531,7 +531,7 @@ RTLINE* rtline_simplify(const RTCTX *ctx, const RTLINE *iline, double dist, int 
 		if ( preserve_collapsed )
 		{
 			RTPOINT4D pt;
-			getPoint4d_p(ctx, pa, 0, &pt);		
+			rt_getPoint4d_p(ctx, pa, 0, &pt);		
 			ptarray_append_point(ctx, pa, &pt, RT_TRUE);
 		}
 		/* Return null for collapse */

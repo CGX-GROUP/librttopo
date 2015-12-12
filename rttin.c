@@ -100,8 +100,8 @@ int rttin_is_closed(const RTCTX *ctx, const RTTIN *tin)
 		for (j=0; j < 3 ; j++)
 		{
 
-			getPoint4d_p(ctx, patch->points, j,   &pa);
-			getPoint4d_p(ctx, patch->points, j+1, &pb);
+			rt_getPoint4d_p(ctx, patch->points, j,   &pa);
+			rt_getPoint4d_p(ctx, patch->points, j+1, &pb);
 
 			/* Make sure to order the 'lower' point first */
 			if ( (pa.x > pb.x) ||
@@ -109,7 +109,7 @@ int rttin_is_closed(const RTCTX *ctx, const RTTIN *tin)
 			        (pa.x == pb.x && pa.y == pb.y && pa.z > pb.z) )
 			{
 				pa = pb;
-				getPoint4d_p(ctx, patch->points, j, &pb);
+				rt_getPoint4d_p(ctx, patch->points, j, &pb);
 			}
 
 			for (found=0, k=0; k < carc ; k++)

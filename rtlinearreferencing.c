@@ -75,8 +75,8 @@ ptarray_locate_along(const RTCTX *ctx, const RTPOINTARRAY *pa, double m, double 
 	/* Walk through each segment in the point array */
 	for ( i = 1; i < pa->npoints; i++ )
 	{
-		getPoint4d_p(ctx, pa, i-1, &p1);
-		getPoint4d_p(ctx, pa, i, &p2);
+		rt_getPoint4d_p(ctx, pa, i-1, &p1);
+		rt_getPoint4d_p(ctx, pa, i, &p2);
 
 		/* No derived point? Move to next segment. */
 		if ( segment_locate_along(ctx, &p1, &p2, m, offset, &pn) == RT_FALSE )
@@ -598,7 +598,7 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
 			*q = *p;
 			ordinate_value_q = ordinate_value_p;
 		}
-		getPoint4d_p(ctx, pa_in, i, p);
+		rt_getPoint4d_p(ctx, pa_in, i, p);
 		ordinate_value_p = rtpoint_get_ordinate(ctx, p, ordinate);
 		RTDEBUGF(4, " ordinate_value_p %g (current)", ordinate_value_p);
 		RTDEBUGF(4, " ordinate_value_q %g (previous)", ordinate_value_q);
@@ -987,7 +987,7 @@ ptarray_collect_mvals(const RTCTX *ctx, const RTPOINTARRAY *pa, double tmin, dou
 	int i, n=0;
 	for (i=0; i<pa->npoints; ++i)
 	{
-		getPoint4d_p(ctx, pa, i, &pbuf); /* could be optimized */
+		rt_getPoint4d_p(ctx, pa, i, &pbuf); /* could be optimized */
 		if ( pbuf.m >= tmin && pbuf.m <= tmax )
 			mvals[n++] = pbuf.m;
 	}
@@ -1045,10 +1045,10 @@ ptarray_locate_along_linear(const RTCTX *ctx, const RTPOINTARRAY *pa, double m, 
 	RTPOINT4D p1, p2;
 
 	/* Walk through each segment in the point array */
-	getPoint4d_p(ctx, pa, i, &p1);
+	rt_getPoint4d_p(ctx, pa, i, &p1);
 	for ( i = from+1; i < pa->npoints; i++ )
 	{
-		getPoint4d_p(ctx, pa, i, &p2);
+		rt_getPoint4d_p(ctx, pa, i, &p2);
 
 		if ( segment_locate_along(ctx, &p1, &p2, m, 0, p) == RT_TRUE )
 			return i-1; /* found */

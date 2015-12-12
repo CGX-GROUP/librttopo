@@ -171,7 +171,7 @@ rtcircstring_from_rtpointarray(const RTCTX *ctx, int srid, uint32_t npoints, RTP
 	for (i = 0; i < npoints; i++)
 	{
 		size = ptarray_point_size(ctx, points[i]->point);
-		memcpy(ptr, getPoint_internal(ctx, points[i]->point, 0), size);
+		memcpy(ptr, rt_getPoint_internal(ctx, points[i]->point, 0), size);
 		ptr += ptsize;
 	}
 	pa = ptarray_construct_reference_data(ctx, zmflag&2, zmflag&1, npoints, newpoints);
@@ -204,7 +204,7 @@ rtcircstring_from_rtmpoint(const RTCTX *ctx, int srid, RTMPOINT *mpoint)
 	for (i = 0; i < mpoint->ngeoms; i++)
 	{
 		memcpy(ptr,
-		       getPoint_internal(ctx, mpoint->geoms[i]->point, 0),
+		       rt_getPoint_internal(ctx, mpoint->geoms[i]->point, 0),
 		       ptsize);
 		ptr += ptsize;
 	}
@@ -223,7 +223,7 @@ rtcircstring_addpoint(const RTCTX *ctx, RTCIRCSTRING *curve, RTPOINT *point, uin
 	RTCIRCSTRING *ret;
 
 	newpa = ptarray_addPoint(ctx, curve->points,
-	                         getPoint_internal(ctx, point->point, 0),
+	                         rt_getPoint_internal(ctx, point->point, 0),
 	                         RTFLAGS_NDIMS(point->flags), where);
 	ret = rtcircstring_construct(ctx, curve->srid, NULL, newpa);
 
@@ -293,7 +293,7 @@ RTPOINT* rtcircstring_get_rtpoint(const RTCTX *ctx, const RTCIRCSTRING *circ, in
 		return NULL;
 
 	pa = ptarray_construct_empty(ctx, RTFLAGS_GET_Z(circ->flags), RTFLAGS_GET_M(circ->flags), 1);
-	pt = getPoint4d(ctx, circ->points, where);
+	pt = rt_getPoint4d(ctx, circ->points, where);
 	ptarray_append_point(ctx, pa, &pt, RT_TRUE);
 	rtpoint = rtpoint_construct(ctx, circ->srid, NULL, pa);
 	return rtpoint;

@@ -203,9 +203,9 @@ rtcircstring_stroke(const RTCTX *ctx, const RTCIRCSTRING *icurve, uint32_t perQu
 	{
 		RTDEBUGF(3, "rtcircstring_stroke: arc ending at point %d", i);
 
-		getPoint4d_p(ctx, icurve->points, i - 2, &p1);
-		getPoint4d_p(ctx, icurve->points, i - 1, &p2);
-		getPoint4d_p(ctx, icurve->points, i, &p3);
+		rt_getPoint4d_p(ctx, icurve->points, i - 2, &p1);
+		rt_getPoint4d_p(ctx, icurve->points, i - 1, &p2);
+		rt_getPoint4d_p(ctx, icurve->points, i, &p3);
 		tmp = rtcircle_stroke(ctx, &p1, &p2, &p3, perQuad);
 
 		if (tmp)
@@ -214,7 +214,7 @@ rtcircstring_stroke(const RTCTX *ctx, const RTCIRCSTRING *icurve, uint32_t perQu
 
 			for (j = 0; j < tmp->npoints; j++)
 			{
-				getPoint4d_p(ctx, tmp, j, &p4);
+				rt_getPoint4d_p(ctx, tmp, j, &p4);
 				ptarray_append_point(ctx, ptarray, &p4, RT_TRUE);
 			}
 			ptarray_free(ctx, tmp);
@@ -225,13 +225,13 @@ rtcircstring_stroke(const RTCTX *ctx, const RTCIRCSTRING *icurve, uint32_t perQu
 
 			for (j = i - 2 ; j < i ; j++)
 			{
-				getPoint4d_p(ctx, icurve->points, j, &p4);
+				rt_getPoint4d_p(ctx, icurve->points, j, &p4);
 				ptarray_append_point(ctx, ptarray, &p4, RT_TRUE);
 			}
 		}
 
 	}
-	getPoint4d_p(ctx, icurve->points, icurve->points->npoints-1, &p1);
+	rt_getPoint4d_p(ctx, icurve->points, icurve->points->npoints-1, &p1);
 	ptarray_append_point(ctx, ptarray, &p1, RT_TRUE);
 		
 	oline = rtline_construct(ctx, icurve->srid, NULL, ptarray);
@@ -259,7 +259,7 @@ rtcompound_stroke(const RTCTX *ctx, const RTCOMPOUND *icompound, uint32_t perQua
 			tmp = rtcircstring_stroke(ctx, (RTCIRCSTRING *)geom, perQuad);
 			for (j = 0; j < tmp->points->npoints; j++)
 			{
-				getPoint4d_p(ctx, tmp->points, j, &p);
+				rt_getPoint4d_p(ctx, tmp->points, j, &p);
 				ptarray_append_point(ctx, ptarray, &p, RT_TRUE);
 			}
 			rtline_free(ctx, tmp);
@@ -269,7 +269,7 @@ rtcompound_stroke(const RTCTX *ctx, const RTCOMPOUND *icompound, uint32_t perQua
 			tmp = (RTLINE *)geom;
 			for (j = 0; j < tmp->points->npoints; j++)
 			{
-				getPoint4d_p(ctx, tmp->points, j, &p);
+				rt_getPoint4d_p(ctx, tmp->points, j, &p);
 				ptarray_append_point(ctx, ptarray, &p, RT_TRUE);
 			}
 		}
@@ -548,7 +548,7 @@ linestring_from_pa(const RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
 	for( i = start; i < end + 2; i++ )
 	{
-		getPoint4d_p(ctx, pa, i, &p);
+		rt_getPoint4d_p(ctx, pa, i, &p);
 		ptarray_set_point4d(ctx, pao, j++, &p);	
 	}
 	return rtline_as_rtgeom(ctx, rtline_construct(ctx, srid, NULL, pao));
@@ -561,11 +561,11 @@ circstring_from_pa(const RTCTX *ctx, const RTPOINTARRAY *pa, int srid, int start
 	RTPOINT4D p0, p1, p2;
 	RTPOINTARRAY *pao = ptarray_construct(ctx, ptarray_has_z(ctx, pa), ptarray_has_m(ctx, pa), 3);
 	RTDEBUGF(4, "srid=%d, start=%d, end=%d", srid, start, end);
-	getPoint4d_p(ctx, pa, start, &p0);
+	rt_getPoint4d_p(ctx, pa, start, &p0);
 	ptarray_set_point4d(ctx, pao, 0, &p0);	
-	getPoint4d_p(ctx, pa, (start+end+1)/2, &p1);
+	rt_getPoint4d_p(ctx, pa, (start+end+1)/2, &p1);
 	ptarray_set_point4d(ctx, pao, 1, &p1);	
-	getPoint4d_p(ctx, pa, end+1, &p2);
+	rt_getPoint4d_p(ctx, pa, end+1, &p2);
 	ptarray_set_point4d(ctx, pao, 2, &p2);	
 	return rtcircstring_as_rtgeom(ctx, rtcircstring_construct(ctx, srid, NULL, pao));
 }
@@ -626,15 +626,15 @@ pta_unstroke(const RTCTX *ctx, const RTPOINTARRAY *points, int type, int srid)
 
 		found_arc = RT_FALSE;
 		/* Make candidate arc */
-		getPoint4d_p(ctx, points, i  , &a1);
-		getPoint4d_p(ctx, points, i+1, &a2);
-		getPoint4d_p(ctx, points, i+2, &a3);
+		rt_getPoint4d_p(ctx, points, i  , &a1);
+		rt_getPoint4d_p(ctx, points, i+1, &a2);
+		rt_getPoint4d_p(ctx, points, i+2, &a3);
 		memcpy(&first, &a1, sizeof(RTPOINT4D));
 
 		for( j = i+3; j < num_edges+1; j++ )
 		{
 			RTDEBUGF(4, "i=%d, j=%d", i, j);
-			getPoint4d_p(ctx, points, j, &b);
+			rt_getPoint4d_p(ctx, points, j, &b);
 			/* Does this point fall on our candidate arc? */
 			if ( pt_continues_arc(ctx, &a1, &a2, &a3, &b) )
 			{

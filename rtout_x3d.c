@@ -834,7 +834,7 @@ pointArray_toX3D3(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precisio
 			if ( !is_closed || i < (pa->npoints - 1) )
 			{
 				RTPOINT2D pt;
-				getPoint2d_p(ctx, pa, i, &pt);
+				rt_getPoint2d_p(ctx, pa, i, &pt);
 
 				if (fabs(pt.x) < OUT_MAX_DOUBLE)
 					sprintf(x, "%.*f", precision, pt.x);
@@ -866,7 +866,7 @@ pointArray_toX3D3(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precisio
 			if ( !is_closed || i < (pa->npoints - 1) )
 			{
 				RTPOINT4D pt;
-				getPoint4d_p(ctx, pa, i, &pt);
+				rt_getPoint4d_p(ctx, pa, i, &pt);
 
 				if (fabs(pt.x) < OUT_MAX_DOUBLE)
 					sprintf(x, "%.*f", precision, pt.x);

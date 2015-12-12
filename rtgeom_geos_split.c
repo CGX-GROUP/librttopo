@@ -239,7 +239,7 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
 	 *      -> Return 2
 	 */
 
-	getPoint4d_p(ctx, blade_in->point, 0, &pt);
+	rt_getPoint4d_p(ctx, blade_in->point, 0, &pt);
 	loc = ptarray_locate_point(ctx, rtline_in->points, &pt, &dist, &pt_projected);
 
 	/* rtnotice(ctx, "Location: %g -- Distance: %g", loc, dist); */

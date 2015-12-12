@@ -515,7 +515,7 @@ int ptarray_calculate_gbox_cartesian(const RTCTX *ctx, const RTPOINTARRAY *pa, R
 	gbox->flags = gflags(ctx, has_z, has_m, 0);
 	RTDEBUGF(4, "ptarray_calculate_gbox Z: %d M: %d", has_z, has_m);
 
-	getPoint4d_p(ctx, pa, 0, &p);
+	rt_getPoint4d_p(ctx, pa, 0, &p);
 	gbox->xmin = gbox->xmax = p.x;
 	gbox->ymin = gbox->ymax = p.y;
 	if ( has_z )
@@ -525,7 +525,7 @@ int ptarray_calculate_gbox_cartesian(const RTCTX *ctx, const RTPOINTARRAY *pa, R
 
 	for ( i = 1 ; i < pa->npoints; i++ )
 	{
-		getPoint4d_p(ctx, pa, i, &p);
+		rt_getPoint4d_p(ctx, pa, i, &p);
 		gbox->xmin = FP_MIN(gbox->xmin, p.x);
 		gbox->xmax = FP_MAX(gbox->xmax, p.x);
 		gbox->ymin = FP_MIN(gbox->ymin, p.y);
@@ -562,9 +562,9 @@ static int rtcircstring_calculate_gbox_cartesian(const RTCTX *ctx, RTCIRCSTRING 
 
 	for ( i = 2; i < curve->points->npoints; i += 2 )
 	{
-		getPoint4d_p(ctx, curve->points, i-2, &p1);
-		getPoint4d_p(ctx, curve->points, i-1, &p2);
-		getPoint4d_p(ctx, curve->points, i, &p3);
+		rt_getPoint4d_p(ctx, curve->points, i-2, &p1);
+		rt_getPoint4d_p(ctx, curve->points, i-1, &p2);
+		rt_getPoint4d_p(ctx, curve->points, i, &p3);
 
 		if (rt_arc_calculate_gbox_cartesian(ctx, &p1, &p2, &p3, &tmp) == RT_FAILURE)
 			continue;

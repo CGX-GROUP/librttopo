@@ -838,8 +838,8 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
       if ( n->node_id == startNode )
       {
         /* l) Check that start point of acurve match start node geoms. */
-        getPoint2d_p(iface->ctx, geom->points, 0, &p1);
-        getPoint2d_p(iface->ctx, n->geom->point, 0, &p2);
+        rt_getPoint2d_p(iface->ctx, geom->points, 0, &p1);
+        rt_getPoint2d_p(iface->ctx, n->geom->point, 0, &p2);
         if ( ! p2d_same(iface->ctx, &p1, &p2) )
         {
           _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
@@ -851,8 +851,8 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
       else
       {
         /* m) Check that end point of acurve match end node geoms. */
-        getPoint2d_p(iface->ctx, geom->points, geom->points->npoints-1, &p1);
-        getPoint2d_p(iface->ctx, n->geom->point, 0, &p2);
+        rt_getPoint2d_p(iface->ctx, geom->points, geom->points->npoints-1, &p1);
+        rt_getPoint2d_p(iface->ctx, n->geom->point, 0, &p2);
         if ( ! p2d_same(iface->ctx, &p1, &p2) )
         {
           _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
@@ -1405,11 +1405,11 @@ _rtt_FirstDistinctVertex2D(const RTCTX *ctx, const RTPOINTARRAY* pa, RTPOINT2D *
   }
 
   RTDEBUGF(1, "first point is index %d", from);
-  fp = *ref; /* getPoint2d_p(ctx, pa, from, &fp); */
+  fp = *ref; /* rt_getPoint2d_p(ctx, pa, from, &fp); */
   for ( i = from+inc; i != toofar; i += inc )
   {
     RTDEBUGF(1, "testing point %d", i);
-    getPoint2d_p(ctx, pa, i, op); /* pick next point */
+    rt_getPoint2d_p(ctx, pa, i, op); /* pick next point */
     if ( p2d_same(ctx, op, &fp) ) continue; /* equal to startpoint */
     /* this is a good one, neither same of start nor of end point */
     return 1; /* found */
@@ -1551,8 +1551,8 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     }}
 
     if ( edge->start_node == node ) {
-      getPoint2d_p(iface->ctx, pa, 0, &p1);
-      getPoint2d_p(iface->ctx, pa, 1, &p2);
+      rt_getPoint2d_p(iface->ctx, pa, 0, &p1);
+      rt_getPoint2d_p(iface->ctx, pa, 1, &p2);
       RTDEBUGF(1, "edge %" RTTFMT_ELEMID
                   " starts on node %" RTTFMT_ELEMID
                   ", edgeend is %g,%g-%g,%g",
@@ -1608,8 +1608,8 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     }
 
     if ( edge->end_node == node ) {
-      getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p1);
-      getPoint2d_p(iface->ctx, pa, pa->npoints-2, &p2);
+      rt_getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p1);
+      rt_getPoint2d_p(iface->ctx, pa, pa->npoints-2, &p2);
       RTDEBUGF(1, "edge %" RTTFMT_ELEMID " ends on node %" RTTFMT_ELEMID
                   ", edgeend is %g,%g-%g,%g",
                   edge->edge_id, node, p1.x, p1.y, p2.x, p2.y);
@@ -1702,11 +1702,11 @@ _rtt_GetInteriorEdgePoint(const RTCTX *ctx, const RTLINE* edge, RTPOINT2D* ip)
 
   if ( pa->npoints < 2 ) return 0; /* empty or structurally collapsed */
 
-  getPoint2d_p(ctx, pa, 0, &fp); /* save first point */
-  getPoint2d_p(ctx, pa, pa->npoints-1, &lp); /* save last point */
+  rt_getPoint2d_p(ctx, pa, 0, &fp); /* save first point */
+  rt_getPoint2d_p(ctx, pa, pa->npoints-1, &lp); /* save last point */
   for (i=1; i<pa->npoints-1; ++i)
   {
-    getPoint2d_p(ctx, pa, i, &tp); /* pick next point */
+    rt_getPoint2d_p(ctx, pa, i, &tp); /* pick next point */
     if ( p2d_same(ctx, &tp, &fp) ) continue; /* equal to startpoint */
     if ( p2d_same(ctx, &tp, &lp) ) continue; /* equal to endpoint */
     /* this is a good one, neither same of start nor of end point */
@@ -2360,8 +2360,8 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   epan.cwFace = epan.ccwFace = -1;
 
   /* Compute azimut of first edge end on start node */
-  getPoint2d_p(iface->ctx, pa, 0, &p1);
-  getPoint2d_p(iface->ctx, pa, 1, &pn);
+  rt_getPoint2d_p(iface->ctx, pa, 0, &p1);
+  rt_getPoint2d_p(iface->ctx, pa, 1, &pn);
   if ( p2d_same(iface->ctx, &p1, &pn) ) {
     rtgeom_free(iface->ctx, cleangeom);
     /* Can still happen, for 2-point lines */
@@ -2377,8 +2377,8 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   RTDEBUGF(1, "edge's start node is %g,%g", p1.x, p1.y);
 
   /* Compute azimuth of last edge end on end node */
-  getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p2);
-  getPoint2d_p(iface->ctx, pa, pa->npoints-2, &pn);
+  rt_getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p2);
+  rt_getPoint2d_p(iface->ctx, pa, pa->npoints-2, &pn);
   rtgeom_free(iface->ctx, cleangeom);
   if ( ! azimuth_pt_pt(iface->ctx, &p2, &pn, &epan.myaz) ) {
     rterror(iface->ctx, "error computing azimuth of last edgeend [%g,%g-%g,%g]",
@@ -2445,7 +2445,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     else
     {
       pa = start_node_geom->point;
-      getPoint2d_p(iface->ctx, pa, 0, &pn);
+      rt_getPoint2d_p(iface->ctx, pa, 0, &pn);
       if ( ! p2d_same(iface->ctx, &pn, &p1) )
       {
         if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
@@ -2466,7 +2466,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     else
     {
       pa = end_node_geom->point;
-      getPoint2d_p(iface->ctx, pa, 0, &pn);
+      rt_getPoint2d_p(iface->ctx, pa, 0, &pn);
       if ( ! p2d_same(iface->ctx, &pn, &p2) )
       {
         if ( num_nodes ) _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
@@ -2877,7 +2877,7 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
   RTPOINT2D p1;
 
   /* Get starting ring point */
-  getPoint2d_p(ctx, ring, from, &p1);
+  rt_getPoint2d_p(ctx, ring, from, &p1);
 
   RTDEBUGF(1, "Ring's 'from' point (%d) is %g,%g", from, p1.x, p1.y);
 
@@ -2911,7 +2911,7 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
 
     /* ptarray_remove_repeated_points ? */
 
-    getPoint2d_p(ctx, epa, 0, &p2);
+    rt_getPoint2d_p(ctx, epa, 0, &p2);
     RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'first' point is %g,%g",
                 isoe->edge_id, p2.x, p2.y);
     RTDEBUGF(1, "Rings's 'from' point is still %g,%g", p1.x, p1.y);
@@ -2923,13 +2923,13 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
       /* first point matches, let's check next non-equal one */
       for ( j=1; j<epa->npoints; ++j )
       {
-        getPoint2d_p(ctx, epa, j, &p2);
+        rt_getPoint2d_p(ctx, epa, j, &p2);
         RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'next' point %d is %g,%g",
                     isoe->edge_id, j, p2.x, p2.y);
         /* we won't check duplicated edge points */
         if ( p2d_same(ctx, &p1, &p2) ) continue;
         /* we assume there are no duplicated points in ring */
-        getPoint2d_p(ctx, ring, from+1, &pt);
+        rt_getPoint2d_p(ctx, ring, from+1, &pt);
         RTDEBUGF(1, "Ring's point %d is %g,%g",
                     from+1, pt.x, pt.y);
         match = p2d_same(ctx, &pt, &p2);
@@ -2950,7 +2950,7 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
     {
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " did not match as forward",
                  isoe->edge_id);
-      getPoint2d_p(ctx, epa, epa->npoints-1, &p2);
+      rt_getPoint2d_p(ctx, epa, epa->npoints-1, &p2);
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'last' point is %g,%g",
                   isoe->edge_id, p2.x, p2.y);
       if ( p2d_same(ctx, &p1, &p2) )
@@ -2960,13 +2960,13 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
         /* last point matches, let's check next non-equal one */
         for ( j=epa->npoints-2; j>=0; --j )
         {
-          getPoint2d_p(ctx, epa, j, &p2);
+          rt_getPoint2d_p(ctx, epa, j, &p2);
           RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'prev' point %d is %g,%g",
                       isoe->edge_id, j, p2.x, p2.y);
           /* we won't check duplicated edge points */
           if ( p2d_same(ctx, &p1, &p2) ) continue;
           /* we assume there are no duplicated points in ring */
-          getPoint2d_p(ctx, ring, from+1, &pt);
+          rt_getPoint2d_p(ctx, ring, from+1, &pt);
           RTDEBUGF(1, "Ring's point %d is %g,%g",
                       from+1, pt.x, pt.y);
           match = p2d_same(ctx, &pt, &p2);
@@ -3205,7 +3205,7 @@ _rtt_EdgeMotionArea(const RTCTX *ctx, RTLINE *geom, int isclosed)
   else
   {
     pa = geom->points;
-    getPoint4d_p(ctx, pa, 0, &p4d);
+    rt_getPoint4d_p(ctx, pa, 0, &p4d);
     pas[0] = ptarray_clone_deep(ctx,  pa );
     /* don't bother dup check */
     if ( RT_FAILURE == ptarray_append_point(ctx, pas[0], &p4d, RT_TRUE) )
@@ -3287,8 +3287,8 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   /*
    * e) Check StartPoint consistency
    */
-  getPoint2d_p(iface->ctx, oldedge->geom->points, 0, &p1);
-  getPoint2d_p(iface->ctx, geom->points, 0, &pt);
+  rt_getPoint2d_p(iface->ctx, oldedge->geom->points, 0, &p1);
+  rt_getPoint2d_p(iface->ctx, geom->points, 0, &pt);
   if ( ! p2d_same(iface->ctx, &p1, &pt) )
   {
     _rtt_release_edges(iface->ctx, oldedge, 1);
@@ -3307,14 +3307,14 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
             " has less than 2 vertices", oldedge->edge_id);
     return -1;
   }
-  getPoint2d_p(iface->ctx, oldedge->geom->points, oldedge->geom->points->npoints-1, &p2);
+  rt_getPoint2d_p(iface->ctx, oldedge->geom->points, oldedge->geom->points->npoints-1, &p2);
   if ( geom->points->npoints < 2 )
   {
     _rtt_release_edges(iface->ctx, oldedge, 1);
     rterror(iface->ctx, "Invalid edge: less than 2 vertices");
     return -1;
   }
-  getPoint2d_p(iface->ctx, geom->points, geom->points->npoints-1, &pt);
+  rt_getPoint2d_p(iface->ctx, geom->points, geom->points->npoints-1, &pt);
   if ( ! p2d_same(iface->ctx, &pt, &p2) )
   {
     _rtt_release_edges(iface->ctx, oldedge, 1);
@@ -4732,7 +4732,7 @@ rtt_GetNodeByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   RTPOINT2D qp; /* query point */
   const RTT_BE_IFACE *iface = topo->be_iface;
 
-  if ( ! getPoint2d_p(iface->ctx, pt->point, 0, &qp) )
+  if ( ! rt_getPoint2d_p(iface->ctx, pt->point, 0, &qp) )
   {
     rterror(iface->ctx, "Empty query point");
     return -1;
@@ -5108,9 +5108,9 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       /* add Z to "prj" */
       tmp = rtgeom_force_3dz(iface->ctx, prj);
       prjpt = rtgeom_as_rtpoint(iface->ctx, tmp);
-      getPoint4d_p(iface->ctx, point->point, 0, &p4d);
+      rt_getPoint4d_p(iface->ctx, point->point, 0, &p4d);
       z = p4d.z;
-      getPoint4d_p(iface->ctx, prjpt->point, 0, &p4d);
+      rt_getPoint4d_p(iface->ctx, prjpt->point, 0, &p4d);
       p4d.z = z;
       ptarray_set_point4d(iface->ctx, prjpt->point, 0, &p4d);
       rtgeom_free(iface->ctx, prj);
@@ -5190,8 +5190,8 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       -- Snapping currently snaps the first point below tolerance
       -- so may possibly move first point. See ticket #1631
       */
-      getPoint4d_p(iface->ctx, e->geom->points, 0, &p1);
-      getPoint4d_p(iface->ctx, snapline->points, 0, &p2);
+      rt_getPoint4d_p(iface->ctx, e->geom->points, 0, &p1);
+      rt_getPoint4d_p(iface->ctx, snapline->points, 0, &p2);
       RTDEBUGF(1, "Edge first point is %g %g, "
                   "snapline first point is %g %g",
                   p1.x, p1.y, p2.x, p2.y);
@@ -5412,10 +5412,10 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
 
   /* snap */
 
-  getPoint4d_p(iface->ctx,  start_point->point, 0, &p4d );
+  rt_getPoint4d_p(iface->ctx,  start_point->point, 0, &p4d );
   rtline_setPoint4d(iface->ctx, edge, 0, &p4d);
 
-  getPoint4d_p(iface->ctx,  end_point->point, 0, &p4d );
+  rt_getPoint4d_p(iface->ctx,  end_point->point, 0, &p4d );
   rtline_setPoint4d(iface->ctx, edge, edge->points->npoints-1, &p4d);
 
   if ( nn ) _rtt_release_nodes(iface->ctx, node, nn);

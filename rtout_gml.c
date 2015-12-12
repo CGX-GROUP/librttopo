@@ -661,7 +661,7 @@ pointArray_toGML2(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precisio
 		for (i=0; i<pa->npoints; i++)
 		{
 			const RTPOINT2D *pt;
-			pt = getPoint2d_cp(ctx, pa, i);
+			pt = rt_getPoint2d_cp(ctx, pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)
 				sprintf(x, "%.*f", precision, pt->x);
@@ -684,7 +684,7 @@ pointArray_toGML2(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precisio
 		for (i=0; i<pa->npoints; i++)
 		{
 			const RTPOINT3DZ *pt;
-			pt = getPoint3dz_cp(ctx, pa, i);
+			pt = rt_getPoint3dz_cp(ctx, pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)
 				sprintf(x, "%.*f", precision, pt->x);
@@ -1908,7 +1908,7 @@ pointArray_toGML3(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precisio
 		for (i=0; i<pa->npoints; i++)
 		{
 			const RTPOINT2D *pt;
-			pt = getPoint2d_cp(ctx, pa, i);
+			pt = rt_getPoint2d_cp(ctx, pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)
 				sprintf(x, "%.*f", precision, pt->x);
@@ -1934,7 +1934,7 @@ pointArray_toGML3(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int precisio
 		for (i=0; i<pa->npoints; i++)
 		{
 			const RTPOINT3DZ *pt;
-			pt = getPoint3dz_cp(ctx, pa, i);
+			pt = rt_getPoint3dz_cp(ctx, pa, i);
 
 			if (fabs(pt->x) < OUT_MAX_DOUBLE)
 				sprintf(x, "%.*f", precision, pt->x);

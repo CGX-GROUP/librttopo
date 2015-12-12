@@ -213,10 +213,10 @@ next_double_up(const RTCTX *ctx, float d)
  * NOTE: point is a real POINT3D *not* a pointer
  */
 RTPOINT4D
-getPoint4d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
+rt_getPoint4d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 {
 	RTPOINT4D result;
-	getPoint4d_p(ctx, pa, n, &result);
+	rt_getPoint4d_p(ctx, pa, n, &result);
 	return result;
 }
 
@@ -228,24 +228,24 @@ getPoint4d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
  * NOTE: this will modify the point4d pointed to by 'point'.
  */
 int
-getPoint4d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *op)
+rt_getPoint4d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *op)
 {
 	uint8_t *ptr;
 	int zmflag;
 
 #if PARANOIA_LEVEL > 0
-	if ( ! pa ) rterror(ctx, "getPoint4d_p: NULL pointarray");
+	if ( ! pa ) rterror(ctx, "rt_getPoint4d_p: NULL pointarray");
 
 	if ( (n<0) || (n>=pa->npoints))
 	{
-		rterror(ctx, "getPoint4d_p: point offset out of range");
+		rterror(ctx, "rt_getPoint4d_p: point offset out of range");
 	}
 #endif
 
-	RTDEBUG(4, "getPoint4d_p called.");
+	RTDEBUG(4, "rt_getPoint4d_p called.");
 
 	/* Get a pointer to nth point offset and zmflag */
-	ptr=getPoint_internal(ctx, pa, n);
+	ptr=rt_getPoint_internal(ctx, pa, n);
 	zmflag=RTFLAGS_GET_ZM(pa->flags);
 
 	RTDEBUGF(4, "ptr %p, zmflag %d", ptr, zmflag);
@@ -288,10 +288,10 @@ getPoint4d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *op)
  * NOTE: point is a real RTPOINT3DZ *not* a pointer
  */
 RTPOINT3DZ
-getPoint3dz(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
+rt_getPoint3dz(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 {
 	RTPOINT3DZ result;
-	getPoint3dz_p(ctx, pa, n, &result);
+	rt_getPoint3dz_p(ctx, pa, n, &result);
 	return result;
 }
 
@@ -302,10 +302,10 @@ getPoint3dz(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
  * NOTE: point is a real RTPOINT3DZ *not* a pointer
  */
 RTPOINT3DM
-getPoint3dm(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
+rt_getPoint3dm(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 {
 	RTPOINT3DM result;
-	getPoint3dm_p(ctx, pa, n, &result);
+	rt_getPoint3dm_p(ctx, pa, n, &result);
 	return result;
 }
 
@@ -316,7 +316,7 @@ getPoint3dm(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
  * NOTE: this will modify the point3dz pointed to by 'point'.
  */
 int
-getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op)
+rt_getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op)
 {
 	uint8_t *ptr;
 
@@ -330,11 +330,11 @@ getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op)
 	}
 #endif
 
-	RTDEBUGF(2, "getPoint3dz_p called on array of %d-dimensions / %u pts",
+	RTDEBUGF(2, "rt_getPoint3dz_p called on array of %d-dimensions / %u pts",
 	         RTFLAGS_NDIMS(pa->flags), pa->npoints);
 
 	/* Get a pointer to nth point offset */
-	ptr=getPoint_internal(ctx, pa, n);
+	ptr=rt_getPoint_internal(ctx, pa, n);
 
 	/*
 	 * if input RTPOINTARRAY has the Z, it is artays
@@ -366,7 +366,7 @@ getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op)
  * NOTE: this will modify the point3dm pointed to by 'point'.
  */
 int
-getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *op)
+rt_getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *op)
 {
 	uint8_t *ptr;
 	int zmflag;
@@ -381,12 +381,12 @@ getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *op)
 	}
 #endif
 
-	RTDEBUGF(2, "getPoint3dm_p(ctx, %d) called on array of %d-dimensions / %u pts",
+	RTDEBUGF(2, "rt_getPoint3dm_p(ctx, %d) called on array of %d-dimensions / %u pts",
 	         n, RTFLAGS_NDIMS(pa->flags), pa->npoints);
 
 
 	/* Get a pointer to nth point offset and zmflag */
-	ptr=getPoint_internal(ctx, pa, n);
+	ptr=rt_getPoint_internal(ctx, pa, n);
 	zmflag=RTFLAGS_GET_ZM(pa->flags);
 
 	/*
@@ -431,10 +431,10 @@ getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *op)
  * NOTE: point is a real RTPOINT2D *not* a pointer
  */
 RTPOINT2D
-getPoint2d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
+rt_getPoint2d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 {
 	const RTPOINT2D *result;
-	result = getPoint2d_cp(ctx, pa, n);
+	result = rt_getPoint2d_cp(ctx, pa, n);
 	return *result;
 }
 
@@ -445,20 +445,20 @@ getPoint2d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
  * NOTE: this will modify the point2d pointed to by 'point'.
  */
 int
-getPoint2d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *point)
+rt_getPoint2d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *point)
 {
 #if PARANOIA_LEVEL > 0
 	if ( ! pa ) return 0;
 
 	if ( (n<0) || (n>=pa->npoints))
 	{
-		rterror(ctx, "getPoint2d_p: point offset out of range");
+		rterror(ctx, "rt_getPoint2d_p: point offset out of range");
 		return 0; /*error */
 	}
 #endif
 
 	/* this does x,y */
-	memcpy(point, getPoint_internal(ctx, pa, n), sizeof(RTPOINT2D));
+	memcpy(point, rt_getPoint_internal(ctx, pa, n), sizeof(RTPOINT2D));
 	return 1;
 }
 
@@ -469,58 +469,58 @@ getPoint2d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *point)
 * values, only read them.
 */
 const RTPOINT2D*
-getPoint2d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
+rt_getPoint2d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 
 	if ( (n<0) || (n>=pa->npoints))
 	{
-		rterror(ctx, "getPoint2D_const_p: point offset out of range");
+		rterror(ctx, "rt_getPoint2D_const_p: point offset out of range");
 		return 0; /*error */
 	}
 
-	return (const RTPOINT2D*)getPoint_internal(ctx, pa, n);
+	return (const RTPOINT2D*)rt_getPoint_internal(ctx, pa, n);
 }
 
 const RTPOINT3DZ*
-getPoint3dz_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
+rt_getPoint3dz_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 	
 	if ( ! RTFLAGS_GET_Z(pa->flags) )
 	{
-		rterror(ctx, "getPoint3dz_cp: no Z coordinates in point array");
+		rterror(ctx, "rt_getPoint3dz_cp: no Z coordinates in point array");
 		return 0; /*error */
 	}
 
 	if ( (n<0) || (n>=pa->npoints))
 	{
-		rterror(ctx, "getPoint3dz_cp: point offset out of range");
+		rterror(ctx, "rt_getPoint3dz_cp: point offset out of range");
 		return 0; /*error */
 	}
 
-	return (const RTPOINT3DZ*)getPoint_internal(ctx, pa, n);
+	return (const RTPOINT3DZ*)rt_getPoint_internal(ctx, pa, n);
 }
 
 
 const RTPOINT4D*
-getPoint4d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
+rt_getPoint4d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
 {
 	if ( ! pa ) return 0;
 	
 	if ( ! (RTFLAGS_GET_Z(pa->flags) && RTFLAGS_GET_Z(pa->flags)) )
 	{
-		rterror(ctx, "getPoint3dz_cp: no Z and M coordinates in point array");
+		rterror(ctx, "rt_getPoint3dz_cp: no Z and M coordinates in point array");
 		return 0; /*error */
 	}
 
 	if ( (n<0) || (n>=pa->npoints))
 	{
-		rterror(ctx, "getPoint3dz_cp: point offset out of range");
+		rterror(ctx, "rt_getPoint3dz_cp: point offset out of range");
 		return 0; /*error */
 	}
 
-	return (const RTPOINT4D*)getPoint_internal(ctx, pa, n);
+	return (const RTPOINT4D*)rt_getPoint_internal(ctx, pa, n);
 }
 
 
@@ -537,7 +537,7 @@ ptarray_set_point4d(const RTCTX *ctx, RTPOINTARRAY *pa, int n, const RTPOINT4D *
 {
 	uint8_t *ptr;
 	assert(n >= 0 && n < pa->npoints);
-	ptr=getPoint_internal(ctx, pa, n);
+	ptr=rt_getPoint_internal(ctx, pa, n);
 	switch ( RTFLAGS_GET_ZM(pa->flags) )
 	{
 	case 3:
@@ -612,7 +612,7 @@ void printPA(const RTCTX *ctx, RTPOINTARRAY *pa)
 
 	for (t =0; t<pa->npoints; t++)
 	{
-		getPoint4d_p(ctx, pa, t, &pt);
+		rt_getPoint4d_p(ctx, pa, t, &pt);
 		if (RTFLAGS_NDIMS(pa->flags) == 2)
 		{
 			rtnotice(ctx, "                    %i : %lf,%lf",t,pt.x,pt.y);

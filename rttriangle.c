@@ -181,8 +181,8 @@ rttriangle_area(const RTCTX *ctx, const RTTRIANGLE *triangle)
 
 	for (i=0; i < triangle->points->npoints-1; i++)
 	{
-		getPoint2d_p(ctx, triangle->points, i, &p1);
-		getPoint2d_p(ctx, triangle->points, i+1, &p2);
+		rt_getPoint2d_p(ctx, triangle->points, i, &p1);
+		rt_getPoint2d_p(ctx, triangle->points, i+1, &p2);
 		area += ( p1.x * p2.y ) - ( p1.y * p2.x );
 	}
 

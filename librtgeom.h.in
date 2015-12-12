@@ -741,7 +741,7 @@ extern const char *rttype_name(const RTCTX *ctx, uint8_t type);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT4D getPoint4d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT4D rt_getPoint4d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
@@ -749,23 +749,23 @@ extern RTPOINT4D getPoint4d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
  * will set point's m=0 (or NaN) if pa is 3d or 2d
  * NOTE: this will modify the point4d pointed to by 'point'.
  */
-extern int getPoint4d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *point);
+extern int rt_getPoint4d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *point);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT3DZ getPoint3dz(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
-extern RTPOINT3DM getPoint3dm(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT3DZ rt_getPoint3dz(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT3DM rt_getPoint3dm(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * will set point's z=0 (or NaN) if pa is 2d
  * NOTE: this will modify the point3d pointed to by 'point'.
  */
-extern int getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *point);
-extern int getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *point);
+extern int rt_getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *point);
+extern int rt_getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *point);
 
 
 /*
@@ -773,14 +773,14 @@ extern int getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOIN
  * z value (if present is not returned)
  * NOTE: point is a real POINT3D *not* a pointer
  */
-extern RTPOINT2D getPoint2d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern RTPOINT2D rt_getPoint2d(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * copies a point from the point array into the parameter point
  * z value (if present is not returned)
  * NOTE: this will modify the point2d pointed to by 'point'.
  */
-extern int getPoint2d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *point);
+extern int rt_getPoint2d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D *point);
 
 /**
 * Returns a RTPOINT2D pointer into the RTPOINTARRAY serialized_ptlist, 
@@ -788,7 +788,7 @@ extern int getPoint2d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT2D* getPoint2d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern const RTPOINT2D* rt_getPoint2d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /**
 * Returns a RTPOINT3DZ pointer into the RTPOINTARRAY serialized_ptlist, 
@@ -796,7 +796,7 @@ extern const RTPOINT2D* getPoint2d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, 
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT3DZ* getPoint3dz_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern const RTPOINT3DZ* rt_getPoint3dz_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /**
 * Returns a RTPOINT4D pointer into the RTPOINTARRAY serialized_ptlist, 
@@ -804,7 +804,7 @@ extern const RTPOINT3DZ* getPoint3dz_cp(const RTCTX *ctx, const RTPOINTARRAY *pa
 * and declared const because you aren't allowed to muck with the 
 * values, only read them.
 */
-extern const RTPOINT4D* getPoint4d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern const RTPOINT4D* rt_getPoint4d_cp(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * set point N to the given value
@@ -825,7 +825,7 @@ extern void ptarray_set_point4d(const RTCTX *ctx, RTPOINTARRAY *pa, int n, const
  * WARNING: Don't cast this to a POINT !
  * it would not be reliable due to memory alignment constraints
  */
-extern uint8_t *getPoint_internal(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
+extern uint8_t *rt_getPoint_internal(const RTCTX *ctx, const RTPOINTARRAY *pa, int n);
 
 /*
  * size of point represeneted in the RTPOINTARRAY
@@ -1713,7 +1713,7 @@ extern int rtgeom_calculate_gbox(const RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX 
 * New function to read doubles directly from the double* coordinate array
 * of an aligned rtgeom #RTPOINTARRAY (built by de-serializing a #GSERIALIZED).
 */
-extern int getPoint2d_p_ro(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D **point);
+extern int rt_getPoint2d_p_ro(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D **point);
 
 /**
 * Calculate geodetic (x/y/z) box and add values to gbox. Return #RT_SUCCESS on success.
@@ -1866,7 +1866,7 @@ extern GSERIALIZED* gserialized_from_rtgeom(const RTCTX *ctx, RTGEOM *geom, int 
 
 /**
 * Allocate a new #RTGEOM from a #GSERIALIZED. The resulting #RTGEOM will have coordinates
-* that are double aligned and suitable for direct reading using getPoint2d_p_ro
+* that are double aligned and suitable for direct reading using rt_getPoint2d_p_ro
 */
 extern RTGEOM* rtgeom_from_gserialized(const RTCTX *ctx, const GSERIALIZED *g);
 

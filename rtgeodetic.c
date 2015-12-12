@@ -1549,14 +1549,14 @@ ptarray_segmentize_sphere(const RTCTX *ctx, const RTPOINTARRAY *pa_in, double ma
 	pa_out = ptarray_construct_empty(ctx, hasz, hasm, pa_in->npoints);
 
 	/* Add first point */
-	getPoint4d_p(ctx, pa_in, pa_in_offset, &p1);
+	rt_getPoint4d_p(ctx, pa_in, pa_in_offset, &p1);
 	ptarray_append_point(ctx, pa_out, &p1, RT_FALSE);
 	geographic_point_init(ctx, p1.x, p1.y, &g1);
 	pa_in_offset++;
 	
 	while ( pa_in_offset < pa_in->npoints )
 	{
-		getPoint4d_p(ctx, pa_in, pa_in_offset, &p2);
+		rt_getPoint4d_p(ctx, pa_in, pa_in_offset, &p2);
 		geographic_point_init(ctx, p2.x, p2.y, &g2);
 		
 		/* Skip duplicate points (except in case of 2-point lines!) */
@@ -1711,14 +1711,14 @@ ptarray_area_sphere(const RTCTX *ctx, const RTPOINTARRAY *pa)
 	if ( ! pa || pa->npoints < 4 )
 		return 0.0;
 	
-	p = getPoint2d_cp(ctx, pa, 0);
+	p = rt_getPoint2d_cp(ctx, pa, 0);
 	geographic_point_init(ctx, p->x, p->y, &a);
-	p = getPoint2d_cp(ctx, pa, 1);
+	p = rt_getPoint2d_cp(ctx, pa, 1);
 	geographic_point_init(ctx, p->x, p->y, &b);
 	
 	for ( i = 2; i < pa->npoints-1; i++ )
 	{
-		p = getPoint2d_cp(ctx, pa, i);
+		p = rt_getPoint2d_cp(ctx, pa, i);
 		geographic_point_init(ctx, p->x, p->y, &c);
 		area += sphere_signed_area(ctx, &a, &b, &c);
 		b = c;
@@ -1749,9 +1749,9 @@ static double ptarray_distance_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa
 	/* Handle point/point case here */
 	if ( pa1->npoints == 1 && pa2->npoints == 1 )
 	{
-		p = getPoint2d_cp(ctx, pa1, 0);
+		p = rt_getPoint2d_cp(ctx, pa1, 0);
 		geographic_point_init(ctx, p->x, p->y, &g1);
-		p = getPoint2d_cp(ctx, pa2, 0);
+		p = rt_getPoint2d_cp(ctx, pa2, 0);
 		geographic_point_init(ctx, p->x, p->y, &g2);
 		/* Sphere special case, axes equal */
 		distance = s->radius * sphere_distance(ctx, &g1, &g2);
@@ -1785,18 +1785,18 @@ static double ptarray_distance_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa
 		}
 
 		/* Initialize our point */
-		p = getPoint2d_cp(ctx, pa_one, 0);
+		p = rt_getPoint2d_cp(ctx, pa_one, 0);
 		geographic_point_init(ctx, p->x, p->y, &g1);
 
 		/* Initialize start of line */
-		p = getPoint2d_cp(ctx, pa_many, 0);
+		p = rt_getPoint2d_cp(ctx, pa_many, 0);
 		geographic_point_init(ctx, p->x, p->y, &(e1.start));
 
 		/* Iterate through the edges in our line */
 		for ( i = 1; i < pa_many->npoints; i++ )
 		{
 			double d;
-			p = getPoint2d_cp(ctx, pa_many, i);
+			p = rt_getPoint2d_cp(ctx, pa_many, i);
 			geographic_point_init(ctx, p->x, p->y, &(e1.end));
 			/* Get the spherical distance between point and edge */
 			d = s->radius * edge_distance_to_point(ctx, &e1, &g1, &g2);
@@ -1841,7 +1841,7 @@ static double ptarray_distance_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa
 	}
 
 	/* Initialize start of line 1 */
-	p = getPoint2d_cp(ctx, pa1, 0);
+	p = rt_getPoint2d_cp(ctx, pa1, 0);
 	geographic_point_init(ctx, p->x, p->y, &(e1.start));
 	geog2cart(ctx, &(e1.start), &A1);
 
@@ -1849,12 +1849,12 @@ static double ptarray_distance_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa
 	/* Handle line/line case */
 	for ( i = 1; i < pa1->npoints; i++ )
 	{
-		p = getPoint2d_cp(ctx, pa1, i);
+		p = rt_getPoint2d_cp(ctx, pa1, i);
 		geographic_point_init(ctx, p->x, p->y, &(e1.end));
 		geog2cart(ctx, &(e1.end), &A2);
 
 		/* Initialize start of line 2 */
-		p = getPoint2d_cp(ctx, pa2, 0);
+		p = rt_getPoint2d_cp(ctx, pa2, 0);
 		geographic_point_init(ctx, p->x, p->y, &(e2.start));
 		geog2cart(ctx, &(e2.start), &B1);
 
@@ -1862,7 +1862,7 @@ static double ptarray_distance_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa
 		{
 			double d;
 
-			p = getPoint2d_cp(ctx, pa2, j);
+			p = rt_getPoint2d_cp(ctx, pa2, j);
 			geographic_point_init(ctx, p->x, p->y, &(e2.end));
 			geog2cart(ctx, &(e2.end), &B2);
 
@@ -2156,7 +2156,7 @@ double rtgeom_distance_spheroid(const RTCTX *ctx, const RTGEOM *rtgeom1, const R
 			rtpt = (RTPOINT*)rtgeom2;
 			rtpoly = (RTPOLY*)rtgeom1;
 		}
-		p = getPoint2d_cp(ctx, rtpt->point, 0);
+		p = rt_getPoint2d_cp(ctx, rtpt->point, 0);
 
 		/* Point in polygon implies zero distance */
 		if ( rtpoly_covers_point2d(ctx, rtpoly, p) )
@@ -2196,7 +2196,7 @@ double rtgeom_distance_spheroid(const RTCTX *ctx, const RTGEOM *rtgeom1, const R
 			rtline = (RTLINE*)rtgeom2;
 			rtpoly = (RTPOLY*)rtgeom1;
 		}
-		p = getPoint2d_cp(ctx, rtline->points, 0);
+		p = rt_getPoint2d_cp(ctx, rtline->points, 0);
 
 		RTDEBUG(4, "checking if a point of line is in polygon");
 
@@ -2232,12 +2232,12 @@ double rtgeom_distance_spheroid(const RTCTX *ctx, const RTGEOM *rtgeom1, const R
 		int i, j;
 
 		/* Point of 2 in polygon 1 implies zero distance */
-		p = getPoint2d_cp(ctx, rtpoly1->rings[0], 0);
+		p = rt_getPoint2d_cp(ctx, rtpoly1->rings[0], 0);
 		if ( rtpoly_covers_point2d(ctx, rtpoly2, p) )
 			return 0.0;
 
 		/* Point of 1 in polygon 2 implies zero distance */
-		p = getPoint2d_cp(ctx, rtpoly2->rings[0], 0);
+		p = rt_getPoint2d_cp(ctx, rtpoly2->rings[0], 0);
 		if ( rtpoly_covers_point2d(ctx, rtpoly1, p) )
 			return 0.0;
 
@@ -2336,7 +2336,7 @@ int rtgeom_covers_rtgeom_sphere(const RTCTX *ctx, const RTGEOM *rtgeom1, const R
 	if ( type1 == RTPOLYGONTYPE && type2 == RTPOINTTYPE )
 	{
 		RTPOINT2D pt_to_test;
-		getPoint2d_p(ctx, ((RTPOINT*)rtgeom2)->point, 0, &pt_to_test);
+		rt_getPoint2d_p(ctx, ((RTPOINT*)rtgeom2)->point, 0, &pt_to_test);
 		return rtpoly_covers_point2d(ctx, (RTPOLY*)rtgeom1, &pt_to_test);
 	}
 
@@ -2458,14 +2458,14 @@ int rtpoly_covers_point2d(const RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D 
 * This function can only be used on RTGEOM that is built on top of
 * GSERIALIZED, otherwise alignment errors will ensue.
 */
-int getPoint2d_p_ro(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D **point)
+int rt_getPoint2d_p_ro(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT2D **point)
 {
 	uint8_t *pa_ptr = NULL;
 	assert(pa);
 	assert(n >= 0);
 	assert(n < pa->npoints);
 
-	pa_ptr = getPoint_internal(ctx, pa, n);
+	pa_ptr = rt_getPoint_internal(ctx, pa, n);
 	/* printf( "pa_ptr[0]: %g\n", *((double*)pa_ptr)); */
 	*point = (RTPOINT2D*)pa_ptr;
 
@@ -2490,7 +2490,7 @@ int ptarray_calculate_gbox_geodetic(const RTCTX *ctx, const RTPOINTARRAY *pa, RT
 
 	if ( pa->npoints == 1 )
 	{
-		p = getPoint2d_cp(ctx, pa, 0);
+		p = rt_getPoint2d_cp(ctx, pa, 0);
 		ll2cart(ctx, p, &A1);
 		gbox->xmin = gbox->xmax = A1.x;
 		gbox->ymin = gbox->ymax = A1.y;
@@ -2498,13 +2498,13 @@ int ptarray_calculate_gbox_geodetic(const RTCTX *ctx, const RTPOINTARRAY *pa, RT
 		return RT_SUCCESS;
 	}
 
-	p = getPoint2d_cp(ctx, pa, 0);
+	p = rt_getPoint2d_cp(ctx, pa, 0);
 	ll2cart(ctx, p, &A1);
 	
 	for ( i = 1; i < pa->npoints; i++ )
 	{
 		
-		p = getPoint2d_cp(ctx, pa, i);
+		p = rt_getPoint2d_cp(ctx, pa, i);
 		ll2cart(ctx, p, &A2);
 		
 		edge_calculate_gbox(ctx, &A1, &A2, &edge_gbox);
@@ -2660,7 +2660,7 @@ static int ptarray_check_geodetic(const RTCTX *ctx, const RTPOINTARRAY *pa)
 
 	for (t=0; t<pa->npoints; t++)
 	{
-		getPoint2d_p(ctx, pa, t, &pt);
+		rt_getPoint2d_p(ctx, pa, t, &pt);
 		/* printf( "%d (%g, %g)\n", t, pt.x, pt.y); */
 		if ( pt.x < -180.0 || pt.y < -90.0 || pt.x > 180.0 || pt.y > 90.0 )
 			return RT_FALSE;
@@ -2753,7 +2753,7 @@ static int ptarray_force_geodetic(const RTCTX *ctx, RTPOINTARRAY *pa)
 
 	for ( t=0; t < pa->npoints; t++ )
 	{
-		getPoint4d_p(ctx, pa, t, &pt);
+		rt_getPoint4d_p(ctx, pa, t, &pt);
 		if ( pt.x < -180.0 || pt.x > 180.0 || pt.y < -90.0 || pt.y > 90.0 )
 		{
 			pt.x = longitude_degrees_normalize(ctx, pt.x); 
@@ -2845,7 +2845,7 @@ double ptarray_length_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, const S
 	hasz = RTFLAGS_GET_Z(pa->flags);
 
 	/* Initialize first point */
-	getPoint4d_p(ctx, pa, 0, &p);
+	rt_getPoint4d_p(ctx, pa, 0, &p);
 	geographic_point_init(ctx, p.x, p.y, &a);
 	if ( hasz ) 
 		za = p.z;
@@ -2854,7 +2854,7 @@ double ptarray_length_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, const S
 	for ( i = 1; i < pa->npoints; i++ )
 	{
 		seglength = 0.0;
-		getPoint4d_p(ctx, pa, i, &p);
+		rt_getPoint4d_p(ctx, pa, i, &p);
 		geographic_point_init(ctx, p.x, p.y, &b);
 		if ( hasz ) 
 			zb = p.z;
@@ -2949,7 +2949,7 @@ ptarray_nudge_geodetic(const RTCTX *ctx, RTPOINTARRAY *pa)
 
 	for(i = 0; i < pa->npoints; i++ )
 	{
-		getPoint4d_p(ctx, pa, i, &p);
+		rt_getPoint4d_p(ctx, pa, i, &p);
 		if ( p.x < -180.0 && (-180.0 - p.x < tolerance) )
 		{
 			p.x = -180.0;
@@ -3216,7 +3216,7 @@ int ptarray_contains_point_sphere(const RTCTX *ctx, const RTPOINTARRAY *pa, cons
 	ll2cart(ctx, pt_outside, &S2);
 
 	/* Initialize first point */
-	getPoint2d_p(ctx, pa, 0, &p);
+	rt_getPoint2d_p(ctx, pa, 0, &p);
 	ll2cart(ctx, &p, &E1);
 
 	/* Walk every edge and see if the stab line hits it */
@@ -3226,7 +3226,7 @@ int ptarray_contains_point_sphere(const RTCTX *ctx, const RTPOINTARRAY *pa, cons
 		RTDEBUGF(4, "  start point == POINT(%.12g %.12g)", p.x, p.y);
 
 		/* Read next point. */
-		getPoint2d_p(ctx, pa, i, &p);
+		rt_getPoint2d_p(ctx, pa, i, &p);
 		ll2cart(ctx, &p, &E2);
 
 		/* Skip over too-short edges. */

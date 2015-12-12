@@ -563,8 +563,8 @@ rt_dist3d_point_point(const RTCTX *ctx, RTPOINT *point1, RTPOINT *point2, DISTPT
 	RTPOINT3DZ p2;
 	RTDEBUG(2, "rt_dist3d_point_point is called");
 
-	getPoint3dz_p(ctx, point1->point, 0, &p1);
-	getPoint3dz_p(ctx, point2->point, 0, &p2);
+	rt_getPoint3dz_p(ctx, point1->point, 0, &p1);
+	rt_getPoint3dz_p(ctx, point2->point, 0, &p2);
 
 	return rt_dist3d_pt_pt(ctx, &p1, &p2,dl);
 }
@@ -579,7 +579,7 @@ rt_dist3d_point_line(const RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS3D *
 	RTPOINTARRAY *pa = line->points;
 	RTDEBUG(2, "rt_dist3d_point_line is called");
 
-	getPoint3dz_p(ctx, point->point, 0, &p);
+	rt_getPoint3dz_p(ctx, point->point, 0, &p);
 	return rt_dist3d_pt_ptarray(ctx, &p, pa, dl);
 }
 
@@ -600,7 +600,7 @@ rt_dist3d_point_poly(const RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS3D *
 	RTPOINT3DZ p, projp;/*projp is "point projected on plane"*/
 	PLANE3D plane;
 	RTDEBUG(2, "rt_dist3d_point_poly is called");
-	getPoint3dz_p(ctx, point->point, 0, &p);
+	rt_getPoint3dz_p(ctx, point->point, 0, &p);
 	
 	/*If we are lookig for max distance, longestline or dfullywithin*/
 	if (dl->mode == DIST_MAX)
@@ -698,12 +698,12 @@ rt_dist3d_pt_ptarray(const RTCTX *ctx, RTPOINT3DZ *p, RTPOINTARRAY *pa,DISTPTS3D
 
 	RTDEBUG(2, "rt_dist3d_pt_ptarray is called");
 
-	getPoint3dz_p(ctx, pa, 0, &start);
+	rt_getPoint3dz_p(ctx, pa, 0, &start);
 
 	for (t=1; t<pa->npoints; t++)
 	{
 		dl->twisted=twist;
-		getPoint3dz_p(ctx, pa, t, &end);
+		rt_getPoint3dz_p(ctx, pa, t, &end);
 		if (!rt_dist3d_pt_seg(ctx, p, &start, &end,dl)) return RT_FALSE;
 
 		if (dl->distance<=dl->tolerance && dl->mode == DIST_MIN) return RT_TRUE; /*just a check if  the answer is already given*/
@@ -831,10 +831,10 @@ rt_dist3d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,D
 	{
 		for (t=0; t<l1->npoints; t++) /*for each segment in L1 */
 		{
-			getPoint3dz_p(ctx, l1, t, &start);
+			rt_getPoint3dz_p(ctx, l1, t, &start);
 			for (u=0; u<l2->npoints; u++) /*for each segment in L2 */
 			{
-				getPoint3dz_p(ctx, l2, u, &start2);
+				rt_getPoint3dz_p(ctx, l2, u, &start2);
 				rt_dist3d_pt_pt(ctx, &start,&start2,dl);
 				RTDEBUGF(4, "maxdist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
 				RTDEBUGF(3, " seg%d-seg%d dist: %f, mindist: %f",
@@ -844,14 +844,14 @@ rt_dist3d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,D
 	}
 	else
 	{
-		getPoint3dz_p(ctx, l1, 0, &start);
+		rt_getPoint3dz_p(ctx, l1, 0, &start);
 		for (t=1; t<l1->npoints; t++) /*for each segment in L1 */
 		{
-			getPoint3dz_p(ctx, l1, t, &end);
-			getPoint3dz_p(ctx, l2, 0, &start2);
+			rt_getPoint3dz_p(ctx, l1, t, &end);
+			rt_getPoint3dz_p(ctx, l2, 0, &start2);
 			for (u=1; u<l2->npoints; u++) /*for each segment in L2 */
 			{
-				getPoint3dz_p(ctx, l2, u, &end2);
+				rt_getPoint3dz_p(ctx, l2, u, &end2);
 				dl->twisted=twist;
 				rt_dist3d_seg_seg(ctx, &start, &end, &start2, &end2,dl);
 				RTDEBUGF(4, "mindist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
@@ -1036,7 +1036,7 @@ int rt_dist3d_ptarray_poly(const RTCTX *ctx, RTPOINTARRAY *pa, RTPOLY *poly,PLAN
 	VECTOR3D projp1_projp2;
 	RTPOINT3DZ p1, p2,projp1, projp2, intersectionp;
 	
-	getPoint3dz_p(ctx, pa, 0, &p1);
+	rt_getPoint3dz_p(ctx, pa, 0, &p1);
 	
 	s1=project_point_on_plane(ctx, &p1, plane, &projp1); /*the sign of s1 tells us on which side of the plane the point is. */
 	rt_dist3d_pt_poly(ctx, &p1, poly, plane,&projp1, dl);	
@@ -1044,7 +1044,7 @@ int rt_dist3d_ptarray_poly(const RTCTX *ctx, RTPOINTARRAY *pa, RTPOLY *poly,PLAN
 	for (i=1;i<pa->npoints;i++)
 	{		
 		int intersects;
-		getPoint3dz_p(ctx, pa, i, &p2);
+		rt_getPoint3dz_p(ctx, pa, i, &p2);
 		s2=project_point_on_plane(ctx, &p2, plane, &projp2);	
 		rt_dist3d_pt_poly(ctx, &p2, poly, plane,&projp2, dl);
 		
@@ -1134,7 +1134,7 @@ define_plane(const RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl)
 	/*find the avg point*/
 	for (i=0;i<(pa->npoints-1);i++)
 	{
-		getPoint3dz_p(ctx, pa, i, &p);
+		rt_getPoint3dz_p(ctx, pa, i, &p);
 		sumx+=p.x;
 		sumy+=p.y;
 		sumz+=p.z;		
@@ -1148,10 +1148,10 @@ define_plane(const RTCTX *ctx, RTPOINTARRAY *pa, PLANE3D *pl)
 	sumz=0;
 	numberofvectors= floor((pa->npoints-1)/pointsinslice); /*the number of vectors we try can be 3, 4 or 5*/
 	
-	getPoint3dz_p(ctx, pa, 0, &p1);
+	rt_getPoint3dz_p(ctx, pa, 0, &p1);
 	for (j=pointsinslice;j<pa->npoints;j+=pointsinslice)
 	{
-		getPoint3dz_p(ctx, pa, j, &p2);	
+		rt_getPoint3dz_p(ctx, pa, j, &p2);	
 		
 		if (!get_3dvector_from_points(ctx, &(pl->pop), &p1, &v1) || !get_3dvector_from_points(ctx, &(pl->pop), &p2, &v2))
 			return RT_FALSE;	
@@ -1223,8 +1223,8 @@ pt_in_ring_3d(const RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PL
 
 	RTPOINT3DZ	first, last;
 
-	getPoint3dz_p(ctx, ring, 0, &first);
-	getPoint3dz_p(ctx, ring, ring->npoints-1, &last);
+	rt_getPoint3dz_p(ctx, ring, 0, &first);
+	rt_getPoint3dz_p(ctx, ring, ring->npoints-1, &last);
 	if ( memcmp(&first, &last, sizeof(RTPOINT3DZ)) )
 	{
 		rterror(ctx, "pt_in_ring_3d: V[n] != V[0] (%g %g %g!= %g %g %g)",
@@ -1236,7 +1236,7 @@ pt_in_ring_3d(const RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PL
 	/* printPA(ctx, ring); */
 
 	/* loop through all edges of the polygon */
-	getPoint3dz_p(ctx, ring, 0, &v1);
+	rt_getPoint3dz_p(ctx, ring, 0, &v1);
 	
 	
 	if(fabs(plane->pv.z)>=fabs(plane->pv.x)&&fabs(plane->pv.z)>=fabs(plane->pv.y))	/*If the z vector of the normal vector to the plane is larger than x and y vector we project the ring to the xy-plane*/
@@ -1244,7 +1244,7 @@ pt_in_ring_3d(const RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PL
 		for (i=0; i<ring->npoints-1; i++)
 		{
 			double vt;
-			getPoint3dz_p(ctx, ring, i+1, &v2);
+			rt_getPoint3dz_p(ctx, ring, i+1, &v2);
 
 			/* edge from vertex i to vertex i+1 */
 			if
@@ -1273,7 +1273,7 @@ pt_in_ring_3d(const RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PL
 		for (i=0; i<ring->npoints-1; i++)
 			{
 				double vt;
-				getPoint3dz_p(ctx, ring, i+1, &v2);
+				rt_getPoint3dz_p(ctx, ring, i+1, &v2);
 
 				/* edge from vertex i to vertex i+1 */
 				if
@@ -1302,7 +1302,7 @@ pt_in_ring_3d(const RTCTX *ctx, const RTPOINT3DZ *p, const RTPOINTARRAY *ring,PL
 		for (i=0; i<ring->npoints-1; i++)
 			{
 				double vt;
-				getPoint3dz_p(ctx, ring, i+1, &v2);
+				rt_getPoint3dz_p(ctx, ring, i+1, &v2);
 
 				/* edge from vertex i to vertex i+1 */
 				if

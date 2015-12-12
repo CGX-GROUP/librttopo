@@ -50,8 +50,8 @@ circ_node_leaf_new(const RTCTX *ctx, const RTPOINTARRAY* pa, int i)
 	CIRC_NODE *node;
 	double diameter;
 
-	p1 = (RTPOINT2D*)getPoint_internal(ctx, pa, i);
-	p2 = (RTPOINT2D*)getPoint_internal(ctx, pa, i+1);
+	p1 = (RTPOINT2D*)rt_getPoint_internal(ctx, pa, i);
+	p2 = (RTPOINT2D*)rt_getPoint_internal(ctx, pa, i+1);
 	geographic_point_init(ctx, p1->x, p1->y, &g1);
 	geographic_point_init(ctx, p2->x, p2->y, &g2);
 
@@ -99,7 +99,7 @@ static CIRC_NODE*
 circ_node_leaf_point_new(const RTCTX *ctx, const RTPOINTARRAY* pa)
 {
 	CIRC_NODE* tree = rtalloc(ctx, sizeof(CIRC_NODE));
-	tree->p1 = tree->p2 = (RTPOINT2D*)getPoint_internal(ctx, pa, 0);
+	tree->p1 = tree->p2 = (RTPOINT2D*)rt_getPoint_internal(ctx, pa, 0);
 	geographic_point_init(ctx, tree->p1->x, tree->p1->y, &(tree->center));
 	tree->radius = 0.0;
 	tree->nodes = NULL;

@@ -88,7 +88,7 @@ ptarray_to_kml2_sb(const RTCTX *ctx, const RTPOINTARRAY *pa, int precision, stri
 	
 	for ( i = 0; i < pa->npoints; i++ )
 	{
-		getPoint4d_p(ctx, pa, i, &pt);
+		rt_getPoint4d_p(ctx, pa, i, &pt);
 		d = (double*)(&pt);
 		if ( i ) stringbuffer_append(ctx, sb," ");
 		for (j = 0; j < dims; j++)

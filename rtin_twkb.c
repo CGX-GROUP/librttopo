@@ -292,7 +292,7 @@ static RTPOLY* rtpoly_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 		if( ! ptarray_is_closed_2d(ctx, pa) )
 		{
 			RTPOINT4D pt;
-			getPoint4d_p(ctx, pa, 0, &pt);
+			rt_getPoint4d_p(ctx, pa, 0, &pt);
 			ptarray_append_point(ctx, pa, &pt, RT_FALSE);
 		}
 

@@ -402,7 +402,7 @@ static RTPOINT* rtpoint_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 	}
 	
 	/* Check for POINT(NaN NaN) ==> POINT EMPTY */
-	pt = getPoint2d_cp(ctx, pa, 0);
+	pt = rt_getPoint2d_cp(ctx, pa, 0);
 	if ( isnan(pt->x) && isnan(pt->y) )
 	{
 		ptarray_free(ctx, pa);

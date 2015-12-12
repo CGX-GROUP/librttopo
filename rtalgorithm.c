@@ -284,8 +284,8 @@ pt_in_ring_2d(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
 	const RTPOINT2D *v1, *v2;
 	const RTPOINT2D *first, *last;
 
-	first = getPoint2d_cp(ctx, ring, 0);
-	last = getPoint2d_cp(ctx, ring, ring->npoints-1);
+	first = rt_getPoint2d_cp(ctx, ring, 0);
+	last = rt_getPoint2d_cp(ctx, ring, ring->npoints-1);
 	if ( memcmp(first, last, sizeof(RTPOINT2D)) )
 	{
 		rterror(ctx, "pt_in_ring_2d: V[n] != V[0] (%g %g != %g %g)",
@@ -298,11 +298,11 @@ pt_in_ring_2d(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
 	/* printPA(ctx, ring); */
 
 	/* loop through all edges of the polygon */
-	v1 = getPoint2d_cp(ctx, ring, 0);
+	v1 = rt_getPoint2d_cp(ctx, ring, 0);
 	for (i=0; i<ring->npoints-1; i++)
 	{
 		double vt;
-		v2 = getPoint2d_cp(ctx, ring, i+1);
+		v2 = rt_getPoint2d_cp(ctx, ring, i+1);
 
 		/* edge from vertex i to vertex i+1 */
 		if
@@ -478,22 +478,22 @@ int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *
 	RTDEBUGF(4, "l2 = %s", rtgeom_to_ewkt(ctx, (RTGEOM*)l2));
 
 	/* Initialize first point of q */
-	q1 = getPoint2d_cp(ctx, pa2, 0);
+	q1 = rt_getPoint2d_cp(ctx, pa2, 0);
 
 	for ( i = 1; i < pa2->npoints; i++ )
 	{
 
 		/* Update second point of q to next value */
-		q2 = getPoint2d_cp(ctx, pa2, i);
+		q2 = rt_getPoint2d_cp(ctx, pa2, i);
 
 		/* Initialize first point of p */
-		p1 = getPoint2d_cp(ctx, pa1, 0);
+		p1 = rt_getPoint2d_cp(ctx, pa1, 0);
 
 		for ( j = 1; j < pa1->npoints; j++ )
 		{
 
 			/* Update second point of p to next value */
-			p2 = getPoint2d_cp(ctx, pa1, j);
+			p2 = rt_getPoint2d_cp(ctx, pa1, j);
 
 			this_cross = rt_segment_intersects(ctx, p1, p2, q1, q2);
 

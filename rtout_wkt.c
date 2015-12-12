@@ -83,7 +83,7 @@ static void ptarray_to_wkt_sb(const RTCTX *ctx, const RTPOINTARRAY *ptarray, str
 	/* Digits and commas */
 	for (i = 0; i < ptarray->npoints; i++)
 	{
-		double *dbl_ptr = (double*)getPoint_internal(ctx, ptarray, i);
+		double *dbl_ptr = (double*)rt_getPoint_internal(ctx, ptarray, i);
 
 		/* Commas before ever coord but the first */
 		if ( i > 0 )

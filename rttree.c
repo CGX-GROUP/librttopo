@@ -106,8 +106,8 @@ RECT_NODE* rect_node_leaf_new(const RTCTX *ctx, const RTPOINTARRAY *pa, int i)
 	RTPOINT2D *p1, *p2;
 	RECT_NODE *node;
 
-	p1 = (RTPOINT2D*)getPoint_internal(ctx, pa, i);
-	p2 = (RTPOINT2D*)getPoint_internal(ctx, pa, i+1);
+	p1 = (RTPOINT2D*)rt_getPoint_internal(ctx, pa, i);
+	p2 = (RTPOINT2D*)rt_getPoint_internal(ctx, pa, i+1);
 
 	/* Zero length edge, doesn't get a node */
 	if ( FP_EQUALS(p1->x, p2->x) && FP_EQUALS(p1->y, p2->y) )

@@ -722,7 +722,7 @@ pointArray_to_geojson(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int prec
 		for (i=0; i<pa->npoints; i++)
 		{
 			const RTPOINT2D *pt;
-			pt = getPoint2d_cp(ctx, pa, i);
+			pt = rt_getPoint2d_cp(ctx, pa, i);
 
 			rtprint_double(ctx, pt->x, precision, x, BUFSIZE);
 			trim_trailing_zeros(ctx, x);
@@ -738,7 +738,7 @@ pointArray_to_geojson(const RTCTX *ctx, RTPOINTARRAY *pa, char *output, int prec
 		for (i=0; i<pa->npoints; i++)
 		{
 			const RTPOINT3DZ *pt;
-			pt = getPoint3dz_cp(ctx, pa, i);
+			pt = rt_getPoint3dz_cp(ctx, pa, i);
 
 			rtprint_double(ctx, pt->x, precision, x, BUFSIZE);
 			trim_trailing_zeros(ctx, x);
