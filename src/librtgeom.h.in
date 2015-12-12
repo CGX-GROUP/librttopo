@@ -162,9 +162,9 @@ typedef struct RTCTX_T RTCTX;
 typedef void* (*rtallocator)(size_t size);
 typedef void* (*rtreallocator)(void *mem, size_t size);
 typedef void (*rtfreeor)(void* mem);
-typedef void (*rtreporter)(const char* fmt, va_list ap)
+typedef void (*rtreporter)(const char* fmt, va_list ap, void *arg)
   __attribute__ (( format(printf, 1, 0) ));
-typedef void (*rtdebuglogger)(int level, const char* fmt, va_list ap)
+typedef void (*rtdebuglogger)(int level, const char* fmt, va_list ap, void *arg)
   __attribute__ (( format(printf, 2,0) ));
 
 
@@ -194,13 +194,15 @@ extern int clamp_srid(const RTCTX *ctx, int srid);
 void error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2);
 
 /**
- * This function is called by programs which want to set up custom handling 
- * for memory management and error reporting
- *
- * Only non-NULL values change their respective handler
+ * This functions are called by programs which want to set up
+ * custom handling for error reporting
  */
-extern void rtgeom_set_loggers(const RTCTX *ctx, rtreporter errorreporter,
-          rtreporter noticereporter, rtdebuglogger debuglogger);
+extern void rtgeom_set_error_logger(RTCTX *ctx,
+          rtreporter logger, void *arg);
+extern void rtgeom_set_notice_logger(RTCTX *ctx,
+          rtreporter logger, void *arg);
+extern void rtgeom_set_debug_logger(RTCTX *ctx,
+          rtdebuglogger logger, void *arg);
 
 /**
  * Set geos context, returning any previously set one

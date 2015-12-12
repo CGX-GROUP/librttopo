@@ -13,19 +13,6 @@
 static void * default_allocator(size_t size);
 static void default_freeor(void *mem);
 static void * default_reallocator(void *mem, size_t size);
-rtallocator rtalloc_var = default_allocator;
-rtreallocator rtrealloc_var = default_reallocator;
-rtfreeor rtfree_var = default_freeor;
-
-/* Default reporters */
-static void default_noticereporter(const char *fmt, va_list ap);
-static void default_errorreporter(const char *fmt, va_list ap);
-rtreporter rtnotice_var = default_noticereporter;
-rtreporter rterror_var = default_errorreporter;
-
-/* Default logger */
-static void default_debuglogger(int level, const char *fmt, va_list ap);
-rtdebuglogger rtdebug_var = default_debuglogger;
 
 #define RT_MSG_MAXLEN 256
 
@@ -65,7 +52,7 @@ rtnotice(const RTCTX *ctx, const char *fmt, ...)
 	va_start(ap, fmt);
 
 	/* Call the supplied function */
-	(*rtnotice_var)(fmt, ap);
+	(*ctx->notice_logger)(fmt, ap, ctx->notice_logger_arg);
 
 	va_end(ap);
 }
@@ -78,7 +65,7 @@ rterror(const RTCTX *ctx, const char *fmt, ...)
 	va_start(ap, fmt);
 
 	/* Call the supplied function */
-	(*rterror_var)(fmt, ap);
+	(*ctx->error_logger)(fmt, ap, ctx->error_logger_arg);
 
 	va_end(ap);
 }
@@ -91,7 +78,7 @@ rtdebug(const RTCTX *ctx, int level, const char *fmt, ...)
 	va_start(ap, fmt);
 
 	/* Call the supplied function */
-	(*rtdebug_var)(level, fmt, ap);
+	(*ctx->debug_logger)(level, fmt, ap, ctx->debug_logger_arg);
 
 	va_end(ap);
 }
@@ -125,7 +112,7 @@ default_reallocator(void *mem, size_t size)
 }
 
 static void
-default_noticereporter(const char *fmt, va_list ap)
+default_noticereporter(const char *fmt, va_list ap, void *arg)
 {
 	char msg[RT_MSG_MAXLEN+1];
 	vsnprintf (msg, RT_MSG_MAXLEN, fmt, ap);
@@ -134,7 +121,7 @@ default_noticereporter(const char *fmt, va_list ap)
 }
 
 static void
-default_debuglogger(int level, const char *fmt, va_list ap)
+default_debuglogger(int level, const char *fmt, va_list ap, void *arg)
 {
 	char msg[RT_MSG_MAXLEN+1];
 	if ( RTGEOM_DEBUG_LEVEL >= level )
@@ -150,7 +137,7 @@ default_debuglogger(int level, const char *fmt, va_list ap)
 }
 
 static void
-default_errorreporter(const char *fmt, va_list ap)
+default_errorreporter(const char *fmt, va_list ap, void *arg)
 {
 	char msg[RT_MSG_MAXLEN+1];
 	vsnprintf (msg, RT_MSG_MAXLEN, fmt, ap);
@@ -166,21 +153,42 @@ rtgeom_init(rtallocator allocator,
 {
   RTCTX *ctx = allocator(sizeof(RTCTX));
 
-	if ( allocator ) rtalloc_var = allocator;
-	if ( reallocator ) rtrealloc_var = reallocator;
-	if ( freeor ) rtfree_var = freeor;
+  memset(ctx, '\0', sizeof(RTCTX));
+
+  ctx->rtalloc_var = default_allocator;
+  ctx->rtrealloc_var = default_reallocator;
+  ctx->rtfree_var = default_freeor;
+
+	if ( allocator ) ctx->rtalloc_var = allocator;
+	if ( reallocator ) ctx->rtrealloc_var = reallocator;
+	if ( freeor ) ctx->rtfree_var = freeor;
+
+  ctx->notice_logger = default_noticereporter;
+  ctx->error_logger = default_errorreporter;
+  ctx->debug_logger = default_debuglogger;
 
   return ctx;
 }
 
 void
-rtgeom_set_loggers(const RTCTX *ctx, rtreporter errorreporter,
-          rtreporter noticereporter, rtdebuglogger debuglogger)
+rtgeom_set_error_logger(RTCTX *ctx, rtreporter logger, void *arg)
 {
+  ctx->error_logger = logger;
+  ctx->error_logger_arg = arg;
+}
 
-	if ( errorreporter ) rterror_var = errorreporter;
-	if ( noticereporter ) rtnotice_var = noticereporter;
-	if ( debuglogger ) rtdebug_var = debuglogger;
+void
+rtgeom_set_notice_logger(RTCTX *ctx, rtreporter logger, void *arg)
+{
+  ctx->notice_logger = logger;
+  ctx->notice_logger_arg = arg;
+}
+
+void
+rtgeom_set_debug_logger(RTCTX *ctx, rtdebuglogger logger, void *arg)
+{
+  ctx->debug_logger = logger;
+  ctx->debug_logger_arg = arg;
 }
 
 GEOSContextHandle_t
@@ -206,7 +214,7 @@ rttype_name(const RTCTX *ctx, uint8_t type)
 void *
 rtalloc(const RTCTX *ctx, size_t size)
 {
-	void *mem = rtalloc_var(size);
+	void *mem = ctx->rtalloc_var(size);
 	RTDEBUGF(5, "rtalloc: %d@%p", size, mem);
 	return mem;
 }
@@ -215,13 +223,13 @@ void *
 rtrealloc(const RTCTX *ctx, void *mem, size_t size)
 {
 	RTDEBUGF(5, "rtrealloc: %d@%p", size, mem);
-	return rtrealloc_var(mem, size);
+	return ctx->rtrealloc_var(mem, size);
 }
 
 void
 rtfree(const RTCTX *ctx, void *mem)
 {
-	rtfree_var(mem);
+	ctx->rtfree_var(mem);
 }
 
 /*

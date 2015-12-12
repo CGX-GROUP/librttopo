@@ -146,6 +146,15 @@
 struct RTCTX_T {
   GEOSContextHandle_t gctx;
   char rtgeom_geos_errmsg[RTGEOM_GEOS_ERRMSG_MAXSIZE];
+  rtallocator rtalloc_var;
+  rtreallocator rtrealloc_var;
+  rtfreeor rtfree_var;
+  rtreporter error_logger;
+  void * error_logger_arg;
+  rtreporter notice_logger;
+  void * notice_logger_arg;
+  rtdebuglogger debug_logger;
+  void * debug_logger_arg;
 };
 
 /*
