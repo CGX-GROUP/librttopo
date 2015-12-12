@@ -1,2 +1,1 @@
-- Make message handling re-entrant (custom client arg)
 - Expose GEOSGeometry-based API
