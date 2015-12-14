@@ -3,17 +3,26 @@
  * rttopo - topology library
  * http://gitlab.com/rttopo/rttopo
  *
- * Copyright (C) 2015 Sandro Santilli <strk@keybit.net>
+ * rttopo is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
  *
- * This is free software; you can redistribute and/or modify it under
- * the terms of the GNU General Public Licence. See the COPYING file.
+ * rttopo is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with rttopo.  If not, see <http://www.gnu.org/licenses/>.
  *
  **********************************************************************
  *
- * Topology extension for librtgeom.
- * Initially funded by Tuscany Region (Italy) - SITA (CIG: 60351023B8)
+ * Copyright (C) 2015 Sandro Santilli <strk@keybit.net>
  *
  **********************************************************************/
+
+
 
 
 #include "rttopo_config.h"
