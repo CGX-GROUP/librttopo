@@ -216,15 +216,6 @@ rtgeom_set_debug_logger(RTCTX *ctx, rtdebuglogger logger, void *arg)
   ctx->debug_logger_arg = arg;
 }
 
-GEOSContextHandle_t
-rtgeom_set_geos_context(RTCTX *ctx,
-	        GEOSContextHandle_t gctx)
-{
-  GEOSContextHandle_t old = ctx->gctx;
-  ctx->gctx = gctx;
-  return old;
-}
-
 const char* 
 rttype_name(const RTCTX *ctx, uint8_t type)
 {
