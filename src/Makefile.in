@@ -142,13 +142,7 @@ clean:
 
 distclean: clean
 	rm -f librtgeom.h Makefile
-	rm -f Makefile
-	rm -Rf autom4te.cache
-	rm -f config.log config.cache config.status
 
 # Command to build each of the .lo files
 $(LT_SA_OBJS): %.lo: %.c
 	$(LIBTOOL) --mode=compile $(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
-
-librtgeom.h: librtgeom.h.in
-	./config.status
