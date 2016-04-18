@@ -1,5 +1,7 @@
-all install uninstall clean: config.status
+all install uninstall clean:
 	$(MAKE) -C src $@
+
+all install: config.status
 
 maintainer-clean-local:
 	rm -f configure
