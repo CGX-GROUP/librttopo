@@ -2849,7 +2849,7 @@ rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID faceid)
     rtfree(iface->ctx,  face );
     if ( i > 1 ) {
       rterror(iface->ctx, "Corrupted topology: multiple face records have face_id=%"
-              PRId64, faceid);
+              RTTFMT_ELEMID, faceid);
       return NULL;
     }
     /* Face has no boundary edges, we'll return EMPTY, see
