@@ -1,5 +1,5 @@
-[![build status](https://gitlab.com/ci/projects/89102/status.png?ref=master)]
-(https://gitlab.com/ci/projects/89102?ref=master)
+[![Gitlab-CI](https://gitlab.com/rttopo/rttopo/badges/master/build.svg)]
+(https://gitlab.com/rttopo/rttopo/commits/master)
 
 This is a fork of PostGIS' liblwgeom, moved to its own repository to
 allow for faster release cycles independent from PostGIS itself.
