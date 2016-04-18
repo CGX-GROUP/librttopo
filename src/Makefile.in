@@ -88,7 +88,8 @@ SA_OBJS = \
 	rtgeom_geos_node.o \
 	rtgeom_geos_split.o \
 	rtgeom_topo.o \
-	rtspheroid.o
+	rtspheroid.o \
+  varint.o
 
 LDFLAGS += -no-undefined
 
