@@ -3580,6 +3580,13 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   if ( oldedge->face_left != 0 )
   {
     nface1 = rtt_GetFaceGeometry(topo, oldedge->face_left);
+    if ( ! nface1 )
+    {
+      rterror(iface->ctx, "lwt_ChangeEdgeGeom could not construct face %"
+                 RTTFMT_ELEMID ", on the left of edge %" RTTFMT_ELEMID,
+                oldedge->face_left, edge_id);
+      return -1;
+    }
 #if 0
     {
     size_t sz;
@@ -3598,6 +3605,13 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
        && oldedge->face_right != oldedge->face_left )
   {
     nface2 = rtt_GetFaceGeometry(topo, oldedge->face_right);
+    if ( ! nface2 )
+    {
+      rterror(iface->ctx, "lwt_ChangeEdgeGeom could not construct face %"
+                 RTTFMT_ELEMID ", on the right of edge %" RTTFMT_ELEMID,
+                oldedge->face_right, edge_id);
+      return -1;
+    }
 #if 0
     {
     size_t sz;
