@@ -3448,7 +3448,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
         GEOSGeom_destroy_r(iface->ctx->gctx, oarea);
         GEOSPreparedGeom_destroy_r(iface->ctx->gctx, nareap);
         GEOSGeom_destroy_r(iface->ctx->gctx, narea);
-        wkt = rtgeom_to_wkt(iface->ctx, rtpoint_as_rtgeom(iface->ctx, n->geom), RTWKT_ISO, 6, &sz);
+        wkt = rtgeom_to_wkt(iface->ctx, rtpoint_as_rtgeom(iface->ctx, n->geom), RTWKT_ISO, 15, &sz);
         _rtt_release_nodes(iface->ctx, nodes, numnodes);
         rterror(iface->ctx, "Edge motion collision at %s", wkt);
         rtfree(iface->ctx, wkt); /* would not necessarely reach this point */
