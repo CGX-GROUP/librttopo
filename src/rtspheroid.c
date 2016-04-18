@@ -25,7 +25,7 @@
 
 
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 #include "rtgeodetic.h"
 #include "rtgeom_log.h"
 

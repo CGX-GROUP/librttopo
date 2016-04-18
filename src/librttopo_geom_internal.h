@@ -31,7 +31,7 @@
 #define _LIBRTGEOM_INTERNAL_H 1
 
 #include "rttopo_config.h"
-#include "librtgeom.h"
+#include "librttopo_geom.h"
 
 #include "rtgeom_log.h"
 
@@ -58,7 +58,7 @@
 
 #include <float.h>
 
-#include "librtgeom.h"
+#include "librttopo_geom.h"
 
 /**
 * Floating point comparators.

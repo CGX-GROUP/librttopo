@@ -392,7 +392,7 @@ AC_SUBST([SRID_USR_MAX])
 
 AC_OUTPUT([
    src/Makefile 
-   src/librtgeom.h
+   src/librttopo_geom.h
    ])
     
 dnl ===========================================================================

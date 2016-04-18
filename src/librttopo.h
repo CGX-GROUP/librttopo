@@ -27,7 +27,7 @@
 #ifndef LIBRTGEOM_TOPO_H
 #define LIBRTGEOM_TOPO_H 1
 
-#include "librtgeom.h"
+#include "librttopo_geom.h"
 
 /* INT64 */
 typedef int64_t RTT_INT64;

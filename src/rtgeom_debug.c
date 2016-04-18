@@ -25,7 +25,7 @@
 
 
 #include "rtgeom_log.h"
-#include "librtgeom.h"
+#include "librttopo_geom.h"
 
 #include <stdio.h>
 #include <string.h>

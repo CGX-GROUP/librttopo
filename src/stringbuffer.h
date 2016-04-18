@@ -28,7 +28,7 @@
 #ifndef _STRINGBUFFER_H
 #define _STRINGBUFFER_H 1
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>

@@ -30,7 +30,7 @@
 
 
 #include <string.h>
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 /** defid is the id of the coordinate can be used to hold other elements DEF='abc' transform='' etc. **/
 static size_t asx3d3_point_size(const RTCTX *ctx, const RTPOINT *point, char *srs, int precision, int opts, const char *defid);

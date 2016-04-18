@@ -24,7 +24,7 @@
 
 
 
-#include "librtgeom.h"
+#include "librttopo_geom.h"
 
 /*
 ** Public prototypes for GEOS utility functions.

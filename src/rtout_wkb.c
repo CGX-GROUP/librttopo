@@ -26,7 +26,7 @@
 
 #include <math.h>
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 #include "rtgeom_log.h"
 
 static uint8_t* rtgeom_to_wkb_buf(const RTCTX *ctx, const RTGEOM *geom, uint8_t *buf, uint8_t variant);

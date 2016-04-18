@@ -25,7 +25,7 @@
 
 
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 #include "stringbuffer.h"
 
 static int rtgeom_to_kml2_sb(const RTCTX *ctx, const RTGEOM *geom, int precision, const char *prefix, stringbuffer_t *sb);

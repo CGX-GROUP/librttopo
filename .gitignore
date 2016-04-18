@@ -11,7 +11,7 @@ config.sub
 configure
 cunit/Makefile
 install-sh
-librtgeom.h
+librttopo_geom.h
 libtool
 ltmain.sh
 rtin_wkt_lex.c

@@ -30,8 +30,8 @@
 /*#define RTGEOM_DEBUG_LEVEL 1*/
 #include "rtgeom_log.h"
 
-#include "librtgeom_internal.h"
-#include "librtgeom_topo_internal.h"
+#include "librttopo_geom_internal.h"
+#include "librttopo_internal.h"
 #include "rtgeom_geos.h"
 
 #include <stdio.h>

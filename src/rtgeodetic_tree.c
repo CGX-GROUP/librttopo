@@ -25,7 +25,7 @@
 
 #define _GNU_SOURCE
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 #include "rtgeodetic_tree.h"
 #include "rtgeom_log.h"
 

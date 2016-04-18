@@ -38,7 +38,7 @@
 #include <stdint.h>
 
 /**
-* @file librtgeom.h
+* @file librttopo_geom.h
 *
 * This library is the generic geometry handling section of PostGIS. The geometry
 * objects, constructors, destructors, and a set of spatial processing functions,

@@ -36,7 +36,7 @@
  *
  **********************************************************************/
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 /* for the measure functions*/
 #define DIST_MAX		-1

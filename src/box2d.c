@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 #ifndef EPSILON
 #define EPSILON        1.0E-06

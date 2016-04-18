@@ -33,7 +33,7 @@
 
 
 #include <string.h>
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 
 static size_t asgml2_point_size(const RTCTX *ctx, const RTPOINT *point, const char *srs, int precision, const char *prefix);

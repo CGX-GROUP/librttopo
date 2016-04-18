@@ -26,7 +26,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 /* Ensures the given lat and lon are in the "normal" range:
  * -90 to +90 for lat, -180 to +180 for lon. */

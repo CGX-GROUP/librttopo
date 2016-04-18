@@ -98,12 +98,12 @@ LT_OBJS = $(LT_SA_OBJS)
 
 SA_HEADERS = \
 	bytebuffer.h \
-	librtgeom.h \
-	librtgeom_internal.h \
+	librttopo_geom.h \
+	librttopo_geom_internal.h \
 	rtgeodetic.h \
 	rtgeodetic_tree.h \
-	librtgeom_topo.h \
-	librtgeom_topo_internal.h \
+	librttopo.h \
+	librttopo_internal.h \
 	rtgeom_log.h \
 	rtgeom_geos.h \
 	rtgeom_log.h \
@@ -114,35 +114,35 @@ SA_HEADERS = \
 	stringbuffer.h \
 	varint.h
 
-all: librtgeom.la
+all: librttopo.la
 
-install: install-librtgeom
+install: install-librttopo
 
-uninstall: uninstall-librtgeom
+uninstall: uninstall-librttopo
 
-install-librtgeom: librtgeom.la
-	$(LIBTOOL) --mode=install $(INSTALL) librtgeom.la "$(DESTDIR)$(libdir)/librtgeom.la"
-	$(INSTALL) -m 0644 librtgeom.h "$(DESTDIR)$(includedir)/librtgeom.h"
-	$(INSTALL) -m 0644 librtgeom_topo.h "$(DESTDIR)$(includedir)/librtgeom_topo.h"
+install-librttopo: librttopo.la
+	$(LIBTOOL) --mode=install $(INSTALL) librttopo.la "$(DESTDIR)$(libdir)/librttopo.la"
+	$(INSTALL) -m 0644 librttopo_geom.h "$(DESTDIR)$(includedir)/librttopo_geom.h"
+	$(INSTALL) -m 0644 librttopo.h "$(DESTDIR)$(includedir)/librttopo.h"
 
-uninstall-librtgeom:
-	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/librtgeom.la"
-	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(includedir)/librtgeom.h"
-	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(includedir)/librtgeom_topo.h"
+uninstall-librttopo:
+	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/librttopo.la"
+	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(includedir)/librttopo_geom.h"
+	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(includedir)/librttopo.h"
 
 $(LT_OBJS): rttopo_config.h $(SA_HEADERS)
 
-librtgeom.la: $(LT_OBJS)
+librttopo.la: $(LT_OBJS)
 	$(LIBTOOL) --tag=CC --mode=link $(CC) -rpath $(libdir) $(LT_OBJS) \
              -version-info $(VERSION_INFO) $(LDFLAGS) -o $@
 
 clean:
 	rm -f $(LT_OBJS) $(SA_OBJS)
-	rm -f librtgeom.la
+	rm -f librttopo.la
 	rm -rf .libs
 
 distclean: clean
-	rm -f librtgeom.h Makefile
+	rm -f librttopo_geom.h Makefile
 
 # Command to build each of the .lo files
 $(LT_SA_OBJS): %.lo: %.c

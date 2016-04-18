@@ -26,7 +26,7 @@
 
 #include <ctype.h>
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 /* Structure for the type array */
 struct geomtype_struct

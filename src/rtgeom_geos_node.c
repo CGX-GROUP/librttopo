@@ -25,7 +25,7 @@
 
 
 #include "rtgeom_geos.h"
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 #include <string.h>
 #include <assert.h>

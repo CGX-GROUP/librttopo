@@ -24,7 +24,7 @@
 
 
 
-#include "librtgeom.h"
+#include "librttopo_geom.h"
 #include "rtgeom_log.h"
 
 struct LISTNODE

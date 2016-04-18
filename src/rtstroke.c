@@ -29,7 +29,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 /* #define RTGEOM_DEBUG_LEVEL 4 */
 

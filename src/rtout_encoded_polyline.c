@@ -25,7 +25,7 @@
 
 
 #include "stringbuffer.h"
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 static char * rtline_to_encoded_polyline(const RTCTX *ctx, const RTLINE*, int precision);
 static char * rtmmpoint_to_encoded_polyline(const RTCTX *ctx, const RTMPOINT*, int precision);

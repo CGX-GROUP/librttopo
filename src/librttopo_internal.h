@@ -30,8 +30,8 @@
 #include "rttopo_config.h"
 #include "geos_c.h"
 
-#include "librtgeom.h"
-#include "librtgeom_topo.h"
+#include "librttopo_geom.h"
+#include "librttopo.h"
 
 /************************************************************************
  *

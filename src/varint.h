@@ -28,7 +28,7 @@
 #ifndef _LIBRTGEOM_VARINT_H
 #define _LIBRTGEOM_VARINT_H 1
 
-#include "librtgeom_internal.h"
+#include "librttopo_geom_internal.h"
 
 #include <stdint.h>
 #include <stdlib.h>
