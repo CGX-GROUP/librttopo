@@ -240,10 +240,10 @@ GEOS_NUMERIC_PATCH_VERSION=`printf "%02d" $GEOS_PATCH_VERSION`
 GEOS_NUMERIC_MINOR_VERSION=`printf "%02d" $GEOS_MINOR_VERSION`
 GEOS_NUMERIC_VERSION="$GEOS_MAJOR_VERSION$GEOS_NUMERIC_MINOR_VERSION$GEOS_NUMERIC_PATCH_VERSION"
 
-dnl Ensure that we are using GEOS >= 3.4.0
+dnl Ensure that we are using GEOS >= 3.5.0
 AC_MSG_RESULT([checking GEOS version... $GEOS_FULL_VERSION])
-if test ! "$GEOS_NUMERIC_VERSION" -ge 30400; then
-	AC_MSG_ERROR([librttopo requires GEOS >= 3.4.0])
+if test ! "$GEOS_NUMERIC_VERSION" -ge 30500; then
+	AC_MSG_ERROR([librttopo requires GEOS >= 3.5.0])
 fi
 
 dnl Extract the linker and include flags 
@@ -415,15 +415,3 @@ AC_MSG_RESULT([  PCRE support:         ${HAVE_PCRE}])
 AC_MSG_RESULT([  Debug level:          ${RTGEOM_DEBUG_LEVEL}])
 AC_MSG_RESULT([  Perl:                 ${PERL}])
 AC_MSG_RESULT()
-
-if test "$GEOS_NUMERIC_VERSION" -lt 30500; then
-AC_MSG_WARN([ --------- GEOS VERSION WARNING ------------ ])
-AC_MSG_WARN([  You are building against GEOS ${GEOS_FULL_VERSION} ])
-AC_MSG_WARN([  To take advantage of all the features of ])
-AC_MSG_WARN([  librtgeom we recommend you build using ])
-AC_MSG_WARN([  GEOS 3.5.0 or higher. You can download ])
-AC_MSG_WARN([  the latest versions from ])
-AC_MSG_WARN([  http://trac.osgeo.org/geos ])
-AC_MSG_WARN()
-fi
-
