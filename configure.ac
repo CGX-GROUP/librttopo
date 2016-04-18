@@ -15,7 +15,7 @@ AC_CONFIG_MACRO_DIR([macros])
 
 
 dnl Invoke libtool: we do this as it is the easiest way to find the PIC
-dnl flags required to build liblwgeom
+dnl flags required to build librttopo
 AC_PROG_LIBTOOL
 
 dnl
@@ -61,7 +61,7 @@ EXESUFFIX="$ac_cv_exeext"
 AC_SUBST([EXESUFFIX])
 
 dnl
-dnl Liblwgeom version information imported from Version.config
+dnl Librttopo version information imported from Version.config
 dnl
 
 LIBRTGEOM_CURRENT=`cat Version.config | grep ^LIBRTGEOM_IFACE_CUR | sed 's/[[^=]]*=\([[0-9]]\)/\1/g'`
@@ -190,7 +190,7 @@ LIBS="$XML2_LDFLAGS"
 AC_CHECK_LIB([xml2], [xmlInitParser], [], [AC_MSG_ERROR([could not find libxml2])], [])
 LIBS="$LIBS_SAVE"
 
-AC_DEFINE_UNQUOTED([RTGEOM_LIBXML2_VERSION], ["$RTGEOM_LIBXML2_VERSION"], [PostGIS libxml2 version])
+AC_DEFINE_UNQUOTED([RTGEOM_LIBXML2_VERSION], ["$RTGEOM_LIBXML2_VERSION"], [libxml2 version])
 AC_SUBST([RTGEOM_LIBXML2_VERSION])
 
 
@@ -420,7 +420,7 @@ if test "$GEOS_NUMERIC_VERSION" -lt 30500; then
 AC_MSG_WARN([ --------- GEOS VERSION WARNING ------------ ])
 AC_MSG_WARN([  You are building against GEOS ${GEOS_FULL_VERSION} ])
 AC_MSG_WARN([  To take advantage of all the features of ])
-AC_MSG_WARN([  PostGIS we recommend you build using ])
+AC_MSG_WARN([  librtgeom we recommend you build using ])
 AC_MSG_WARN([  GEOS 3.5.0 or higher. You can download ])
 AC_MSG_WARN([  the latest versions from ])
 AC_MSG_WARN([  http://trac.osgeo.org/geos ])
