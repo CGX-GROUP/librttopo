@@ -185,13 +185,29 @@ typedef void (*rtdebuglogger)(int level, const char* fmt, va_list ap, void *arg)
 
 /**
  * Initialize the library with custom memory management functions
- * you want your
- * application to use.
+ * you want your application to use.
+ * @param allocator function for allocating memory,
+ *                  or NULL to use the default
+ * @param reallocator function for reallocating memory,
+ *                    or NULL to use the default
+ * @param freeor function for release memory,
+ *               or NULL to use the default
+ * @return a context object to use in subsequent calls
+ *         to the library
+ * @see rtgeom_finish to destroy the created context
  * @ingroup system
  */
 RTCTX *rtgeom_init(rtallocator allocator,
                    rtreallocator reallocator,
                    rtfreeor freeor);
+
+/**
+ * Deinitialize the library, releasing all context memory
+ *
+ * @param ctx a context returned by rtgeom_init
+ *
+ */
+void rtgeom_finish(RTCTX *ctx);
 
 /** Return rtgeom version string (not to be freed) */
 const char* rtgeom_version(void);

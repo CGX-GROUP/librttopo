@@ -197,6 +197,12 @@ rtgeom_init(rtallocator allocator,
 }
 
 void
+rtgeom_finish(RTCTX *ctx)
+{
+  ctx->rtfree_var(ctx);
+}
+
+void
 rtgeom_set_error_logger(RTCTX *ctx, rtreporter logger, void *arg)
 {
   ctx->error_logger = logger;
