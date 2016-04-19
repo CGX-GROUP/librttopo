@@ -1,7 +1,7 @@
 dnl **********************************************************************
 dnl *
 dnl * rttopo - topology library
-dnl * http://gitlab.com/rttopo/rttopo
+dnl * http://git.osgeo.org/gogs/rttopo/librttopo
 dnl * Copyright 2008 Mark Cave-Ayland
 dnl *
 dnl * This is free software; you can redistribute and/or modify it under

@@ -1,7 +1,7 @@
 /**********************************************************************
  *
  * rttopo - topology library
- * http://gitlab.com/rttopo/rttopo
+ * http://git.osgeo.org/gogs/rttopo/librttopo
  *
  * rttopo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
