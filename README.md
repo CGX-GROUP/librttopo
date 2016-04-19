@@ -6,4 +6,7 @@ allow for faster release cycles independent from PostGIS itself.
 
 It is a work in progress, still not ready for use.
 
-Official code repository: https://git.osgeo.org/gogs/rttopo/librttopo
+Official code repository is https://git.osgeo.org/gogs/rttopo/librttopo.
+
+A mirror exists at https://gitlab.com/rttopo/rttopo, automatically
+updated on every push to the official repository.
