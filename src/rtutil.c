@@ -176,7 +176,8 @@ rtgeom_init(rtallocator allocator,
                    rtreallocator reallocator,
                    rtfreeor freeor)
 {
-  RTCTX *ctx = allocator(sizeof(RTCTX));
+  RTCTX *ctx = allocator ? allocator(sizeof(RTCTX))
+                 : default_allocator(sizeof(RTCTX));
 
   memset(ctx, '\0', sizeof(RTCTX));
 
