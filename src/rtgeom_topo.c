@@ -5168,8 +5168,9 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     RTGEOM *prj;
     int contains;
     GEOSGeometry *prjg, *gg;
+    RTT_ELEMID edge_id = e->edge_id;
 
-    RTDEBUGF(1, "Splitting edge %" RTTFMT_ELEMID, e->edge_id);
+    RTDEBUGF(1, "Splitting edge %" RTTFMT_ELEMID, edge_id);
 
     /* project point to line, split edge by point */
     prj = rtgeom_closest_point(iface->ctx, g, pt);
@@ -5228,7 +5229,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
 
       RTDEBUGF(1, "Edge %" RTTFMT_ELEMID
                   " does not contain projected point to it",
-                  e->edge_id);
+                  edge_id);
 
       /* In order to reduce the robustness issues, we'll pick
        * an edge that contains the projected point, if possible */
@@ -5299,7 +5300,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       }
 #endif
 
-      if ( -1 == rtt_ChangeEdgeGeom( topo, e->edge_id, snapline ) )
+      if ( -1 == rtt_ChangeEdgeGeom( topo, edge_id, snapline ) )
       {
         /* TODO: should have invoked rterror already, leaking memory */
         rtgeom_free(iface->ctx, prj);
@@ -5323,7 +5324,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
 #endif
 
     /* TODO: pass 1 as last argument (skipChecks) ? */
-    id = rtt_ModEdgeSplit( topo, e->edge_id, rtgeom_as_rtpoint(iface->ctx, prj), 0 );
+    id = rtt_ModEdgeSplit( topo, edge_id, rtgeom_as_rtpoint(iface->ctx, prj), 0 );
     if ( -1 == id )
     {
       /* TODO: should have invoked rterror already, leaking memory */
@@ -5334,6 +5335,20 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     }
 
     rtgeom_free(iface->ctx, prj);
+
+    /*
+     * TODO: decimate the two new edges with the given tolerance ?
+     *
+     * the edge identifiers to decimate would be: edge_id and "id"
+     * The problem here is that decimation of existing edges
+     * may introduce intersections or topological inconsistencies,
+     * for example:
+     *
+     *  - A node may end up falling on the other side of the edge
+     *  - The decimated edge might intersect another existing edge
+     *
+     */
+
     break; /* we only want to snap a single edge */
   }
   _rtt_release_edges(iface->ctx, edges, num);
@@ -5433,12 +5448,15 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   const RTT_BE_IFACE *iface = topo->be_iface;
   RTCOLLECTION *col;
   RTPOINT *start_point, *end_point;
-  RTGEOM *tmp;
+  RTGEOM *tmp, *tmp2;
   RTT_ISO_NODE *node;
   RTT_ELEMID nid[2]; /* start_node, end_node */
   RTT_ELEMID id; /* edge id */
   RTPOINT4D p4d;
   int nn, i;
+
+  RTDEBUGG(1, rtline_as_rtgeom(iface->ctx, edge), "_lwtAddLineEdge");
+  RTDEBUGF(1, "_lwtAddLineEdge with tolerance %g", tol);
 
   start_point = rtline_get_rtpoint(iface->ctx, edge, 0);
   if ( ! start_point )
@@ -5504,7 +5522,6 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   col = rtgeom_as_rtcollection(iface->ctx, tmp);
   if ( col )
   {{
-    RTGEOM *tmp2;
 
     col = rtcollection_extract(iface->ctx, col, RTLINETYPE);
 
@@ -5556,7 +5573,33 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   }
 
   /* No previously existing edge was found, we'll add one */
-  /* TODO: skip checks, I guess ? */
+
+  /* Remove consecutive vertices below given tolerance
+   * on edge addition */
+  if ( tol )
+  {{
+    tmp2 = rtline_remove_repeated_points(iface->ctx, edge, tol);
+    RTDEBUGG(1, tmp2, "Repeated-point removed");
+    edge = rtgeom_as_rtline(iface->ctx, tmp2);
+    rtgeom_free(iface->ctx, tmp);
+    tmp = tmp2;
+
+    /* check if the so-decimated edge _now_ exists */
+    id = _rtt_GetEqualEdge ( topo, edge );
+    RTDEBUGF(1, "_rtt_GetEqualEdge returned %" RTTFMT_ELEMID, id);
+    if ( id == -1 )
+    {
+      rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal lwerror */
+      return -1;
+    }
+    if ( id ) 
+    {
+      rtgeom_free(iface->ctx, tmp); /* takes "edge" down with it */
+      return id;
+    }
+  }}
+
+  /* TODO: skip checks ? */
   id = rtt_AddEdgeModFace( topo, nid[0], nid[1], edge, 0 );
   RTDEBUGF(1, "rtt_AddEdgeModFace returned %" RTTFMT_ELEMID, id);
   if ( id == -1 )
@@ -5600,7 +5643,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   RTGEOM *geomsbuf[1];
   RTGEOM **geoms;
   int ngeoms;
-  RTGEOM *noded;
+  RTGEOM *noded, *tmp;
   RTCOLLECTION *col;
   RTT_ELEMID *ids;
   RTT_ISO_EDGE *edges;
@@ -5616,8 +5659,17 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   RTDEBUGF(1, "Working tolerance:%.15g", tol);
   RTDEBUGF(1, "Input line has srid=%d", line->srid);
 
+  /* Remove consecutive vertices below given tolerance upfront */
+  if ( tol )
+  {{
+    RTLINE *clean = rtgeom_as_rtline(iface->ctx, rtline_remove_repeated_points(iface->ctx, line, tol));
+    tmp = rtline_as_rtgeom(iface->ctx, clean); /* NOTE: might collapse to non-simple */
+    RTDEBUGG(1, tmp, "Repeated-point removed");
+  }} else tmp=(RTGEOM*)line;
+
   /* 1. Self-node */
-  noded = rtgeom_node(iface->ctx, (RTGEOM*)line);
+  noded = rtgeom_node(iface->ctx, (RTGEOM*)tmp);
+  if ( tmp != (RTGEOM*)line ) rtgeom_free(iface->ctx, tmp);
   if ( ! noded ) return NULL; /* should have called rterror already */
   RTDEBUGG(1, noded, "Noded");
 
