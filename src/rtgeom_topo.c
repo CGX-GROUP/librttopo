@@ -2555,27 +2555,9 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
                 newedge.edge_id, newedge.next_right, prev_left);
     if ( newedge.face_right == -1 ) {
       newedge.face_right = span.cwFace;
-    } else if ( newedge.face_right != epan.ccwFace ) {
-      /* side-location conflict */
-      rterror(iface->ctx, "Side-location conflict: "
-              "new edge starts in face"
-               " %" RTTFMT_ELEMID " and ends in face"
-               " %" RTTFMT_ELEMID,
-              newedge.face_right, epan.ccwFace
-      );
-      return -1;
     }
     if ( newedge.face_left == -1 ) {
       newedge.face_left = span.ccwFace;
-    } else if ( newedge.face_left != epan.cwFace ) {
-      /* side-location conflict */
-      rterror(iface->ctx, "Side-location conflict: "
-              "new edge starts in face"
-               " %" RTTFMT_ELEMID " and ends in face"
-               " %" RTTFMT_ELEMID,
-              newedge.face_left, epan.cwFace
-      );
-      return -1;
     }
   } else {
     span.was_isolated = 1;
@@ -2597,9 +2579,27 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
                 newedge.edge_id, newedge.next_left, prev_right);
     if ( newedge.face_right == -1 ) {
       newedge.face_right = span.ccwFace;
+    } else if ( newedge.face_right != epan.ccwFace ) {
+      /* side-location conflict */
+      rterror(iface->ctx, "Side-location conflict: "
+              "new edge starts in face"
+               " %" RTTFMT_ELEMID " and ends in face"
+               " %" RTTFMT_ELEMID,
+              newedge.face_right, epan.ccwFace
+      );
+      return -1;
     }
     if ( newedge.face_left == -1 ) {
       newedge.face_left = span.cwFace;
+    } else if ( newedge.face_left != epan.cwFace ) {
+      /* side-location conflict */
+      rterror(iface->ctx, "Side-location conflict: "
+              "new edge starts in face"
+               " %" RTTFMT_ELEMID " and ends in face"
+               " %" RTTFMT_ELEMID,
+              newedge.face_left, epan.cwFace
+      );
+      return -1;
     }
   } else {
     epan.was_isolated = 1;
