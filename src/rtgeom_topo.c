@@ -435,6 +435,43 @@ rtt_be_ExistsEdgeIntersectingPoint(RTT_TOPOLOGY* topo, RTPOINT* pt)
  *
  ************************************************************************/
 
+static RTGEOM *
+_rtt_toposnap(const RTCTX *ctx, RTGEOM *src, RTGEOM *tgt, double tol)
+{
+  RTGEOM *tmp = src;
+  RTGEOM *tmp2;
+  int changed;
+  int iterations = 0;
+
+  int maxiterations = rtgeom_count_vertices(ctx, tgt);
+
+  /* GEOS snapping can be unstable */
+  /* See https://trac.osgeo.org/geos/ticket/760 */
+  do {
+    RTGEOM *tmp3;
+    tmp2 = rtgeom_snap(ctx, tmp, tgt, tol);
+    ++iterations;
+    changed = ( rtgeom_count_vertices(ctx, tmp2) != rtgeom_count_vertices(ctx, tmp) );
+#if GEOS_NUMERIC_VERSION < 30309
+    /* Up to GEOS-3.3.8, snapping could duplicate points */
+    if ( changed ) {
+      tmp3 = rtgeom_remove_repeated_points(ctx, tmp2, 0 );
+      rtgeom_free(ctx, tmp2);
+      tmp2 = tmp3;
+      changed = ( rtgeom_count_vertices(ctx, tmp2) != rtgeom_count_vertices(ctx, tmp) );
+    }
+#endif /* GEOS_NUMERIC_VERSION < 30309 */
+    RTDEBUGF(2, "After iteration %d, geometry changed ? %d (%d vs %d vertices)", iterations, changed, rtgeom_count_vertices(ctx, tmp2), rtgeom_count_vertices(ctx, tmp));
+    if ( tmp != src ) rtgeom_free(ctx, tmp);
+    tmp = tmp2;
+  } while ( changed && iterations <= maxiterations );
+
+  RTDEBUGF(1, "It took %d/%d iterations to properly snap",
+              iterations, maxiterations);
+
+  return tmp;
+}
+
 static void
 _rtt_release_faces(const RTCTX *ctx, RTT_ISO_FACE *faces, int num_faces)
 {
@@ -5209,7 +5246,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       -- a projected point internally, so we need another way.
       */
       snaptol = _rtt_minTolerance(iface->ctx, prj);
-      snapedge = rtgeom_snap(iface->ctx, g, prj, snaptol);
+      snapedge = _rtt_toposnap(iface->ctx, g, prj, snaptol);
       snapline = rtgeom_as_rtline(iface->ctx, snapedge);
 
       RTDEBUGF(1, "Edge snapped with tolerance %g", snaptol);
@@ -5629,7 +5666,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
       RTDEBUGF(1, "Snapping noded, with srid=%d "
                   "to interesecting edges, with srid=%d",
                   noded->srid, iedges->srid);
-      snapped = rtgeom_snap(iface->ctx, noded, iedges, tol);
+      snapped = _rtt_toposnap(iface->ctx, noded, iedges, tol);
       rtgeom_free(iface->ctx, noded);
       RTDEBUGG(1, snapped, "Snapped");
       RTDEBUGF(1, "Diffing snapped, with srid=%d "
@@ -5702,7 +5739,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
       /* TODO: consider snapping once against all elements
        *      (rather than once with edges and once with nodes) */
-      tmp = rtgeom_snap(iface->ctx, noded, inodes, tol);
+      tmp = _rtt_toposnap(iface->ctx, noded, inodes, tol);
       rtgeom_free(iface->ctx, noded);
       noded = tmp;
       RTDEBUGG(1, noded, "Node-snapped");
