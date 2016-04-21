@@ -959,7 +959,7 @@ rtt_AddIsoEdge( RTT_TOPOLOGY* topo, RTT_ELEMID startNode,
    *
    * the nodes anode and anothernode are no more isolated
    * because now there is an edge connecting them
-   */ 
+   */
   updated_nodes[0].node_id = startNode;
   updated_nodes[0].containing_face = -1;
   updated_nodes[1].node_id = endNode;
@@ -1428,7 +1428,7 @@ typedef struct edgeend_t {
   double myaz; /* azimuth of edgeend geometry */
 } edgeend;
 
-/* 
+/*
  * Get first distinct vertex from endpoint
  * @param pa the pointarray to seek points in
  * @param ref the point we want to search a distinct one
@@ -1769,7 +1769,7 @@ _rtt_GetInteriorEdgePoint(const RTCTX *ctx, const RTLINE* edge, RTPOINT2D* ip)
   /* interpolate if start point != end point */
 
   if ( p2d_same(ctx, &fp, &lp) ) return 0; /* no distinct points in edge */
- 
+
   ip->x = fp.x + ( (lp.x - fp.x) * 0.5 );
   ip->y = fp.y + ( (lp.y - fp.y) * 0.5 );
 
@@ -2478,10 +2478,10 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
              node->node_id, node->geom, start_node, end_node);
     if ( node->node_id == start_node ) {
       start_node_geom = node->geom;
-    } 
+    }
     if ( node->node_id == end_node ) {
       end_node_geom = node->geom;
-    } 
+    }
   }
 
   if ( ! skipChecks )
@@ -2677,7 +2677,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     }
   }
 
-  /* Link prev_right to us 
+  /* Link prev_right to us
    * (if it's not us already) */
   if ( llabs(prev_right) != newedge.edge_id )
   {
@@ -2850,7 +2850,7 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
      * https://trac.osgeo.org/postgis/ticket/3221 */
     if ( numfaceedges ) rtfree(iface->ctx, geoms);
     RTDEBUG(1, "_rtt_FaceByEdges returning empty polygon");
-    return rtpoly_as_rtgeom(iface->ctx, 
+    return rtpoly_as_rtgeom(iface->ctx,
             rtpoly_construct_empty(iface->ctx, topo->srid, topo->hasZ, 0)
            );
   }
@@ -5232,7 +5232,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       _rtt_release_edges(iface->ctx, edges, num);
       rterror(iface->ctx, "GEOS exception on Contains: %s", rtgeom_get_last_geos_error(iface->ctx));
       return -1;
-    } 
+    }
     if ( ! contains )
     {{
       double snaptol;
@@ -5579,7 +5579,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
     rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal rterror */
     return -1;
   }
-  if ( id ) 
+  if ( id )
   {
     rtgeom_free(iface->ctx, tmp); /* possibly takes "edge" down with it */
     return id;
@@ -5605,7 +5605,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
       rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal lwerror */
       return -1;
     }
-    if ( id ) 
+    if ( id )
     {
       rtgeom_free(iface->ctx, tmp); /* takes "edge" down with it */
       return id;
