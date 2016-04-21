@@ -3545,8 +3545,8 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
                                   isclosed ? &span_pre : NULL, edge_id );
 
   RTDEBUGF(1, "edges adjacent to old edge are %" RTTFMT_ELEMID
-              " and % (first point), %" RTTFMT_ELEMID
-              " and % (last point)" RTTFMT_ELEMID,
+              " and %" RTTFMT_ELEMID " (first point), %" RTTFMT_ELEMID
+              " and %" RTTFMT_ELEMID " (last point)" RTTFMT_ELEMID,
               span_pre.nextCW, span_pre.nextCCW,
               epan_pre.nextCW, epan_pre.nextCCW);
 
@@ -3583,9 +3583,8 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
                           isclosed ? &span_post : NULL, edge_id );
 
   RTDEBUGF(1, "edges adjacent to new edge are %" RTTFMT_ELEMID
-              " and %" RTTFMT_ELEMID
-              " (first point), %" RTTFMT_ELEMID
-              " and % (last point)" RTTFMT_ELEMID,
+              " and %" RTTFMT_ELEMID " (first point), %" RTTFMT_ELEMID
+              " and %" RTTFMT_ELEMID " (last point)" RTTFMT_ELEMID,
               span_pre.nextCW, span_pre.nextCCW,
               epan_pre.nextCW, epan_pre.nextCCW);
 
