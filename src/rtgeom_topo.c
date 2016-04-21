@@ -2734,7 +2734,18 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     }
   }
 
+  /* Check face splitting */
+
+  if ( ! isclosed && ( epan.was_isolated || span.was_isolated ) )
+  {
+    RTDEBUG(1, "New edge is dangling, so it cannot split any face");
+    return newedge.edge_id; /* no split */
+  }
+
   int newface1 = -1;
+
+  /* IDEA: avoid building edge ring if input is closed, which means we
+   *       know in advance it splits a face */
 
   if ( ! modFace )
   {
@@ -2745,7 +2756,6 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     }
   }
 
-  /* Check face splitting */
   int newface = _rtt_AddFaceSplit( topo, newedge.edge_id,
                                    newedge.face_left, 0 );
   if ( modFace )
