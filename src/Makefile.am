@@ -7,7 +7,7 @@ lib_LTLIBRARIES = librttopo.la
 librttopo_la_SOURCES = box2d.c bytebuffer.c g_box.c \
 	g_serialized.c g_util.c measures3d.c measures.c \
 	ptarray.c rtalgorithm.c rtcircstring.c rtcollection.c \
-	rtcompound.c rtcurvepoly.c rtgeodetic.c rtgeodetic_tree.c \
+	rtcompound.c rtcurvepoly.c rtgeodetic.c \
 	rtgeom_api.c rtgeom.c rtgeom_debug.c rtgeom_geos.c \
 	rtgeom_geos_clean.c rtgeom_geos_node.c rtgeom_geos_split.c \
 	rtgeom_topo.c rthomogenize.c rtin_geojson.c rtin_twkb.c \
@@ -26,6 +26,6 @@ librttopo_la_LIBADD = -lm
 
 noinst_HEADERS = bytebuffer.h librttopo_geom_internal.h \
 	librttopo_internal.h measures3d.h measures.h \
-	rtgeodetic.h rtgeodetic_tree.h rtgeom_geos.h \
+	rtgeodetic.h rtgeom_geos.h \
 	rtgeom_log.h rtout_twkb.h rttopo_config.h \
 	rttree.h stringbuffer.h varint.h config-msvc.h
