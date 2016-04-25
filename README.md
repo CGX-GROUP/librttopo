@@ -11,12 +11,13 @@ RT Topology Library
 The RT Topology Library exposes an API to create and manage standard
 (ISO 13249 aka SQL/MM) topologies using user-provided data storages.
 
-The code is a fork of the [PostGIS](http://postgis.net) liblwgeom
+The code is derived from [PostGIS](http://postgis.net) liblwgeom
 library enhanced to provide thread-safety, have less dependencies
 and be independent from PostGIS release cycles.
 
-The fork was funded by Regione Toscana - SITA (CIG: 6445512CC1),
-which also funded many improvements in the originating library.
+The RT Topology Library was funded by "Regione Toscana - SITA"
+(CIG: 6445512CC1), which also funded many improvements in the
+originating liblwgeom.
 
 Official code repository is https://git.osgeo.org/gogs/rttopo/librttopo.
 
