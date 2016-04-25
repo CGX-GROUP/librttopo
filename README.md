@@ -9,7 +9,8 @@ RT Topology Library
 ## About
 
 The RT Topology Library exposes an API to create and manage standard
-(ISO 13249 aka SQL/MM) topologies using user-provided data storages.
+(ISO 13249 aka SQL/MM) topologies using user-provided [data stores]
+(doc/DATASTORES.md).
 
 The code is derived from [PostGIS](http://postgis.net) liblwgeom
 library enhanced to provide thread-safety, have less dependencies
