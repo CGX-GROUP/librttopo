@@ -41,6 +41,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 
 #if HAVE_IEEEFP_H
