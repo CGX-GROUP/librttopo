@@ -28,4 +28,4 @@ noinst_HEADERS = bytebuffer.h librttopo_geom_internal.h \
 	librttopo_internal.h measures3d.h measures.h \
 	rtgeodetic.h rtgeom_geos.h \
 	rtgeom_log.h rtout_twkb.h rttopo_config.h \
-	rttree.h stringbuffer.h varint.h config-msvc.h
+	rttree.h stringbuffer.h varint.h
