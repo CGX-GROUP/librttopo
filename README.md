@@ -40,7 +40,7 @@ Using Autotools:
 
 ### Microsoft Windows
 
-See doc/BUILDING-ON-WINDOWS.md
+See [separate document](doc/BUILDING-ON-WINDOWS.md)
 
 ## Using
 
