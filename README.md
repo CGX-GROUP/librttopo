@@ -36,11 +36,11 @@ Using Autotools:
     ${srcdir}/configure # in build dir
     make # build
     make check # test
-    make install # install
+    make install # or install-strip
 
 ### Microsoft Windows
 
-TODO
+See doc/BUILDING-ON-WINDOWS.md
 
 ## Using
 

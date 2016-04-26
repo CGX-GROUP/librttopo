@@ -2,9 +2,14 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = src headers
 
-EXTRA_DIST = makefile.vc nmake.opt \
-	README.md CREDITS \
-  doc/DATASTORES.md doc/g_serialized.txt
+EXTRA_DIST = \
+  CREDITS \
+  doc/BUILDING-ON-WINDOWS.md \
+  doc/DATASTORES.md \
+  doc/g_serialized.txt \
+  makefile.vc \
+  nmake.opt \
+	README.md
 
 AUTOMAKE_OPTIONS = dist-zip foreign
 
