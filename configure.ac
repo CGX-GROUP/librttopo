@@ -79,7 +79,7 @@ AC_ARG_WITH([geosconfig],
 	[GEOSCONFIG="$withval"], [GEOSCONFIG=""])
 if test "x$GEOSCONFIG" = "x"; then
     # GEOSCONFIG was not specified, so search within the current path
-    AC_PATH_PROG([GEOSCONFIG], [geos-config])	
+    AC_PATH_PROG([GEOSCONFIG], [geos-config])
     # If we couldn't find geos-config, display an error
     if test "x$GEOSCONFIG" = "x"; then
             AC_MSG_ERROR([could not find geos-config within the current path. You may need to try re-running configure with a --with-geosconfig parameter.])
@@ -93,19 +93,19 @@ else
                     AC_MSG_RESULT([Using user-specified geos-config file: $GEOSCONFIG])
             else
                     AC_MSG_ERROR([the user-specified geos-config file $GEOSCONFIG does not exist])
-            fi     
+            fi
     fi
 fi
 # Extract the linker and include flags
 GEOS_LDFLAGS=`$GEOSCONFIG --ldflags`
 GEOS_CFLAGS=-I`$GEOSCONFIG --includes`
 AC_SUBST([GEOS_LDFLAGS])
-AC_SUBST([GEOS_CFLAGS])	
+AC_SUBST([GEOS_CFLAGS])
 # Ensure that we can parse geos_c.h
 CPPFLAGS_SAVE="$CPPFLAGS"
 CPPFLAGS="$GEOS_CFLAGS"
 AC_CHECK_HEADERS([geos_c.h],, [AC_MSG_ERROR([could not find geos_c.h - you may need to specify the directory of a geos-config file using --with-geosconfig])])
-CPPFLAGS="$CPPFLAGS_SAVE"	
+CPPFLAGS="$CPPFLAGS_SAVE"
 # Ensure we can link against libgeos_c
 LIBS_SAVE="$LIBS"
 LIBS="$GEOS_LDFLAGS"
@@ -115,7 +115,7 @@ LIBS="$LIBS $GEOS_LDFLAGS -lgeos_c"
 GEOS_MAJOR_VERSION=`$GEOSCONFIG --version | cut -d. -f1 | sed 's/[[^0-9]]//g'`
 GEOS_MINOR_VERSION=`$GEOSCONFIG --version | cut -d. -f2 | sed 's/[[^0-9]]//g'`
 RTGEOM_GEOS_VERSION="$GEOS_MAJOR_VERSION$GEOS_MINOR_VERSION"
-AC_DEFINE_UNQUOTED([RTGEOM_GEOS_VERSION], [$RTGEOM_GEOS_VERSION], [GEOS library version])	
+AC_DEFINE_UNQUOTED([RTGEOM_GEOS_VERSION], [$RTGEOM_GEOS_VERSION], [GEOS library version])
 AC_SUBST([RTGEOM_GEOS_VERSION])
 
 # SRID stuff
