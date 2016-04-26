@@ -1,0 +1,8 @@
+Release 1.0.0 of the RT Topology Library was funded by
+"Regione Toscana - SITA" (CIG: 6445512CC1)
+
+The library is based on version 2.2 of PostGIS's liblwgeom,
+which had contributions by many individual and corporate contributions,
+see http://postgis.net/docs/manual-2.2/postgis_introduction.html
+
+
