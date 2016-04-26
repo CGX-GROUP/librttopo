@@ -2,6 +2,7 @@ test:
   script:
     - apt-get update -qq
     - apt-get install -y build-essential autoconf libtool
+    - apt-get install -y zip # for make dist which also produces .zip
     - echo deb http://ftp.debian.org/debian sid main >> /etc/apt/sources.list
     - apt-get update -qq
     - apt-cache search libgeos
