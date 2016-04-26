@@ -1,0 +1,8 @@
+1. Set version in configure.ac
+2. Run make distcheck, fix if needed
+3. Push to repository, confirm bots are all happy
+4. Add annotated tag: git tag -sa librttopo-<version>
+5. Push annotated tag to repository: git push --tags
+6. Create release artifacts: make dist
+7. Upload release artifacts on websites (to be defined)
+8. Announce on osgeo-discuss@lists.osgeo.org
