@@ -26,6 +26,9 @@ Official code repository is https://git.osgeo.org/gogs/rttopo/librttopo.
 A mirror exists at https://gitlab.com/rttopo/rttopo, automatically
 updated on every push to the official repository.
 
+Development mailing list:
+https://lists.osgeo.org/mailman/listinfo/librttopo-dev
+
 ## Building, testing, installing
 
 ### Unix
