@@ -3,6 +3,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src headers
 
 EXTRA_DIST = \
+  ChangeLog \
   CREDITS \
   doc/BUILDING-ON-WINDOWS.md \
   doc/DATASTORES.md \
@@ -15,4 +16,9 @@ AUTOMAKE_OPTIONS = dist-zip foreign
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rttopo.pc
+
+.PHONY: ChangeLog
+
+ChangeLog:
+	git2cl > $(srcdir)/$@
 
