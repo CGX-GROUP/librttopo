@@ -4,5 +4,6 @@
 4. Add annotated tag: git tag -sa librttopo-<version>
 5. Push annotated tag to repository: git push <remote> librttopo-<version>
 6. Create release artifacts: make dist
-7. Upload release artifacts on websites (to be defined)
-8. Announce on osgeo-discuss@lists.osgeo.org
+7. Upload release artifacts to upload.osgeo.org
+8. Update websites (to be defined)
+9. Announce on discuss@lists.osgeo.org
