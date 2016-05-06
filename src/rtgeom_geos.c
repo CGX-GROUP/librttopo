@@ -64,6 +64,7 @@ rtgeom_geos_error(const char *msg, void *ptr)
 void
 rtgeom_geos_ensure_init(const RTCTX *ctx)
 {
+  if ( ctx->gctx != NULL ) return;
   GEOSContextHandle_t h = GEOS_init_r();
   ((RTCTX*)ctx)->gctx = h;
   GEOSContext_setNoticeMessageHandler_r(h, rtgeom_geos_notice, (void*)ctx);
