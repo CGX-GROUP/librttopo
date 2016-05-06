@@ -47,8 +47,8 @@ extern int gbox_geocentric_slow;
 */
 typedef struct
 {
-	double lon;
-	double lat;
+  double lon;
+  double lat;
 } GEOGRAPHIC_POINT;
 
 /**
@@ -56,8 +56,8 @@ typedef struct
 */
 typedef struct
 {
-	GEOGRAPHIC_POINT start;
-	GEOGRAPHIC_POINT end;
+  GEOGRAPHIC_POINT start;
+  GEOGRAPHIC_POINT end;
 } GEOGRAPHIC_EDGE;
 
 /**
@@ -65,8 +65,8 @@ typedef struct
 */
 typedef struct
 {
-	double measure;
-	uint32_t index;
+  double measure;
+  uint32_t index;
 } DISTANCE_ORDER;
 
 /**
@@ -153,7 +153,7 @@ int spheroid_project(const RTCTX *ctx, const GEOGRAPHIC_POINT *r, const SPHEROID
 
 /**
 * Notes for rewrite
-* 
+*
 * Define separate POINT types for 2-d-points-in-radiands and 3-d-points-in-geocentric
 * Maintain consistent units (radians?) throughout all calculations
 * Put an index pointer onto RTGEOM itself, and cache the indexed RTGEOM instead of a bare tree

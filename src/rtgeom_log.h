@@ -89,8 +89,8 @@ void rtnotice(const RTCTX *ctx, const char *fmt, ...);
 void rterror(const RTCTX *ctx, const char *fmt, ...);
 
 /**
- * Write a debug message out. 
- * Don't call this function directly, use the 
+ * Write a debug message out.
+ * Don't call this function directly, use the
  * macros, RTDEBUG() or RTDEBUGF(), for
  * efficiency.
  * @ingroup logging

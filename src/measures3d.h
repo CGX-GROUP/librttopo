@@ -39,26 +39,26 @@ Structure used in distance-calculations
 */
 typedef struct
 {
-	double distance;	/*the distance between p1 and p2*/
-	RTPOINT3DZ p1;
-	RTPOINT3DZ p2;
-	int mode;	/*the direction of looking, if thedir = -1 then we look for 3dmaxdistance and if it is 1 then we look for 3dmindistance*/
-	int twisted; /*To preserve the order of incoming points to match the first and second point in 3dshortest and 3dlongest line*/
-	double tolerance; /*the tolerance for 3ddwithin and 3ddfullywithin*/
+  double distance;  /*the distance between p1 and p2*/
+  RTPOINT3DZ p1;
+  RTPOINT3DZ p2;
+  int mode;  /*the direction of looking, if thedir = -1 then we look for 3dmaxdistance and if it is 1 then we look for 3dmindistance*/
+  int twisted; /*To preserve the order of incoming points to match the first and second point in 3dshortest and 3dlongest line*/
+  double tolerance; /*the tolerance for 3ddwithin and 3ddfullywithin*/
 } DISTPTS3D;
 
 typedef struct
 {
-	double	x,y,z;  
+  double  x,y,z;
 }
-VECTOR3D; 
+VECTOR3D;
 
 typedef struct
 {
-	RTPOINT3DZ		pop;  /*Point On Plane*/
-	VECTOR3D	pv;  /*Perpendicular normal vector*/
+  RTPOINT3DZ    pop;  /*Point On Plane*/
+  VECTOR3D  pv;  /*Perpendicular normal vector*/
 }
-PLANE3D; 
+PLANE3D;
 
 
 /*

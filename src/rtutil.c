@@ -47,22 +47,22 @@ static void * default_reallocator(void *mem, size_t size);
 
 static char *rtgeomTypeName[] =
 {
-	"Unknown",
-	"Point",
-	"LineString",
-	"Polygon",
-	"MultiPoint",
-	"MultiLineString",
-	"MultiPolygon",
-	"GeometryCollection",
-	"CircularString",
-	"CompoundCurve",
-	"CurvePolygon",
-	"MultiCurve",
-	"MultiSurface",
-	"PolyhedralSurface",
-	"Triangle",
-	"Tin"
+  "Unknown",
+  "Point",
+  "LineString",
+  "Polygon",
+  "MultiPoint",
+  "MultiLineString",
+  "MultiPolygon",
+  "GeometryCollection",
+  "CircularString",
+  "CompoundCurve",
+  "CurvePolygon",
+  "MultiCurve",
+  "MultiSurface",
+  "PolyhedralSurface",
+  "Triangle",
+  "Tin"
 };
 
 /*
@@ -76,40 +76,40 @@ static char *rtgeomTypeName[] =
 void
 rtnotice(const RTCTX *ctx, const char *fmt, ...)
 {
-	va_list ap;
+  va_list ap;
 
-	va_start(ap, fmt);
+  va_start(ap, fmt);
 
-	/* Call the supplied function */
-	(*ctx->notice_logger)(fmt, ap, ctx->notice_logger_arg);
+  /* Call the supplied function */
+  (*ctx->notice_logger)(fmt, ap, ctx->notice_logger_arg);
 
-	va_end(ap);
+  va_end(ap);
 }
 
 void
 rterror(const RTCTX *ctx, const char *fmt, ...)
 {
-	va_list ap;
+  va_list ap;
 
-	va_start(ap, fmt);
+  va_start(ap, fmt);
 
-	/* Call the supplied function */
-	(*ctx->error_logger)(fmt, ap, ctx->error_logger_arg);
+  /* Call the supplied function */
+  (*ctx->error_logger)(fmt, ap, ctx->error_logger_arg);
 
-	va_end(ap);
+  va_end(ap);
 }
 
 void
 rtdebug(const RTCTX *ctx, int level, const char *fmt, ...)
 {
-	va_list ap;
+  va_list ap;
 
-	va_start(ap, fmt);
+  va_start(ap, fmt);
 
-	/* Call the supplied function */
-	(*ctx->debug_logger)(level, fmt, ap, ctx->debug_logger_arg);
+  /* Call the supplied function */
+  (*ctx->debug_logger)(level, fmt, ap, ctx->debug_logger_arg);
 
-	va_end(ap);
+  va_end(ap);
 }
 
 /*
@@ -123,56 +123,56 @@ rtdebug(const RTCTX *ctx, int level, const char *fmt, ...)
 static void *
 default_allocator(size_t size)
 {
-	void *mem = malloc(size);
-	return mem;
+  void *mem = malloc(size);
+  return mem;
 }
 
 static void
 default_freeor(void *mem)
 {
-	free(mem);
+  free(mem);
 }
 
 static void *
 default_reallocator(void *mem, size_t size)
 {
-	void *ret = realloc(mem, size);
-	return ret;
+  void *ret = realloc(mem, size);
+  return ret;
 }
 
 static void
 default_noticereporter(const char *fmt, va_list ap, void *arg)
 {
-	char msg[RT_MSG_MAXLEN+1];
-	vsnprintf (msg, RT_MSG_MAXLEN, fmt, ap);
-	msg[RT_MSG_MAXLEN]='\0';
-	printf("%s\n", msg);
+  char msg[RT_MSG_MAXLEN+1];
+  vsnprintf (msg, RT_MSG_MAXLEN, fmt, ap);
+  msg[RT_MSG_MAXLEN]='\0';
+  printf("%s\n", msg);
 }
 
 static void
 default_debuglogger(int level, const char *fmt, va_list ap, void *arg)
 {
-	char msg[RT_MSG_MAXLEN+1];
-	if ( RTGEOM_DEBUG_LEVEL >= level )
-	{
-		/* Space pad the debug output */
-		int i;
-		for ( i = 0; i < level; i++ )
-			msg[i] = ' ';
-		vsnprintf(msg+i, RT_MSG_MAXLEN-i, fmt, ap);
-		msg[RT_MSG_MAXLEN]='\0';
-		printf("%s\n", msg);
-	}
+  char msg[RT_MSG_MAXLEN+1];
+  if ( RTGEOM_DEBUG_LEVEL >= level )
+  {
+    /* Space pad the debug output */
+    int i;
+    for ( i = 0; i < level; i++ )
+      msg[i] = ' ';
+    vsnprintf(msg+i, RT_MSG_MAXLEN-i, fmt, ap);
+    msg[RT_MSG_MAXLEN]='\0';
+    printf("%s\n", msg);
+  }
 }
 
 static void
 default_errorreporter(const char *fmt, va_list ap, void *arg)
 {
-	char msg[RT_MSG_MAXLEN+1];
-	vsnprintf (msg, RT_MSG_MAXLEN, fmt, ap);
-	msg[RT_MSG_MAXLEN]='\0';
-	fprintf(stderr, "%s\n", msg);
-	exit(1);
+  char msg[RT_MSG_MAXLEN+1];
+  vsnprintf (msg, RT_MSG_MAXLEN, fmt, ap);
+  msg[RT_MSG_MAXLEN]='\0';
+  fprintf(stderr, "%s\n", msg);
+  exit(1);
 }
 
 RTCTX *
@@ -189,9 +189,9 @@ rtgeom_init(rtallocator allocator,
   ctx->rtrealloc_var = default_reallocator;
   ctx->rtfree_var = default_freeor;
 
-	if ( allocator ) ctx->rtalloc_var = allocator;
-	if ( reallocator ) ctx->rtrealloc_var = reallocator;
-	if ( freeor ) ctx->rtfree_var = freeor;
+  if ( allocator ) ctx->rtalloc_var = allocator;
+  if ( reallocator ) ctx->rtrealloc_var = reallocator;
+  if ( freeor ) ctx->rtfree_var = freeor;
 
   ctx->notice_logger = default_noticereporter;
   ctx->error_logger = default_errorreporter;
@@ -227,36 +227,36 @@ rtgeom_set_debug_logger(RTCTX *ctx, rtdebuglogger logger, void *arg)
   ctx->debug_logger_arg = arg;
 }
 
-const char* 
+const char*
 rttype_name(const RTCTX *ctx, uint8_t type)
 {
-	if ( type > 15 )
-	{
-		/* assert(0); */
-		return "Invalid type";
-	}
-	return rtgeomTypeName[(int ) type];
+  if ( type > 15 )
+  {
+    /* assert(0); */
+    return "Invalid type";
+  }
+  return rtgeomTypeName[(int ) type];
 }
 
 void *
 rtalloc(const RTCTX *ctx, size_t size)
 {
-	void *mem = ctx->rtalloc_var(size);
-	RTDEBUGF(5, "rtalloc: %d@%p", size, mem);
-	return mem;
+  void *mem = ctx->rtalloc_var(size);
+  RTDEBUGF(5, "rtalloc: %d@%p", size, mem);
+  return mem;
 }
 
 void *
 rtrealloc(const RTCTX *ctx, void *mem, size_t size)
 {
-	RTDEBUGF(5, "rtrealloc: %d@%p", size, mem);
-	return ctx->rtrealloc_var(mem, size);
+  RTDEBUGF(5, "rtrealloc: %d@%p", size, mem);
+  return ctx->rtrealloc_var(mem, size);
 }
 
 void
 rtfree(const RTCTX *ctx, void *mem)
 {
-	ctx->rtfree_var(mem);
+  ctx->rtfree_var(mem);
 }
 
 /*
@@ -266,30 +266,30 @@ rtfree(const RTCTX *ctx, void *mem)
 void
 trim_trailing_zeros(const RTCTX *ctx, char *str)
 {
-	char *ptr, *totrim=NULL;
-	int len;
-	int i;
+  char *ptr, *totrim=NULL;
+  int len;
+  int i;
 
-	RTDEBUGF(3, "input: %s", str);
+  RTDEBUGF(3, "input: %s", str);
 
-	ptr = strchr(str, '.');
-	if ( ! ptr ) return; /* no dot, no decimal digits */
+  ptr = strchr(str, '.');
+  if ( ! ptr ) return; /* no dot, no decimal digits */
 
-	RTDEBUGF(3, "ptr: %s", ptr);
+  RTDEBUGF(3, "ptr: %s", ptr);
 
-	len = strlen(ptr);
-	for (i=len-1; i; i--)
-	{
-		if ( ptr[i] != '0' ) break;
-		totrim=&ptr[i];
-	}
-	if ( totrim )
-	{
-		if ( ptr == totrim-1 ) *ptr = '\0';
-		else *totrim = '\0';
-	}
+  len = strlen(ptr);
+  for (i=len-1; i; i--)
+  {
+    if ( ptr[i] != '0' ) break;
+    totrim=&ptr[i];
+  }
+  if ( totrim )
+  {
+    if ( ptr == totrim-1 ) *ptr = '\0';
+    else *totrim = '\0';
+  }
 
-	RTDEBUGF(3, "output: %s", str);
+  RTDEBUGF(3, "output: %s", str);
 }
 
 /*
@@ -306,107 +306,107 @@ trim_trailing_zeros(const RTCTX *ctx, char *str)
 
 char * rtmessage_truncate(const RTCTX *ctx, char *str, int startpos, int endpos, int maxlength, int truncdirection)
 {
-	char *output;
-	char *outstart;
+  char *output;
+  char *outstart;
 
-	/* Allocate space for new string */
-	output = rtalloc(ctx, maxlength + 4);
-	output[0] = '\0';
+  /* Allocate space for new string */
+  output = rtalloc(ctx, maxlength + 4);
+  output[0] = '\0';
 
-	/* Start truncation */
-	if (truncdirection == 0)
-	{
-		/* Calculate the start position */
-		if (endpos - startpos < maxlength)
-		{
-			outstart = str + startpos;
-			strncat(output, outstart, endpos - startpos + 1);
-		}
-		else
-		{
-			if (maxlength >= 3)
-			{
-				/* Add "..." prefix */
-				outstart = str + endpos + 1 - maxlength + 3;
-				strncat(output, "...", 3);
-				strncat(output, outstart, maxlength - 3);
-			}
-			else
-			{
-				/* maxlength is too small; just output "..." */
-				strncat(output, "...", 3);
-			}
-		}
-	}
+  /* Start truncation */
+  if (truncdirection == 0)
+  {
+    /* Calculate the start position */
+    if (endpos - startpos < maxlength)
+    {
+      outstart = str + startpos;
+      strncat(output, outstart, endpos - startpos + 1);
+    }
+    else
+    {
+      if (maxlength >= 3)
+      {
+        /* Add "..." prefix */
+        outstart = str + endpos + 1 - maxlength + 3;
+        strncat(output, "...", 3);
+        strncat(output, outstart, maxlength - 3);
+      }
+      else
+      {
+        /* maxlength is too small; just output "..." */
+        strncat(output, "...", 3);
+      }
+    }
+  }
 
-	/* End truncation */
-	if (truncdirection == 1)
-	{
-		/* Calculate the end position */
-		if (endpos - startpos < maxlength)
-		{
-			outstart = str + startpos;
-			strncat(output, outstart, endpos - startpos + 1);
-		}
-		else
-		{
-			if (maxlength >= 3)
-			{
-				/* Add "..." suffix */
-				outstart = str + startpos;
-				strncat(output, outstart, maxlength - 3);
-				strncat(output, "...", 3);
-			}
-			else
-			{
-				/* maxlength is too small; just output "..." */
-				strncat(output, "...", 3);
-			}
-		}
-	}
+  /* End truncation */
+  if (truncdirection == 1)
+  {
+    /* Calculate the end position */
+    if (endpos - startpos < maxlength)
+    {
+      outstart = str + startpos;
+      strncat(output, outstart, endpos - startpos + 1);
+    }
+    else
+    {
+      if (maxlength >= 3)
+      {
+        /* Add "..." suffix */
+        outstart = str + startpos;
+        strncat(output, outstart, maxlength - 3);
+        strncat(output, "...", 3);
+      }
+      else
+      {
+        /* maxlength is too small; just output "..." */
+        strncat(output, "...", 3);
+      }
+    }
+  }
 
-	return output;
+  return output;
 }
 
 
 char
 getMachineEndian(const RTCTX *ctx)
 {
-	static int endian_check_int = 1; /* dont modify this!!! */
+  static int endian_check_int = 1; /* dont modify this!!! */
 
-	return *((char *) &endian_check_int); /* 0 = big endian | xdr,
-	                                       * 1 = little endian | ndr
-	                                       */
+  return *((char *) &endian_check_int); /* 0 = big endian | xdr,
+                                         * 1 = little endian | ndr
+                                         */
 }
 
 
 void
 error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2)
 {
-	if ( srid1 != srid2 )
-	{
-		rterror(ctx, "Operation on mixed SRID geometries");
-	}
+  if ( srid1 != srid2 )
+  {
+    rterror(ctx, "Operation on mixed SRID geometries");
+  }
 }
 
 int
 clamp_srid(const RTCTX *ctx, int srid)
 {
-	int newsrid = srid;
+  int newsrid = srid;
 
-	if ( newsrid <= 0 ) {
-		if ( newsrid != SRID_UNKNOWN ) {
-			newsrid = SRID_UNKNOWN;
-			rtnotice(ctx, "SRID value %d converted to the officially unknown SRID value %d", srid, newsrid);
-		}
-	} else if ( srid > SRID_MAXIMUM ) {
+  if ( newsrid <= 0 ) {
+    if ( newsrid != SRID_UNKNOWN ) {
+      newsrid = SRID_UNKNOWN;
+      rtnotice(ctx, "SRID value %d converted to the officially unknown SRID value %d", srid, newsrid);
+    }
+  } else if ( srid > SRID_MAXIMUM ) {
     newsrid = SRID_USER_MAXIMUM + 1 +
       /* -1 is to reduce likelyhood of clashes */
       /* NOTE: must match implementation in postgis_restore.pl */
       ( srid % ( SRID_MAXIMUM - SRID_USER_MAXIMUM - 1 ) );
-		rtnotice(ctx, "SRID value %d > SRID_MAXIMUM converted to %d", srid, newsrid);
-	}
-	
-	return newsrid;
+    rtnotice(ctx, "SRID value %d > SRID_MAXIMUM converted to %d", srid, newsrid);
+  }
+
+  return newsrid;
 }
 

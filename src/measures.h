@@ -39,26 +39,26 @@
 #include "librttopo_geom_internal.h"
 
 /* for the measure functions*/
-#define DIST_MAX		-1
-#define DIST_MIN		1
+#define DIST_MAX    -1
+#define DIST_MIN    1
 
-/** 
+/**
 * Structure used in distance-calculations
 */
 typedef struct
 {
-	double distance;	/*the distance between p1 and p2*/
-	RTPOINT2D p1;
-	RTPOINT2D p2;
-	int mode;	/*the direction of looking, if thedir = -1 then we look for maxdistance and if it is 1 then we look for mindistance*/
-	int twisted; /*To preserve the order of incoming points to match the first and secon point in shortest and longest line*/
-	double tolerance; /*the tolerance for dwithin and dfullywithin*/
+  double distance;  /*the distance between p1 and p2*/
+  RTPOINT2D p1;
+  RTPOINT2D p2;
+  int mode;  /*the direction of looking, if thedir = -1 then we look for maxdistance and if it is 1 then we look for mindistance*/
+  int twisted; /*To preserve the order of incoming points to match the first and secon point in shortest and longest line*/
+  double tolerance; /*the tolerance for dwithin and dfullywithin*/
 } DISTPTS;
 
 typedef struct
 {
-	double themeasure;	/*a value calculated to compare distances*/
-	int pnr;	/*pointnumber. the ordernumber of the point*/
+  double themeasure;  /*a value calculated to compare distances*/
+  int pnr;  /*pointnumber. the ordernumber of the point*/
 } LISTSTRUCT;
 
 
@@ -105,7 +105,7 @@ int struct_cmp_by_measure(const void *a, const void *b);
 int rt_dist2d_fast_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1,RTPOINTARRAY *l2, DISTPTS *dl,  RTGBOX *box1, RTGBOX *box2);
 
 /*
-* Distance calculation primitives. 
+* Distance calculation primitives.
 */
 int rt_dist2d_pt_pt(const RTCTX *ctx, const RTPOINT2D *P,  const RTPOINT2D *Q,  DISTPTS *dl);
 int rt_dist2d_pt_seg(const RTCTX *ctx, const RTPOINT2D *P,  const RTPOINT2D *A1, const RTPOINT2D *A2, DISTPTS *dl);

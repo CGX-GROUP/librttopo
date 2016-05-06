@@ -401,7 +401,7 @@ typedef struct RTT_BE_CALLBACKS_T {
    *        as a result of edge splitting, or -1 if the old edge was
    *        modified rather than replaced.
    *
-	 * @return 1 on success, 0 on error
+   * @return 1 on success, 0 on error
    *
    * @note on splitting an edge, the new edges both have the
    *       same direction as the original one. If a second new edge was
@@ -538,7 +538,7 @@ typedef struct RTT_BE_CALLBACKS_T {
    *        as a result of face splitting, or -1 if the old face was
    *        modified rather than replaced.
    *
-	 * @return 1 on success, 0 on error (@see lastErroMessage)
+   * @return 1 on success, 0 on error (@see lastErroMessage)
    *
    */
   int (*updateTopoGeomFaceSplit) (

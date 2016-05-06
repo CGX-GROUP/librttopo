@@ -65,13 +65,13 @@
 /**
 * RTRTTYPE numbers
 */
-#define	RTPOINTTYPE                1
-#define	RTLINETYPE                 2
-#define	RTPOLYGONTYPE              3
-#define	RTMULTIPOINTTYPE           4
-#define	RTMULTILINETYPE            5
-#define	RTMULTIPOLYGONTYPE         6
-#define	RTCOLLECTIONTYPE           7
+#define  RTPOINTTYPE                1
+#define  RTLINETYPE                 2
+#define  RTPOLYGONTYPE              3
+#define  RTMULTIPOINTTYPE           4
+#define  RTMULTILINETYPE            5
+#define  RTMULTIPOLYGONTYPE         6
+#define  RTCOLLECTIONTYPE           7
 #define RTCIRCSTRINGTYPE           8
 #define RTCOMPOUNDTYPE             9
 #define RTCURVEPOLYTYPE           10
@@ -270,16 +270,16 @@ extern rtinterrupt_callback *rtgeom_register_interrupt_callback(const RTCTX *ctx
 /******************************************************************/
 
 typedef struct {
-	double afac, bfac, cfac, dfac, efac, ffac, gfac, hfac, ifac, xoff, yoff, zoff;
+  double afac, bfac, cfac, dfac, efac, ffac, gfac, hfac, ifac, xoff, yoff, zoff;
 } RTAFFINE;
 
 /******************************************************************/
 
 typedef struct
 {
-	double xmin, ymin, zmin;
-	double xmax, ymax, zmax;
-	int32_t srid;
+  double xmin, ymin, zmin;
+  double xmax, ymax, zmax;
+  int32_t srid;
 }
 BOX3D;
 
@@ -291,15 +291,15 @@ BOX3D;
 */
 typedef struct
 {
-	uint8_t flags;
-	double xmin;
-	double xmax;
-	double ymin;
-	double ymax;
-	double zmin;
-	double zmax;
-	double mmin;
-	double mmax;
+  uint8_t flags;
+  double xmin;
+  double xmax;
+  double ymin;
+  double ymax;
+  double zmin;
+  double zmax;
+  double mmin;
+  double mmax;
 } RTGBOX;
 
 
@@ -313,13 +313,13 @@ typedef struct
 */
 typedef struct
 {
-	double	a;	/* semimajor axis */
-	double	b; 	/* semiminor axis b = (a - fa) */
-	double	f;	/* flattening f = (a-b)/a */
-	double	e;	/* eccentricity (first) */
-	double	e_sq;	/* eccentricity squared (first) e_sq = (a*a-b*b)/(a*a) */
-	double  radius;  /* spherical average radius = (2*a+b)/3 */
-	char	name[20];  /* name of ellipse */
+  double  a;  /* semimajor axis */
+  double  b;   /* semiminor axis b = (a - fa) */
+  double  f;  /* flattening f = (a-b)/a */
+  double  e;  /* eccentricity (first) */
+  double  e_sq;  /* eccentricity squared (first) e_sq = (a*a-b*b)/(a*a) */
+  double  radius;  /* spherical average radius = (2*a+b)/3 */
+  char  name[20];  /* name of ellipse */
 }
 SPHEROID;
 
@@ -328,31 +328,31 @@ SPHEROID;
 */
 typedef struct
 {
-	double x, y;
+  double x, y;
 }
 RTPOINT2D;
 
 typedef struct
 {
-	double x, y, z;
+  double x, y, z;
 }
 RTPOINT3DZ;
 
 typedef struct
 {
-	double x, y, z;
+  double x, y, z;
 }
 POINT3D;
 
 typedef struct
 {
-	double x, y, m;
+  double x, y, m;
 }
 RTPOINT3DM;
 
 typedef struct
 {
-	double x, y, z, m;
+  double x, y, z, m;
 }
 RTPOINT4D;
 
@@ -365,14 +365,14 @@ RTPOINT4D;
 */
 typedef struct
 {
-	/* Array of POINT 2D, 3D or 4D, possibly missaligned. */
-	uint8_t *serialized_pointlist;
+  /* Array of POINT 2D, 3D or 4D, possibly missaligned. */
+  uint8_t *serialized_pointlist;
 
-	/* Use RTFLAGS_* macros to handle */
-	uint8_t  flags;
+  /* Use RTFLAGS_* macros to handle */
+  uint8_t  flags;
 
-	int npoints;   /* how many points we are currently storing */
-	int maxpoints; /* how many points we have space for in serialized_pointlist */
+  int npoints;   /* how many points we are currently storing */
+  int maxpoints; /* how many points we have space for in serialized_pointlist */
 }
 RTPOINTARRAY;
 
@@ -381,10 +381,10 @@ RTPOINTARRAY;
 */
 typedef struct
 {
-	uint32_t size; /* For PgSQL use only, use VAR* macros to manipulate. */
-	uint8_t srid[3]; /* 24 bits of SRID */
-	uint8_t flags; /* HasZ, HasM, HasBBox, IsGeodetic, IsReadOnly */
-	uint8_t data[1]; /* See gserialized.txt */
+  uint32_t size; /* For PgSQL use only, use VAR* macros to manipulate. */
+  uint8_t srid[3]; /* 24 bits of SRID */
+  uint8_t flags; /* HasZ, HasM, HasBBox, IsGeodetic, IsReadOnly */
+  uint8_t data[1]; /* See gserialized.txt */
 } GSERIALIZED;
 
 
@@ -396,198 +396,198 @@ typedef struct
 */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	void *data;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  void *data;
 }
 RTGEOM;
 
 /* RTPOINTYPE */
 typedef struct
 {
-	uint8_t type; /* RTPOINTTYPE */
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	RTPOINTARRAY *point;  /* hide 2d/3d (this will be an array of 1 point) */
+  uint8_t type; /* RTPOINTTYPE */
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  RTPOINTARRAY *point;  /* hide 2d/3d (this will be an array of 1 point) */
 }
 RTPOINT; /* "light-weight point" */
 
 /* RTLINETYPE */
 typedef struct
 {
-	uint8_t type; /* RTLINETYPE */
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	RTPOINTARRAY *points; /* array of POINT3D */
+  uint8_t type; /* RTLINETYPE */
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  RTPOINTARRAY *points; /* array of POINT3D */
 }
 RTLINE; /* "light-weight line" */
 
 /* TRIANGLE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	RTPOINTARRAY *points;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  RTPOINTARRAY *points;
 }
 RTTRIANGLE;
 
 /* RTCIRCSTRINGTYPE */
 typedef struct
 {
-	uint8_t type; /* RTCIRCSTRINGTYPE */
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	RTPOINTARRAY *points; /* array of POINT(3D/3DM) */
+  uint8_t type; /* RTCIRCSTRINGTYPE */
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  RTPOINTARRAY *points; /* array of POINT(3D/3DM) */
 }
 RTCIRCSTRING; /* "light-weight circularstring" */
 
 /* RTPOLYGONTYPE */
 typedef struct
 {
-	uint8_t type; /* RTPOLYGONTYPE */
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int nrings;   /* how many rings we are currently storing */
-	int maxrings; /* how many rings we have space for in **rings */
-	RTPOINTARRAY **rings; /* list of rings (list of points) */
+  uint8_t type; /* RTPOLYGONTYPE */
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int nrings;   /* how many rings we are currently storing */
+  int maxrings; /* how many rings we have space for in **rings */
+  RTPOINTARRAY **rings; /* list of rings (list of points) */
 }
 RTPOLY; /* "light-weight polygon" */
 
 /* RTMULTIPOINTTYPE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTPOINT **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTPOINT **geoms;
 }
 RTMPOINT;
 
 /* RTMULTILINETYPE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTLINE **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTLINE **geoms;
 }
 RTMLINE;
 
 /* RTMULTIPOLYGONTYPE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTPOLY **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTPOLY **geoms;
 }
 RTMPOLY;
 
 /* RTCOLLECTIONTYPE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTGEOM **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTGEOM **geoms;
 }
 RTCOLLECTION;
 
 /* RTCOMPOUNDTYPE */
 typedef struct
 {
-	uint8_t type; /* RTCOMPOUNDTYPE */
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTGEOM **geoms;
+  uint8_t type; /* RTCOMPOUNDTYPE */
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTGEOM **geoms;
 }
 RTCOMPOUND; /* "light-weight compound line" */
 
 /* RTCURVEPOLYTYPE */
 typedef struct
 {
-	uint8_t type; /* RTCURVEPOLYTYPE */
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int nrings;    /* how many rings we are currently storing */
-	int maxrings;  /* how many rings we have space for in **rings */
-	RTGEOM **rings; /* list of rings (list of points) */
+  uint8_t type; /* RTCURVEPOLYTYPE */
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int nrings;    /* how many rings we are currently storing */
+  int maxrings;  /* how many rings we have space for in **rings */
+  RTGEOM **rings; /* list of rings (list of points) */
 }
 RTCURVEPOLY; /* "light-weight polygon" */
 
 /* MULTICURVE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTGEOM **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTGEOM **geoms;
 }
 RTMCURVE;
 
 /* RTMULTISURFACETYPE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTGEOM **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTGEOM **geoms;
 }
 RTMSURFACE;
 
 /* RTPOLYHEDRALSURFACETYPE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTPOLY **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTPOLY **geoms;
 }
 RTPSURFACE;
 
 /* RTTINTYPE */
 typedef struct
 {
-	uint8_t type;
-	uint8_t flags;
-	RTGBOX *bbox;
-	int32_t srid;
-	int ngeoms;   /* how many geometries we are currently storing */
-	int maxgeoms; /* how many geometries we have space for in **geoms */
-	RTTRIANGLE **geoms;
+  uint8_t type;
+  uint8_t flags;
+  RTGBOX *bbox;
+  int32_t srid;
+  int ngeoms;   /* how many geometries we are currently storing */
+  int maxgeoms; /* how many geometries we have space for in **geoms */
+  RTTRIANGLE **geoms;
 }
 RTTIN;
 
@@ -933,7 +933,7 @@ extern RTPOINTARRAY *ptarray_addPoint(const RTCTX *ctx, const RTPOINTARRAY *pa, 
 
 /**
  * @brief Remove a point from a pointarray.
- * 	@param which -  is the offset (starting at 0)
+ *   @param which -  is the offset (starting at 0)
  * @return #RTPOINTARRAY is newly allocated
  */
 extern RTPOINTARRAY *ptarray_removePoint(const RTCTX *ctx, RTPOINTARRAY *pa, uint32_t where);
@@ -1918,7 +1918,7 @@ extern int gserialized_get_gbox_p(const RTCTX *ctx, const GSERIALIZED *g, RTGBOX
 #define RT_PARSER_CHECK_ZCLOSURE   8
 
 #define RT_PARSER_CHECK_NONE   0
-#define RT_PARSER_CHECK_ALL	(RT_PARSER_CHECK_MINPOINTS | RT_PARSER_CHECK_ODD | RT_PARSER_CHECK_CLOSURE)
+#define RT_PARSER_CHECK_ALL  (RT_PARSER_CHECK_MINPOINTS | RT_PARSER_CHECK_ODD | RT_PARSER_CHECK_CLOSURE)
 
 /**
  * Parser result structure: returns the result of attempting to convert
@@ -1926,14 +1926,14 @@ extern int gserialized_get_gbox_p(const RTCTX *ctx, const GSERIALIZED *g, RTGBOX
  */
 typedef struct struct_rtgeom_parser_result
 {
-	const char *wkinput;        /* Copy of pointer to input RTWKT/RTWKB */
-	uint8_t *serialized_rtgeom;   /* Pointer to serialized RTGEOM */
-	int size;                   /* Size of serialized RTGEOM in bytes */
-	RTGEOM *geom;               /* Pointer to RTGEOM struct */
-	const char *message;        /* Error/warning message */
-	int errcode;                /* Error/warning number */
-	int errlocation;            /* Location of error */
-	int parser_check_flags;     /* Bitmask of validity checks run during this parse */
+  const char *wkinput;        /* Copy of pointer to input RTWKT/RTWKB */
+  uint8_t *serialized_rtgeom;   /* Pointer to serialized RTGEOM */
+  int size;                   /* Size of serialized RTGEOM in bytes */
+  RTGEOM *geom;               /* Pointer to RTGEOM struct */
+  const char *message;        /* Error/warning message */
+  int errcode;                /* Error/warning number */
+  int errlocation;            /* Location of error */
+  int parser_check_flags;     /* Bitmask of validity checks run during this parse */
 }
 RTGEOM_PARSER_RESULT;
 
@@ -1958,20 +1958,20 @@ RTGEOM_PARSER_RESULT;
  */
 typedef struct struct_rtgeom_unparser_result
 {
-	uint8_t *serialized_rtgeom;	/* Copy of pointer to input serialized RTGEOM */
-	char *wkoutput;			/* Pointer to RTWKT or RTWKB output */
-	int size;			/* Size of serialized RTGEOM in bytes */
-	const char *message;		/* Error/warning message */
-	int errlocation;		/* Location of error */
+  uint8_t *serialized_rtgeom;  /* Copy of pointer to input serialized RTGEOM */
+  char *wkoutput;      /* Pointer to RTWKT or RTWKB output */
+  int size;      /* Size of serialized RTGEOM in bytes */
+  const char *message;    /* Error/warning message */
+  int errlocation;    /* Location of error */
 }
 RTGEOM_UNPARSER_RESULT;
 
 /*
  * Unparser error messages (these must match the message array in rtgunparse.c)
  */
-#define UNPARSER_ERROR_MOREPOINTS 	1
-#define UNPARSER_ERROR_ODDPOINTS	2
-#define UNPARSER_ERROR_UNCLOSED		3
+#define UNPARSER_ERROR_MOREPOINTS   1
+#define UNPARSER_ERROR_ODDPOINTS  2
+#define UNPARSER_ERROR_UNCLOSED    3
 
 
 /*

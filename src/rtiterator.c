@@ -29,8 +29,8 @@
 
 struct LISTNODE
 {
-	struct LISTNODE* next;
-	void* item;
+  struct LISTNODE* next;
+  void* item;
 };
 typedef struct LISTNODE LISTNODE;
 
@@ -44,38 +44,38 @@ typedef struct LISTNODE LISTNODE;
  */
 struct RTPOINTITERATOR
 {
-	LISTNODE* geoms;
-	LISTNODE* pointarrays;
-	uint32_t i;
-	char allow_modification;
+  LISTNODE* geoms;
+  LISTNODE* pointarrays;
+  uint32_t i;
+  char allow_modification;
 };
 
 static LISTNODE*
 prepend_node(const RTCTX *ctx, void* g, LISTNODE* front)
 {
-	LISTNODE* n = rtalloc(ctx, sizeof(LISTNODE));
-	n->item = g;
-	n->next = front;
+  LISTNODE* n = rtalloc(ctx, sizeof(LISTNODE));
+  n->item = g;
+  n->next = front;
 
-	return n;
+  return n;
 }
 
 static LISTNODE*
 pop_node(const RTCTX *ctx, LISTNODE* i)
 {
-	LISTNODE* next = i->next;
-	rtfree(ctx, i);
-	return next;
+  LISTNODE* next = i->next;
+  rtfree(ctx, i);
+  return next;
 }
 
 static int
 add_rtgeom_to_stack(const RTCTX *ctx, RTPOINTITERATOR* s, RTGEOM* g)
 {
-	if (rtgeom_is_empty(ctx, g))
-		return RT_FAILURE;
+  if (rtgeom_is_empty(ctx, g))
+    return RT_FAILURE;
 
-	s->geoms = prepend_node(ctx, g, s->geoms);
-	return RT_SUCCESS;
+  s->geoms = prepend_node(ctx, g, s->geoms);
+  return RT_SUCCESS;
 }
 
 /** Return a pointer to the first of one or more LISTNODEs holding the RTPOINTARRAYs
@@ -84,34 +84,34 @@ add_rtgeom_to_stack(const RTCTX *ctx, RTPOINTITERATOR* s, RTGEOM* g)
 static LISTNODE*
 extract_pointarrays_from_rtgeom(const RTCTX *ctx, RTGEOM* g)
 {
-	switch(rtgeom_get_type(ctx, g))
-	{
-	case RTPOINTTYPE:
-		return prepend_node(ctx, rtgeom_as_rtpoint(ctx, g)->point, NULL);
-	case RTLINETYPE:
-		return prepend_node(ctx, rtgeom_as_rtline(ctx, g)->points, NULL);
-	case RTTRIANGLETYPE:
-		return prepend_node(ctx, rtgeom_as_rttriangle(ctx, g)->points, NULL);
-	case RTCIRCSTRINGTYPE:
-		return prepend_node(ctx, rtgeom_as_rtcircstring(ctx, g)->points, NULL);
-	case RTPOLYGONTYPE:
-	{
-		LISTNODE* n = NULL;
+  switch(rtgeom_get_type(ctx, g))
+  {
+  case RTPOINTTYPE:
+    return prepend_node(ctx, rtgeom_as_rtpoint(ctx, g)->point, NULL);
+  case RTLINETYPE:
+    return prepend_node(ctx, rtgeom_as_rtline(ctx, g)->points, NULL);
+  case RTTRIANGLETYPE:
+    return prepend_node(ctx, rtgeom_as_rttriangle(ctx, g)->points, NULL);
+  case RTCIRCSTRINGTYPE:
+    return prepend_node(ctx, rtgeom_as_rtcircstring(ctx, g)->points, NULL);
+  case RTPOLYGONTYPE:
+  {
+    LISTNODE* n = NULL;
 
-		RTPOLY* p = rtgeom_as_rtpoly(ctx, g);
-		int i;
-		for (i = p->nrings - 1; i >= 0; i--)
-		{
-			n = prepend_node(ctx, p->rings[i], n);
-		}
+    RTPOLY* p = rtgeom_as_rtpoly(ctx, g);
+    int i;
+    for (i = p->nrings - 1; i >= 0; i--)
+    {
+      n = prepend_node(ctx, p->rings[i], n);
+    }
 
-		return n;
-	}
-	default:
-		rterror(ctx, "Unsupported geometry type for rtpointiterator");
-	}
+    return n;
+  }
+  default:
+    rterror(ctx, "Unsupported geometry type for rtpointiterator");
+  }
 
-	return NULL;
+  return NULL;
 }
 
 /** Remove an RTCOLLECTION from the iterator stack, and add the components of the
@@ -120,23 +120,23 @@ extract_pointarrays_from_rtgeom(const RTCTX *ctx, RTGEOM* g)
 static void
 unroll_collection(const RTCTX *ctx, RTPOINTITERATOR* s)
 {
-	int i;
-	RTCOLLECTION* c;
+  int i;
+  RTCOLLECTION* c;
 
-	if (!s->geoms)
-	{
-		return;
-	}
+  if (!s->geoms)
+  {
+    return;
+  }
 
-	c = (RTCOLLECTION*) s->geoms->item;
-	s->geoms = pop_node(ctx, s->geoms);
+  c = (RTCOLLECTION*) s->geoms->item;
+  s->geoms = pop_node(ctx, s->geoms);
 
-	for (i = c->ngeoms - 1; i >= 0; i--)
-	{
-		RTGEOM* g = rtcollection_getsubgeom(ctx, c, i);
+  for (i = c->ngeoms - 1; i >= 0; i--)
+  {
+    RTGEOM* g = rtcollection_getsubgeom(ctx, c, i);
 
-		add_rtgeom_to_stack(ctx, s, g);
-	}
+    add_rtgeom_to_stack(ctx, s, g);
+  }
 }
 
 /** Unroll RTCOLLECTIONs from the top of the stack, as necessary, until the element at the
@@ -145,49 +145,49 @@ unroll_collection(const RTCTX *ctx, RTPOINTITERATOR* s)
 static void
 unroll_collections(const RTCTX *ctx, RTPOINTITERATOR* s)
 {
-	while(s->geoms && rtgeom_is_collection(ctx, s->geoms->item))
-	{
-		unroll_collection(ctx, s);
-	}
+  while(s->geoms && rtgeom_is_collection(ctx, s->geoms->item))
+  {
+    unroll_collection(ctx, s);
+  }
 }
 
 static int
 rtpointiterator_advance(const RTCTX *ctx, RTPOINTITERATOR* s)
 {
-	s->i += 1;
+  s->i += 1;
 
-	/* We've reached the end of our current RTPOINTARRAY.  Try to see if there
-	 * are any more RTPOINTARRAYS on the stack. */
-	if (s->pointarrays && s->i >= ((RTPOINTARRAY*) s->pointarrays->item)->npoints)
-	{
-		s->pointarrays = pop_node(ctx, s->pointarrays);
-		s->i = 0;
-	}
+  /* We've reached the end of our current RTPOINTARRAY.  Try to see if there
+   * are any more RTPOINTARRAYS on the stack. */
+  if (s->pointarrays && s->i >= ((RTPOINTARRAY*) s->pointarrays->item)->npoints)
+  {
+    s->pointarrays = pop_node(ctx, s->pointarrays);
+    s->i = 0;
+  }
 
-	/* We don't have a current RTPOINTARRAY.  Pull a geometry from the stack, and
-	 * decompose it into its POINTARRARYs. */
-	if (!s->pointarrays)
-	{
-		RTGEOM* g;
-		unroll_collections(ctx, s);
+  /* We don't have a current RTPOINTARRAY.  Pull a geometry from the stack, and
+   * decompose it into its POINTARRARYs. */
+  if (!s->pointarrays)
+  {
+    RTGEOM* g;
+    unroll_collections(ctx, s);
 
-		if (!s->geoms)
-		{
-			return RT_FAILURE;
-		}
+    if (!s->geoms)
+    {
+      return RT_FAILURE;
+    }
 
-		s->i = 0;
-		g = s->geoms->item;
-		s->pointarrays = extract_pointarrays_from_rtgeom(ctx, g);
+    s->i = 0;
+    g = s->geoms->item;
+    s->pointarrays = extract_pointarrays_from_rtgeom(ctx, g);
 
-		s->geoms = pop_node(ctx, s->geoms);
-	}
+    s->geoms = pop_node(ctx, s->geoms);
+  }
 
-	if (!s->pointarrays)
-	{
-		return RT_FAILURE;
-	}
-	return RT_SUCCESS;
+  if (!s->pointarrays)
+  {
+    return RT_FAILURE;
+  }
+  return RT_SUCCESS;
 }
 
 /* Public API implementation */
@@ -195,89 +195,89 @@ rtpointiterator_advance(const RTCTX *ctx, RTPOINTITERATOR* s)
 int
 rtpointiterator_peek(const RTCTX *ctx, RTPOINTITERATOR* s, RTPOINT4D* p)
 {
-	if (!rtpointiterator_has_next(ctx, s))
-		return RT_FAILURE;
+  if (!rtpointiterator_has_next(ctx, s))
+    return RT_FAILURE;
 
-	return rt_getPoint4d_p(ctx, s->pointarrays->item, s->i, p);
+  return rt_getPoint4d_p(ctx, s->pointarrays->item, s->i, p);
 }
 
 int
 rtpointiterator_has_next(const RTCTX *ctx, RTPOINTITERATOR* s)
 {
-	if (s->pointarrays && s->i < ((RTPOINTARRAY*) s->pointarrays->item)->npoints)
-		return RT_TRUE;
-	return RT_FALSE;
+  if (s->pointarrays && s->i < ((RTPOINTARRAY*) s->pointarrays->item)->npoints)
+    return RT_TRUE;
+  return RT_FALSE;
 }
 
 int
 rtpointiterator_next(const RTCTX *ctx, RTPOINTITERATOR* s, RTPOINT4D* p)
 {
-	if (!rtpointiterator_has_next(ctx, s))
-		return RT_FAILURE;
+  if (!rtpointiterator_has_next(ctx, s))
+    return RT_FAILURE;
 
-	/* If p is NULL, just advance without reading */
-	if (p && !rtpointiterator_peek(ctx, s, p))
-		return RT_FAILURE;
+  /* If p is NULL, just advance without reading */
+  if (p && !rtpointiterator_peek(ctx, s, p))
+    return RT_FAILURE;
 
-	rtpointiterator_advance(ctx, s);
-	return RT_SUCCESS;
+  rtpointiterator_advance(ctx, s);
+  return RT_SUCCESS;
 }
 
 int
 rtpointiterator_modify_next(const RTCTX *ctx, RTPOINTITERATOR* s, const RTPOINT4D* p)
 {
-	if (!rtpointiterator_has_next(ctx, s))
-		return RT_FAILURE;
+  if (!rtpointiterator_has_next(ctx, s))
+    return RT_FAILURE;
 
-	if (!s->allow_modification)
-	{
-		rterror(ctx, "Cannot write to read-only iterator");
-		return RT_FAILURE;
-	}
+  if (!s->allow_modification)
+  {
+    rterror(ctx, "Cannot write to read-only iterator");
+    return RT_FAILURE;
+  }
 
-	ptarray_set_point4d(ctx, s->pointarrays->item, s->i, p);
+  ptarray_set_point4d(ctx, s->pointarrays->item, s->i, p);
 
-	rtpointiterator_advance(ctx, s);
-	return RT_SUCCESS;
+  rtpointiterator_advance(ctx, s);
+  return RT_SUCCESS;
 }
 
 RTPOINTITERATOR*
 rtpointiterator_create(const RTCTX *ctx, const RTGEOM* g)
 {
-	RTPOINTITERATOR* it = rtpointiterator_create_rw(ctx, (RTGEOM*) g);
-	it->allow_modification = RT_FALSE;
+  RTPOINTITERATOR* it = rtpointiterator_create_rw(ctx, (RTGEOM*) g);
+  it->allow_modification = RT_FALSE;
 
-	return it;
+  return it;
 }
 
 RTPOINTITERATOR*
 rtpointiterator_create_rw(const RTCTX *ctx, RTGEOM* g)
 {
-	RTPOINTITERATOR* it = rtalloc(ctx, sizeof(RTPOINTITERATOR));
+  RTPOINTITERATOR* it = rtalloc(ctx, sizeof(RTPOINTITERATOR));
 
-	it->geoms = NULL;
-	it->pointarrays = NULL;
-	it->i = 0;
-	it->allow_modification = RT_TRUE;
+  it->geoms = NULL;
+  it->pointarrays = NULL;
+  it->i = 0;
+  it->allow_modification = RT_TRUE;
 
-	add_rtgeom_to_stack(ctx, it, g);
-	rtpointiterator_advance(ctx, it);
+  add_rtgeom_to_stack(ctx, it, g);
+  rtpointiterator_advance(ctx, it);
 
-	return it;
+  return it;
 }
 
 void
 rtpointiterator_destroy(const RTCTX *ctx, RTPOINTITERATOR* s)
 {
-	while (s->geoms != NULL)
-	{
-		s->geoms = pop_node(ctx, s->geoms);
-	}
+  while (s->geoms != NULL)
+  {
+    s->geoms = pop_node(ctx, s->geoms);
+  }
 
-	while (s->pointarrays != NULL)
-	{
-		s->pointarrays = pop_node(ctx, s->pointarrays);
-	}
+  while (s->pointarrays != NULL)
+  {
+    s->pointarrays = pop_node(ctx, s->pointarrays);
+  }
 
-	rtfree(ctx, s);
+  rtfree(ctx, s);
 }

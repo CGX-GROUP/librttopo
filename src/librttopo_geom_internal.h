@@ -71,7 +71,7 @@
 #define FP_IS_ZERO(A) (fabs(A) <= FP_TOLERANCE)
 #define FP_MAX(A, B) (((A) > (B)) ? (A) : (B))
 #define FP_MIN(A, B) (((A) < (B)) ? (A) : (B))
-#define FP_ABS(a)   ((a) <	(0) ? -(a) : (a))
+#define FP_ABS(a)   ((a) <  (0) ? -(a) : (a))
 #define FP_EQUALS(A, B) (fabs((A)-(B)) <= FP_TOLERANCE)
 #define FP_NEQUALS(A, B) (fabs((A)-(B)) > FP_TOLERANCE)
 #define FP_LT(A, B) (((A) + FP_TOLERANCE) < (B))
@@ -110,7 +110,7 @@
 #define RTWKB_BYTE_SIZE 1 /* Internal use only */
 
 /**
-* Well-Known Binary (RTWKB) Geometry Types 
+* Well-Known Binary (RTWKB) Geometry Types
 */
 #define RTWKB_POINT_TYPE 1
 #define RTWKB_LINESTRING_TYPE 2
@@ -243,7 +243,7 @@ RTCOLLECTION* rtcollection_simplify(const RTCTX *ctx, const RTCOLLECTION *igeom,
 int signum(const RTCTX *ctx, double n);
 
 /*
-* The possible ways a pair of segments can interact. Returned by rt_segment_intersects 
+* The possible ways a pair of segments can interact. Returned by rt_segment_intersects
 */
 enum RTCG_SEGMENT_INTERSECTION_TYPE {
     SEG_ERROR = -1,
@@ -266,29 +266,29 @@ int rt_segment_intersects(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D
 double rtpoint_get_ordinate(const RTCTX *ctx, const RTPOINT4D *p, char ordinate);
 void rtpoint_set_ordinate(const RTCTX *ctx, RTPOINT4D *p, char ordinate, double value);
 
-/* 
+/*
 * Generate an interpolated coordinate p given an interpolation value and ordinate to apply it to
 */
 int point_interpolate(const RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2, RTPOINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value);
 
 
 /**
-* Clip a line based on the from/to range of one of its ordinates. Use for m- and z- clipping 
+* Clip a line based on the from/to range of one of its ordinates. Use for m- and z- clipping
 */
 RTCOLLECTION *rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinate, double from, double to);
 
 /**
-* Clip a multi-line based on the from/to range of one of its ordinates. Use for m- and z- clipping 
+* Clip a multi-line based on the from/to range of one of its ordinates. Use for m- and z- clipping
 */
 RTCOLLECTION *rtmline_clip_to_ordinate_range(const RTCTX *ctx, const RTMLINE *mline, char ordinate, double from, double to);
 
 /**
-* Clip a multi-point based on the from/to range of one of its ordinates. Use for m- and z- clipping 
+* Clip a multi-point based on the from/to range of one of its ordinates. Use for m- and z- clipping
 */
 RTCOLLECTION *rtmpoint_clip_to_ordinate_range(const RTCTX *ctx, const RTMPOINT *mpoint, char ordinate, double from, double to);
 
 /**
-* Clip a point based on the from/to range of one of its ordinates. Use for m- and z- clipping 
+* Clip a point based on the from/to range of one of its ordinates. Use for m- and z- clipping
 */
 RTCOLLECTION *rtpoint_clip_to_ordinate_range(const RTCTX *ctx, const RTPOINT *mpoint, char ordinate, double from, double to);
 
@@ -387,7 +387,7 @@ int rtcollection_startpoint(const RTCTX *ctx, const RTCOLLECTION* col, RTPOINT4D
  */
 void closest_point_on_segment(const RTCTX *ctx, const RTPOINT4D *R, const RTPOINT4D *A, const RTPOINT4D *B, RTPOINT4D *ret);
 
-/* 
+/*
 * Repeated points
 */
 RTPOINTARRAY *ptarray_remove_repeated_points_minpoints(const RTCTX *ctx, const RTPOINTARRAY *in, double tolerance, int minpoints);
@@ -416,14 +416,14 @@ int rttin_is_closed(const RTCTX *ctx, const RTTIN *tin);
 */
 typedef struct gridspec_t
 {
-	double ipx;
-	double ipy;
-	double ipz;
-	double ipm;
-	double xsize;
-	double ysize;
-	double zsize;
-	double msize;
+  double ipx;
+  double ipy;
+  double ipz;
+  double ipm;
+  double xsize;
+  double ysize;
+  double zsize;
+  double msize;
 }
 gridspec;
 
@@ -436,7 +436,7 @@ RTCIRCSTRING* rtcircstring_grid(const RTCTX *ctx, const RTCIRCSTRING *line, cons
 RTPOINTARRAY* ptarray_grid(const RTCTX *ctx, const RTPOINTARRAY *pa, const gridspec *grid);
 
 /*
-* What side of the line formed by p1 and p2 does q fall? 
+* What side of the line formed by p1 and p2 does q fall?
 * Returns -1 for left and 1 for right and 0 for co-linearity
 */
 int rt_segment_side(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const RTPOINT2D *q);
@@ -464,7 +464,7 @@ int rtgeom_contains_point(const RTCTX *ctx, const RTGEOM *geom, const RTPOINT2D 
 * Return 2 if the point is on the interior of the line (only case in which
 * a split happens).
 *
-* NOTE: the components pushed to the output vector have their SRID stripped 
+* NOTE: the components pushed to the output vector have their SRID stripped
 */
 int rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* ln, const RTPOINT* pt, RTMLINE* to);
 

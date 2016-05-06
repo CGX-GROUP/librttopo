@@ -25,15 +25,15 @@
 
 typedef struct rect_node
 {
-	double xmin;
-	double xmax;
-	double ymin;
-	double ymax;
-	struct rect_node *left_node;
-	struct rect_node *right_node;
-	RTPOINT2D *p1;
-	RTPOINT2D *p2;
-} RECT_NODE;	
+  double xmin;
+  double xmax;
+  double ymin;
+  double ymax;
+  struct rect_node *left_node;
+  struct rect_node *right_node;
+  RTPOINT2D *p1;
+  RTPOINT2D *p2;
+} RECT_NODE;
 
 int rect_tree_contains_point(const RTCTX *ctx, const RECT_NODE *tree, const RTPOINT2D *pt, int *on_boundary);
 int rect_tree_intersects_tree(const RTCTX *ctx, const RECT_NODE *tree1, const RECT_NODE *tree2);

@@ -5038,14 +5038,14 @@ typedef struct scored_pointer_t {
 static int
 compare_scored_pointer(const void *si1, const void *si2)
 {
-	double a = ((scored_pointer *)si1)->score;
-	double b = ((scored_pointer *)si2)->score;
-	if ( a < b )
-		return -1;
-	else if ( a > b )
-		return 1;
-	else
-		return 0;
+  double a = ((scored_pointer *)si1)->score;
+  double b = ((scored_pointer *)si2)->score;
+  if ( a < b )
+    return -1;
+  else if ( a > b )
+    return 1;
+  else
+    return 0;
 }
 
 RTT_ELEMID

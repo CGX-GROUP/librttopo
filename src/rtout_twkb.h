@@ -76,25 +76,25 @@
 
 typedef struct
 {
-	/* Options defined at start */
-	uint8_t variant;
-	int8_t prec_xy;
-	int8_t prec_z;
-	int8_t prec_m;
-	float factor[4]; /*What factor to multiply the coordiinates with to get the requested precision*/
+  /* Options defined at start */
+  uint8_t variant;
+  int8_t prec_xy;
+  int8_t prec_z;
+  int8_t prec_m;
+  float factor[4]; /*What factor to multiply the coordiinates with to get the requested precision*/
 } TWKB_GLOBALS;
 
 typedef struct
 {
-	uint8_t variant;  /*options that change at runtime*/
-	bytebuffer_t *header_buf;
-	bytebuffer_t *geom_buf;
-	int hasz;
-	int hasm;
-	const int64_t *idlist;
-	int64_t bbox_min[MAX_N_DIMS];
-	int64_t bbox_max[MAX_N_DIMS];
-	int64_t accum_rels[MAX_N_DIMS]; /*Holds the acculmulated relative values*/
+  uint8_t variant;  /*options that change at runtime*/
+  bytebuffer_t *header_buf;
+  bytebuffer_t *geom_buf;
+  int hasz;
+  int hasm;
+  const int64_t *idlist;
+  int64_t bbox_min[MAX_N_DIMS];
+  int64_t bbox_max[MAX_N_DIMS];
+  int64_t accum_rels[MAX_N_DIMS]; /*Holds the acculmulated relative values*/
 } TWKB_STATE;
 
 static int rtgeom_to_twkb_buf(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *global_values, TWKB_STATE *ts);
