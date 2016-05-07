@@ -203,6 +203,8 @@ rtgeom_init(rtallocator allocator,
 void
 rtgeom_finish(RTCTX *ctx)
 {
+  if (ctx->gctx != NULL)
+    GEOS_finish_r(ctx->gctx);
   ctx->rtfree_var(ctx);
 }
 
