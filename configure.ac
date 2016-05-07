@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(librttopo, 1.0.0-RC2, strk@keybit.net)
+AC_INIT(librttopo, 1.0.0-RC3, strk@kbt.io)
 AC_LANG(C)
 AC_CONFIG_MACRO_DIR([m4])
 
