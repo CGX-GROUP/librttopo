@@ -17,8 +17,6 @@ AUTOMAKE_OPTIONS = dist-zip foreign
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rttopo.pc
 
-.PHONY: ChangeLog
-
-ChangeLog:
-	git2cl > $(srcdir)/$@
+cl:
+	cd $(srcdir) && git2cl > ChangeLog
 
