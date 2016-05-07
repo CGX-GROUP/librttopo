@@ -40,17 +40,13 @@
 /**
 * @file librttopo_geom.h
 *
-* This library is the generic geometry handling section of PostGIS. The geometry
-* objects, constructors, destructors, and a set of spatial processing functions,
-* are implemented here.
+* This library is the generic geometry handling section of librttopo.
+* The geometry objects, constructors, destructors, and a set of spatial
+* processing functions, are implemented here.
 *
-* The library is designed for use in non-PostGIS applications if necessary. The
-* units tests at cunit/cu_tester.c and the loader/dumper programs at
-* ../loader/shp2pgsql.c are examples of non-PostGIS applications using librtgeom.
-*
-* Programs using this library can install their custom memory managers and error
-* handlers by calling the rtgeom_set_handlers(const RTCTX *ctx) function, otherwise the default
-* ones will be used.
+* Programs using this library can install their custom memory managers
+* passing them to the rtgeom_init function, and their custom message
+* handlers using the appropriate rtgeom_set_*_logger functions.
 */
 
 /**
