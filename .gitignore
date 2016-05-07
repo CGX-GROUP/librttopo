@@ -1,3 +1,8 @@
+*.zip
+*.gz
+*.ine
+*.ce
+*.he
 *.o
 *.lo
 *.la
