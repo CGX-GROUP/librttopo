@@ -20,6 +20,10 @@
  *
  * Copyright 2011-2015 Sandro Santilli <strk@keybit.net>
  *
+ **********************************************************************
+ *
+ * Last port: lwgeom_geos_split.c r14594
+ *
  **********************************************************************/
 
 
@@ -209,11 +213,13 @@ int
 rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOINT* blade_in,
                          RTMLINE* v)
 {
-  double loc, dist;
+  double mindist = -1;
   RTPOINT4D pt, pt_projected;
+  RTPOINT4D p1, p2;
+  RTPOINTARRAY *ipa = rtline_in->points;
   RTPOINTARRAY* pa1;
   RTPOINTARRAY* pa2;
-  double vstol; /* vertex snap tolerance */
+  int i, nsegs, seg = -1;
 
   /* Possible outcomes:
    *
@@ -229,30 +235,77 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
    */
 
   rt_getPoint4d_p(ctx, blade_in->point, 0, &pt);
-  loc = ptarray_locate_point(ctx, rtline_in->points, &pt, &dist, &pt_projected);
 
-  /* rtnotice(ctx, "Location: %g -- Distance: %g", loc, dist); */
-
-  if ( dist > 0 )   /* TODO: accept a tolerance ? */
+  /* Find closest segment */
+  rt_getPoint4d_p(ctx, ipa, 0, &p1);
+  nsegs = ipa->npoints - 1;
+  for ( i = 0; i < nsegs; i++ )
   {
-    /* No intersection */
-    return 0;
+    rt_getPoint4d_p(ctx, ipa, i+1, &p2);
+    double dist;
+    dist = distance2d_pt_seg(ctx, (RTPOINT2D*)&pt, (RTPOINT2D*)&p1, (RTPOINT2D*)&p2);
+    RTDEBUGF(4, " Distance of point %g %g to segment %g %g, %g %g: %g", pt.x, pt.y, p1.x, p1.y, p2.x, p2.y, dist);
+    if (i==0 || dist < mindist )
+    {
+      mindist = dist;
+      seg=i;
+      if ( mindist == 0.0 ) break; /* can't be closer than ON line */
+    }
+    p1 = p2;
   }
 
-  if ( loc == 0 || loc == 1 )
+  RTDEBUGF(3, "Closest segment: %d", seg);
+  RTDEBUGF(3, "mindist: %g", mindist);
+
+  /* No intersection */
+  if ( mindist > 0 ) return 0;
+
+  /* empty or single-point line, intersection on boundary */
+  if ( seg < 0 ) return 1;
+
+  /*
+   * We need to project the
+   * point on the closest segment,
+   * to interpolate Z and M if needed
+   */
+  rtgetPoint4d_p(ipa, seg, &p1);
+  rtgetPoint4d_p(ipa, seg+1, &p2);
+  closest_point_on_segment(ctx, &pt, &p1, &p2, &pt_projected);
+  /* But X and Y we want the ones of the input point,
+   * as on some architectures the interpolation math moves the
+   * coordinates (see postgis#3422)
+   */
+  pt_projected.x = pt.x;
+  pt_projected.y = pt.y;
+
+  RTDEBUGF(3, "Projected point:(%g %g), seg:%d, p1:(%g %g), p2:(%g %g)", pt_projected.x, pt_projected.y, seg, p1.x, p1.y, p2.x, p2.y);
+
+  /* When closest point == an endpoint, this is a boundary intersection */
+  if ( ( (seg == nsegs-1) && p4d_same(ctx, &pt_projected, &p2) ) ||
+       ( (seg == 0)       && p4d_same(ctx, &pt_projected, &p1) ) )
   {
-    /* Intersection is on the boundary */
     return 1;
   }
 
-  /* There is a real intersection, let's get two substrings */
+  /* This is an internal intersection, let's build the two new pointarrays */
 
-  /* Compute vertex snap tolerance based on line length
-   * TODO: take as parameter ? */
-  vstol = ptarray_length_2d(ctx, rtline_in->points) / 1e14;
+  pa1 = ptarray_construct_empty(ctx, FLAGS_GET_Z(ipa->flags), FLAGS_GET_M(ipa->flags), seg+2);
+  /* TODO: replace with a memcpy ? */
+  for (i=0; i<=seg; ++i)
+  {
+    rtgetPoint4d_p(ipa, i, &p1);
+    ptarray_append_point(ctx, pa1, &p1, RT_FALSE);
+  }
+  ptarray_append_point(ctx, pa1, &pt_projected, RT_FALSE);
 
-  pa1 = ptarray_substring(ctx, rtline_in->points, 0, loc, vstol);
-  pa2 = ptarray_substring(ctx, rtline_in->points, loc, 1, vstol);
+  pa2 = ptarray_construct_empty(ctx, FLAGS_GET_Z(ipa->flags), FLAGS_GET_M(ipa->flags), ipa->npoints-seg);
+  ptarray_append_point(ctx, pa2, &pt_projected, RT_FALSE);
+  /* TODO: replace with a memcpy (if so need to check for duplicated point) ? */
+  for (i=seg+1; i<ipa->npoints; ++i)
+  {
+    rtgetPoint4d_p(ipa, i, &p1);
+    ptarray_append_point(ctx, pa2, &p1, RT_FALSE);
+  }
 
   /* NOTE: I've seen empty pointarrays with loc != 0 and loc != 1 */
   if ( pa1->npoints == 0 || pa2->npoints == 0 ) {
@@ -262,8 +315,8 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
     return 1;
   }
 
-  rtmline_add_rtline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa1));
-  rtmline_add_rtline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa2));
+  rtmline_add_lwline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa1));
+  rtmline_add_lwline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa2));
   return 2;
 }
 

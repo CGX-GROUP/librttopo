@@ -500,5 +500,6 @@ extern int _rtgeom_interrupt_requested;
 int ptarray_npoints_in_rect(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTGBOX *gbox);
 int gbox_contains_point2d(const RTCTX *ctx, const RTGBOX *g, const RTPOINT2D *p);
 int rtpoly_contains_point(const RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D *pt);
+double distance2d_pt_seg(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
 
 #endif /* _LIBRTGEOM_INTERNAL_H */
