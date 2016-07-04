@@ -874,9 +874,11 @@ typedef struct RTT_BE_CALLBACKS_T {
  * Ownership to caller delete with rtt_FreeBackendIface
  *
  * @param ctx librtgeom context, create with rtgeom_init
- * @param data Backend data, passed as first parameter to all callback functions
+ * @param data Backend data, passed as first parameter
+ *             to all callback functions
  */
-RTT_BE_IFACE* rtt_CreateBackendIface(const RTCTX* ctx, const RTT_BE_DATA* data);
+RTT_BE_IFACE* rtt_CreateBackendIface(const RTCTX* ctx,
+                                     const RTT_BE_DATA* data);
 
 /**
  * Register backend callbacks into the opaque iface handler
@@ -884,7 +886,8 @@ RTT_BE_IFACE* rtt_CreateBackendIface(const RTCTX* ctx, const RTT_BE_DATA* data);
  * @param iface the backend interface handler (see rtt_CreateBackendIface)
  * @param cb a pointer to the callbacks structure; ownership left to caller.
  */
-void rtt_BackendIfaceRegisterCallbacks(RTT_BE_IFACE* iface, const RTT_BE_CALLBACKS* cb);
+void rtt_BackendIfaceRegisterCallbacks(RTT_BE_IFACE* iface,
+                                       const RTT_BE_CALLBACKS* cb);
 
 /** Release memory associated with an RTT_BE_IFACE */
 void rtt_FreeBackendIface(RTT_BE_IFACE* iface);
@@ -1053,7 +1056,8 @@ RTT_ELEMID rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol);
  *
  * @return an array of <nedges> edge identifiers that sewed togheter
  *         will build up the input linestring (after snapping). Caller
- *         will need to free the array using rtfree(const RTCTX *ctx), if not null.
+ *         will need to free the array using rtfree(const RTCTX *ctx),
+ *         if not null.
  */
 RTT_ELEMID* rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol,
                         int* nedges);
@@ -1074,7 +1078,8 @@ RTT_ELEMID* rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol,
  *
  * @return an array of <nfaces> face identifiers that sewed togheter
  *         will build up the input polygon (after snapping). Caller
- *         will need to free the array using rtfree(const RTCTX *ctx), if not null.
+ *         will need to free the array using rtfree(const RTCTX *ctx),
+ *         if not null.
  */
 RTT_ELEMID* rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol,
                         int* nfaces);
@@ -1276,7 +1281,8 @@ int rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTLINE* curve);
  *         (librtgeom error handler will be invoked with error message)
  *
  */
-RTT_ELEMID rtt_ModEdgeSplit(RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipChecks);
+RTT_ELEMID rtt_ModEdgeSplit(RTT_TOPOLOGY* topo, RTT_ELEMID edge,
+                            RTPOINT* pt, int skipChecks);
 
 /**
  * Split an edge by a node, replacing it with two new edges
@@ -1291,7 +1297,8 @@ RTT_ELEMID rtt_ModEdgeSplit(RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, in
  * @return the id of newly created node
  *
  */
-RTT_ELEMID rtt_NewEdgesSplit(RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipChecks);
+RTT_ELEMID rtt_NewEdgesSplit(RTT_TOPOLOGY* topo, RTT_ELEMID edge,
+                             RTPOINT* pt, int skipChecks);
 
 /**
  * Merge two edges, modifying the first and deleting the second
