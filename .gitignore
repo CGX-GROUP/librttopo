@@ -32,3 +32,4 @@ rtin_wkt_parse.c
 rtin_wkt_parse.h
 rttopo_config.h
 rttopo_config.h.in
+!/docker/**/Makefile
