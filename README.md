@@ -3,8 +3,10 @@ RT Topology Library
 
 ## Build status
 
-[![Gitlab-CI](https://gitlab.com/rttopo/rttopo/badges/master/build.svg)]
-(https://gitlab.com/rttopo/rttopo/commits/master)
+| OSGeo | GitLab |
+|:---   |:---    |
+| [![Build Status](https://drone.osgeo.kbt.io/api/badges/rttopo/librttopo/status.svg)] (https://drone.osgeo.kbt.io/rttopo/librttopo) | [![Gitlab-CI](https://gitlab.com/rttopo/rttopo/badges/master/build.svg)] (https://gitlab.com/rttopo/rttopo/commits/master) |
+
 
 ## About
 
