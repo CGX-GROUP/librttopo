@@ -10,6 +10,6 @@ test:
     - apt-get install -t sid -y libgeos-dev
     - geos-config --version || true
     - ./autogen.sh
-    - ./configure
+    - ./configure CFLAGS="-Wall -g -O2"
     - make
     - make distcheck
