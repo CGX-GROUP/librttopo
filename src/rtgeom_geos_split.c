@@ -268,8 +268,8 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
    * point on the closest segment,
    * to interpolate Z and M if needed
    */
-  rtgetPoint4d_p(ipa, seg, &p1);
-  rtgetPoint4d_p(ipa, seg+1, &p2);
+  rt_getPoint4d_p(ctx, ipa, seg, &p1);
+  rt_getPoint4d_p(ctx, ipa, seg+1, &p2);
   closest_point_on_segment(ctx, &pt, &p1, &p2, &pt_projected);
   /* But X and Y we want the ones of the input point,
    * as on some architectures the interpolation math moves the
@@ -289,21 +289,21 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
 
   /* This is an internal intersection, let's build the two new pointarrays */
 
-  pa1 = ptarray_construct_empty(ctx, FLAGS_GET_Z(ipa->flags), FLAGS_GET_M(ipa->flags), seg+2);
+  pa1 = ptarray_construct_empty(ctx, RTFLAGS_GET_Z(ipa->flags), RTFLAGS_GET_M(ipa->flags), seg+2);
   /* TODO: replace with a memcpy ? */
   for (i=0; i<=seg; ++i)
   {
-    rtgetPoint4d_p(ipa, i, &p1);
+    rt_getPoint4d_p(ctx, ipa, i, &p1);
     ptarray_append_point(ctx, pa1, &p1, RT_FALSE);
   }
   ptarray_append_point(ctx, pa1, &pt_projected, RT_FALSE);
 
-  pa2 = ptarray_construct_empty(ctx, FLAGS_GET_Z(ipa->flags), FLAGS_GET_M(ipa->flags), ipa->npoints-seg);
+  pa2 = ptarray_construct_empty(ctx, RTFLAGS_GET_Z(ipa->flags), RTFLAGS_GET_M(ipa->flags), ipa->npoints-seg);
   ptarray_append_point(ctx, pa2, &pt_projected, RT_FALSE);
   /* TODO: replace with a memcpy (if so need to check for duplicated point) ? */
   for (i=seg+1; i<ipa->npoints; ++i)
   {
-    rtgetPoint4d_p(ipa, i, &p1);
+    rt_getPoint4d_p(ctx, ipa, i, &p1);
     ptarray_append_point(ctx, pa2, &p1, RT_FALSE);
   }
 
@@ -315,8 +315,8 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
     return 1;
   }
 
-  rtmline_add_lwline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa1));
-  rtmline_add_lwline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa2));
+  rtmline_add_rtline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa1));
+  rtmline_add_rtline(ctx, v, rtline_construct(ctx, SRID_UNKNOWN, NULL, pa2));
   return 2;
 }
 
