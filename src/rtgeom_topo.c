@@ -5109,7 +5109,8 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       RTGEOM *g = rtpoint_as_rtgeom(iface->ctx, n->geom);
       double dist = rtgeom_mindistance2d(iface->ctx, g, pt);
       /* TODO: move this check in the previous sort scan ... */
-      if ( dist >= tol ) continue; /* must be closer than tolerated */
+      /* must be closer than tolerated, unless distance is zero */
+      if ( dist && dist >= tol ) continue;
       if ( ! id || dist < mindist )
       {
         id = n->node_id;
@@ -5712,7 +5713,8 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
       RTT_ISO_EDGE *e = &(edges[i]);
       RTGEOM *g = rtline_as_rtgeom(iface->ctx, e->geom);
       double dist = rtgeom_mindistance2d(iface->ctx, g, noded);
-      if ( dist >= tol ) continue; /* must be closer than tolerated */
+      /* must be closer than tolerated, unless distance is zero */
+      if ( dist && dist >= tol ) continue;
       nearby[nn++] = g;
     }
     if ( nn )
@@ -5785,7 +5787,8 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
       RTT_ISO_NODE *n = &(nodes[i]);
       RTGEOM *g = rtpoint_as_rtgeom(iface->ctx, n->geom);
       double dist = rtgeom_mindistance2d(iface->ctx, g, noded);
-      if ( dist >= tol ) continue; /* must be closer than tolerated */
+      /* must be closer than tolerated, unless distance is zero */
+      if ( dist && dist >= tol ) continue;
       nearby[nn++] = g;
     }
     if ( nn )
