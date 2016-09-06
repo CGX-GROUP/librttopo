@@ -20,7 +20,9 @@ librttopo_la_SOURCES = box2d.c bytebuffer.c g_box.c \
 	rttriangle.c rtutil.c stringbuffer.c varint.c
 
 
-librttopo_la_LDFLAGS = -version-info 1:0:0 -no-undefined
+# Version info is current:revision:age
+# TODO: have this set from configure.ac
+librttopo_la_LDFLAGS = -version-info 2:0:1 -no-undefined
 
 librttopo_la_LIBADD = -lm
 
