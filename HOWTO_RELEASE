@@ -1,4 +1,5 @@
 - Set version in configure.ac
+- Tweak -version-info in src/Makefile.am
 - Run make distcheck, fix if needed
 - Commit all of the above
 - Regenerate ChangeLog (make cl) and commit again
