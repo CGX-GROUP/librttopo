@@ -223,7 +223,7 @@ rtpoint_clone(const RTCTX *ctx, const RTPOINT *g)
 {
   RTPOINT *ret = rtalloc(ctx, sizeof(RTPOINT));
 
-  RTDEBUG(2, "rtpoint_clone called");
+  RTDEBUG(ctx, 2, "rtpoint_clone called");
 
   memcpy(ret, g, sizeof(RTPOINT));
 

@@ -244,14 +244,14 @@ void *
 rtalloc(const RTCTX *ctx, size_t size)
 {
   void *mem = ctx->rtalloc_var(size);
-  RTDEBUGF(5, "rtalloc: %d@%p", size, mem);
+  RTDEBUGF(ctx, 5, "rtalloc: %d@%p", size, mem);
   return mem;
 }
 
 void *
 rtrealloc(const RTCTX *ctx, void *mem, size_t size)
 {
-  RTDEBUGF(5, "rtrealloc: %d@%p", size, mem);
+  RTDEBUGF(ctx, 5, "rtrealloc: %d@%p", size, mem);
   return ctx->rtrealloc_var(mem, size);
 }
 
@@ -272,12 +272,12 @@ trim_trailing_zeros(const RTCTX *ctx, char *str)
   int len;
   int i;
 
-  RTDEBUGF(3, "input: %s", str);
+  RTDEBUGF(ctx, 3, "input: %s", str);
 
   ptr = strchr(str, '.');
   if ( ! ptr ) return; /* no dot, no decimal digits */
 
-  RTDEBUGF(3, "ptr: %s", ptr);
+  RTDEBUGF(ctx, 3, "ptr: %s", ptr);
 
   len = strlen(ptr);
   for (i=len-1; i; i--)
@@ -291,7 +291,7 @@ trim_trailing_zeros(const RTCTX *ctx, char *str)
     else *totrim = '\0';
   }
 
-  RTDEBUGF(3, "output: %s", str);
+  RTDEBUGF(ctx, 3, "output: %s", str);
 }
 
 /*

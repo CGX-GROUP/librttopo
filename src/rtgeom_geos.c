@@ -89,25 +89,25 @@ ptarray_from_GEOSCoordSeq(const RTCTX *ctx, const GEOSCoordSequence *cs, char wa
   RTPOINTARRAY *pa;
   RTPOINT4D point;
 
-  RTDEBUG(2, "ptarray_fromGEOSCoordSeq called");
+  RTDEBUG(ctx, 2, "ptarray_fromGEOSCoordSeq called");
 
   if ( ! GEOSCoordSeq_getSize_r(ctx->gctx, cs, &size) )
     rterror(ctx, "Exception thrown");
 
-  RTDEBUGF(4, " GEOSCoordSeq size: %d", size);
+  RTDEBUGF(ctx, 4, " GEOSCoordSeq size: %d", size);
 
   if ( want3d )
   {
     if ( ! GEOSCoordSeq_getDimensions_r(ctx->gctx, cs, &dims) )
       rterror(ctx, "Exception thrown");
 
-    RTDEBUGF(4, " GEOSCoordSeq dimensions: %d", dims);
+    RTDEBUGF(ctx, 4, " GEOSCoordSeq dimensions: %d", dims);
 
     /* forget higher dimensions (if any) */
     if ( dims > 3 ) dims = 3;
   }
 
-  RTDEBUGF(4, " output dimensions: %d", dims);
+  RTDEBUGF(ctx, 4, " output dimensions: %d", dims);
 
   pa = ptarray_construct(ctx, (dims==3), 0, size);
 
@@ -138,7 +138,7 @@ GEOS2RTGEOM(const RTCTX *ctx, const GEOSGeometry *geom, char want3d)
     hasZ = GEOSHasZ_r(ctx->gctx, geom);
     if ( ! hasZ )
     {
-      RTDEBUG(3, "Geometry has no Z, won't provide one");
+      RTDEBUG(ctx, 3, "Geometry has no Z, won't provide one");
 
       want3d = 0;
     }
@@ -160,7 +160,7 @@ GEOS2RTGEOM(const RTCTX *ctx, const GEOSGeometry *geom, char want3d)
     uint32_t i, ngeoms;
 
   case GEOS_POINT:
-    RTDEBUG(4, "rtgeom_from_geometry: it's a Point");
+    RTDEBUG(ctx, 4, "rtgeom_from_geometry: it's a Point");
     cs = GEOSGeom_getCoordSeq_r(ctx->gctx, geom);
     if ( GEOSisEmpty_r(ctx->gctx, geom) )
       return (RTGEOM*)rtpoint_construct_empty(ctx, SRID, want3d, 0);
@@ -169,7 +169,7 @@ GEOS2RTGEOM(const RTCTX *ctx, const GEOSGeometry *geom, char want3d)
 
   case GEOS_LINESTRING:
   case GEOS_LINEARRING:
-    RTDEBUG(4, "rtgeom_from_geometry: it's a LineString or LinearRing");
+    RTDEBUG(ctx, 4, "rtgeom_from_geometry: it's a LineString or LinearRing");
     if ( GEOSisEmpty_r(ctx->gctx, geom) )
       return (RTGEOM*)rtline_construct_empty(ctx, SRID, want3d, 0);
 
@@ -178,7 +178,7 @@ GEOS2RTGEOM(const RTCTX *ctx, const GEOSGeometry *geom, char want3d)
     return (RTGEOM *)rtline_construct(ctx, SRID, NULL, pa);
 
   case GEOS_POLYGON:
-    RTDEBUG(4, "rtgeom_from_geometry: it's a Polygon");
+    RTDEBUG(ctx, 4, "rtgeom_from_geometry: it's a Polygon");
     if ( GEOSisEmpty_r(ctx->gctx, geom) )
       return (RTGEOM*)rtpoly_construct_empty(ctx, SRID, want3d, 0);
     ngeoms = GEOSGetNumInteriorRings_r(ctx->gctx, geom);
@@ -200,7 +200,7 @@ GEOS2RTGEOM(const RTCTX *ctx, const GEOSGeometry *geom, char want3d)
   case GEOS_MULTILINESTRING:
   case GEOS_MULTIPOLYGON:
   case GEOS_GEOMETRYCOLLECTION:
-    RTDEBUG(4, "rtgeom_from_geometry: it's a Collection or Multi");
+    RTDEBUG(ctx, 4, "rtgeom_from_geometry: it's a Collection or Multi");
 
     ngeoms = GEOSGetNumGeometries_r(ctx->gctx, geom);
     geoms = NULL;
@@ -245,12 +245,12 @@ ptarray_to_GEOSCoordSeq(const RTCTX *ctx, const RTPOINTARRAY *pa)
     {
       p3d = rt_getPoint3dz_cp(ctx, pa, i);
       p2d = (const RTPOINT2D *)p3d;
-      RTDEBUGF(4, "Point: %g,%g,%g", p3d->x, p3d->y, p3d->z);
+      RTDEBUGF(ctx, 4, "Point: %g,%g,%g", p3d->x, p3d->y, p3d->z);
     }
     else
     {
       p2d = rt_getPoint2d_cp(ctx, pa, i);
-      RTDEBUGF(4, "Point: %g,%g", p2d->x, p2d->y);
+      RTDEBUGF(ctx, 4, "Point: %g,%g", p2d->x, p2d->y);
     }
 
 #if RTGEOM_GEOS_VERSION < 33
@@ -359,7 +359,7 @@ RTGEOM2GEOS(const RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
   char *wkt;
 #endif
 
-  RTDEBUGF(4, "RTGEOM2GEOS got a %s", rttype_name(ctx, rtgeom->type));
+  RTDEBUGF(ctx, 4, "RTGEOM2GEOS got a %s", rttype_name(ctx, rtgeom->type));
 
   if (rtgeom_has_arc(ctx, rtgeom))
   {
@@ -507,7 +507,7 @@ RTGEOM2GEOS(const RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
 
 #if RTDEBUG_LEVEL >= 4
   wkt = GEOSGeomToWKT_r(ctx->gctx, g);
-  RTDEBUGF(4, "RTGEOM2GEOS: GEOSGeom: %s", wkt);
+  RTDEBUGF(ctx, 4, "RTGEOM2GEOS: GEOSGeom: %s", wkt);
   free(wkt);
 #endif
 
@@ -585,7 +585,7 @@ rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
 
   rtgeom_geos_ensure_init(ctx);
 
-  RTDEBUG(3, "intersection() START");
+  RTDEBUG(ctx, 3, "intersection() START");
 
   g1 = RTGEOM2GEOS(ctx, geom1, 0);
   if ( 0 == g1 )   /* exception thrown at construction */
@@ -602,15 +602,15 @@ rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
     return NULL ;
   }
 
-  RTDEBUG(3, " constructed geometrys - calling geos");
-  RTDEBUGF(3, " g1 = %s", GEOSGeomToWKT_r(ctx->gctx, g1));
-  RTDEBUGF(3, " g2 = %s", GEOSGeomToWKT_r(ctx->gctx, g2));
-  /*RTDEBUGF(3, "g2 is valid = %i",GEOSisvalid_r(ctx->gctx, g2)); */
-  /*RTDEBUGF(3, "g1 is valid = %i",GEOSisvalid_r(ctx->gctx, g1)); */
+  RTDEBUG(ctx, 3, " constructed geometrys - calling geos");
+  RTDEBUGF(ctx, 3, " g1 = %s", GEOSGeomToWKT_r(ctx->gctx, g1));
+  RTDEBUGF(ctx, 3, " g2 = %s", GEOSGeomToWKT_r(ctx->gctx, g2));
+  /*RTDEBUGF(ctx, 3, "g2 is valid = %i",GEOSisvalid_r(ctx->gctx, g2)); */
+  /*RTDEBUGF(ctx, 3, "g1 is valid = %i",GEOSisvalid_r(ctx->gctx, g1)); */
 
   g3 = GEOSIntersection_r(ctx->gctx, g1,g2);
 
-  RTDEBUG(3, " intersection finished");
+  RTDEBUG(ctx, 3, " intersection finished");
 
   if (g3 == NULL)
   {
@@ -621,7 +621,7 @@ rtgeom_intersection(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
     return NULL; /* never get here */
   }
 
-  RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
+  RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
 
   GEOSSetSRID_r(ctx->gctx, g3, srid);
 
@@ -659,7 +659,7 @@ rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1)
 
   rtgeom_geos_ensure_init(ctx);
 
-  RTDEBUG(3, "linemerge() START");
+  RTDEBUG(ctx, 3, "linemerge() START");
 
   g1 = RTGEOM2GEOS(ctx, geom1, 0);
   if ( 0 == g1 )   /* exception thrown at construction */
@@ -668,13 +668,13 @@ rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1)
     return NULL ;
   }
 
-  RTDEBUG(3, " constructed geometrys - calling geos");
-  RTDEBUGF(3, " g1 = %s", GEOSGeomToWKT_r(ctx->gctx, g1));
-  /*RTDEBUGF(3, "g1 is valid = %i",GEOSisvalid_r(ctx->gctx, g1)); */
+  RTDEBUG(ctx, 3, " constructed geometrys - calling geos");
+  RTDEBUGF(ctx, 3, " g1 = %s", GEOSGeomToWKT_r(ctx->gctx, g1));
+  /*RTDEBUGF(ctx, 3, "g1 is valid = %i",GEOSisvalid_r(ctx->gctx, g1)); */
 
   g3 = GEOSLineMerge_r(ctx->gctx, g1);
 
-  RTDEBUG(3, " linemerge finished");
+  RTDEBUG(ctx, 3, " linemerge finished");
 
   if (g3 == NULL)
   {
@@ -684,7 +684,7 @@ rtgeom_linemerge(const RTCTX *ctx, const RTGEOM *geom1)
     return NULL; /* never get here */
   }
 
-  RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
+  RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
 
   GEOSSetSRID_r(ctx->gctx, g3, srid);
 
@@ -736,7 +736,7 @@ rtgeom_unaryunion(const RTCTX *ctx, const RTGEOM *geom1)
     return NULL; /* never get here */
   }
 
-  RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
+  RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
 
   GEOSSetSRID_r(ctx->gctx, g3, srid);
 
@@ -806,7 +806,7 @@ rtgeom_difference(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
     return NULL ; /* never get here */
   }
 
-  RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
+  RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
 
   GEOSSetSRID_r(ctx->gctx, g3, srid);
 
@@ -882,7 +882,7 @@ rtgeom_symdifference(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
     return NULL; /*never get here */
   }
 
-  RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3));
+  RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3));
 
   GEOSSetSRID_r(ctx->gctx, g3, srid);
 
@@ -912,7 +912,7 @@ rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
   GEOSGeometry *g1, *g2, *g3;
   RTGEOM *result;
 
-  RTDEBUG(2, "in geomunion");
+  RTDEBUG(ctx, 2, "in geomunion");
 
   /* A.Union(empty) == A */
   if ( rtgeom_is_empty(ctx, geom1) )
@@ -948,12 +948,12 @@ rtgeom_union(const RTCTX *ctx, const RTGEOM *geom1, const RTGEOM *geom2)
     return NULL;
   }
 
-  RTDEBUGF(3, "g1=%s", GEOSGeomToWKT_r(ctx->gctx, g1));
-  RTDEBUGF(3, "g2=%s", GEOSGeomToWKT_r(ctx->gctx, g2));
+  RTDEBUGF(ctx, 3, "g1=%s", GEOSGeomToWKT_r(ctx->gctx, g1));
+  RTDEBUGF(ctx, 3, "g2=%s", GEOSGeomToWKT_r(ctx->gctx, g2));
 
   g3 = GEOSUnion_r(ctx->gctx, g1,g2);
 
-  RTDEBUGF(3, "g3=%s", GEOSGeomToWKT_r(ctx->gctx, g3));
+  RTDEBUGF(ctx, 3, "g3=%s", GEOSGeomToWKT_r(ctx->gctx, g3));
 
   GEOSGeom_destroy_r(ctx->gctx, g1);
   GEOSGeom_destroy_r(ctx->gctx, g2);
@@ -1003,7 +1003,7 @@ rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0,
 
   rtgeom_geos_ensure_init(ctx);
 
-  RTDEBUG(3, "clip_by_rect() START");
+  RTDEBUG(ctx, 3, "clip_by_rect() START");
 
   g1 = RTGEOM2GEOS(ctx, geom1, 1); /* auto-fix structure */
   if ( 0 == g1 )   /* exception thrown at construction */
@@ -1012,14 +1012,14 @@ rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0,
     return NULL ;
   }
 
-  RTDEBUG(3, " constructed geometrys - calling geos");
-  RTDEBUGF(3, " g1 = %s", GEOSGeomToWKT_r(ctx->gctx, g1));
-  /*RTDEBUGF(3, "g1 is valid = %i",GEOSisvalid_r(ctx->gctx, g1)); */
+  RTDEBUG(ctx, 3, " constructed geometrys - calling geos");
+  RTDEBUGF(ctx, 3, " g1 = %s", GEOSGeomToWKT_r(ctx->gctx, g1));
+  /*RTDEBUGF(ctx, 3, "g1 is valid = %i",GEOSisvalid_r(ctx->gctx, g1)); */
 
   g3 = GEOSClipByRect_r(ctx->gctx, g1,x0,y0,x1,y1);
   GEOSGeom_destroy_r(ctx->gctx, g1);
 
-  RTDEBUG(3, " clip_by_rect finished");
+  RTDEBUG(ctx, 3, " clip_by_rect finished");
 
   if (g3 == NULL)
   {
@@ -1027,7 +1027,7 @@ rtgeom_clip_by_rect(const RTCTX *ctx, const RTGEOM *geom1, double x0, double y0,
     return NULL;
   }
 
-  RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
+  RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3) ) ;
 
   result = GEOS2RTGEOM(ctx, g3, is3d);
   GEOSGeom_destroy_r(ctx->gctx, g3);
@@ -1116,10 +1116,10 @@ findFaceHoles(const RTCTX *ctx, Face** faces, int nfaces)
   for (i=0; i<nfaces; ++i) {
     Face* f = faces[i];
     int nholes = GEOSGetNumInteriorRings_r(ctx->gctx, f->geom);
-    RTDEBUGF(2, "Scanning face %d with env area %g and %d holes", i, f->envarea, nholes);
+    RTDEBUGF(ctx, 2, "Scanning face %d with env area %g and %d holes", i, f->envarea, nholes);
     for (h=0; h<nholes; ++h) {
       const GEOSGeometry *hole = GEOSGetInteriorRingN_r(ctx->gctx, f->geom, h);
-      RTDEBUGF(2, "Looking for hole %d/%d of face %d among %d other faces", h+1, nholes, i, nfaces-i-1);
+      RTDEBUGF(ctx, 2, "Looking for hole %d/%d of face %d among %d other faces", h+1, nholes, i, nfaces-i-1);
       for (j=i+1; j<nfaces; ++j) {
     const GEOSGeometry *f2er;
         Face* f2 = faces[j];
@@ -1131,7 +1131,7 @@ findFaceHoles(const RTCTX *ctx, Face** faces, int nfaces)
          *       useful.
          */
         if ( GEOSEquals_r(ctx->gctx, f2er, hole) ) {
-          RTDEBUGF(2, "Hole %d/%d of face %d is face %d", h+1, nholes, i, j);
+          RTDEBUGF(ctx, 2, "Hole %d/%d of face %d is face %d", h+1, nholes, i, j);
           f2->parent = f;
           break;
         }
@@ -1175,7 +1175,7 @@ RTGEOM_GEOS_buildArea(const RTCTX *ctx, const GEOSGeometry* geom_in)
 #endif
   geos_result = GEOSPolygonize_r(ctx->gctx, vgeoms, 1);
 
-  RTDEBUGF(3, "GEOSpolygonize returned @ %p", geos_result);
+  RTDEBUGF(ctx, 3, "GEOSpolygonize returned @ %p", geos_result);
 
   /* Null return from GEOSpolygonize _r(ctx->gctx, an exception) */
   if ( ! geos_result ) return 0;
@@ -1198,8 +1198,8 @@ RTGEOM_GEOS_buildArea(const RTCTX *ctx, const GEOSGeometry* geom_in)
 #endif
 
 
-  RTDEBUGF(3, "GEOSpolygonize: ngeoms in polygonize output: %d", ngeoms);
-  RTDEBUGF(3, "GEOSpolygonize: polygonized:%s",
+  RTDEBUGF(ctx, 3, "GEOSpolygonize: ngeoms in polygonize output: %d", ngeoms);
+  RTDEBUGF(ctx, 3, "GEOSpolygonize: polygonized:%s",
               rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, geos_result, 0)));
 
   /*
@@ -1229,7 +1229,7 @@ RTGEOM_GEOS_buildArea(const RTCTX *ctx, const GEOSGeometry* geom_in)
     return shp;
   }
 
-  RTDEBUGF(2, "Polygonize returned %d geoms", ngeoms);
+  RTDEBUGF(ctx, 2, "Polygonize returned %d geoms", ngeoms);
 
   /*
    * Polygonizer returns a polygon for each face in the built topology.
@@ -1333,9 +1333,9 @@ rtgeom_buildarea(const RTCTX *ctx, const RTGEOM *geom)
     return (RTGEOM*)rtpoly_construct_empty(ctx, SRID, is3d, 0);
   }
 
-  RTDEBUG(3, "buildarea called");
+  RTDEBUG(ctx, 3, "buildarea called");
 
-  RTDEBUGF(3, "ST_BuildArea got geom @ %p", geom);
+  RTDEBUGF(ctx, 3, "ST_BuildArea got geom @ %p", geom);
 
   rtgeom_geos_ensure_init(ctx);
 
@@ -1597,7 +1597,7 @@ rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quad
     return NULL;
   }
 
-  RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3));
+  RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3));
 
   GEOSSetSRID_r(ctx->gctx, g3, rtgeom_get_srid(ctx, rtgeom_in));
   rtgeom_result = GEOS2RTGEOM(ctx, g3, rtgeom_has_z(ctx, rtgeom_in));
@@ -1625,7 +1625,7 @@ RTTIN * rttin_from_geos(const RTCTX *ctx, const GEOSGeometry *geom, int want3d) 
   if ( want3d ) {
     hasZ = GEOSHasZ_r(ctx->gctx, geom);
     if ( ! hasZ ) {
-      RTDEBUG(3, "Geometry has no Z, won't provide one");
+      RTDEBUG(ctx, 3, "Geometry has no Z, won't provide one");
       want3d = 0;
     }
   }
@@ -1634,7 +1634,7 @@ RTTIN * rttin_from_geos(const RTCTX *ctx, const GEOSGeometry *geom, int want3d) 
     RTTRIANGLE **geoms;
     uint32_t i, ngeoms;
   case GEOS_GEOMETRYCOLLECTION:
-    RTDEBUG(4, "rtgeom_from_geometry: it's a Collection or Multi");
+    RTDEBUG(ctx, 4, "rtgeom_from_geometry: it's a Collection or Multi");
 
     ngeoms = GEOSGetNumGeometries_r(ctx->gctx, geom);
     geoms = NULL;
@@ -1713,7 +1713,7 @@ RTGEOM* rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *rtgeom_in,
     return NULL;
   }
 
-  /* RTDEBUGF(3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3)); */
+  /* RTDEBUGF(ctx, 3, "result: %s", GEOSGeomToWKT_r(ctx->gctx, g3)); */
 
   GEOSSetSRID_r(ctx->gctx, g3, rtgeom_get_srid(ctx, rtgeom_in));
 

@@ -51,7 +51,7 @@ rtcollection_construct(const RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox,
   uint32_t i;
 #endif
 
-  RTDEBUGF(2, "rtcollection_construct called with %d, %d, %p, %d, %p.", type, srid, bbox, ngeoms, geoms);
+  RTDEBUGF(ctx, 2, "rtcollection_construct called with %d, %d, %p, %d, %p.", type, srid, bbox, ngeoms, geoms);
 
   if( ! rttype_is_collection(ctx, type) )
     rterror(ctx, "Non-collection type specified in collection constructor!");
@@ -65,11 +65,11 @@ rtcollection_construct(const RTCTX *ctx, uint8_t type, int srid, RTGBOX *bbox,
 #ifdef CHECK_RTGEOM_ZM
     zm = RTFLAGS_GET_ZM(geoms[0]->flags);
 
-    RTDEBUGF(3, "rtcollection_construct type[0]=%d", geoms[0]->type);
+    RTDEBUGF(ctx, 3, "rtcollection_construct type[0]=%d", geoms[0]->type);
 
     for (i=1; i<ngeoms; i++)
     {
-      RTDEBUGF(3, "rtcollection_construct type=[%d]=%d", i, geoms[i]->type);
+      RTDEBUGF(ctx, 3, "rtcollection_construct type=[%d]=%d", i, geoms[i]->type);
 
       if ( zm != RTFLAGS_GET_ZM(geoms[i]->flags) )
         rterror(ctx, "rtcollection_construct: mixed dimension geometries: %d/%d", zm, RTFLAGS_GET_ZM(geoms[i]->flags));
@@ -220,7 +220,7 @@ RTCOLLECTION* rtcollection_add_rtgeom(const RTCTX *ctx, RTCOLLECTION *col, const
   {
     if ( col->geoms[i] == geom )
     {
-      RTDEBUGF(4, "Found duplicate geometry in collection %p == %p", col->geoms[i], geom);
+      RTDEBUGF(ctx, 4, "Found duplicate geometry in collection %p == %p", col->geoms[i], geom);
       return col;
     }
   }
@@ -263,7 +263,7 @@ rtcollection_same(const RTCTX *ctx, const RTCOLLECTION *c1, const RTCOLLECTION *
 {
   uint32_t i;
 
-  RTDEBUG(2, "rtcollection_same called");
+  RTDEBUG(ctx, 2, "rtcollection_same called");
 
   if ( c1->type != c2->type ) return RT_FALSE;
   if ( c1->ngeoms != c2->ngeoms ) return RT_FALSE;
@@ -348,7 +348,7 @@ void rtcollection_free(const RTCTX *ctx, RTCOLLECTION *col)
   }
   for ( i = 0; i < col->ngeoms; i++ )
   {
-    RTDEBUGF(4,"freeing geom[%d]", i);
+    RTDEBUGF(ctx, 4,"freeing geom[%d]", i);
     if ( col->geoms && col->geoms[i] )
       rtgeom_free(ctx, col->geoms[i]);
   }

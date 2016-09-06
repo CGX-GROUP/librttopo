@@ -33,7 +33,7 @@ static uint8_t rtgeom_twkb_type(const RTCTX *ctx, const RTGEOM *geom)
 {
   uint8_t twkb_type = 0;
 
-  RTDEBUGF(2, "Entered  rtgeom_twkb_type",0);
+  RTDEBUGF(ctx, 2, "Entered  rtgeom_twkb_type",0);
 
   switch ( geom->type )
   {
@@ -75,7 +75,7 @@ static size_t sizeof_bbox(const RTCTX *ctx, TWKB_STATE *ts, int ndims)
   int i;
   uint8_t buf[16];
   size_t size = 0;
-  RTDEBUGF(2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
   for ( i = 0; i < ndims; i++ )
   {
     size += varint_s64_encode_buf(ctx, ts->bbox_min[i], buf);
@@ -90,7 +90,7 @@ static size_t sizeof_bbox(const RTCTX *ctx, TWKB_STATE *ts, int ndims)
 static void write_bbox(const RTCTX *ctx, TWKB_STATE *ts, int ndims)
 {
   int i;
-  RTDEBUGF(2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
   for ( i = 0; i < ndims; i++ )
   {
     bytebuffer_append_varint(ctx, ts->header_buf, ts->bbox_min[i]);
@@ -114,12 +114,12 @@ static int ptarray_to_twkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, TWKB_GL
   int npoints = 0;
   size_t npoints_offset = 0;
 
-  RTDEBUGF(2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
 
   /* Dispense with the empty case right away */
   if ( pa->npoints == 0 && register_npoints )
   {
-    RTDEBUGF(4, "Register npoints:%d", pa->npoints);
+    RTDEBUGF(ctx, 4, "Register npoints:%d", pa->npoints);
     bytebuffer_append_uvarint(ctx, ts->geom_buf, pa->npoints);
     return 0;
   }
@@ -167,7 +167,7 @@ static int ptarray_to_twkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, TWKB_GL
       /* last accumulated point. This is important to not build up an */
       /* accumulated error when rounding the coordinates */
       nextdelta[j] = (int64_t) llround(globals->factor[j] * dbl_ptr[j]) - ts->accum_rels[j];
-      RTDEBUGF(4, "deltavalue: %d, ", nextdelta[j]);
+      RTDEBUGF(ctx, 4, "deltavalue: %d, ", nextdelta[j]);
       diff += llabs(nextdelta[j]);
     }
 
@@ -231,7 +231,7 @@ static int ptarray_to_twkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, TWKB_GL
 
 static int rtpoint_to_twkb_buf(const RTCTX *ctx, const RTPOINT *pt, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
-  RTDEBUGF(2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
 
   /* Set the coordinates (don't write npoints) */
   ptarray_to_twkb_buf(ctx, pt->point, globals, ts, 0, 1);
@@ -244,7 +244,7 @@ static int rtpoint_to_twkb_buf(const RTCTX *ctx, const RTPOINT *pt, TWKB_GLOBALS
 
 static int rtline_to_twkb_buf(const RTCTX *ctx, const RTLINE *line, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
-  RTDEBUGF(2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
 
   /* Set the coordinates (do write npoints) */
   ptarray_to_twkb_buf(ctx, line->points, globals, ts, 1, 2);
@@ -282,8 +282,8 @@ static int rtmulti_to_twkb_buf(const RTCTX *ctx, const RTCOLLECTION *col, TWKB_G
   int i;
   int nempty = 0;
 
-  RTDEBUGF(2, "Entered %s", __func__);
-  RTDEBUGF(4, "Number of geometries in multi is %d", col->ngeoms);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 4, "Number of geometries in multi is %d", col->ngeoms);
 
   /* Deal with special case for MULTIPOINT: skip any empty points */
   if ( col->type == RTMULTIPOINTTYPE )
@@ -331,8 +331,8 @@ static int rtcollection_to_twkb_buf(const RTCTX *ctx, const RTCOLLECTION *col, T
 {
   int i;
 
-  RTDEBUGF(2, "Entered %s", __func__);
-  RTDEBUGF(4, "Number of geometries in collection is %d", col->ngeoms);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 4, "Number of geometries in collection is %d", col->ngeoms);
 
   /* Set the number of geometries */
   bytebuffer_append_uvarint(ctx, ts->geom_buf, (uint64_t) col->ngeoms);
@@ -362,24 +362,24 @@ static int rtcollection_to_twkb_buf(const RTCTX *ctx, const RTCOLLECTION *col, T
 
 static int rtgeom_to_twkb_buf(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS *globals, TWKB_STATE *ts)
 {
-  RTDEBUGF(2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
 
   switch ( geom->type )
   {
     case RTPOINTTYPE:
     {
-      RTDEBUGF(4,"Type found is Point, %d", geom->type);
+      RTDEBUGF(ctx, 4,"Type found is Point, %d", geom->type);
       return rtpoint_to_twkb_buf(ctx, (RTPOINT*) geom, globals, ts);
     }
     case RTLINETYPE:
     {
-      RTDEBUGF(4,"Type found is Linestring, %d", geom->type);
+      RTDEBUGF(ctx, 4,"Type found is Linestring, %d", geom->type);
       return rtline_to_twkb_buf(ctx, (RTLINE*) geom, globals, ts);
     }
     /* Polygon has 'nrings' and 'rings' elements */
     case RTPOLYGONTYPE:
     {
-      RTDEBUGF(4,"Type found is Polygon, %d", geom->type);
+      RTDEBUGF(ctx, 4,"Type found is Polygon, %d", geom->type);
       return rtpoly_to_twkb_buf(ctx, (RTPOLY*)geom, globals, ts);
     }
 
@@ -388,12 +388,12 @@ static int rtgeom_to_twkb_buf(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLOBALS
     case RTMULTILINETYPE:
     case RTMULTIPOLYGONTYPE:
     {
-      RTDEBUGF(4,"Type found is Multi, %d", geom->type);
+      RTDEBUGF(ctx, 4,"Type found is Multi, %d", geom->type);
       return rtmulti_to_twkb_buf(ctx, (RTCOLLECTION*)geom, globals, ts);
     }
     case RTCOLLECTIONTYPE:
     {
-      RTDEBUGF(4,"Type found is collection, %d", geom->type);
+      RTDEBUGF(ctx, 4,"Type found is collection, %d", geom->type);
       return rtcollection_to_twkb_buf(ctx, (RTCOLLECTION*) geom, globals, ts);
     }
     /* Unknown type! */
@@ -513,7 +513,7 @@ static int rtgeom_write_to_buffer(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLO
   /*and put the result to the parent (the collection)*/
   if( (globals->variant & TWKB_BBOX) && parent_state->header_buf )
   {
-    RTDEBUG(4,"Merge bboxes");
+    RTDEBUG(ctx, 4,"Merge bboxes");
     for ( i = 0; i < ndims; i++ )
     {
       if(child_state.bbox_min[i]<parent_state->bbox_min[i])
@@ -527,7 +527,7 @@ static int rtgeom_write_to_buffer(const RTCTX *ctx, const RTGEOM *geom, TWKB_GLO
   bbox_size = 0;
   if( globals->variant & TWKB_BBOX )
   {
-    RTDEBUG(4,"We want boxes and will calculate required size");
+    RTDEBUG(ctx, 4,"We want boxes and will calculate required size");
     bbox_size = sizeof_bbox(ctx, &child_state, ndims);
   }
 
@@ -562,8 +562,8 @@ rtgeom_to_twkb_with_idlist(const RTCTX *ctx, const RTGEOM *geom, int64_t *idlist
                int8_t precision_xy, int8_t precision_z, int8_t precision_m,
                size_t *twkb_size)
 {
-  RTDEBUGF(2, "Entered %s", __func__);
-  RTDEBUGF(2, "variant value %x", variant);
+  RTDEBUGF(ctx, 2, "Entered %s", __func__);
+  RTDEBUGF(ctx, 2, "variant value %x", variant);
 
   TWKB_GLOBALS tg;
   TWKB_STATE ts;
@@ -586,7 +586,7 @@ rtgeom_to_twkb_with_idlist(const RTCTX *ctx, const RTGEOM *geom, int64_t *idlist
 
   if ( ! geom )
   {
-    RTDEBUG(4,"Cannot convert NULL into TWKB.");
+    RTDEBUG(ctx, 4,"Cannot convert NULL into TWKB.");
     rterror(ctx, "Cannot convert NULL into TWKB");
     return NULL;
   }

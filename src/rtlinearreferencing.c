@@ -295,7 +295,7 @@ void rtpoint_set_ordinate(const RTCTX *ctx, RTPOINT4D *p, char ordinate, double 
     return;
   }
 
-  RTDEBUGF(4, "    setting ordinate %c to %g", ordinate, value);
+  RTDEBUGF(ctx, 4, "    setting ordinate %c to %g", ordinate, value);
 
   switch ( ordinate )
   {
@@ -351,7 +351,7 @@ int point_interpolate(const RTCTX *ctx, const RTPOINT4D *p1, const RTPOINT4D *p2
     p2_value = rtpoint_get_ordinate(ctx, p2, dims[i]);
     newordinate = p1_value + proportion * (p2_value - p1_value);
     rtpoint_set_ordinate(ctx, p, dims[i], newordinate);
-    RTDEBUGF(4, "   clip ordinate(%c) p1_value(%g) p2_value(%g) proportion(%g) newordinate(%g) ", dims[i], p1_value, p2_value, proportion, newordinate );
+    RTDEBUGF(ctx, 4, "   clip ordinate(%c) p1_value(%g) p2_value(%g) proportion(%g) newordinate(%g) ", dims[i], p1_value, p2_value, proportion, newordinate );
   }
 
   return 1;
@@ -582,8 +582,8 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
     to = t;
   }
 
-  RTDEBUGF(4, "from = %g, to = %g, ordinate = %c", from, to, ordinate);
-  RTDEBUGF(4, "%s", rtgeom_to_ewkt(ctx, (RTGEOM*)line));
+  RTDEBUGF(ctx, 4, "from = %g, to = %g, ordinate = %c", from, to, ordinate);
+  RTDEBUGF(ctx, 4, "%s", rtgeom_to_ewkt(ctx, (RTGEOM*)line));
 
   /* Asking for an ordinate we don't have. Error. */
   if ( (ordinate == 'Z' && ! hasz) || (ordinate == 'M' && ! hasm) )
@@ -605,8 +605,8 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
 
   for ( i = 0; i < pa_in->npoints; i++ )
   {
-    RTDEBUGF(4, "Point #%d", i);
-    RTDEBUGF(4, "added_last_point %d", added_last_point);
+    RTDEBUGF(ctx, 4, "Point #%d", i);
+    RTDEBUGF(ctx, 4, "added_last_point %d", added_last_point);
     if ( i > 0 )
     {
       *q = *p;
@@ -614,17 +614,17 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
     }
     rt_getPoint4d_p(ctx, pa_in, i, p);
     ordinate_value_p = rtpoint_get_ordinate(ctx, p, ordinate);
-    RTDEBUGF(4, " ordinate_value_p %g (current)", ordinate_value_p);
-    RTDEBUGF(4, " ordinate_value_q %g (previous)", ordinate_value_q);
+    RTDEBUGF(ctx, 4, " ordinate_value_p %g (current)", ordinate_value_p);
+    RTDEBUGF(ctx, 4, " ordinate_value_q %g (previous)", ordinate_value_q);
 
     /* Is this point inside the ordinate range? Yes. */
     if ( ordinate_value_p >= from && ordinate_value_p <= to )
     {
-      RTDEBUGF(4, " inside ordinate range (%g, %g)", from, to);
+      RTDEBUGF(ctx, 4, " inside ordinate range (%g, %g)", from, to);
 
       if ( ! added_last_point )
       {
-        RTDEBUG(4,"  new ptarray required");
+        RTDEBUG(ctx, 4,"  new ptarray required");
         /* We didn't add the previous point, so this is a new segment.
         *  Make a new point array. */
         dp = ptarray_construct_empty(ctx, hasz, hasm, 32);
@@ -642,7 +642,7 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
           (ordinate_value_q > to) ? (interpolation_value = to) : (interpolation_value = from);
           point_interpolate(ctx, q, p, r, hasz, hasm, ordinate, interpolation_value);
           ptarray_append_point(ctx, dp, r, RT_FALSE);
-          RTDEBUGF(4, "[0] interpolating between (%g, %g) with interpolation point (%g)", ordinate_value_q, ordinate_value_p, interpolation_value);
+          RTDEBUGF(ctx, 4, "[0] interpolating between (%g, %g) with interpolation point (%g)", ordinate_value_q, ordinate_value_p, interpolation_value);
         }
       }
       /* Add the current vertex to the point array. */
@@ -659,7 +659,7 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
     /* Is this point inside the ordinate range? No. */
     else
     {
-      RTDEBUGF(4, "  added_last_point (%d)", added_last_point);
+      RTDEBUGF(ctx, 4, "  added_last_point (%d)", added_last_point);
       if ( added_last_point == 1 )
       {
         /* We're transiting out of the range, so add an interpolated point
@@ -668,7 +668,7 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
         (ordinate_value_p > to) ? (interpolation_value = to) : (interpolation_value = from);
         point_interpolate(ctx, q, p, r, hasz, hasm, ordinate, interpolation_value);
         ptarray_append_point(ctx, dp, r, RT_FALSE);
-        RTDEBUGF(4, " [1] interpolating between (%g, %g) with interpolation point (%g)", ordinate_value_q, ordinate_value_p, interpolation_value);
+        RTDEBUGF(ctx, 4, " [1] interpolating between (%g, %g) with interpolation point (%g)", ordinate_value_q, ordinate_value_p, interpolation_value);
       }
       else if ( added_last_point == 2 )
       {
@@ -683,7 +683,7 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
           (ordinate_value_p > to) ? (interpolation_value = to) : (interpolation_value = from);
           point_interpolate(ctx, q, p, r, hasz, hasm, ordinate, interpolation_value);
           ptarray_append_point(ctx, dp, r, RT_FALSE);
-          RTDEBUGF(4, " [2] interpolating between (%g, %g) with interpolation point (%g)", ordinate_value_q, ordinate_value_p, interpolation_value);
+          RTDEBUGF(ctx, 4, " [2] interpolating between (%g, %g) with interpolation point (%g)", ordinate_value_q, ordinate_value_p, interpolation_value);
         }
       }
       else if ( i && ordinate_value_q < from && ordinate_value_p > to )
@@ -713,7 +713,7 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
       /* We have an extant point-array, save it out to a multi-line. */
       if ( dp )
       {
-        RTDEBUG(4, "saving pointarray to multi-line (1)");
+        RTDEBUG(ctx, 4, "saving pointarray to multi-line (1)");
 
         /* Only one point, so we have to make an rtpoint to hold this
         *  and set the overall output type to a generic collection. */
@@ -741,9 +741,9 @@ rtline_clip_to_ordinate_range(const RTCTX *ctx, const RTLINE *line, char ordinat
   /* Still some points left to be saved out. */
   if ( dp && dp->npoints > 0 )
   {
-    RTDEBUG(4, "saving pointarray to multi-line (2)");
-    RTDEBUGF(4, "dp->npoints == %d", dp->npoints);
-    RTDEBUGF(4, "rtgeom_out->ngeoms == %d", rtgeom_out->ngeoms);
+    RTDEBUG(ctx, 4, "saving pointarray to multi-line (2)");
+    RTDEBUGF(ctx, 4, "dp->npoints == %d", dp->npoints);
+    RTDEBUGF(ctx, 4, "rtgeom_out->ngeoms == %d", rtgeom_out->ngeoms);
 
     if ( dp->npoints == 1 )
     {
@@ -1123,7 +1123,7 @@ rtgeom_tcpa(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double *mindis
 
   if ( tmax < tmin )
   {
-    RTDEBUG(1, "Inputs never exist at the same time");
+    RTDEBUG(ctx, 1, "Inputs never exist at the same time");
     return -2;
   }
 
@@ -1152,7 +1152,7 @@ rtgeom_tcpa(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double *mindis
       /* there's a single time, must be that one... */
       double t0 = mvals[0];
       RTPOINT4D p0, p1;
-      RTDEBUGF(1, "Inputs only exist both at a single time (%g)", t0);
+      RTDEBUGF(ctx, 1, "Inputs only exist both at a single time (%g)", t0);
       if ( mindist )
       {
         if ( -1 == ptarray_locate_along_linear(ctx, l1->points, t0, &p0, 0) )
@@ -1291,7 +1291,7 @@ rtgeom_cpa_within(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double m
 
   if ( tmax < tmin )
   {
-    RTDEBUG(1, "Inputs never exist at the same time");
+    RTDEBUG(ctx, 1, "Inputs never exist at the same time");
     return RT_FALSE;
   }
 
@@ -1319,7 +1319,7 @@ rtgeom_cpa_within(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double m
     /* there's a single time, must be that one... */
     double t0 = mvals[0];
     RTPOINT4D p0, p1;
-    RTDEBUGF(1, "Inputs only exist both at a single time (%g)", t0);
+    RTDEBUGF(ctx, 1, "Inputs only exist both at a single time (%g)", t0);
     if ( -1 == ptarray_locate_along_linear(ctx, l1->points, t0, &p0, 0) )
     {
       rtnotice(ctx, "Could not find point with M=%g on first geom", t0);
@@ -1385,7 +1385,7 @@ rtgeom_cpa_within(const RTCTX *ctx, const RTGEOM *g1, const RTGEOM *g2, double m
             ( q0.z - p0.z ) * ( q0.z - p0.z );
     if ( dist2 <= maxdist2 )
     {
-      RTDEBUGF(1, "Within distance %g at time %g, breaking", sqrt(dist2), t);
+      RTDEBUGF(ctx, 1, "Within distance %g at time %g, breaking", sqrt(dist2), t);
       within = RT_TRUE;
       break;
     }

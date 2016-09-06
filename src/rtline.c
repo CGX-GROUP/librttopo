@@ -45,14 +45,14 @@ rtline_construct(const RTCTX *ctx, int srid, RTGBOX *bbox, RTPOINTARRAY *points)
   RTLINE *result;
   result = (RTLINE*) rtalloc(ctx, sizeof(RTLINE));
 
-  RTDEBUG(2, "rtline_construct called.");
+  RTDEBUG(ctx, 2, "rtline_construct called.");
 
   result->type = RTLINETYPE;
 
   result->flags = points->flags;
   RTFLAGS_SET_BBOX(result->flags, bbox?1:0);
 
-  RTDEBUGF(3, "rtline_construct type=%d", result->type);
+  RTDEBUGF(ctx, 3, "rtline_construct type=%d", result->type);
 
   result->srid = srid;
   result->points = points;
@@ -104,7 +104,7 @@ rtline_clone(const RTCTX *ctx, const RTLINE *g)
 {
   RTLINE *ret = rtalloc(ctx, sizeof(RTLINE));
 
-  RTDEBUGF(2, "rtline_clone called with %p", g);
+  RTDEBUGF(ctx, 2, "rtline_clone called with %p", g);
 
   memcpy(ret, g, sizeof(RTLINE));
 
@@ -120,7 +120,7 @@ rtline_clone_deep(const RTCTX *ctx, const RTLINE *g)
 {
   RTLINE *ret = rtalloc(ctx, sizeof(RTLINE));
 
-  RTDEBUGF(2, "rtline_clone_deep called with %p", g);
+  RTDEBUGF(ctx, 2, "rtline_clone_deep called with %p", g);
   memcpy(ret, g, sizeof(RTLINE));
 
   if ( g->bbox ) ret->bbox = gbox_copy(ctx, g->bbox);
@@ -296,7 +296,7 @@ rtline_from_rtmpoint(const RTCTX *ctx, int srid, const RTMPOINT *mpoint)
     ptarray_set_point4d(ctx, pa, i, &pt);
   }
 
-  RTDEBUGF(3, "rtline_from_rtmpoint: constructed pointarray for %d points", mpoint->ngeoms);
+  RTDEBUGF(ctx, 3, "rtline_from_rtmpoint: constructed pointarray for %d points", mpoint->ngeoms);
 
   return rtline_construct(ctx, srid, NULL, pa);
 }
@@ -442,7 +442,7 @@ rtline_remove_repeated_points(const RTCTX *ctx, const RTLINE *rtline, double tol
 {
   RTPOINTARRAY* npts = ptarray_remove_repeated_points_minpoints(ctx, rtline->points, tolerance, 2);
 
-  RTDEBUGF(3, "%s: npts %p", __func__, npts);
+  RTDEBUGF(ctx, 3, "%s: npts %p", __func__, npts);
 
   return (RTGEOM*)rtline_construct(ctx, rtline->srid,
                                    rtline->bbox ? gbox_copy(ctx, rtline->bbox) : 0,
@@ -529,7 +529,7 @@ RTLINE* rtline_simplify(const RTCTX *ctx, const RTLINE *iline, double dist, int 
   RTLINE *oline;
   RTPOINTARRAY *pa;
 
-  RTDEBUG(2, "function called");
+  RTDEBUG(ctx, 2, "function called");
 
   /* Skip empty case */
   if( rtline_is_empty(ctx, iline) )

@@ -49,7 +49,7 @@
 
 static void geojson_rterror(char *msg, int error_code)
 {
-  RTDEBUGF(3, "rtgeom_from_geojson ERROR %i", error_code);
+  RTDEBUGF(ctx, 3, "rtgeom_from_geojson ERROR %i", error_code);
   rterror(ctx, "%s", msg);
 }
 
@@ -99,14 +99,14 @@ parse_geojson_coord(json_object *poObj, int *hasz, RTPOINTARRAY *pa)
 {
   RTPOINT4D pt;
 
-  RTDEBUGF(3, "parse_geojson_coord called for object %s.", json_object_to_json_string( poObj ) );
+  RTDEBUGF(ctx, 3, "parse_geojson_coord called for object %s.", json_object_to_json_string( poObj ) );
 
   if( json_type_array == json_object_get_type( poObj ) )
   {
 
     json_object* poObjCoord = NULL;
     const int nSize = json_object_array_length( poObj );
-    RTDEBUGF(3, "parse_geojson_coord called for array size %d.", nSize );
+    RTDEBUGF(ctx, 3, "parse_geojson_coord called for array size %d.", nSize );
 
     if ( nSize < 2 )
     {
@@ -117,19 +117,19 @@ parse_geojson_coord(json_object *poObj, int *hasz, RTPOINTARRAY *pa)
     /* Read X coordinate */
     poObjCoord = json_object_array_get_idx( poObj, 0 );
     pt.x = json_object_get_double( poObjCoord );
-    RTDEBUGF(3, "parse_geojson_coord pt.x = %f.", pt.x );
+    RTDEBUGF(ctx, 3, "parse_geojson_coord pt.x = %f.", pt.x );
 
     /* Read Y coordinate */
     poObjCoord = json_object_array_get_idx( poObj, 1 );
     pt.y = json_object_get_double( poObjCoord );
-    RTDEBUGF(3, "parse_geojson_coord pt.y = %f.", pt.y );
+    RTDEBUGF(ctx, 3, "parse_geojson_coord pt.y = %f.", pt.y );
 
     if( nSize > 2 ) /* should this be >= 3 ? */
     {
       /* Read Z coordinate */
       poObjCoord = json_object_array_get_idx( poObj, 2 );
       pt.z = json_object_get_double( poObjCoord );
-      RTDEBUGF(3, "parse_geojson_coord pt.z = %f.", pt.z );
+      RTDEBUGF(ctx, 3, "parse_geojson_coord pt.z = %f.", pt.z );
       *hasz = RT_TRUE;
     }
     else if ( nSize == 2 )
@@ -164,7 +164,7 @@ parse_geojson_point(json_object *geojson, int *hasz, int root_srid)
   RTPOINTARRAY *pa;
   json_object* coords = NULL;
 
-  RTDEBUGF(3, "parse_geojson_point called with root_srid = %d.", root_srid );
+  RTDEBUGF(ctx, 3, "parse_geojson_point called with root_srid = %d.", root_srid );
 
   coords = findMemberByName( geojson, "coordinates" );
   if ( ! coords )
@@ -177,7 +177,7 @@ parse_geojson_point(json_object *geojson, int *hasz, int root_srid)
   parse_geojson_coord(coords, hasz, pa);
 
   geom = (RTGEOM *) rtpoint_construct(ctx, root_srid, NULL, pa);
-  RTDEBUG(2, "parse_geojson_point finished.");
+  RTDEBUG(ctx, 2, "parse_geojson_point finished.");
   return geom;
 }
 
@@ -189,7 +189,7 @@ parse_geojson_linestring(json_object *geojson, int *hasz, int root_srid)
   json_object* points = NULL;
   int i = 0;
 
-  RTDEBUG(2, "parse_geojson_linestring called.");
+  RTDEBUG(ctx, 2, "parse_geojson_linestring called.");
 
   points = findMemberByName( geojson, "coordinates" );
   if ( ! points )
@@ -213,7 +213,7 @@ parse_geojson_linestring(json_object *geojson, int *hasz, int root_srid)
 
   geom = (RTGEOM *) rtline_construct(ctx, root_srid, NULL, pa);
 
-  RTDEBUG(2, "parse_geojson_linestring finished.");
+  RTDEBUG(ctx, 2, "parse_geojson_linestring finished.");
   return geom;
 }
 
@@ -589,7 +589,7 @@ rtgeom_from_geojson(const RTCTX *ctx, const char *geojson, char **srs)
     rtgeom_free(ctx, rtgeom);
     rtgeom = tmp;
 
-    RTDEBUG(2, "geom_from_geojson called.");
+    RTDEBUG(ctx, 2, "geom_from_geojson called.");
   }
 
   return rtgeom;

@@ -128,7 +128,7 @@ RTPOINTARRAY* ring_make_geos_friendly(const RTCTX *ctx, RTPOINTARRAY* ring);
 static RTGEOM *
 rtgeom_make_geos_friendly(const RTCTX *ctx, RTGEOM *geom)
 {
-  RTDEBUGF(2, "rtgeom_make_geos_friendly enter (type %d)", geom->type);
+  RTDEBUGF(ctx, 2, "rtgeom_make_geos_friendly enter (type %d)", geom->type);
   switch (geom->type)
   {
   case RTPOINTTYPE:
@@ -209,7 +209,7 @@ ring_make_geos_friendly(const RTCTX *ctx, RTPOINTARRAY* ring)
   while ( ring->npoints < 4 )
   {
     RTPOINTARRAY *oring = ring;
-    RTDEBUGF(4, "ring has %d points, adding another", ring->npoints);
+    RTDEBUGF(ctx, 4, "ring has %d points, adding another", ring->npoints);
     /* let's add another... */
     ring = ptarray_addPoint(ctx, ring,
                             rt_getPoint_internal(ctx, ring, 0),
@@ -246,12 +246,12 @@ rtpoly_make_geos_friendly(const RTCTX *ctx, RTPOLY *poly)
 
     if ( ring_in != ring_out )
     {
-      RTDEBUGF(3, "rtpoly_make_geos_friendly: ring %d cleaned, now has %d points", i, ring_out->npoints);
+      RTDEBUGF(ctx, 3, "rtpoly_make_geos_friendly: ring %d cleaned, now has %d points", i, ring_out->npoints);
       ptarray_free(ctx, ring_in);
     }
     else
     {
-      RTDEBUGF(3, "rtpoly_make_geos_friendly: ring %d untouched", i);
+      RTDEBUGF(ctx, 3, "rtpoly_make_geos_friendly: ring %d untouched", i);
     }
 
     assert ( ring_out );
@@ -349,7 +349,7 @@ RTGEOM_GEOS_nodeLines(const RTCTX *ctx, const GEOSGeometry* lines)
   point = RTGEOM_GEOS_getPointN(ctx, lines, 0);
   if ( ! point ) return NULL;
 
-  RTDEBUGF(3,
+  RTDEBUGF(ctx, 3,
                  "Boundary point: %s",
                  rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, point, 0)));
 
@@ -362,7 +362,7 @@ RTGEOM_GEOS_nodeLines(const RTCTX *ctx, const GEOSGeometry* lines)
 
   GEOSGeom_destroy_r(ctx->gctx, point);
 
-  RTDEBUGF(3,
+  RTDEBUGF(ctx, 3,
                  "RTGEOM_GEOS_nodeLines: in[%s] out[%s]",
                  rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, lines, 0)),
                  rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, noded, 0)));
@@ -394,7 +394,7 @@ RTGEOM_GEOS_makeValidPolygon(const RTCTX *ctx, const GEOSGeometry* gin)
     return NULL;
   }
 
-  RTDEBUGF(3,
+  RTDEBUGF(ctx, 3,
                  "Boundaries: %s",
                  rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, geos_bound, 0)));
 
@@ -432,7 +432,7 @@ RTGEOM_GEOS_makeValidPolygon(const RTCTX *ctx, const GEOSGeometry* gin)
       return NULL;
     }
 
-    RTDEBUGF(3,
+    RTDEBUGF(ctx, 3,
                    "Boundaries input points %s",
                    rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, pi, 0)));
 
@@ -450,7 +450,7 @@ RTGEOM_GEOS_makeValidPolygon(const RTCTX *ctx, const GEOSGeometry* gin)
       return NULL;
     }
 
-    RTDEBUGF(3,
+    RTDEBUGF(ctx, 3,
                    "Boundaries output points %s",
                    rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, po, 0)));
 
@@ -468,7 +468,7 @@ RTGEOM_GEOS_makeValidPolygon(const RTCTX *ctx, const GEOSGeometry* gin)
       return NULL;
     }
 
-    RTDEBUGF(3,
+    RTDEBUGF(ctx, 3,
                    "Collapse points: %s",
                    rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, collapse_points, 0)));
 
@@ -481,7 +481,7 @@ RTGEOM_GEOS_makeValidPolygon(const RTCTX *ctx, const GEOSGeometry* gin)
   }
   GEOSGeom_destroy_r(ctx->gctx, geos_bound);
 
-  RTDEBUGF(3,
+  RTDEBUGF(ctx, 3,
                  "Noded Boundaries: %s",
                  rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, geos_cut_edges, 0)));
 
@@ -857,7 +857,7 @@ RTGEOM_GEOS_makeValid(const RTCTX *ctx, const GEOSGeometry* gin)
   }
   else if ( ret_char )
   {
-    RTDEBUGF(3,
+    RTDEBUGF(ctx, 3,
                    "Geometry [%s] is valid. ",
                    rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, gin, 0)));
 
@@ -865,7 +865,7 @@ RTGEOM_GEOS_makeValid(const RTCTX *ctx, const GEOSGeometry* gin)
     return GEOSGeom_clone_r(ctx->gctx, gin);
   }
 
-  RTDEBUGF(3,
+  RTDEBUGF(ctx, 3,
                  "Geometry [%s] is still not valid: %s. "
                  "Will try to clean up further.",
                  rtgeom_to_ewkt(ctx, GEOS2RTGEOM(ctx, gin, 0)), rtgeom_get_last_geos_error(ctx));
@@ -997,7 +997,7 @@ rtgeom_make_valid(const RTCTX *ctx, RTGEOM* rtgeom_in)
   geosgeom = RTGEOM2GEOS(ctx, rtgeom_out, 0);
   if ( ! geosgeom )
   {
-    RTDEBUGF(4,
+    RTDEBUGF(ctx, 4,
                    "Original geom can't be converted to GEOS _r(ctx->gctx, %s)"
                    " - will try cleaning that up first",
                    rtgeom_get_last_geos_error(ctx));
@@ -1022,7 +1022,7 @@ rtgeom_make_valid(const RTCTX *ctx, RTGEOM* rtgeom_in)
   }
   else
   {
-    RTDEBUG(4, "original geom converted to GEOS");
+    RTDEBUG(ctx, 4, "original geom converted to GEOS");
     rtgeom_out = rtgeom_in;
   }
 
@@ -1040,7 +1040,7 @@ rtgeom_make_valid(const RTCTX *ctx, RTGEOM* rtgeom_in)
   {{
     RTGEOM **ogeoms = rtalloc(ctx, sizeof(RTGEOM*));
     RTGEOM *ogeom;
-    RTDEBUG(3, "rtgeom_make_valid: forcing multi");
+    RTDEBUG(ctx, 3, "rtgeom_make_valid: forcing multi");
     /* NOTE: this is safe because rtgeom_out is surely not rtgeom_in or
      * otherwise we couldn't have a collection and a non-collection */
     assert(rtgeom_in != rtgeom_out);

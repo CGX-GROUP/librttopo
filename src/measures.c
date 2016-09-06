@@ -95,7 +95,7 @@ rt_dist2d_distanceline(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, i
   thedl.distance = initdistance;
   thedl.tolerance = 0.0;
 
-  RTDEBUG(2, "rt_dist2d_distanceline is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_distanceline is called");
 
   if (!rt_dist2d_comp(ctx,  rt1,rt2,&thedl))
   {
@@ -107,7 +107,7 @@ rt_dist2d_distanceline(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, i
   /*if thedl.distance is unchanged there where only empty geometries input*/
   if (thedl.distance == initdistance)
   {
-    RTDEBUG(3, "didn't find geometries to measure between, returning null");
+    RTDEBUG(ctx, 3, "didn't find geometries to measure between, returning null");
     result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
   }
   else
@@ -140,7 +140,7 @@ rt_dist2d_distancepoint(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,i
   thedl.distance= initdistance;
   thedl.tolerance = 0;
 
-  RTDEBUG(2, "rt_dist2d_distancepoint is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_distancepoint is called");
 
   if (!rt_dist2d_comp(ctx,  rt1,rt2,&thedl))
   {
@@ -150,7 +150,7 @@ rt_dist2d_distancepoint(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2,i
   }
   if (thedl.distance == initdistance)
   {
-    RTDEBUG(3, "didn't find geometries to measure between, returning null");
+    RTDEBUG(ctx, 3, "didn't find geometries to measure between, returning null");
     result = (RTGEOM *)rtcollection_construct_empty(ctx, RTCOLLECTIONTYPE, srid, 0, 0);
   }
   else
@@ -169,7 +169,7 @@ Function initialazing max distance calculation
 double
 rtgeom_maxdistance2d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
-  RTDEBUG(2, "rtgeom_maxdistance2d is called");
+  RTDEBUG(ctx, 2, "rtgeom_maxdistance2d is called");
 
   return rtgeom_maxdistance2d_tolerance(ctx,  rt1, rt2, 0.0 );
 }
@@ -183,7 +183,7 @@ rtgeom_maxdistance2d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM
 {
   /*double thedist;*/
   DISTPTS thedl;
-  RTDEBUG(2, "rtgeom_maxdistance2d_tolerance is called");
+  RTDEBUG(ctx, 2, "rtgeom_maxdistance2d_tolerance is called");
   thedl.mode = DIST_MAX;
   thedl.distance= -1;
   thedl.tolerance = tolerance;
@@ -202,7 +202,7 @@ rtgeom_maxdistance2d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM
 double
 rtgeom_mindistance2d(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2)
 {
-  RTDEBUG(2, "rtgeom_mindistance2d is called");
+  RTDEBUG(ctx, 2, "rtgeom_mindistance2d is called");
   return rtgeom_mindistance2d_tolerance(ctx,  rt1, rt2, 0.0 );
 }
 
@@ -214,7 +214,7 @@ double
 rtgeom_mindistance2d_tolerance(const RTCTX *ctx, const RTGEOM *rt1, const RTGEOM *rt2, double tolerance)
 {
   DISTPTS thedl;
-  RTDEBUG(2, "rtgeom_mindistance2d_tolerance is called");
+  RTDEBUG(ctx, 2, "rtgeom_mindistance2d_tolerance is called");
   thedl.mode = DIST_MIN;
   thedl.distance= FLT_MAX;
   thedl.tolerance = tolerance;
@@ -245,7 +245,7 @@ Functions preparing geometries for distance-calculations
 int
 rt_dist2d_comp(const RTCTX *ctx, const RTGEOM *rt1,const RTGEOM *rt2, DISTPTS *dl)
 {
-  RTDEBUG(2, "rt_dist2d_comp is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_comp is called");
 
   return rt_dist2d_recursive(ctx, rt1, rt2, dl);
 }
@@ -285,17 +285,17 @@ int rt_dist2d_recursive(const RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2
   RTCOLLECTION *c1 = NULL;
   RTCOLLECTION *c2 = NULL;
 
-  RTDEBUGF(2, "rt_dist2d_comp is called with type1=%d, type2=%d", rtg1->type, rtg2->type);
+  RTDEBUGF(ctx, 2, "rt_dist2d_comp is called with type1=%d, type2=%d", rtg1->type, rtg2->type);
 
   if (rt_dist2d_is_collection(ctx, rtg1))
   {
-    RTDEBUG(3, "First geometry is collection");
+    RTDEBUG(ctx, 3, "First geometry is collection");
     c1 = rtgeom_as_rtcollection(ctx, rtg1);
     n1 = c1->ngeoms;
   }
   if (rt_dist2d_is_collection(ctx, rtg2))
   {
-    RTDEBUG(3, "Second geometry is collection");
+    RTDEBUG(ctx, 3, "Second geometry is collection");
     c2 = rtgeom_as_rtcollection(ctx, rtg2);
     n2 = c2->ngeoms;
   }
@@ -316,7 +316,7 @@ int rt_dist2d_recursive(const RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2
 
     if (rt_dist2d_is_collection(ctx, g1))
     {
-      RTDEBUG(3, "Found collection inside first geometry collection, recursing");
+      RTDEBUG(ctx, 3, "Found collection inside first geometry collection, recursing");
       if (!rt_dist2d_recursive(ctx, g1, rtg2, dl)) return RT_FALSE;
       continue;
     }
@@ -332,7 +332,7 @@ int rt_dist2d_recursive(const RTCTX *ctx, const RTGEOM *rtg1, const RTGEOM *rtg2
       }
       if (rt_dist2d_is_collection(ctx, g2))
       {
-        RTDEBUG(3, "Found collection inside second geometry collection, recursing");
+        RTDEBUG(ctx, 3, "Found collection inside second geometry collection, recursing");
         if (!rt_dist2d_recursive(ctx, g1, g2, dl)) return RT_FALSE;
         continue;
       }
@@ -498,7 +498,7 @@ We have to check for overlapping bboxes
 int
 rt_dist2d_check_overlap(const RTCTX *ctx, RTGEOM *rtg1,RTGEOM *rtg2)
 {
-  RTDEBUG(2, "rt_dist2d_check_overlap is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_check_overlap is called");
   if ( ! rtg1->bbox )
     rtgeom_calculate_gbox(ctx, rtg1, rtg1->bbox);
   if ( ! rtg2->bbox )
@@ -508,10 +508,10 @@ rt_dist2d_check_overlap(const RTCTX *ctx, RTGEOM *rtg1,RTGEOM *rtg2)
   */
   if ((rtg1->bbox->xmax<rtg2->bbox->xmin||rtg1->bbox->xmin>rtg2->bbox->xmax||rtg1->bbox->ymax<rtg2->bbox->ymin||rtg1->bbox->ymin>rtg2->bbox->ymax))
   {
-    RTDEBUG(3, "geometries bboxes did not overlap");
+    RTDEBUG(ctx, 3, "geometries bboxes did not overlap");
     return RT_FALSE;
   }
-  RTDEBUG(3, "geometries bboxes overlap");
+  RTDEBUG(ctx, 3, "geometries bboxes overlap");
   return RT_TRUE;
 }
 
@@ -526,7 +526,7 @@ rt_dist2d_distribute_fast(const RTCTX *ctx, RTGEOM *rtg1, RTGEOM *rtg2, DISTPTS 
   int  type1 = rtg1->type;
   int  type2 = rtg2->type;
 
-  RTDEBUGF(2, "rt_dist2d_distribute_fast is called with typ1=%d, type2=%d", rtg1->type, rtg2->type);
+  RTDEBUGF(ctx, 2, "rt_dist2d_distribute_fast is called with typ1=%d, type2=%d", rtg1->type, rtg2->type);
 
   switch (type1)
   {
@@ -590,7 +590,7 @@ int
 rt_dist2d_point_line(const RTCTX *ctx, RTPOINT *point, RTLINE *line, DISTPTS *dl)
 {
   const RTPOINT2D *p;
-  RTDEBUG(2, "rt_dist2d_point_line is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_point_line is called");
   p = rt_getPoint2d_cp(ctx, point->point, 0);
   return rt_dist2d_pt_ptarray(ctx, p, line->points, dl);
 }
@@ -614,19 +614,19 @@ rt_dist2d_point_poly(const RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS *dl
   const RTPOINT2D *p;
   int i;
 
-  RTDEBUG(2, "rt_dist2d_point_poly called");
+  RTDEBUG(ctx, 2, "rt_dist2d_point_poly called");
 
   p = rt_getPoint2d_cp(ctx, point->point, 0);
 
   if (dl->mode == DIST_MAX)
   {
-    RTDEBUG(3, "looking for maxdistance");
+    RTDEBUG(ctx, 3, "looking for maxdistance");
     return rt_dist2d_pt_ptarray(ctx, p, poly->rings[0], dl);
   }
   /* Return distance to outer ring if not inside it */
   if ( ptarray_contains_point(ctx, poly->rings[0], p) == RT_OUTSIDE )
   {
-    RTDEBUG(3, "first point not inside outer-ring");
+    RTDEBUG(ctx, 3, "first point not inside outer-ring");
     return rt_dist2d_pt_ptarray(ctx, p, poly->rings[0], dl);
   }
 
@@ -641,12 +641,12 @@ rt_dist2d_point_poly(const RTCTX *ctx, RTPOINT *point, RTPOLY *poly, DISTPTS *dl
     /* Inside a hole. Distance = pt -> ring */
     if ( ptarray_contains_point(ctx, poly->rings[i], p) != RT_OUTSIDE )
     {
-      RTDEBUG(3, " inside an hole");
+      RTDEBUG(ctx, 3, " inside an hole");
       return rt_dist2d_pt_ptarray(ctx, p, poly->rings[i], dl);
     }
   }
 
-  RTDEBUG(3, " inside the polygon");
+  RTDEBUG(ctx, 3, " inside the polygon");
   if (dl->mode == DIST_MIN)
   {
     dl->distance = 0.0;
@@ -684,12 +684,12 @@ rt_dist2d_point_curvepoly(const RTCTX *ctx, RTPOINT *point, RTCURVEPOLY *poly, D
     /* Inside a hole. Distance = pt -> ring */
     if ( rtgeom_contains_point(ctx, poly->rings[i], p) != RT_OUTSIDE )
     {
-      RTDEBUG(3, " inside a hole");
+      RTDEBUG(ctx, 3, " inside a hole");
       return rt_dist2d_recursive(ctx, (RTGEOM*)point, poly->rings[i], dl);
     }
   }
 
-  RTDEBUG(3, " inside the polygon");
+  RTDEBUG(ctx, 3, " inside the polygon");
   if (dl->mode == DIST_MIN)
   {
     dl->distance = 0.0;
@@ -709,7 +709,7 @@ rt_dist2d_line_line(const RTCTX *ctx, RTLINE *line1, RTLINE *line2, DISTPTS *dl)
 {
   RTPOINTARRAY *pa1 = line1->points;
   RTPOINTARRAY *pa2 = line2->points;
-  RTDEBUG(2, "rt_dist2d_line_line is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_line_line is called");
   return rt_dist2d_ptarray_ptarray(ctx, pa1, pa2, dl);
 }
 
@@ -736,7 +736,7 @@ rt_dist2d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
   const RTPOINT2D *pt;
   int i;
 
-  RTDEBUGF(2, "rt_dist2d_line_poly called (%d rings)", poly->nrings);
+  RTDEBUGF(ctx, 2, "rt_dist2d_line_poly called (%d rings)", poly->nrings);
 
   pt = rt_getPoint2d_cp(ctx, line->points, 0);
   if ( ptarray_contains_point(ctx, poly->rings[0], pt) == RT_OUTSIDE )
@@ -748,7 +748,7 @@ rt_dist2d_line_poly(const RTCTX *ctx, RTLINE *line, RTPOLY *poly, DISTPTS *dl)
   {
     if (!rt_dist2d_ptarray_ptarray(ctx, line->points, poly->rings[i], dl)) return RT_FALSE;
 
-    RTDEBUGF(3, " distance from ring %d: %f, mindist: %f",
+    RTDEBUGF(ctx, 3, " distance from ring %d: %f, mindist: %f",
              i, dl->distance, dl->tolerance);
     /* just a check if  the answer is already given */
     if (dl->distance<=dl->tolerance && dl->mode == DIST_MIN) return RT_TRUE;
@@ -847,7 +847,7 @@ rt_dist2d_poly_poly(const RTCTX *ctx, RTPOLY *poly1, RTPOLY *poly2, DISTPTS *dl)
   const RTPOINT2D *pt;
   int i;
 
-  RTDEBUG(2, "rt_dist2d_poly_poly called");
+  RTDEBUG(ctx, 2, "rt_dist2d_poly_poly called");
 
   /*1  if we are looking for maxdistance, just check the outer rings.*/
   if (dl->mode == DIST_MAX)
@@ -973,7 +973,7 @@ rt_dist2d_curvepoly_curvepoly(const RTCTX *ctx, RTCURVEPOLY *poly1, RTCURVEPOLY 
   const RTPOINT2D *pt;
   int i;
 
-  RTDEBUG(2, "rt_dist2d_curvepoly_curvepoly called");
+  RTDEBUG(ctx, 2, "rt_dist2d_curvepoly_curvepoly called");
 
   /*1  if we are looking for maxdistance, just check the outer rings.*/
   if (dl->mode == DIST_MAX)
@@ -1053,7 +1053,7 @@ rt_dist2d_pt_ptarray(const RTCTX *ctx, const RTPOINT2D *p, RTPOINTARRAY *pa,DIST
   const RTPOINT2D *start, *end;
   int twist = dl->twisted;
 
-  RTDEBUG(2, "rt_dist2d_pt_ptarray is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_pt_ptarray is called");
 
   start = rt_getPoint2d_cp(ctx, pa, 0);
 
@@ -1085,7 +1085,7 @@ rt_dist2d_pt_ptarrayarc(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY
   const RTPOINT2D *A3;
   int twist = dl->twisted;
 
-  RTDEBUG(2, "rt_dist2d_pt_ptarrayarc is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_pt_ptarrayarc is called");
 
   if ( pa->npoints % 2 == 0 || pa->npoints < 3 )
   {
@@ -1136,7 +1136,7 @@ rt_dist2d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,D
   const RTPOINT2D  *start2, *end2;
   int twist = dl->twisted;
 
-  RTDEBUGF(2, "rt_dist2d_ptarray_ptarray called (points: %d-%d)",l1->npoints, l2->npoints);
+  RTDEBUGF(ctx, 2, "rt_dist2d_ptarray_ptarray called (points: %d-%d)",l1->npoints, l2->npoints);
 
   if (dl->mode == DIST_MAX)/*If we are searching for maxdistance we go straight to point-point calculation since the maxdistance have to be between two vertexes*/
   {
@@ -1147,8 +1147,8 @@ rt_dist2d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,D
       {
         start2 = rt_getPoint2d_cp(ctx, l2, u);
         rt_dist2d_pt_pt(ctx, start, start2, dl);
-        RTDEBUGF(4, "maxdist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
-        RTDEBUGF(3, " seg%d-seg%d dist: %f, mindist: %f",
+        RTDEBUGF(ctx, 4, "maxdist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
+        RTDEBUGF(ctx, 3, " seg%d-seg%d dist: %f, mindist: %f",
                  t, u, dl->distance, dl->tolerance);
       }
     }
@@ -1165,8 +1165,8 @@ rt_dist2d_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,D
         end2 = rt_getPoint2d_cp(ctx, l2, u);
         dl->twisted=twist;
         rt_dist2d_seg_seg(ctx, start, end, start2, end2, dl);
-        RTDEBUGF(4, "mindist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
-        RTDEBUGF(3, " seg%d-seg%d dist: %f, mindist: %f",
+        RTDEBUGF(ctx, 4, "mindist_ptarray_ptarray; seg %i * seg %i, dist = %g\n",t,u,dl->distance);
+        RTDEBUGF(ctx, 3, " seg%d-seg%d dist: %f, mindist: %f",
                  t, u, dl->distance, dl->tolerance);
         if (dl->distance<=dl->tolerance && dl->mode == DIST_MIN) return RT_TRUE; /*just a check if  the answer is already given*/
         start2 = end2;
@@ -1191,7 +1191,7 @@ rt_dist2d_ptarray_ptarrayarc(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTP
   const RTPOINT2D *B3;
   int twist = dl->twisted;
 
-  RTDEBUGF(2, "rt_dist2d_ptarray_ptarrayarc called (points: %d-%d)",pa->npoints, pb->npoints);
+  RTDEBUGF(ctx, 2, "rt_dist2d_ptarray_ptarrayarc called (points: %d-%d)",pa->npoints, pb->npoints);
 
   if ( pb->npoints % 2 == 0 || pb->npoints < 3 )
   {
@@ -1246,7 +1246,7 @@ rt_dist2d_ptarrayarc_ptarrayarc(const RTCTX *ctx, const RTPOINTARRAY *pa, const 
   const RTPOINT2D *B3;
   int twist = dl->twisted;
 
-  RTDEBUGF(2, "rt_dist2d_ptarrayarc_ptarrayarc called (points: %d-%d)",pa->npoints, pb->npoints);
+  RTDEBUGF(ctx, 2, "rt_dist2d_ptarrayarc_ptarrayarc called (points: %d-%d)",pa->npoints, pb->npoints);
 
   if (dl->mode == DIST_MAX)
   {
@@ -1667,7 +1667,7 @@ rt_dist2d_seg_seg(const RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, cons
   double  s_top, s_bot,s;
   double  r_top, r_bot,r;
 
-  RTDEBUGF(2, "rt_dist2d_seg_seg [%g,%g]->[%g,%g] by [%g,%g]->[%g,%g]",
+  RTDEBUGF(ctx, 2, "rt_dist2d_seg_seg [%g,%g]->[%g,%g] by [%g,%g]->[%g,%g]",
            A->x,A->y,B->x,B->y, C->x,C->y, D->x, D->y);
 
   /*A and B are the same point */
@@ -1805,7 +1805,7 @@ rt_dist2d_fast_ptarray_ptarray(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY 
   list1 = (LISTSTRUCT*)rtalloc(ctx, sizeof(LISTSTRUCT)*n1);
   list2 = (LISTSTRUCT*)rtalloc(ctx, sizeof(LISTSTRUCT)*n2);
 
-  RTDEBUG(2, "rt_dist2d_fast_ptarray_ptarray is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_fast_ptarray_ptarray is called");
 
   max1X = box1->xmax;
   min1X = box1->xmin;
@@ -1924,7 +1924,7 @@ rt_dist2d_pre_seg_seg(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTS
   n1=  l1->npoints;
   n2 = l2->npoints;
 
-  RTDEBUG(2, "rt_dist2d_pre_seg_seg is called");
+  RTDEBUG(ctx, 2, "rt_dist2d_pre_seg_seg is called");
 
   p1 = rt_getPoint2d_cp(ctx, l1, list1[0].pnr);
   p3 = rt_getPoint2d_cp(ctx, l2, list2[0].pnr);
@@ -2005,7 +2005,7 @@ rt_dist2d_pre_seg_seg(const RTCTX *ctx, RTPOINTARRAY *l1, RTPOINTARRAY *l2,LISTS
 int
 rt_dist2d_selected_seg_seg(const RTCTX *ctx, const RTPOINT2D *A, const RTPOINT2D *B, const RTPOINT2D *C, const RTPOINT2D *D, DISTPTS *dl)
 {
-  RTDEBUGF(2, "rt_dist2d_selected_seg_seg [%g,%g]->[%g,%g] by [%g,%g]->[%g,%g]",
+  RTDEBUGF(ctx, 2, "rt_dist2d_selected_seg_seg [%g,%g]->[%g,%g] by [%g,%g]->[%g,%g]",
            A->x,A->y,B->x,B->y, C->x,C->y, D->x, D->y);
 
   /*A and B are the same point */

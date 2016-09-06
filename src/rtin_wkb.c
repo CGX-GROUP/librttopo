@@ -138,7 +138,7 @@ static void rttype_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s, uint32_t
 {
   uint32_t wkb_simple_type;
 
-  RTDEBUG(4, "Entered function");
+  RTDEBUG(ctx, 4, "Entered function");
 
   s->has_z = RT_FALSE;
   s->has_m = RT_FALSE;
@@ -150,7 +150,7 @@ static void rttype_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s, uint32_t
     if( wkb_type & RTWKBZOFFSET ) s->has_z = RT_TRUE;
     if( wkb_type & RTWKBMOFFSET ) s->has_m = RT_TRUE;
     if( wkb_type & RTWKBSRIDFLAG ) s->has_srid = RT_TRUE;
-    RTDEBUGF(4, "Extended type: has_z=%d has_m=%d has_srid=%d", s->has_z, s->has_m, s->has_srid);
+    RTDEBUGF(ctx, 4, "Extended type: has_z=%d has_m=%d has_srid=%d", s->has_z, s->has_m, s->has_srid);
   }
 
   /* Mask off the flags */
@@ -237,7 +237,7 @@ static void rttype_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s, uint32_t
       break;
   }
 
-  RTDEBUGF(4,"Got rttype %s (%u)", rttype_name(ctx, s->rttype), s->rttype);
+  RTDEBUGF(ctx, 4,"Got rttype %s (%u)", rttype_name(ctx, s->rttype), s->rttype);
 
   return;
 }
@@ -249,13 +249,13 @@ static void rttype_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s, uint32_t
 static char byte_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 {
   char char_value = 0;
-  RTDEBUG(4, "Entered function");
+  RTDEBUG(ctx, 4, "Entered function");
 
   wkb_parse_state_check(ctx, s, RTWKB_BYTE_SIZE);
-  RTDEBUG(4, "Passed state check");
+  RTDEBUG(ctx, 4, "Passed state check");
 
   char_value = s->pos[0];
-  RTDEBUGF(4, "Read byte value: %x", char_value);
+  RTDEBUGF(ctx, 4, "Read byte value: %x", char_value);
   s->pos += RTWKB_BYTE_SIZE;
 
   return char_value;
@@ -337,7 +337,7 @@ static RTPOINTARRAY* ptarray_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s
   /* Calculate the size of this point array. */
   npoints = integer_from_wkb_state(ctx, s);
 
-  RTDEBUGF(4,"Pointarray has %d points", npoints);
+  RTDEBUGF(ctx, 4,"Pointarray has %d points", npoints);
 
   if( s->has_z ) ndims++;
   if( s->has_m ) ndims++;
@@ -498,7 +498,7 @@ static RTPOLY* rtpoly_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
   int i = 0;
   RTPOLY *poly = rtpoly_construct_empty(ctx, s->srid, s->has_z, s->has_m);
 
-  RTDEBUGF(4,"Polygon has %d rings", nrings);
+  RTDEBUGF(ctx, 4,"Polygon has %d rings", nrings);
 
   /* Empty polygon? */
   if( nrings == 0 )
@@ -513,7 +513,7 @@ static RTPOLY* rtpoly_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
     /* Check for at least four points. */
     if( s->check & RT_PARSER_CHECK_MINPOINTS && pa->npoints < 4 )
     {
-      RTDEBUGF(2, "%s must have at least four points in each ring", rttype_name(ctx, s->rttype));
+      RTDEBUGF(ctx, 2, "%s must have at least four points in each ring", rttype_name(ctx, s->rttype));
       rterror(ctx, "%s must have at least four points in each ring", rttype_name(ctx, s->rttype));
       return NULL;
     }
@@ -521,7 +521,7 @@ static RTPOLY* rtpoly_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
     /* Check that first and last points are the same. */
     if( s->check & RT_PARSER_CHECK_CLOSURE && ! ptarray_is_closed_2d(ctx, pa) )
     {
-      RTDEBUGF(2, "%s must have closed rings", rttype_name(ctx, s->rttype));
+      RTDEBUGF(ctx, 2, "%s must have closed rings", rttype_name(ctx, s->rttype));
       rterror(ctx, "%s must have closed rings", rttype_name(ctx, s->rttype));
       return NULL;
     }
@@ -529,7 +529,7 @@ static RTPOLY* rtpoly_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
     /* Add ring to polygon */
     if ( rtpoly_add_ring(ctx, poly, pa) == RT_FAILURE )
     {
-      RTDEBUG(2, "Unable to add ring to polygon");
+      RTDEBUG(ctx, 2, "Unable to add ring to polygon");
       rterror(ctx, "Unable to add ring to polygon");
     }
 
@@ -569,7 +569,7 @@ static RTTRIANGLE* rttriangle_from_wkb_state(const RTCTX *ctx, wkb_parse_state *
   /* Check for at least four points. */
   if( s->check & RT_PARSER_CHECK_MINPOINTS && pa->npoints < 4 )
   {
-    RTDEBUGF(2, "%s must have at least four points", rttype_name(ctx, s->rttype));
+    RTDEBUGF(ctx, 2, "%s must have at least four points", rttype_name(ctx, s->rttype));
     rterror(ctx, "%s must have at least four points", rttype_name(ctx, s->rttype));
     return NULL;
   }
@@ -634,7 +634,7 @@ static RTCOLLECTION* rtcollection_from_wkb_state(const RTCTX *ctx, wkb_parse_sta
   RTGEOM *geom = NULL;
   int i;
 
-  RTDEBUGF(4,"Collection has %d components", ngeoms);
+  RTDEBUGF(ctx, 4,"Collection has %d components", ngeoms);
 
   /* Empty collection? */
   if ( ngeoms == 0 )
@@ -670,13 +670,13 @@ RTGEOM* rtgeom_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
   char wkb_little_endian;
   uint32_t wkb_type;
 
-  RTDEBUG(4,"Entered function");
+  RTDEBUG(ctx, 4,"Entered function");
 
   /* Fail when handed incorrect starting byte */
   wkb_little_endian = byte_from_wkb_state(ctx, s);
   if( wkb_little_endian != 1 && wkb_little_endian != 0 )
   {
-    RTDEBUG(4,"Leaving due to bad first byte!");
+    RTDEBUG(ctx, 4,"Leaving due to bad first byte!");
     rterror(ctx, "Invalid endian flag value encountered.");
     return NULL;
   }
@@ -696,7 +696,7 @@ RTGEOM* rtgeom_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
 
   /* Read the type number */
   wkb_type = integer_from_wkb_state(ctx, s);
-  RTDEBUGF(4,"Got RTWKB type number: 0x%X", wkb_type);
+  RTDEBUGF(ctx, 4,"Got RTWKB type number: 0x%X", wkb_type);
   rttype_from_wkb_state(ctx, s, wkb_type);
 
   /* Read the SRID, if necessary */
@@ -704,7 +704,7 @@ RTGEOM* rtgeom_from_wkb_state(const RTCTX *ctx, wkb_parse_state *s)
   {
     s->srid = clamp_srid(ctx, integer_from_wkb_state(ctx, s));
     /* TODO: warn on explicit UNKNOWN srid ? */
-    RTDEBUGF(4,"Got SRID: %u", s->srid);
+    RTDEBUGF(ctx, 4,"Got SRID: %u", s->srid);
   }
 
   /* Do the right thing */

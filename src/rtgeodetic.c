@@ -308,20 +308,20 @@ gbox_centroid(const RTCTX *ctx, const RTGBOX* gbox, RTPOINT2D* out)
 static int gbox_check_poles(const RTCTX *ctx, RTGBOX *gbox)
 {
   int rv = RT_FALSE;
-  RTDEBUG(4, "checking poles");
-  RTDEBUGF(4, "gbox %s", gbox_to_string(ctx, gbox));
+  RTDEBUG(ctx, 4, "checking poles");
+  RTDEBUGF(ctx, 4, "gbox %s", gbox_to_string(ctx, gbox));
   /* Z axis */
   if ( gbox->xmin < 0.0 && gbox->xmax > 0.0 &&
        gbox->ymin < 0.0 && gbox->ymax > 0.0 )
   {
     if ( (gbox->zmin + gbox->zmax) > 0.0 )
     {
-      RTDEBUG(4, "enclosed positive z axis");
+      RTDEBUG(ctx, 4, "enclosed positive z axis");
       gbox->zmax = 1.0;
     }
     else
     {
-      RTDEBUG(4, "enclosed negative z axis");
+      RTDEBUG(ctx, 4, "enclosed negative z axis");
       gbox->zmin = -1.0;
     }
     rv = RT_TRUE;
@@ -333,12 +333,12 @@ static int gbox_check_poles(const RTCTX *ctx, RTGBOX *gbox)
   {
     if ( gbox->ymin + gbox->ymax > 0.0 )
     {
-      RTDEBUG(4, "enclosed positive y axis");
+      RTDEBUG(ctx, 4, "enclosed positive y axis");
       gbox->ymax = 1.0;
     }
     else
     {
-      RTDEBUG(4, "enclosed negative y axis");
+      RTDEBUG(ctx, 4, "enclosed negative y axis");
       gbox->ymin = -1.0;
     }
     rv = RT_TRUE;
@@ -350,12 +350,12 @@ static int gbox_check_poles(const RTCTX *ctx, RTGBOX *gbox)
   {
     if ( gbox->xmin + gbox->xmax > 0.0 )
     {
-      RTDEBUG(4, "enclosed positive x axis");
+      RTDEBUG(ctx, 4, "enclosed positive x axis");
       gbox->xmax = 1.0;
     }
     else
     {
-      RTDEBUG(4, "enclosed negative x axis");
+      RTDEBUG(ctx, 4, "enclosed negative x axis");
       gbox->xmin = -1.0;
     }
     rv = RT_TRUE;
@@ -667,10 +667,10 @@ edge_point_side(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, const GEOGRAPHIC_POI
   geog2cart(ctx, p, &pt);
   /* We expect the dot product of with normal with any vector in the plane to be zero */
   w = dot_product(ctx, &normal, &pt);
-  RTDEBUGF(4,"dot product %.9g",w);
+  RTDEBUGF(ctx, 4,"dot product %.9g",w);
   if ( FP_IS_ZERO(w) )
   {
-    RTDEBUG(4, "point is on plane (dot product is zero)");
+    RTDEBUG(ctx, 4, "point is on plane (dot product is zero)");
     return 0;
   }
 
@@ -766,12 +766,12 @@ int edge_point_in_cone(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, const GEOGRAP
   normalize(ctx, &vcp);
   /* The projection of start onto the center defines the minimum similarity */
   vs_dot_vcp = dot_product(ctx, &vs, &vcp);
-  RTDEBUGF(4,"vs_dot_vcp %.19g",vs_dot_vcp);
+  RTDEBUGF(ctx, 4,"vs_dot_vcp %.19g",vs_dot_vcp);
   /* The projection of candidate p onto the center */
   vp_dot_vcp = dot_product(ctx, &vp, &vcp);
-  RTDEBUGF(4,"vp_dot_vcp %.19g",vp_dot_vcp);
+  RTDEBUGF(ctx, 4,"vp_dot_vcp %.19g",vp_dot_vcp);
   /* If p is more similar than start then p is inside the cone */
-  RTDEBUGF(4,"fabs(vp_dot_vcp - vs_dot_vcp) %.39g",fabs(vp_dot_vcp - vs_dot_vcp));
+  RTDEBUGF(ctx, 4,"fabs(vp_dot_vcp - vs_dot_vcp) %.39g",fabs(vp_dot_vcp - vs_dot_vcp));
 
   /*
   ** We want to test that vp_dot_vcp is >= vs_dot_vcp but there are
@@ -788,10 +788,10 @@ int edge_point_in_cone(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, const GEOGRAP
 
   if ( vp_dot_vcp > vs_dot_vcp || fabs(vp_dot_vcp - vs_dot_vcp) < 2e-16 )
   {
-    RTDEBUG(4, "point is in cone");
+    RTDEBUG(ctx, 4, "point is in cone");
     return RT_TRUE;
   }
-  RTDEBUG(4, "point is not in cone");
+  RTDEBUG(ctx, 4, "point is not in cone");
   return RT_FALSE;
 }
 
@@ -806,9 +806,9 @@ int edge_contains_coplanar_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, con
   double dlon = fabs(fabs((e->start).lon) - fabs((e->end).lon));
   double slat = (e->start).lat + (e->end).lat;
 
-  RTDEBUGF(4, "e.start == GPOINT(%.6g %.6g) ", (e->start).lat, (e->start).lon);
-  RTDEBUGF(4, "e.end == GPOINT(%.6g %.6g) ", (e->end).lat, (e->end).lon);
-  RTDEBUGF(4, "p == GPOINT(%.6g %.6g) ", p->lat, p->lon);
+  RTDEBUGF(ctx, 4, "e.start == GPOINT(%.6g %.6g) ", (e->start).lat, (e->start).lon);
+  RTDEBUGF(ctx, 4, "e.end == GPOINT(%.6g %.6g) ", (e->end).lat, (e->end).lon);
+  RTDEBUGF(ctx, 4, "p == GPOINT(%.6g %.6g) ", p->lat, p->lon);
 
   /* Copy values into working registers */
   g = *e;
@@ -817,7 +817,7 @@ int edge_contains_coplanar_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, con
   /* Vertical plane, we need to do this calculation in latitude */
   if ( FP_EQUALS( g.start.lon, g.end.lon ) )
   {
-    RTDEBUG(4, "vertical plane, we need to do this calculation in latitude");
+    RTDEBUG(ctx, 4, "vertical plane, we need to do this calculation in latitude");
     /* Supposed to be co-planar... */
     if ( ! FP_EQUALS( q.lon, g.start.lon ) )
       return RT_FALSE;
@@ -836,7 +836,7 @@ int edge_contains_coplanar_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, con
   /* Over the pole, we need normalize latitude and do this calculation in latitude */
   if ( FP_EQUALS( slon, M_PI ) && ( signum(g.start.lon) != signum(g.end.lon) || FP_EQUALS(dlon, M_PI) ) )
   {
-    RTDEBUG(4, "over the pole...");
+    RTDEBUG(ctx, 4, "over the pole...");
     /* Antipodal, everything (or nothing?) is inside */
     if ( FP_EQUALS( slat, 0.0 ) )
       return RT_TRUE;
@@ -849,18 +849,18 @@ int edge_contains_coplanar_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, con
     if ( slat < 0.0 && FP_EQUALS(q.lat, -1.0 * M_PI_2) )
       return RT_TRUE;
 
-    RTDEBUG(4, "coplanar?...");
+    RTDEBUG(ctx, 4, "coplanar?...");
 
     /* Supposed to be co-planar... */
     if ( ! FP_EQUALS( q.lon, g.start.lon ) )
       return RT_FALSE;
 
-    RTDEBUG(4, "north or south?...");
+    RTDEBUG(ctx, 4, "north or south?...");
 
     /* Over north pole, test based on south pole */
     if ( slat > 0.0 )
     {
-      RTDEBUG(4, "over the north pole...");
+      RTDEBUG(ctx, 4, "over the north pole...");
       if ( q.lat > FP_MIN(g.start.lat, g.end.lat) )
         return RT_TRUE;
       else
@@ -869,7 +869,7 @@ int edge_contains_coplanar_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, con
     else
       /* Over south pole, test based on north pole */
     {
-      RTDEBUG(4, "over the south pole...");
+      RTDEBUG(ctx, 4, "over the south pole...");
       if ( q.lat < FP_MAX(g.start.lat, g.end.lat) )
         return RT_TRUE;
       else
@@ -880,7 +880,7 @@ int edge_contains_coplanar_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, con
   /* Dateline crossing, flip everything to the opposite hemisphere */
   else if ( slon > M_PI && ( signum(g.start.lon) != signum(g.end.lon) ) )
   {
-    RTDEBUG(4, "crosses dateline, flip longitudes...");
+    RTDEBUG(ctx, 4, "crosses dateline, flip longitudes...");
     if ( g.start.lon > 0.0 )
       g.start.lon -= M_PI;
     else
@@ -899,11 +899,11 @@ int edge_contains_coplanar_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, con
   if ( ( g.start.lon <= q.lon && q.lon <= g.end.lon ) ||
        ( g.end.lon <= q.lon && q.lon <= g.start.lon ) )
   {
-    RTDEBUG(4, "true, this edge contains point");
+    RTDEBUG(ctx, 4, "true, this edge contains point");
     return RT_TRUE;
   }
 
-  RTDEBUG(4, "false, this edge does not contain point");
+  RTDEBUG(ctx, 4, "false, this edge does not contain point");
   return RT_FALSE;
 }
 
@@ -952,7 +952,7 @@ double sphere_direction(const RTCTX *ctx, const GEOGRAPHIC_POINT *s, const GEOGR
     heading = 0.0;
   else if ( fabs(f) > 1.0 )
   {
-    RTDEBUGF(4, "f = %g", f);
+    RTDEBUGF(ctx, 4, "f = %g", f);
     heading = acos(f);
   }
   else
@@ -1000,10 +1000,10 @@ int edge_contains_point(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, const GEOGRA
   if ( edge_point_in_cone(ctx, e, p) && edge_point_on_plane(ctx, e, p) )
     /*  if ( edge_contains_coplanar_point(ctx, e, p) && edge_point_on_plane(ctx, e, p) ) */
   {
-    RTDEBUG(4, "point is on edge");
+    RTDEBUG(ctx, 4, "point is on edge");
     return RT_TRUE;
   }
-  RTDEBUG(4, "point is not on edge");
+  RTDEBUG(ctx, 4, "point is not on edge");
   return RT_FALSE;
 }
 
@@ -1014,7 +1014,7 @@ double z_to_latitude(const RTCTX *ctx, double z, int top)
 {
   double sign = signum(z);
   double tlat = acos(z);
-  RTDEBUGF(4, "inputs: z(%.8g) sign(%.8g) tlat(%.8g)", z, sign, tlat);
+  RTDEBUGF(ctx, 4, "inputs: z(%.8g) sign(%.8g) tlat(%.8g)", z, sign, tlat);
   if (FP_IS_ZERO(z))
   {
     if (top) return M_PI_2;
@@ -1028,7 +1028,7 @@ double z_to_latitude(const RTCTX *ctx, double z, int top)
   {
     tlat = sign * tlat;
   }
-  RTDEBUGF(4, "output: tlat(%.8g)", tlat);
+  RTDEBUGF(ctx, 4, "output: tlat(%.8g)", tlat);
   return tlat;
 }
 
@@ -1041,19 +1041,19 @@ int clairaut_cartesian(const RTCTX *ctx, const POINT3D *start, const POINT3D *en
 {
   POINT3D t1, t2;
   GEOGRAPHIC_POINT vN1, vN2;
-  RTDEBUG(4,"entering function");
+  RTDEBUG(ctx, 4,"entering function");
   unit_normal(ctx, start, end, &t1);
   unit_normal(ctx, end, start, &t2);
-  RTDEBUGF(4, "unit normal t1 == POINT(%.8g %.8g %.8g)", t1.x, t1.y, t1.z);
-  RTDEBUGF(4, "unit normal t2 == POINT(%.8g %.8g %.8g)", t2.x, t2.y, t2.z);
+  RTDEBUGF(ctx, 4, "unit normal t1 == POINT(%.8g %.8g %.8g)", t1.x, t1.y, t1.z);
+  RTDEBUGF(ctx, 4, "unit normal t2 == POINT(%.8g %.8g %.8g)", t2.x, t2.y, t2.z);
   cart2geog(ctx, &t1, &vN1);
   cart2geog(ctx, &t2, &vN2);
   g_top->lat = z_to_latitude(ctx, t1.z,RT_TRUE);
   g_top->lon = vN2.lon;
   g_bottom->lat = z_to_latitude(ctx, t2.z,RT_FALSE);
   g_bottom->lon = vN1.lon;
-  RTDEBUGF(4, "clairaut top == GPOINT(%.6g %.6g)", g_top->lat, g_top->lon);
-  RTDEBUGF(4, "clairaut bottom == GPOINT(%.6g %.6g)", g_bottom->lat, g_bottom->lon);
+  RTDEBUGF(ctx, 4, "clairaut top == GPOINT(%.6g %.6g)", g_top->lat, g_top->lon);
+  RTDEBUGF(ctx, 4, "clairaut bottom == GPOINT(%.6g %.6g)", g_bottom->lat, g_bottom->lon);
   return RT_SUCCESS;
 }
 
@@ -1066,21 +1066,21 @@ int clairaut_geographic(const RTCTX *ctx, const GEOGRAPHIC_POINT *start, const G
 {
   POINT3D t1, t2;
   GEOGRAPHIC_POINT vN1, vN2;
-  RTDEBUG(4,"entering function");
+  RTDEBUG(ctx, 4,"entering function");
   robust_cross_product(ctx, start, end, &t1);
   normalize(ctx, &t1);
   robust_cross_product(ctx, end, start, &t2);
   normalize(ctx, &t2);
-  RTDEBUGF(4, "unit normal t1 == POINT(%.8g %.8g %.8g)", t1.x, t1.y, t1.z);
-  RTDEBUGF(4, "unit normal t2 == POINT(%.8g %.8g %.8g)", t2.x, t2.y, t2.z);
+  RTDEBUGF(ctx, 4, "unit normal t1 == POINT(%.8g %.8g %.8g)", t1.x, t1.y, t1.z);
+  RTDEBUGF(ctx, 4, "unit normal t2 == POINT(%.8g %.8g %.8g)", t2.x, t2.y, t2.z);
   cart2geog(ctx, &t1, &vN1);
   cart2geog(ctx, &t2, &vN2);
   g_top->lat = z_to_latitude(ctx, t1.z,RT_TRUE);
   g_top->lon = vN2.lon;
   g_bottom->lat = z_to_latitude(ctx, t2.z,RT_FALSE);
   g_bottom->lon = vN1.lon;
-  RTDEBUGF(4, "clairaut top == GPOINT(%.6g %.6g)", g_top->lat, g_top->lon);
-  RTDEBUGF(4, "clairaut bottom == GPOINT(%.6g %.6g)", g_bottom->lat, g_bottom->lon);
+  RTDEBUGF(ctx, 4, "clairaut top == GPOINT(%.6g %.6g)", g_top->lat, g_top->lon);
+  RTDEBUGF(ctx, 4, "clairaut bottom == GPOINT(%.6g %.6g)", g_bottom->lat, g_bottom->lon);
   return RT_SUCCESS;
 }
 
@@ -1091,11 +1091,11 @@ int clairaut_geographic(const RTCTX *ctx, const GEOGRAPHIC_POINT *start, const G
 int edge_intersection(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e1, const GEOGRAPHIC_EDGE *e2, GEOGRAPHIC_POINT *g)
 {
   POINT3D ea, eb, v;
-  RTDEBUGF(4, "e1 start(%.20g %.20g) end(%.20g %.20g)", e1->start.lat, e1->start.lon, e1->end.lat, e1->end.lon);
-  RTDEBUGF(4, "e2 start(%.20g %.20g) end(%.20g %.20g)", e2->start.lat, e2->start.lon, e2->end.lat, e2->end.lon);
+  RTDEBUGF(ctx, 4, "e1 start(%.20g %.20g) end(%.20g %.20g)", e1->start.lat, e1->start.lon, e1->end.lat, e1->end.lon);
+  RTDEBUGF(ctx, 4, "e2 start(%.20g %.20g) end(%.20g %.20g)", e2->start.lat, e2->start.lon, e2->end.lat, e2->end.lon);
 
-  RTDEBUGF(4, "e1 start(%.20g %.20g) end(%.20g %.20g)", rad2deg(e1->start.lon), rad2deg(e1->start.lat), rad2deg(e1->end.lon), rad2deg(e1->end.lat));
-  RTDEBUGF(4, "e2 start(%.20g %.20g) end(%.20g %.20g)", rad2deg(e2->start.lon), rad2deg(e2->start.lat), rad2deg(e2->end.lon), rad2deg(e2->end.lat));
+  RTDEBUGF(ctx, 4, "e1 start(%.20g %.20g) end(%.20g %.20g)", rad2deg(e1->start.lon), rad2deg(e1->start.lat), rad2deg(e1->end.lon), rad2deg(e1->end.lat));
+  RTDEBUGF(ctx, 4, "e2 start(%.20g %.20g) end(%.20g %.20g)", rad2deg(e2->start.lon), rad2deg(e2->start.lat), rad2deg(e2->end.lon), rad2deg(e2->end.lat));
 
   if ( geographic_point_equals(ctx, &(e1->start), &(e2->start)) )
   {
@@ -1122,12 +1122,12 @@ int edge_intersection(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e1, const GEOGRAP
   normalize(ctx, &ea);
   robust_cross_product(ctx, &(e2->start), &(e2->end), &eb);
   normalize(ctx, &eb);
-  RTDEBUGF(4, "e1 cross product == POINT(%.12g %.12g %.12g)", ea.x, ea.y, ea.z);
-  RTDEBUGF(4, "e2 cross product == POINT(%.12g %.12g %.12g)", eb.x, eb.y, eb.z);
-  RTDEBUGF(4, "fabs(dot_product(ctx, ea, eb)) == %.14g", fabs(dot_product(ctx, &ea, &eb)));
+  RTDEBUGF(ctx, 4, "e1 cross product == POINT(%.12g %.12g %.12g)", ea.x, ea.y, ea.z);
+  RTDEBUGF(ctx, 4, "e2 cross product == POINT(%.12g %.12g %.12g)", eb.x, eb.y, eb.z);
+  RTDEBUGF(ctx, 4, "fabs(dot_product(ctx, ea, eb)) == %.14g", fabs(dot_product(ctx, &ea, &eb)));
   if ( FP_EQUALS(fabs(dot_product(ctx, &ea, &eb)), 1.0) )
   {
-    RTDEBUGF(4, "parallel edges found! dot_product = %.12g", dot_product(ctx, &ea, &eb));
+    RTDEBUGF(ctx, 4, "parallel edges found! dot_product = %.12g", dot_product(ctx, &ea, &eb));
     /* Parallel (maybe equal) edges! */
     /* Hack alert, only returning ONE end of the edge right now, most do better later. */
     /* Hack alart #2, returning a value of 2 to indicate a co-linear crossing event. */
@@ -1153,18 +1153,18 @@ int edge_intersection(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e1, const GEOGRAP
     }
   }
   unit_normal(ctx, &ea, &eb, &v);
-  RTDEBUGF(4, "v == POINT(%.12g %.12g %.12g)", v.x, v.y, v.z);
+  RTDEBUGF(ctx, 4, "v == POINT(%.12g %.12g %.12g)", v.x, v.y, v.z);
   g->lat = atan2(v.z, sqrt(v.x * v.x + v.y * v.y));
   g->lon = atan2(v.y, v.x);
-  RTDEBUGF(4, "g == GPOINT(%.12g %.12g)", g->lat, g->lon);
-  RTDEBUGF(4, "g == POINT(%.12g %.12g)", rad2deg(g->lon), rad2deg(g->lat));
+  RTDEBUGF(ctx, 4, "g == GPOINT(%.12g %.12g)", g->lat, g->lon);
+  RTDEBUGF(ctx, 4, "g == POINT(%.12g %.12g)", rad2deg(g->lon), rad2deg(g->lat));
   if ( edge_contains_point(ctx, e1, g) && edge_contains_point(ctx, e2, g) )
   {
     return RT_TRUE;
   }
   else
   {
-    RTDEBUG(4, "flipping point to other side of sphere");
+    RTDEBUG(ctx, 4, "flipping point to other side of sphere");
     g->lat = -1.0 * g->lat;
     g->lon = g->lon + M_PI;
     if ( g->lon > M_PI )
@@ -1316,7 +1316,7 @@ int edge_calculate_gbox_slow(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, RTGBOX 
   /* Edge is zero length, just return the naive box */
   if ( FP_IS_ZERO(distance) )
   {
-    RTDEBUG(4, "edge is zero length. returning");
+    RTDEBUG(ctx, 4, "edge is zero length. returning");
     geog2cart(ctx, &(e->start), &start);
     geog2cart(ctx, &(e->end), &end);
     gbox_init_point3d(ctx, &start, gbox);
@@ -1328,7 +1328,7 @@ int edge_calculate_gbox_slow(const RTCTX *ctx, const GEOGRAPHIC_EDGE *e, RTGBOX 
      set the box to contain the whole world and return */
   if ( FP_EQUALS(distance, M_PI) )
   {
-    RTDEBUG(4, "edge is antipodal. setting to maximum size box, and returning");
+    RTDEBUG(ctx, 4, "edge is antipodal. setting to maximum size box, and returning");
     gbox->xmin = gbox->ymin = gbox->zmin = -1.0;
     gbox->xmax = gbox->ymax = gbox->zmax = 1.0;
     return RT_SUCCESS;
@@ -1510,20 +1510,20 @@ void gbox_pt_outside(const RTCTX *ctx, const RTGBOX *gbox, RTPOINT2D *pt_outside
     corners[7].y = ge.ymax;
     corners[7].z = ge.zmax;
 
-    RTDEBUG(4, "trying to use a box corner point...");
+    RTDEBUG(ctx, 4, "trying to use a box corner point...");
     for ( i = 0; i < 8; i++ )
     {
       normalize(ctx, &(corners[i]));
-      RTDEBUGF(4, "testing corner %d: POINT(%.8g %.8g %.8g)", i, corners[i].x, corners[i].y, corners[i].z);
+      RTDEBUGF(ctx, 4, "testing corner %d: POINT(%.8g %.8g %.8g)", i, corners[i].x, corners[i].y, corners[i].z);
       if ( ! gbox_contains_point3d(ctx, gbox, &(corners[i])) )
       {
-        RTDEBUGF(4, "corner %d is outside our gbox", i);
+        RTDEBUGF(ctx, 4, "corner %d is outside our gbox", i);
         pt = corners[i];
         normalize(ctx, &pt);
         cart2geog(ctx, &pt, &g);
         pt_outside->x = rad2deg(g.lon);
         pt_outside->y = rad2deg(g.lat);
-        RTDEBUGF(4, "returning POINT(%.8g %.8g) as outside point", pt_outside->x, pt_outside->y);
+        RTDEBUGF(ctx, 4, "returning POINT(%.8g %.8g) as outside point", pt_outside->x, pt_outside->y);
         return;
       }
     }
@@ -1882,18 +1882,18 @@ static double ptarray_distance_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa
       geographic_point_init(ctx, p->x, p->y, &(e2.end));
       geog2cart(ctx, &(e2.end), &B2);
 
-      RTDEBUGF(4, "e1.start == GPOINT(%.6g %.6g) ", e1.start.lat, e1.start.lon);
-      RTDEBUGF(4, "e1.end == GPOINT(%.6g %.6g) ", e1.end.lat, e1.end.lon);
-      RTDEBUGF(4, "e2.start == GPOINT(%.6g %.6g) ", e2.start.lat, e2.start.lon);
-      RTDEBUGF(4, "e2.end == GPOINT(%.6g %.6g) ", e2.end.lat, e2.end.lon);
+      RTDEBUGF(ctx, 4, "e1.start == GPOINT(%.6g %.6g) ", e1.start.lat, e1.start.lon);
+      RTDEBUGF(ctx, 4, "e1.end == GPOINT(%.6g %.6g) ", e1.end.lat, e1.end.lon);
+      RTDEBUGF(ctx, 4, "e2.start == GPOINT(%.6g %.6g) ", e2.start.lat, e2.start.lon);
+      RTDEBUGF(ctx, 4, "e2.end == GPOINT(%.6g %.6g) ", e2.end.lat, e2.end.lon);
 
       if ( check_intersection && edge_intersects(ctx, &A1, &A2, &B1, &B2) )
       {
-        RTDEBUG(4,"edge intersection! returning 0.0");
+        RTDEBUG(ctx, 4,"edge intersection! returning 0.0");
         return 0.0;
       }
       d = s->radius * edge_distance_to_edge(ctx, &e1, &e2, &g1, &g2);
-      RTDEBUGF(4,"got edge_distance_to_edge %.8g", d);
+      RTDEBUGF(ctx, 4,"got edge_distance_to_edge %.8g", d);
 
       if ( d < distance )
       {
@@ -1924,7 +1924,7 @@ static double ptarray_distance_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa
     e1.start = e1.end;
     A1 = A2;
   }
-  RTDEBUGF(4,"finished all loops, returning %.8g", distance);
+  RTDEBUGF(ctx, 4,"finished all loops, returning %.8g", distance);
 
   if ( use_sphere )
     return distance;
@@ -2037,7 +2037,7 @@ RTPOINT* rtgeom_project_spheroid(const RTCTX *ctx, const RTPOINT *r, const SPHER
   /* Try the projection */
   if( spheroid_project(ctx, &geo_source, spheroid, distance, azimuth, &geo_dest) == RT_FAILURE )
   {
-    RTDEBUGF(3, "Unable to project from (%g %g) with azimuth %g and distance %g", x, y, azimuth, distance);
+    RTDEBUGF(ctx, 3, "Unable to project from (%g %g) with azimuth %g and distance %g", x, y, azimuth, distance);
     rterror(ctx, "Unable to project from (%g %g) with azimuth %g and distance %g", x, y, azimuth, distance);
     return NULL;
   }
@@ -2105,7 +2105,7 @@ double rtgeom_distance_spheroid(const RTCTX *ctx, const RTGEOM *rtgeom1, const R
   assert(rtgeom1);
   assert(rtgeom2);
 
-  RTDEBUGF(4, "entered function, tolerance %.8g", tolerance);
+  RTDEBUGF(ctx, 4, "entered function, tolerance %.8g", tolerance);
 
   /* What's the distance to an empty geometry? We don't know.
      Return a negative number so the caller can catch this case. */
@@ -2214,25 +2214,25 @@ double rtgeom_distance_spheroid(const RTCTX *ctx, const RTGEOM *rtgeom1, const R
     }
     p = rt_getPoint2d_cp(ctx, rtline->points, 0);
 
-    RTDEBUG(4, "checking if a point of line is in polygon");
+    RTDEBUG(ctx, 4, "checking if a point of line is in polygon");
 
     /* Point in polygon implies zero distance */
     if ( rtpoly_covers_point2d(ctx, rtpoly, p) )
       return 0.0;
 
-    RTDEBUG(4, "checking ring distances");
+    RTDEBUG(ctx, 4, "checking ring distances");
 
     /* Not contained, so what's the actual distance? */
     for ( i = 0; i < rtpoly->nrings; i++ )
     {
       double ring_distance = ptarray_distance_spheroid(ctx, rtpoly->rings[i], rtline->points, spheroid, tolerance, check_intersection);
-      RTDEBUGF(4, "ring[%d] ring_distance = %.8g", i, ring_distance);
+      RTDEBUGF(ctx, 4, "ring[%d] ring_distance = %.8g", i, ring_distance);
       if ( ring_distance < distance )
         distance = ring_distance;
       if ( distance < tolerance )
         return distance;
     }
-    RTDEBUGF(4, "all rings checked, returning distance = %.8g", distance);
+    RTDEBUGF(ctx, 4, "all rings checked, returning distance = %.8g", distance);
     return distance;
 
   }
@@ -2412,7 +2412,7 @@ int rtpoly_covers_point2d(const RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D 
   /* Nulls and empties don't contain anything! */
   if ( ! poly || rtgeom_is_empty(ctx, (RTGEOM*)poly) )
   {
-    RTDEBUG(4,"returning false, geometry is empty or null");
+    RTDEBUG(ctx, 4,"returning false, geometry is empty or null");
     return RT_FALSE;
   }
 
@@ -2427,45 +2427,45 @@ int rtpoly_covers_point2d(const RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D 
   geog2cart(ctx, &gpt_to_test, &p);
   if ( ! gbox_contains_point3d(ctx, &gbox, &p) )
   {
-    RTDEBUG(4, "the point is not in the box!");
+    RTDEBUG(ctx, 4, "the point is not in the box!");
     return RT_FALSE;
   }
 
   /* Calculate our outside point from the gbox */
   gbox_pt_outside(ctx, &gbox, &pt_outside);
 
-  RTDEBUGF(4, "pt_outside POINT(%.18g %.18g)", pt_outside.x, pt_outside.y);
-  RTDEBUGF(4, "pt_to_test POINT(%.18g %.18g)", pt_to_test->x, pt_to_test->y);
-  RTDEBUGF(4, "polygon %s", rtgeom_to_ewkt(ctx, (RTGEOM*)poly));
-  RTDEBUGF(4, "gbox %s", gbox_to_string(ctx, &gbox));
+  RTDEBUGF(ctx, 4, "pt_outside POINT(%.18g %.18g)", pt_outside.x, pt_outside.y);
+  RTDEBUGF(ctx, 4, "pt_to_test POINT(%.18g %.18g)", pt_to_test->x, pt_to_test->y);
+  RTDEBUGF(ctx, 4, "polygon %s", rtgeom_to_ewkt(ctx, (RTGEOM*)poly));
+  RTDEBUGF(ctx, 4, "gbox %s", gbox_to_string(ctx, &gbox));
 
   /* Not in outer ring? We're done! */
   if ( ! ptarray_contains_point_sphere(ctx, poly->rings[0], &pt_outside, pt_to_test) )
   {
-    RTDEBUG(4,"returning false, point is outside ring");
+    RTDEBUG(ctx, 4,"returning false, point is outside ring");
     return RT_FALSE;
   }
 
-  RTDEBUGF(4, "testing %d rings", poly->nrings);
+  RTDEBUGF(ctx, 4, "testing %d rings", poly->nrings);
 
   /* But maybe point is in a hole... */
   for ( i = 1; i < poly->nrings; i++ )
   {
-    RTDEBUGF(4, "ring test loop %d", i);
+    RTDEBUGF(ctx, 4, "ring test loop %d", i);
     /* Count up hole containment. Odd => outside boundary. */
     if ( ptarray_contains_point_sphere(ctx, poly->rings[i], &pt_outside, pt_to_test) )
       in_hole_count++;
   }
 
-  RTDEBUGF(4, "in_hole_count == %d", in_hole_count);
+  RTDEBUGF(ctx, 4, "in_hole_count == %d", in_hole_count);
 
   if ( in_hole_count % 2 )
   {
-    RTDEBUG(4,"returning false, inner ring containment count is odd");
+    RTDEBUG(ctx, 4,"returning false, inner ring containment count is odd");
     return RT_FALSE;
   }
 
-  RTDEBUG(4,"returning true, inner ring containment count is even");
+  RTDEBUG(ctx, 4,"returning true, inner ring containment count is even");
   return RT_TRUE;
 }
 
@@ -2630,7 +2630,7 @@ static int rtcollection_calculate_gbox_geodetic(const RTCTX *ctx, const RTCOLLEC
 int rtgeom_calculate_gbox_geodetic(const RTCTX *ctx, const RTGEOM *geom, RTGBOX *gbox)
 {
   int result = RT_FAILURE;
-  RTDEBUGF(4, "got type %d", geom->type);
+  RTDEBUGF(ctx, 4, "got type %d", geom->type);
 
   /* Add a geodetic flag to the incoming gbox */
   gbox->flags = gflags(ctx, RTFLAGS_GET_Z(geom->flags),RTFLAGS_GET_M(geom->flags),1);
@@ -3238,8 +3238,8 @@ int ptarray_contains_point_sphere(const RTCTX *ctx, const RTPOINTARRAY *pa, cons
   /* Walk every edge and see if the stab line hits it */
   for ( i = 1; i < pa->npoints; i++ )
   {
-    RTDEBUGF(4, "testing edge (%d)", i);
-    RTDEBUGF(4, "  start point == POINT(%.12g %.12g)", p.x, p.y);
+    RTDEBUGF(ctx, 4, "testing edge (%d)", i);
+    RTDEBUGF(ctx, 4, "  start point == POINT(%.12g %.12g)", p.x, p.y);
 
     /* Read next point. */
     rt_getPoint2d_p(ctx, pa, i, &p);
@@ -3275,25 +3275,25 @@ int ptarray_contains_point_sphere(const RTCTX *ctx, const RTPOINTARRAY *pa, cons
       if ( inter & PIR_B_TOUCH_RIGHT || inter & PIR_COLINEAR )
       {
         /* Do nothing, to avoid double counts. */
-        RTDEBUGF(4,"    edge (%d) crossed, disregarding to avoid double count", i, count);
+        RTDEBUGF(ctx, 4,"    edge (%d) crossed, disregarding to avoid double count", i, count);
       }
       else
       {
         /* Increment crossingn count. */
         count++;
-        RTDEBUGF(4,"    edge (%d) crossed, count == %d", i, count);
+        RTDEBUGF(ctx, 4,"    edge (%d) crossed, count == %d", i, count);
       }
     }
     else
     {
-      RTDEBUGF(4,"    edge (%d) did not cross", i);
+      RTDEBUGF(ctx, 4,"    edge (%d) did not cross", i);
     }
 
     /* Increment to next edge */
     E1 = E2;
   }
 
-  RTDEBUGF(4,"final count == %d", count);
+  RTDEBUGF(ctx, 4,"final count == %d", count);
 
   /* An odd number of crossings implies containment! */
   if ( count % 2 )
