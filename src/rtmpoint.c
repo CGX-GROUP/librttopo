@@ -45,7 +45,7 @@ rtmpoint_construct_empty(const RTCTX *ctx, int srid, char hasz, char hasm)
 
 RTMPOINT* rtmpoint_add_rtpoint(const RTCTX *ctx, RTMPOINT *mobj, const RTPOINT *obj)
 {
-  RTDEBUG(4, "Called");
+  RTDEBUG(ctx, 4, "Called");
   return (RTMPOINT*)rtcollection_add_rtgeom(ctx, (RTCOLLECTION*)mobj, (RTGEOM*)obj);
 }
 

@@ -54,7 +54,7 @@ ptarray_has_m(const RTCTX *ctx, const RTPOINTARRAY *pa)
 int inline
 ptarray_point_size(const RTCTX *ctx, const RTPOINTARRAY *pa)
 {
-  RTDEBUGF(5, "ptarray_point_size: RTFLAGS_NDIMS(pa->flags)=%x",RTFLAGS_NDIMS(pa->flags));
+  RTDEBUGF(ctx, 5, "ptarray_point_size: RTFLAGS_NDIMS(pa->flags)=%x",RTFLAGS_NDIMS(pa->flags));
 
   return sizeof(double)*RTFLAGS_NDIMS(pa->flags);
 }
@@ -97,8 +97,8 @@ int
 ptarray_insert_point(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *p, int where)
 {
   size_t point_size = ptarray_point_size(ctx, pa);
-  RTDEBUGF(5,"pa = %p; p = %p; where = %d", pa, p, where);
-  RTDEBUGF(5,"pa->npoints = %d; pa->maxpoints = %d", pa->npoints, pa->maxpoints);
+  RTDEBUGF(ctx, 5,"pa = %p; p = %p; where = %d", pa, p, where);
+  RTDEBUGF(ctx, 5,"pa->npoints = %d; pa->maxpoints = %d", pa->npoints, pa->maxpoints);
 
   if ( RTFLAGS_GET_READONLY(pa->flags) )
   {
@@ -140,7 +140,7 @@ ptarray_insert_point(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *p, int
   {
     size_t copy_size = point_size * (pa->npoints - where);
     memmove(rt_getPoint_internal(ctx, pa, where+1), rt_getPoint_internal(ctx, pa, where), copy_size);
-    RTDEBUGF(5,"copying %d bytes to start vertex %d from start vertex %d", copy_size, where+1, where);
+    RTDEBUGF(ctx, 5,"copying %d bytes to start vertex %d from start vertex %d", copy_size, where+1, where);
   }
 
   /* We have one more point */
@@ -148,7 +148,7 @@ ptarray_insert_point(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *p, int
 
   /* Copy the new point into the gap */
   ptarray_set_point4d(ctx, pa, where, p);
-  RTDEBUGF(5,"copying new point to start vertex %d", point_size, where);
+  RTDEBUGF(ctx, 5,"copying new point to start vertex %d", point_size, where);
 
   return RT_SUCCESS;
 }
@@ -169,7 +169,7 @@ ptarray_append_point(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *pt, in
   {
     RTPOINT4D tmp;
     rt_getPoint4d_p(ctx, pa, pa->npoints-1, &tmp);
-    RTDEBUGF(4,"checking for duplicate end point (pt = POINT(%g %g) pa->npoints-q = POINT(%g %g))",pt->x,pt->y,tmp.x,tmp.y);
+    RTDEBUGF(ctx, 4,"checking for duplicate end point (pt = POINT(%g %g) pa->npoints-q = POINT(%g %g))",pt->x,pt->y,tmp.x,tmp.y);
 
     /* Return RT_SUCCESS and do nothing else if previous point in list is equal to this one */
     if ( (pt->x == tmp.x) && (pt->y == tmp.y) &&
@@ -296,7 +296,7 @@ ptarray_remove_point(const RTCTX *ctx, RTPOINTARRAY *pa, int where)
 RTPOINTARRAY* ptarray_construct_reference_data(const RTCTX *ctx, char hasz, char hasm, uint32_t npoints, uint8_t *ptlist)
 {
   RTPOINTARRAY *pa = rtalloc(ctx, sizeof(RTPOINTARRAY));
-  RTDEBUGF(5, "hasz = %d, hasm = %d, npoints = %d, ptlist = %p", hasz, hasm, npoints, ptlist);
+  RTDEBUGF(ctx, 5, "hasz = %d, hasm = %d, npoints = %d, ptlist = %p", hasz, hasm, npoints, ptlist);
   pa->flags = gflags(ctx, hasz, hasm, 0);
   RTFLAGS_SET_READONLY(pa->flags, 1); /* We don't own this memory, so we can't alter or free it. */
   pa->npoints = npoints;
@@ -335,7 +335,7 @@ void ptarray_free(const RTCTX *ctx, RTPOINTARRAY *pa)
     if(pa->serialized_pointlist && ( ! RTFLAGS_GET_READONLY(pa->flags) ) )
       rtfree(ctx, pa->serialized_pointlist);
     rtfree(ctx, pa);
-    RTDEBUG(5,"Freeing a PointArray");
+    RTDEBUG(ctx, 5,"Freeing a PointArray");
   }
 }
 
@@ -488,19 +488,19 @@ ptarray_same(const RTCTX *ctx, const RTPOINTARRAY *pa1, const RTPOINTARRAY *pa2)
   size_t ptsize;
 
   if ( RTFLAGS_GET_ZM(pa1->flags) != RTFLAGS_GET_ZM(pa2->flags) ) return RT_FALSE;
-  RTDEBUG(5,"dimensions are the same");
+  RTDEBUG(ctx, 5,"dimensions are the same");
 
   if ( pa1->npoints != pa2->npoints ) return RT_FALSE;
-  RTDEBUG(5,"npoints are the same");
+  RTDEBUG(ctx, 5,"npoints are the same");
 
   ptsize = ptarray_point_size(ctx, pa1);
-  RTDEBUGF(5, "ptsize = %d", ptsize);
+  RTDEBUGF(ctx, 5, "ptsize = %d", ptsize);
 
   for (i=0; i<pa1->npoints; i++)
   {
     if ( memcmp(rt_getPoint_internal(ctx, pa1, i), rt_getPoint_internal(ctx, pa2, i), ptsize) )
       return RT_FALSE;
-    RTDEBUGF(5,"point #%d is the same",i);
+    RTDEBUGF(ctx, 5,"point #%d is the same",i);
   }
 
   return RT_TRUE;
@@ -513,7 +513,7 @@ ptarray_addPoint(const RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t *p, size_t pd
   RTPOINT4D pbuf;
   size_t ptsize = ptarray_point_size(ctx, pa);
 
-  RTDEBUGF(3, "pa %x p %x size %d where %d",
+  RTDEBUGF(ctx, 3, "pa %x p %x size %d where %d",
            pa, p, pdims, where);
 
   if ( pdims < 2 || pdims > 4 )
@@ -530,12 +530,12 @@ ptarray_addPoint(const RTCTX *ctx, const RTPOINTARRAY *pa, uint8_t *p, size_t pd
     return NULL;
   }
 
-  RTDEBUG(3, "called with a %dD point");
+  RTDEBUG(ctx, 3, "called with a %dD point");
 
   pbuf.x = pbuf.y = pbuf.z = pbuf.m = 0.0;
   memcpy((uint8_t *)&pbuf, p, pdims*sizeof(double));
 
-  RTDEBUG(3, "initialized point buffer");
+  RTDEBUG(ctx, 3, "initialized point buffer");
 
   ret = ptarray_construct(ctx, RTFLAGS_GET_Z(pa->flags),
                           RTFLAGS_GET_M(pa->flags), pa->npoints+1);
@@ -565,7 +565,7 @@ ptarray_removePoint(const RTCTX *ctx, RTPOINTARRAY *pa, uint32_t which)
   RTPOINTARRAY *ret;
   size_t ptsize = ptarray_point_size(ctx, pa);
 
-  RTDEBUGF(3, "pa %x which %d", pa, which);
+  RTDEBUGF(ctx, 3, "pa %x which %d", pa, which);
 
 #if PARANOIA_LEVEL > 0
   if ( which > pa->npoints-1 )
@@ -637,7 +637,7 @@ ptarray_clone_deep(const RTCTX *ctx, const RTPOINTARRAY *in)
   RTPOINTARRAY *out = rtalloc(ctx, sizeof(RTPOINTARRAY));
   size_t size;
 
-  RTDEBUG(3, "ptarray_clone_deep called.");
+  RTDEBUG(ctx, 3, "ptarray_clone_deep called.");
 
   out->flags = in->flags;
   out->npoints = in->npoints;
@@ -660,7 +660,7 @@ ptarray_clone(const RTCTX *ctx, const RTPOINTARRAY *in)
 {
   RTPOINTARRAY *out = rtalloc(ctx, sizeof(RTPOINTARRAY));
 
-  RTDEBUG(3, "ptarray_clone_deep called.");
+  RTDEBUG(ctx, 3, "ptarray_clone_deep called.");
 
   out->flags = in->flags;
   out->npoints = in->npoints;
@@ -1056,7 +1056,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
   length = ptarray_length_2d(ctx, ipa);
 
 
-  RTDEBUGF(3, "Total length: %g", length);
+  RTDEBUGF(ctx, 3, "Total length: %g", length);
 
 
   /* Get 'from' and 'to' lengths */
@@ -1064,7 +1064,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
   to = length*to;
 
 
-  RTDEBUGF(3, "From/To: %g/%g", from, to);
+  RTDEBUGF(ctx, 3, "From/To: %g/%g", from, to);
 
 
   tlength = 0;
@@ -1077,7 +1077,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
     rt_getPoint4d_p(ctx, ipa, i+1, &p2);
 
 
-    RTDEBUGF(3 ,"Segment %d: (%g,%g,%g,%g)-(%g,%g,%g,%g)",
+    RTDEBUGF(ctx, 3 ,"Segment %d: (%g,%g,%g,%g)-(%g,%g,%g,%g)",
              i, p1.x, p1.y, p1.z, p1.m, p2.x, p2.y, p2.z, p2.m);
 
 
@@ -1090,12 +1090,12 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
     if ( state == 0 ) /* before */
     {
 
-      RTDEBUG(3, " Before start");
+      RTDEBUG(ctx, 3, " Before start");
 
       if ( fabs ( from - ( tlength + slength ) ) <= tolerance )
       {
 
-        RTDEBUG(3, "  Second point is our start");
+        RTDEBUG(ctx, 3, "  Second point is our start");
 
         /*
          * Second point is our start
@@ -1108,7 +1108,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
       else if ( fabs(from - tlength) <= tolerance )
       {
 
-        RTDEBUG(3, "  First point is our start");
+        RTDEBUG(ctx, 3, "  First point is our start");
 
         /*
          * First point is our start
@@ -1131,7 +1131,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
       else  /* tlength < from < tlength+slength */
       {
 
-        RTDEBUG(3, "  Seg contains first point");
+        RTDEBUG(ctx, 3, "  Seg contains first point");
 
         /*
          * Our start is between first and
@@ -1154,7 +1154,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
     if ( state == 1 ) /* inside */
     {
 
-      RTDEBUG(3, " Inside");
+      RTDEBUG(ctx, 3, " Inside");
 
       /*
        * 'to' point is our second point.
@@ -1162,7 +1162,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
       if ( fabs(to - ( tlength + slength ) ) <= tolerance )
       {
 
-        RTDEBUG(3, " Second point is our end");
+        RTDEBUG(ctx, 3, " Second point is our end");
 
         ptarray_append_point(ctx, dpa, &p2, RT_FALSE);
         break; /* substring complete */
@@ -1175,7 +1175,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
       else if ( fabs(to - tlength) <= tolerance )
       {
 
-        RTDEBUG(3, " First point is our end");
+        RTDEBUG(ctx, 3, " First point is our end");
 
         ptarray_append_point(ctx, dpa, &p1, RT_FALSE);
 
@@ -1199,7 +1199,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
       else if ( to < tlength + slength )
       {
 
-        RTDEBUG(3, " Seg contains our end");
+        RTDEBUG(ctx, 3, " Seg contains our end");
 
         dseg = (to - tlength) / slength;
         interpolate_point4d(ctx, &p1, &p2, &pt, dseg);
@@ -1211,7 +1211,7 @@ ptarray_substring(const RTCTX *ctx, RTPOINTARRAY *ipa, double from, double to, d
 
       else
       {
-        RTDEBUG(3, "Unhandled case");
+        RTDEBUG(ctx, 3, "Unhandled case");
       }
     }
 
@@ -1222,7 +1222,7 @@ END:
     memcpy(&p1, &p2, sizeof(RTPOINT4D));
   }
 
-  RTDEBUGF(3, "Out of loop, ptarray has %d points", dpa->npoints);
+  RTDEBUGF(ctx, 3, "Out of loop, ptarray has %d points", dpa->npoints);
 
   return dpa;
 }
@@ -1322,7 +1322,7 @@ ptarray_locate_point(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINT4D *
 
     if ( mindist == 0 )
     {
-      RTDEBUG(3, "Breaking on mindist=0");
+      RTDEBUG(ctx, 3, "Breaking on mindist=0");
       break;
     }
 
@@ -1331,8 +1331,8 @@ ptarray_locate_point(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINT4D *
 
   if ( mindistout ) *mindistout = mindist;
 
-  RTDEBUGF(3, "Closest segment: %d", seg);
-  RTDEBUGF(3, "mindist: %g", mindist);
+  RTDEBUGF(ctx, 3, "Closest segment: %d", seg);
+  RTDEBUGF(ctx, 3, "mindist: %g", mindist);
 
   /*
    * We need to project the
@@ -1346,7 +1346,7 @@ ptarray_locate_point(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINT4D *
   proj.x = proj4d->x;
   proj.y = proj4d->y;
 
-  RTDEBUGF(3, "Closest segment:%d, npoints:%d", seg, pa->npoints);
+  RTDEBUGF(ctx, 3, "Closest segment:%d, npoints:%d", seg, pa->npoints);
 
   /* For robustness, force 1 when closest point == endpoint */
   if ( (seg >= (pa->npoints-2)) && p2d_same(ctx, &proj, end) )
@@ -1354,11 +1354,11 @@ ptarray_locate_point(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINT4D *
     return 1.0;
   }
 
-  RTDEBUGF(3, "Closest point on segment: %g,%g", proj.x, proj.y);
+  RTDEBUGF(ctx, 3, "Closest point on segment: %g,%g", proj.x, proj.y);
 
   tlen = ptarray_length_2d(ctx, pa);
 
-  RTDEBUGF(3, "tlen %g", tlen);
+  RTDEBUGF(ctx, 3, "tlen %g", tlen);
 
   /* Location of any point on a zero-length line is 0 */
   /* See http://trac.osgeo.org/postgis/ticket/1772#comment:2 */
@@ -1371,12 +1371,12 @@ ptarray_locate_point(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTPOINT4D *
     end = rt_getPoint2d_cp(ctx, pa, t+1);
     plen += distance2d_pt_pt(ctx, start, end);
 
-    RTDEBUGF(4, "Segment %d made plen %g", t, plen);
+    RTDEBUGF(ctx, 4, "Segment %d made plen %g", t, plen);
   }
 
   plen+=distance2d_pt_pt(ctx, &proj, start);
 
-  RTDEBUGF(3, "plen %g, tlen %g", plen, tlen);
+  RTDEBUGF(ctx, 3, "plen %g, tlen %g", plen, tlen);
 
   return plen/tlen;
 }
@@ -1424,14 +1424,14 @@ ptarray_remove_repeated_points_minpoints(const RTCTX *ctx, const RTPOINTARRAY *i
 
   if ( minpoints < 1 ) minpoints = 1;
 
-  RTDEBUGF(3, "%s called", __func__);
+  RTDEBUGF(ctx, 3, "%s called", __func__);
 
   /* Single or zero point arrays can't have duplicates */
   if ( in->npoints < 3 ) return ptarray_clone_deep(ctx, in);
 
   ptsize = ptarray_point_size(ctx, in);
 
-  RTDEBUGF(3, " ptsize: %d", ptsize);
+  RTDEBUGF(ctx, 3, " ptsize: %d", ptsize);
 
   /* Allocate enough space for all points */
   out = ptarray_construct(ctx, RTFLAGS_GET_Z(in->flags),
@@ -1442,7 +1442,7 @@ ptarray_remove_repeated_points_minpoints(const RTCTX *ctx, const RTPOINTARRAY *i
   opn=1;
   memcpy(rt_getPoint_internal(ctx, out, 0), rt_getPoint_internal(ctx, in, 0), ptsize);
   last_point = rt_getPoint2d_cp(ctx, in, 0);
-  RTDEBUGF(3, " first point copied, out points: %d", opn);
+  RTDEBUGF(ctx, 3, " first point copied, out points: %d", opn);
   for ( ipn = 1; ipn < in->npoints; ++ipn)
   {
     this_point = rt_getPoint2d_cp(ctx, in, ipn);
@@ -1454,11 +1454,11 @@ ptarray_remove_repeated_points_minpoints(const RTCTX *ctx, const RTPOINTARRAY *i
        * we add it to output */
       memcpy(rt_getPoint_internal(ctx, out, opn++), rt_getPoint_internal(ctx, in, ipn), ptsize);
       last_point = this_point;
-      RTDEBUGF(3, " Point %d differs from point %d. Out points: %d", ipn, ipn-1, opn);
+      RTDEBUGF(ctx, 3, " Point %d differs from point %d. Out points: %d", ipn, ipn-1, opn);
     }
   }
 
-  RTDEBUGF(3, " in:%d out:%d", out->npoints, opn);
+  RTDEBUGF(ctx, 3, " in:%d out:%d", out->npoints, opn);
   out->npoints = opn;
 
   return out;
@@ -1477,7 +1477,7 @@ ptarray_dp_findsplit(const RTCTX *ctx, RTPOINTARRAY *pts, int p1, int p2, int *s
   const RTPOINT2D *pk, *pa, *pb;
   double tmp, d;
 
-  RTDEBUG(4, "function called");
+  RTDEBUG(ctx, 4, "function called");
 
   *split = p1;
   d = -1;
@@ -1488,14 +1488,14 @@ ptarray_dp_findsplit(const RTCTX *ctx, RTPOINTARRAY *pts, int p1, int p2, int *s
     pa = rt_getPoint2d_cp(ctx, pts, p1);
     pb = rt_getPoint2d_cp(ctx, pts, p2);
 
-    RTDEBUGF(4, "P%d(%f,%f) to P%d(%f,%f)",
+    RTDEBUGF(ctx, 4, "P%d(%f,%f) to P%d(%f,%f)",
              p1, pa->x, pa->y, p2, pb->x, pb->y);
 
     for (k=p1+1; k<p2; k++)
     {
       pk = rt_getPoint2d_cp(ctx, pts, k);
 
-      RTDEBUGF(4, "P%d(%f,%f)", k, pk->x, pk->y);
+      RTDEBUGF(ctx, 4, "P%d(%f,%f)", k, pk->x, pk->y);
 
       /* distance computation */
       tmp = distance2d_sqr_pt_seg(ctx, pk, pa, pb);
@@ -1505,7 +1505,7 @@ ptarray_dp_findsplit(const RTCTX *ctx, RTPOINTARRAY *pts, int p1, int p2, int *s
         d = tmp;  /* record the maximum */
         *split = k;
 
-        RTDEBUGF(4, "P%d is farthest (%g)", k, d);
+        RTDEBUGF(ctx, 4, "P%d is farthest (%g)", k, d);
       }
     }
     *dist = d;
@@ -1513,7 +1513,7 @@ ptarray_dp_findsplit(const RTCTX *ctx, RTPOINTARRAY *pts, int p1, int p2, int *s
   } /* length---should be redone if can == 0 */
   else
   {
-    RTDEBUG(3, "segment too short, no split/no dist");
+    RTDEBUG(ctx, 3, "segment too short, no split/no dist");
     *dist = -1;
   }
 
@@ -1537,7 +1537,7 @@ ptarray_simplify(const RTCTX *ctx, RTPOINTARRAY *inpts, double epsilon, unsigned
   p1 = 0;
   stack[++sp] = inpts->npoints-1;
 
-  RTDEBUGF(2, "Input has %d pts and %d dims", inpts->npoints,
+  RTDEBUGF(ctx, 2, "Input has %d pts and %d dims", inpts->npoints,
                                               RTFLAGS_NDIMS(inpts->flags));
 
   /* Allocate output RTPOINTARRAY, and add first point. */
@@ -1545,32 +1545,32 @@ ptarray_simplify(const RTCTX *ctx, RTPOINTARRAY *inpts, double epsilon, unsigned
   rt_getPoint4d_p(ctx, inpts, 0, &pt);
   ptarray_append_point(ctx, outpts, &pt, RT_FALSE);
 
-  RTDEBUG(3, "Added P0 to simplified point array (size 1)");
+  RTDEBUG(ctx, 3, "Added P0 to simplified point array (size 1)");
 
   do
   {
 
     ptarray_dp_findsplit(ctx, inpts, p1, stack[sp], &split, &dist);
 
-    RTDEBUGF(3, "Farthest point from P%d-P%d is P%d (dist. %g)", p1, stack[sp], split, dist);
+    RTDEBUGF(ctx, 3, "Farthest point from P%d-P%d is P%d (dist. %g)", p1, stack[sp], split, dist);
 
     if (dist > eps_sqr || ( outpts->npoints+sp+1 < minpts && dist >= 0 ) )
     {
-      RTDEBUGF(4, "Added P%d to stack (outpts:%d)", split, sp);
+      RTDEBUGF(ctx, 4, "Added P%d to stack (outpts:%d)", split, sp);
       stack[++sp] = split;
     }
     else
     {
       rt_getPoint4d_p(ctx, inpts, stack[sp], &pt);
-      RTDEBUGF(4, "npoints , minpoints %d %d", outpts->npoints, minpts);
+      RTDEBUGF(ctx, 4, "npoints , minpoints %d %d", outpts->npoints, minpts);
       ptarray_append_point(ctx, outpts, &pt, RT_FALSE);
 
-      RTDEBUGF(4, "Added P%d to simplified point array (size: %d)", stack[sp], outpts->npoints);
+      RTDEBUGF(ctx, 4, "Added P%d to simplified point array (size: %d)", stack[sp], outpts->npoints);
 
       p1 = stack[sp--];
     }
 
-    RTDEBUGF(4, "stack pointer = %d", sp);
+    RTDEBUGF(ctx, 4, "stack pointer = %d", sp);
   }
   while (! (sp<0) );
 
@@ -1684,7 +1684,7 @@ rt_getPoint_internal(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
     return NULL;
   }
 
-  RTDEBUGF(5, "(n=%d, pa.npoints=%d, pa.maxpoints=%d)",n,pa->npoints,pa->maxpoints);
+  RTDEBUGF(ctx, 5, "(n=%d, pa.npoints=%d, pa.maxpoints=%d)",n,pa->npoints,pa->maxpoints);
 
   if ( ( n < 0 ) ||
        ( n > pa->npoints ) ||
@@ -1700,15 +1700,15 @@ rt_getPoint_internal(const RTCTX *ctx, const RTPOINTARRAY *pa, int n)
   ptr = pa->serialized_pointlist + size * n;
   if ( RTFLAGS_NDIMS(pa->flags) == 2)
   {
-    RTDEBUGF(5, "point = %g %g", *((double*)(ptr)), *((double*)(ptr+8)));
+    RTDEBUGF(ctx, 5, "point = %g %g", *((double*)(ptr)), *((double*)(ptr+8)));
   }
   else if ( RTFLAGS_NDIMS(pa->flags) == 3)
   {
-    RTDEBUGF(5, "point = %g %g %g", *((double*)(ptr)), *((double*)(ptr+8)), *((double*)(ptr+16)));
+    RTDEBUGF(ctx, 5, "point = %g %g %g", *((double*)(ptr)), *((double*)(ptr+8)), *((double*)(ptr+16)));
   }
   else if ( RTFLAGS_NDIMS(pa->flags) == 4)
   {
-    RTDEBUGF(5, "point = %g %g %g %g", *((double*)(ptr)), *((double*)(ptr+8)), *((double*)(ptr+16)), *((double*)(ptr+24)));
+    RTDEBUGF(ctx, 5, "point = %g %g %g %g", *((double*)(ptr)), *((double*)(ptr+8)), *((double*)(ptr+16)), *((double*)(ptr+24)));
   }
 
   return ptr;
@@ -1725,11 +1725,11 @@ ptarray_affine(const RTCTX *ctx, RTPOINTARRAY *pa, const RTAFFINE *a)
   double x,y,z;
   RTPOINT4D p4d;
 
-  RTDEBUG(2, "rtgeom_affine_ptarray start");
+  RTDEBUG(ctx, 2, "rtgeom_affine_ptarray start");
 
   if ( RTFLAGS_GET_Z(pa->flags) )
   {
-    RTDEBUG(3, " has z");
+    RTDEBUG(ctx, 3, " has z");
 
     for (i=0; i<pa->npoints; i++)
     {
@@ -1742,12 +1742,12 @@ ptarray_affine(const RTCTX *ctx, RTPOINTARRAY *pa, const RTAFFINE *a)
       p4d.z = a->gfac * x + a->hfac * y + a->ifac * z + a->zoff;
       ptarray_set_point4d(ctx, pa, i, &p4d);
 
-      RTDEBUGF(3, " POINT %g %g %g => %g %g %g", x, y, x, p4d.x, p4d.y, p4d.z);
+      RTDEBUGF(ctx, 3, " POINT %g %g %g => %g %g %g", x, y, x, p4d.x, p4d.y, p4d.z);
     }
   }
   else
   {
-    RTDEBUG(3, " doesn't have z");
+    RTDEBUG(ctx, 3, " doesn't have z");
 
     for (i=0; i<pa->npoints; i++)
     {
@@ -1758,11 +1758,11 @@ ptarray_affine(const RTCTX *ctx, RTPOINTARRAY *pa, const RTAFFINE *a)
       p4d.y = a->dfac * x + a->efac * y + a->yoff;
       ptarray_set_point4d(ctx, pa, i, &p4d);
 
-      RTDEBUGF(3, " POINT %g %g %g => %g %g %g", x, y, x, p4d.x, p4d.y, p4d.z);
+      RTDEBUGF(ctx, 3, " POINT %g %g %g => %g %g %g", x, y, x, p4d.x, p4d.y, p4d.z);
     }
   }
 
-  RTDEBUG(3, "rtgeom_affine_ptarray end");
+  RTDEBUG(ctx, 3, "rtgeom_affine_ptarray end");
 
 }
 
@@ -1775,7 +1775,7 @@ ptarray_scale(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *fact)
   int i;
   RTPOINT4D p4d;
 
-  RTDEBUG(3, "ptarray_scale start");
+  RTDEBUG(ctx, 3, "ptarray_scale start");
 
   for (i=0; i<pa->npoints; ++i)
   {
@@ -1787,7 +1787,7 @@ ptarray_scale(const RTCTX *ctx, RTPOINTARRAY *pa, const RTPOINT4D *fact)
     ptarray_set_point4d(ctx, pa, i, &p4d);
   }
 
-  RTDEBUG(3, "ptarray_scale end");
+  RTDEBUG(ctx, 3, "ptarray_scale end");
 
 }
 
@@ -1815,7 +1815,7 @@ ptarray_grid(const RTCTX *ctx, const RTPOINTARRAY *pa, const gridspec *grid)
   int ipn; /* input point numbers */
   RTPOINTARRAY *dpa;
 
-  RTDEBUGF(2, "ptarray_grid called on %p", pa);
+  RTDEBUGF(ctx, 2, "ptarray_grid called on %p", pa);
 
   dpa = ptarray_construct_empty(ctx, RTFLAGS_GET_Z(pa->flags),RTFLAGS_GET_M(pa->flags), pa->npoints);
 

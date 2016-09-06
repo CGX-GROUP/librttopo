@@ -388,12 +388,12 @@ rtgeom_release(const RTCTX *ctx, RTGEOM *rtgeom)
   if ( ! rtgeom )
     rterror(ctx, "rtgeom_release: someone called on 0x0");
 
-  RTDEBUGF(3, "releasing type %s", rttype_name(ctx, rtgeom->type));
+  RTDEBUGF(ctx, 3, "releasing type %s", rttype_name(ctx, rtgeom->type));
 
   /* Drop bounding box (artays a copy) */
   if ( rtgeom->bbox )
   {
-    RTDEBUGF(3, "rtgeom_release: releasing bbox. %p", rtgeom->bbox);
+    RTDEBUGF(ctx, 3, "rtgeom_release: releasing bbox. %p", rtgeom->bbox);
     rtfree(ctx, rtgeom->bbox);
   }
   rtfree(ctx, rtgeom);
@@ -408,7 +408,7 @@ rtgeom_release(const RTCTX *ctx, RTGEOM *rtgeom)
 RTGEOM *
 rtgeom_clone(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
-  RTDEBUGF(2, "rtgeom_clone called with %p, %s",
+  RTDEBUGF(ctx, 2, "rtgeom_clone called with %p, %s",
            rtgeom, rttype_name(ctx, rtgeom->type));
 
   switch (rtgeom->type)
@@ -446,7 +446,7 @@ rtgeom_clone(const RTCTX *ctx, const RTGEOM *rtgeom)
 RTGEOM *
 rtgeom_clone_deep(const RTCTX *ctx, const RTGEOM *rtgeom)
 {
-  RTDEBUGF(2, "rtgeom_clone called with %p, %s",
+  RTDEBUGF(ctx, 2, "rtgeom_clone called with %p, %s",
            rtgeom, rttype_name(ctx, rtgeom->type));
 
   switch (rtgeom->type)
@@ -508,20 +508,20 @@ rtgeom_to_ewkt(const RTCTX *ctx, const RTGEOM *rtgeom)
 char
 rtgeom_same(const RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
 {
-  RTDEBUGF(2, "rtgeom_same(ctx, %s, %s) called",
+  RTDEBUGF(ctx, 2, "rtgeom_same(ctx, %s, %s) called",
            rttype_name(ctx, rtgeom1->type),
            rttype_name(ctx, rtgeom2->type));
 
   if ( rtgeom1->type != rtgeom2->type )
   {
-    RTDEBUG(3, " type differ");
+    RTDEBUG(ctx, 3, " type differ");
 
     return RT_FALSE;
   }
 
   if ( RTFLAGS_GET_ZM(rtgeom1->flags) != RTFLAGS_GET_ZM(rtgeom2->flags) )
   {
-    RTDEBUG(3, " ZM flags differ");
+    RTDEBUG(ctx, 3, " ZM flags differ");
 
     return RT_FALSE;
   }
@@ -532,7 +532,7 @@ rtgeom_same(const RTCTX *ctx, const RTGEOM *rtgeom1, const RTGEOM *rtgeom2)
     /*rtnotice(ctx, "bbox1:%p, bbox2:%p", rtgeom1->bbox, rtgeom2->bbox);*/
     if ( ! gbox_same(ctx, rtgeom1->bbox, rtgeom2->bbox) )
     {
-      RTDEBUG(3, " bounding boxes differ");
+      RTDEBUG(ctx, 3, " bounding boxes differ");
 
       return RT_FALSE;
     }
@@ -1067,7 +1067,7 @@ void rtgeom_free(const RTCTX *ctx, RTGEOM *rtgeom)
   /* There's nothing here to free... */
   if( ! rtgeom ) return;
 
-  RTDEBUGF(5,"freeing a %s",rttype_name(ctx, rtgeom->type));
+  RTDEBUGF(ctx, 5,"freeing a %s",rttype_name(ctx, rtgeom->type));
 
   switch (rtgeom->type)
   {
@@ -1158,7 +1158,7 @@ int rtgeom_count_vertices(const RTCTX *ctx, const RTGEOM *geom)
   /* Null? Zero. */
   if( ! geom ) return 0;
 
-  RTDEBUGF(4, "rtgeom_count_vertices got type %s",
+  RTDEBUGF(ctx, 4, "rtgeom_count_vertices got type %s",
            rttype_name(ctx, geom->type));
 
   /* Empty? Zero. */
@@ -1194,7 +1194,7 @@ int rtgeom_count_vertices(const RTCTX *ctx, const RTGEOM *geom)
             __func__, rttype_name(ctx, geom->type));
     break;
   }
-  RTDEBUGF(3, "counted %d vertices", result);
+  RTDEBUGF(ctx, 3, "counted %d vertices", result);
   return result;
 }
 
@@ -1209,7 +1209,7 @@ int rtgeom_dimension(const RTCTX *ctx, const RTGEOM *geom)
   /* Null? Zero. */
   if( ! geom ) return -1;
 
-  RTDEBUGF(4, "rtgeom_dimension got type %s",
+  RTDEBUGF(ctx, 4, "rtgeom_dimension got type %s",
            rttype_name(ctx, geom->type));
 
   /* Empty? Zero. */
@@ -1304,14 +1304,14 @@ int rtgeom_count_rings(const RTCTX *ctx, const RTGEOM *geom)
     rterror(ctx, "rtgeom_count_rings: unsupported input geometry type: %s", rttype_name(ctx, geom->type));
     break;
   }
-  RTDEBUGF(3, "counted %d rings", result);
+  RTDEBUGF(ctx, 3, "counted %d rings", result);
   return result;
 }
 
 int rtgeom_is_empty(const RTCTX *ctx, const RTGEOM *geom)
 {
   int result = RT_FALSE;
-  RTDEBUGF(4, "rtgeom_is_empty: got type %s",
+  RTDEBUGF(ctx, 4, "rtgeom_is_empty: got type %s",
            rttype_name(ctx, geom->type));
 
   switch (geom->type)
@@ -1377,7 +1377,7 @@ extern int rtgeom_dimensionality(const RTCTX *ctx, RTGEOM *geom)
 {
   int dim;
 
-  RTDEBUGF(3, "rtgeom_dimensionality got type %s",
+  RTDEBUGF(ctx, 3, "rtgeom_dimensionality got type %s",
            rttype_name(ctx, geom->type));
 
   switch (geom->type)
@@ -1420,7 +1420,7 @@ extern int rtgeom_dimensionality(const RTCTX *ctx, RTGEOM *geom)
 
 extern RTGEOM* rtgeom_remove_repeated_points(const RTCTX *ctx, const RTGEOM *in, double tolerance)
 {
-  RTDEBUGF(4, "rtgeom_remove_repeated_points got type %s",
+  RTDEBUGF(ctx, 4, "rtgeom_remove_repeated_points got type %s",
            rttype_name(ctx, in->type));
 
   if(rtgeom_is_empty(ctx, in))
@@ -1490,7 +1490,7 @@ void rtgeom_swap_ordinates(const RTCTX *ctx, RTGEOM *in, RTORD o1, RTORD o2)
 
   /* TODO: check for rtgeom NOT having the specified dimension ? */
 
-  RTDEBUGF(4, "rtgeom_flip_coordinates, got type: %s",
+  RTDEBUGF(ctx, 4, "rtgeom_flip_coordinates, got type: %s",
            rttype_name(ctx, in->type));
 
   switch (in->type)
@@ -1554,7 +1554,7 @@ void rtgeom_set_srid(const RTCTX *ctx, RTGEOM *geom, int32_t srid)
 {
   int i;
 
-  RTDEBUGF(4,"entered with srid=%d",srid);
+  RTDEBUGF(ctx, 4,"entered with srid=%d",srid);
 
   geom->srid = srid;
 

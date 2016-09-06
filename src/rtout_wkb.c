@@ -203,7 +203,7 @@ static uint8_t* integer_to_wkb_buf(const RTCTX *ctx, const int ival, uint8_t *bu
   {
     rterror(ctx, "Machine int size is not %d bytes!", RTWKB_INT_SIZE);
   }
-  RTDEBUGF(4, "Writing value '%u'", ival);
+  RTDEBUGF(ctx, 4, "Writing value '%u'", ival);
   if ( variant & RTWKB_HEX )
   {
     int swap = wkb_swap_bytes(ctx, variant);
@@ -397,16 +397,16 @@ static uint8_t* ptarray_to_wkb_buf(const RTCTX *ctx, const RTPOINTARRAY *pa, uin
   {
     for ( i = 0; i < pa->npoints; i++ )
     {
-      RTDEBUGF(4, "Writing point #%d", i);
+      RTDEBUGF(ctx, 4, "Writing point #%d", i);
       dbl_ptr = (double*)rt_getPoint_internal(ctx, pa, i);
       for ( j = 0; j < dims; j++ )
       {
-        RTDEBUGF(4, "Writing dimension #%d (buf = %p)", j, buf);
+        RTDEBUGF(ctx, 4, "Writing dimension #%d (buf = %p)", j, buf);
         buf = double_to_wkb_buf(ctx, dbl_ptr[j], buf, variant);
       }
     }
   }
-  RTDEBUGF(4, "Done (buf = %p)", buf);
+  RTDEBUGF(ctx, 4, "Done (buf = %p)", buf);
   return buf;
 }
 
@@ -438,21 +438,21 @@ static uint8_t* rtpoint_to_wkb_buf(const RTCTX *ctx, const RTPOINT *pt, uint8_t 
     return empty_to_wkb_buf(ctx, (RTGEOM*)pt, buf, variant);
 
   /* Set the endian flag */
-  RTDEBUGF(4, "Entering function, buf = %p", buf);
+  RTDEBUGF(ctx, 4, "Entering function, buf = %p", buf);
   buf = endian_to_wkb_buf(ctx, buf, variant);
-  RTDEBUGF(4, "Endian set, buf = %p", buf);
+  RTDEBUGF(ctx, 4, "Endian set, buf = %p", buf);
   /* Set the geometry type */
   buf = integer_to_wkb_buf(ctx, rtgeom_wkb_type(ctx, (RTGEOM*)pt, variant), buf, variant);
-  RTDEBUGF(4, "Type set, buf = %p", buf);
+  RTDEBUGF(ctx, 4, "Type set, buf = %p", buf);
   /* Set the optional SRID for extended variant */
   if ( rtgeom_wkb_needs_srid(ctx, (RTGEOM*)pt, variant) )
   {
     buf = integer_to_wkb_buf(ctx, pt->srid, buf, variant);
-    RTDEBUGF(4, "SRID set, buf = %p", buf);
+    RTDEBUGF(ctx, 4, "SRID set, buf = %p", buf);
   }
   /* Set the coordinates */
   buf = ptarray_to_wkb_buf(ctx, pt->point, buf, variant | RTWKB_NO_NPOINTS);
-  RTDEBUGF(4, "Pointarray set, buf = %p", buf);
+  RTDEBUGF(ctx, 4, "Pointarray set, buf = %p", buf);
   return buf;
 }
 
@@ -773,18 +773,18 @@ uint8_t* rtgeom_to_wkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, si
 
   if ( geom == NULL )
   {
-    RTDEBUG(4,"Cannot convert NULL into RTWKB.");
+    RTDEBUG(ctx, 4,"Cannot convert NULL into RTWKB.");
     rterror(ctx, "Cannot convert NULL into RTWKB.");
     return NULL;
   }
 
   /* Calculate the required size of the output buffer */
   buf_size = rtgeom_to_wkb_size(ctx, geom, variant);
-  RTDEBUGF(4, "RTWKB output size: %d", buf_size);
+  RTDEBUGF(ctx, 4, "RTWKB output size: %d", buf_size);
 
   if ( buf_size == 0 )
   {
-    RTDEBUG(4,"Error calculating output RTWKB buffer size.");
+    RTDEBUG(ctx, 4,"Error calculating output RTWKB buffer size.");
     rterror(ctx, "Error calculating output RTWKB buffer size.");
     return NULL;
   }
@@ -793,7 +793,7 @@ uint8_t* rtgeom_to_wkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, si
   if ( variant & RTWKB_HEX )
   {
     buf_size = 2 * buf_size + 1;
-    RTDEBUGF(4, "Hex RTWKB output size: %d", buf_size);
+    RTDEBUGF(ctx, 4, "Hex RTWKB output size: %d", buf_size);
   }
 
   /* If neither or both variants are specified, choose the native order */
@@ -811,7 +811,7 @@ uint8_t* rtgeom_to_wkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, si
 
   if ( buf == NULL )
   {
-    RTDEBUGF(4,"Unable to allocate %d bytes for RTWKB output buffer.", buf_size);
+    RTDEBUGF(ctx, 4,"Unable to allocate %d bytes for RTWKB output buffer.", buf_size);
     rterror(ctx, "Unable to allocate %d bytes for RTWKB output buffer.", buf_size);
     return NULL;
   }
@@ -829,12 +829,12 @@ uint8_t* rtgeom_to_wkb(const RTCTX *ctx, const RTGEOM *geom, uint8_t variant, si
     buf++;
   }
 
-  RTDEBUGF(4,"buf (%p) - wkb_out (%p) = %d", buf, wkb_out, buf - wkb_out);
+  RTDEBUGF(ctx, 4,"buf (%p) - wkb_out (%p) = %d", buf, wkb_out, buf - wkb_out);
 
   /* The buffer pointer should now land at the end of the allocated buffer space. Let's check. */
   if ( buf_size != (buf - wkb_out) )
   {
-    RTDEBUG(4,"Output RTWKB is not the same size as the allocated buffer.");
+    RTDEBUG(ctx, 4,"Output RTWKB is not the same size as the allocated buffer.");
     rterror(ctx, "Output RTWKB is not the same size as the allocated buffer.");
     rtfree(ctx, wkb_out);
     return NULL;

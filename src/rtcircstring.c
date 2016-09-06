@@ -225,7 +225,7 @@ rtcircstring_from_rtmpoint(const RTCTX *ctx, int srid, RTMPOINT *mpoint)
 
   pa = ptarray_construct_reference_data(ctx, zmflag&2, zmflag&1, mpoint->ngeoms, newpoints);
 
-  RTDEBUGF(3, "rtcurve_from_rtmpoint: constructed pointarray for %d points, %d zmflag", mpoint->ngeoms, zmflag);
+  RTDEBUGF(ctx, 3, "rtcurve_from_rtmpoint: constructed pointarray for %d points, %d zmflag", mpoint->ngeoms, zmflag);
 
   return rtcircstring_construct(ctx, srid, NULL, pa);
 }

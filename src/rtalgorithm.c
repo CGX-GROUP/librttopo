@@ -247,7 +247,7 @@ rt_arc_center(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const 
 
   c.x = c.y = 0.0;
 
-  RTDEBUGF(2, "rt_arc_center called (%.16f,%.16f), (%.16f,%.16f), (%.16f,%.16f).", p1->x, p1->y, p2->x, p2->y, p3->x, p3->y);
+  RTDEBUGF(ctx, 2, "rt_arc_center called (%.16f,%.16f), (%.16f,%.16f), (%.16f,%.16f).", p1->x, p1->y, p2->x, p2->y, p3->x, p3->y);
 
   /* Closed circle */
   if (fabs(p1->x - p3->x) < EPSILON_SQLMM &&
@@ -286,7 +286,7 @@ rt_arc_center(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D *p2, const 
   *result = c;
   cr = sqrt(pow(cx - p1->x, 2) + pow(cy - p1->y, 2));
 
-  RTDEBUGF(2, "rt_arc_center center is (%.16f,%.16f)", result->x, result->y);
+  RTDEBUGF(ctx, 2, "rt_arc_center center is (%.16f,%.16f)", result->x, result->y);
 
   return cr;
 }
@@ -309,7 +309,7 @@ pt_in_ring_2d(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
 
   }
 
-  RTDEBUGF(2, "pt_in_ring_2d called with point: %g %g", p->x, p->y);
+  RTDEBUGF(ctx, 2, "pt_in_ring_2d called with point: %g %g", p->x, p->y);
   /* printPA(ctx, ring); */
 
   /* loop through all edges of the polygon */
@@ -341,7 +341,7 @@ pt_in_ring_2d(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINTARRAY *ring)
     v1 = v2;
   }
 
-  RTDEBUGF(3, "pt_in_ring_2d returning %d", cn&1);
+  RTDEBUGF(ctx, 3, "pt_in_ring_2d returning %d", cn&1);
 
   return (cn&1);    /* 0 if even (out), and 1 if odd (in) */
 }
@@ -421,8 +421,8 @@ int rt_segment_intersects(const RTCTX *ctx, const RTPOINT2D *p1, const RTPOINT2D
   ** location of the other end-point. Only touches by the first point
   ** will be considered "real" to avoid double counting.
   */
-  RTDEBUGF(4, "pq1=%.15g pq2=%.15g", pq1, pq2);
-  RTDEBUGF(4, "qp1=%.15g qp2=%.15g", qp1, qp2);
+  RTDEBUGF(ctx, 4, "pq1=%.15g pq2=%.15g", pq1, pq2);
+  RTDEBUGF(ctx, 4, "qp1=%.15g qp2=%.15g", qp1, qp2);
 
   /* Second point of p or q touches, it's not a crossing. */
   if ( pq2 == 0 || qp2 == 0 )
@@ -489,8 +489,8 @@ int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *
   if ( pa1->npoints < 2 || pa2->npoints < 2 )
     return LINE_NO_CROSS;
 
-  RTDEBUGF(4, "l1 = %s", rtgeom_to_ewkt(ctx, (RTGEOM*)l1));
-  RTDEBUGF(4, "l2 = %s", rtgeom_to_ewkt(ctx, (RTGEOM*)l2));
+  RTDEBUGF(ctx, 4, "l1 = %s", rtgeom_to_ewkt(ctx, (RTGEOM*)l1));
+  RTDEBUGF(ctx, 4, "l2 = %s", rtgeom_to_ewkt(ctx, (RTGEOM*)l2));
 
   /* Initialize first point of q */
   q1 = rt_getPoint2d_cp(ctx, pa2, 0);
@@ -512,11 +512,11 @@ int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *
 
       this_cross = rt_segment_intersects(ctx, p1, p2, q1, q2);
 
-      RTDEBUGF(4, "i=%d, j=%d (%.8g %.8g, %.8g %.8g)", this_cross, i, j, p1->x, p1->y, p2->x, p2->y);
+      RTDEBUGF(ctx, 4, "i=%d, j=%d (%.8g %.8g, %.8g %.8g)", this_cross, i, j, p1->x, p1->y, p2->x, p2->y);
 
       if ( this_cross == SEG_CROSS_LEFT )
       {
-        RTDEBUG(4,"this_cross == SEG_CROSS_LEFT");
+        RTDEBUG(ctx, 4,"this_cross == SEG_CROSS_LEFT");
         cross_left++;
         if ( ! first_cross )
           first_cross = SEG_CROSS_LEFT;
@@ -524,7 +524,7 @@ int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *
 
       if ( this_cross == SEG_CROSS_RIGHT )
       {
-        RTDEBUG(4,"this_cross == SEG_CROSS_RIGHT");
+        RTDEBUG(ctx, 4,"this_cross == SEG_CROSS_RIGHT");
         cross_right++;
         if ( ! first_cross )
           first_cross = SEG_CROSS_LEFT;
@@ -537,13 +537,13 @@ int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *
       */
       if ( this_cross == SEG_COLINEAR )
       {
-        RTDEBUG(4,"this_cross == SEG_COLINEAR");
+        RTDEBUG(ctx, 4,"this_cross == SEG_COLINEAR");
         /* TODO: Add logic here and in segment_intersects()
         continue;
         */
       }
 
-      RTDEBUG(4,"this_cross == SEG_NO_INTERSECTION");
+      RTDEBUG(ctx, 4,"this_cross == SEG_NO_INTERSECTION");
 
       /* Turn second point of p into first point */
       p1 = p2;
@@ -555,7 +555,7 @@ int rtline_crossing_direction(const RTCTX *ctx, const RTLINE *l1, const RTLINE *
 
   }
 
-  RTDEBUGF(4, "first_cross=%d, cross_left=%d, cross_right=%d", first_cross, cross_left, cross_right);
+  RTDEBUGF(ctx, 4, "first_cross=%d, cross_left=%d, cross_right=%d", first_cross, cross_left, cross_right);
 
   if ( !cross_left && !cross_right )
     return LINE_NO_CROSS;

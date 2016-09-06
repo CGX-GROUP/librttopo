@@ -600,7 +600,7 @@ static void rtpsurface_to_wkt_sb(const RTCTX *ctx, const RTPSURFACE *psurf, stri
 */
 static void rtgeom_to_wkt_sb(const RTCTX *ctx, const RTGEOM *geom, stringbuffer_t *sb, int precision, uint8_t variant)
 {
-  RTDEBUGF(4, "rtgeom_to_wkt_sb: type %s, hasz %d, hasm %d",
+  RTDEBUGF(ctx, 4, "rtgeom_to_wkt_sb: type %s, hasz %d, hasm %d",
     rttype_name(ctx, geom->type), (geom->type),
     RTFLAGS_GET_Z(geom->flags)?1:0, RTFLAGS_GET_M(geom->flags)?1:0);
 

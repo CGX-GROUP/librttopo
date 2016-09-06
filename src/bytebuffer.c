@@ -34,7 +34,7 @@
 bytebuffer_t*
 bytebuffer_create(const RTCTX *ctx)
 {
-  RTDEBUG(2,"Entered bytebuffer_create");
+  RTDEBUG(ctx, 2,"Entered bytebuffer_create");
   return bytebuffer_create_with_size(ctx, BYTEBUFFER_STARTSIZE);
 }
 
@@ -44,7 +44,7 @@ bytebuffer_create(const RTCTX *ctx)
 bytebuffer_t*
 bytebuffer_create_with_size(const RTCTX *ctx, size_t size)
 {
-  RTDEBUGF(2,"Entered bytebuffer_create_with_size %d", size);
+  RTDEBUGF(ctx, 2,"Entered bytebuffer_create_with_size %d", size);
   bytebuffer_t *s;
 
   s = rtalloc(ctx, sizeof(bytebuffer_t));
@@ -52,7 +52,7 @@ bytebuffer_create_with_size(const RTCTX *ctx, size_t size)
   s->readcursor = s->writecursor = s->buf_start;
   s->capacity = size;
   memset(s->buf_start,0,size);
-  RTDEBUGF(4,"We create a buffer on %p of %d bytes", s->buf_start, size);
+  RTDEBUGF(ctx, 4,"We create a buffer on %p of %d bytes", s->buf_start, size);
   return s;
 }
 
@@ -75,19 +75,19 @@ bytebuffer_init_with_size(const RTCTX *ctx, bytebuffer_t *b, size_t size)
 void
 bytebuffer_destroy(const RTCTX *ctx, bytebuffer_t *s)
 {
-  RTDEBUG(2,"Entered bytebuffer_destroy");
-  RTDEBUGF(4,"The buffer has used %d bytes",bytebuffer_getlength(ctx, s));
+  RTDEBUG(ctx, 2,"Entered bytebuffer_destroy");
+  RTDEBUGF(ctx, 4,"The buffer has used %d bytes",bytebuffer_getlength(ctx, s));
 
   if ( s->buf_start )
   {
-    RTDEBUGF(4,"let's free buf_start %p",s->buf_start);
+    RTDEBUGF(ctx, 4,"let's free buf_start %p",s->buf_start);
     rtfree(ctx, s->buf_start);
-    RTDEBUG(4,"buf_start is freed");
+    RTDEBUG(ctx, 4,"buf_start is freed");
   }
   if ( s )
   {
     rtfree(ctx, s);
-    RTDEBUG(4,"bytebuffer_t is freed");
+    RTDEBUG(ctx, 4,"bytebuffer_t is freed");
   }
   return;
 }
@@ -119,18 +119,18 @@ bytebuffer_clear(const RTCTX *ctx, bytebuffer_t *s)
 static inline void
 bytebuffer_makeroom(const RTCTX *ctx, bytebuffer_t *s, size_t size_to_add)
 {
-  RTDEBUGF(2,"Entered bytebuffer_makeroom with space need of %d", size_to_add);
+  RTDEBUGF(ctx, 2,"Entered bytebuffer_makeroom with space need of %d", size_to_add);
   size_t current_write_size = (s->writecursor - s->buf_start);
   size_t capacity = s->capacity;
   size_t required_size = current_write_size + size_to_add;
 
-  RTDEBUGF(2,"capacity = %d and required size = %d",capacity ,required_size);
+  RTDEBUGF(ctx, 2,"capacity = %d and required size = %d",capacity ,required_size);
   while (capacity < required_size)
     capacity *= 2;
 
   if ( capacity > s->capacity )
   {
-    RTDEBUGF(4,"We need to realloc more memory. New capacity is %d", capacity);
+    RTDEBUGF(ctx, 4,"We need to realloc more memory. New capacity is %d", capacity);
     s->buf_start = rtrealloc(ctx, s->buf_start, capacity);
     s->capacity = capacity;
     s->writecursor = s->buf_start + current_write_size;
@@ -145,7 +145,7 @@ bytebuffer_makeroom(const RTCTX *ctx, bytebuffer_t *s, size_t size_to_add)
 void
 bytebuffer_append_byte(const RTCTX *ctx, bytebuffer_t *s, const uint8_t val)
 {
-  RTDEBUGF(2,"Entered bytebuffer_append_byte with value %d", val);
+  RTDEBUGF(ctx, 2,"Entered bytebuffer_append_byte with value %d", val);
   bytebuffer_makeroom(ctx, s, 1);
   *(s->writecursor)=val;
   s->writecursor += 1;
@@ -159,7 +159,7 @@ bytebuffer_append_byte(const RTCTX *ctx, bytebuffer_t *s, const uint8_t val)
 void
 bytebuffer_append_bulk(const RTCTX *ctx, bytebuffer_t *s, void * start, size_t size)
 {
-  RTDEBUGF(2,"bytebuffer_append_bulk with size %d",size);
+  RTDEBUGF(ctx, 2,"bytebuffer_append_bulk with size %d",size);
   bytebuffer_makeroom(ctx, s, size);
   memcpy(s->writecursor, start, size);
   s->writecursor += size;
@@ -172,7 +172,7 @@ bytebuffer_append_bulk(const RTCTX *ctx, bytebuffer_t *s, void * start, size_t s
 void
 bytebuffer_append_bytebuffer(const RTCTX *ctx, bytebuffer_t *write_to,bytebuffer_t *write_from )
 {
-  RTDEBUG(2,"bytebuffer_append_bytebuffer");
+  RTDEBUG(ctx, 2,"bytebuffer_append_bytebuffer");
   size_t size = bytebuffer_getlength(ctx, write_from);
   bytebuffer_makeroom(ctx, write_to, size);
   memcpy(write_to->writecursor, write_from->buf_start, size);
@@ -214,9 +214,9 @@ bytebuffer_append_uvarint(const RTCTX *ctx, bytebuffer_t *b, const uint64_t val)
 void
 bytebuffer_append_int(const RTCTX *ctx, bytebuffer_t *buf, const int val, int swap)
 {
-  RTDEBUGF(2,"Entered bytebuffer_append_int with value %d, swap = %d", val, swap);
+  RTDEBUGF(ctx, 2,"Entered bytebuffer_append_int with value %d, swap = %d", val, swap);
 
-  RTDEBUGF(4,"buf_start = %p and write_cursor=%p", buf->buf_start,buf->writecursor);
+  RTDEBUGF(ctx, 4,"buf_start = %p and write_cursor=%p", buf->buf_start,buf->writecursor);
   char *iptr = (char*)(&val);
   int i = 0;
 
@@ -229,7 +229,7 @@ bytebuffer_append_int(const RTCTX *ctx, bytebuffer_t *buf, const int val, int sw
   /* Machine/request arch mismatch, so flip byte order */
   if ( swap)
   {
-    RTDEBUG(4,"Ok, let's do the swaping thing");
+    RTDEBUG(ctx, 4,"Ok, let's do the swaping thing");
     for ( i = 0; i < RTWKB_INT_SIZE; i++ )
     {
       *(buf->writecursor) = iptr[RTWKB_INT_SIZE - 1 - i];
@@ -239,12 +239,12 @@ bytebuffer_append_int(const RTCTX *ctx, bytebuffer_t *buf, const int val, int sw
   /* If machine arch and requested arch match, don't flip byte order */
   else
   {
-    RTDEBUG(4,"Ok, let's do the memcopying thing");
+    RTDEBUG(ctx, 4,"Ok, let's do the memcopying thing");
     memcpy(buf->writecursor, iptr, RTWKB_INT_SIZE);
     buf->writecursor += RTWKB_INT_SIZE;
   }
 
-  RTDEBUGF(4,"buf_start = %p and write_cursor=%p", buf->buf_start,buf->writecursor);
+  RTDEBUGF(ctx, 4,"buf_start = %p and write_cursor=%p", buf->buf_start,buf->writecursor);
   return;
 
 }
@@ -259,9 +259,9 @@ bytebuffer_append_int(const RTCTX *ctx, bytebuffer_t *buf, const int val, int sw
 void
 bytebuffer_append_double(const RTCTX *ctx, bytebuffer_t *buf, const double val, int swap)
 {
-  RTDEBUGF(2,"Entered bytebuffer_append_double with value %lf swap = %d", val, swap);
+  RTDEBUGF(ctx, 2,"Entered bytebuffer_append_double with value %lf swap = %d", val, swap);
 
-  RTDEBUGF(4,"buf_start = %p and write_cursor=%p", buf->buf_start,buf->writecursor);
+  RTDEBUGF(ctx, 4,"buf_start = %p and write_cursor=%p", buf->buf_start,buf->writecursor);
   char *dptr = (char*)(&val);
   int i = 0;
 
@@ -275,7 +275,7 @@ bytebuffer_append_double(const RTCTX *ctx, bytebuffer_t *buf, const double val, 
   /* Machine/request arch mismatch, so flip byte order */
   if ( swap )
   {
-    RTDEBUG(4,"Ok, let's do the swapping thing");
+    RTDEBUG(ctx, 4,"Ok, let's do the swapping thing");
     for ( i = 0; i < RTWKB_DOUBLE_SIZE; i++ )
     {
       *(buf->writecursor) = dptr[RTWKB_DOUBLE_SIZE - 1 - i];
@@ -285,12 +285,12 @@ bytebuffer_append_double(const RTCTX *ctx, bytebuffer_t *buf, const double val, 
   /* If machine arch and requested arch match, don't flip byte order */
   else
   {
-    RTDEBUG(4,"Ok, let's do the memcopying thing");
+    RTDEBUG(ctx, 4,"Ok, let's do the memcopying thing");
     memcpy(buf->writecursor, dptr, RTWKB_DOUBLE_SIZE);
     buf->writecursor += RTWKB_DOUBLE_SIZE;
   }
 
-  RTDEBUG(4,"Return from bytebuffer_append_double");
+  RTDEBUG(ctx, 4,"Return from bytebuffer_append_double");
   return;
 
 }

@@ -177,8 +177,8 @@ static RTPOINTARRAY* ptarray_from_twkb_state(const RTCTX *ctx, twkb_parse_state 
   int i;
   double *dlist;
 
-  RTDEBUG(2,"Entering ptarray_from_twkb_state");
-  RTDEBUGF(4,"Pointarray has %d points", npoints);
+  RTDEBUG(ctx, 2,"Entering ptarray_from_twkb_state");
+  RTDEBUGF(ctx, 4,"Pointarray has %d points", npoints);
 
   /* Empty! */
   if( npoints == 0 )
@@ -224,7 +224,7 @@ static RTPOINT* rtpoint_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
   static uint32_t npoints = 1;
   RTPOINTARRAY *pa;
 
-  RTDEBUG(2,"Entering rtpoint_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering rtpoint_from_twkb_state");
 
   if ( s->is_empty )
     return rtpoint_construct_empty(ctx, SRID_UNKNOWN, s->has_z, s->has_m);
@@ -241,7 +241,7 @@ static RTLINE* rtline_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
   uint32_t npoints;
   RTPOINTARRAY *pa;
 
-  RTDEBUG(2,"Entering rtline_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering rtline_from_twkb_state");
 
   if ( s->is_empty )
     return rtline_construct_empty(ctx, SRID_UNKNOWN, s->has_z, s->has_m);
@@ -276,7 +276,7 @@ static RTPOLY* rtpoly_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
   int i;
   RTPOLY *poly;
 
-  RTDEBUG(2,"Entering rtpoly_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering rtpoly_from_twkb_state");
 
   if ( s->is_empty )
     return rtpoly_construct_empty(ctx, SRID_UNKNOWN, s->has_z, s->has_m);
@@ -287,7 +287,7 @@ static RTPOLY* rtpoly_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
   /* Start w/ empty polygon */
   poly = rtpoly_construct_empty(ctx, SRID_UNKNOWN, s->has_z, s->has_m);
 
-  RTDEBUGF(4,"Polygon has %d rings", nrings);
+  RTDEBUGF(ctx, 4,"Polygon has %d rings", nrings);
 
   /* Empty polygon? */
   if( nrings == 0 )
@@ -314,7 +314,7 @@ static RTPOLY* rtpoly_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
     /* Check for at least four points. */
     if( s->check & RT_PARSER_CHECK_MINPOINTS && pa->npoints < 4 )
     {
-      RTDEBUGF(2, "%s must have at least four points in each ring", rttype_name(ctx, s->rttype));
+      RTDEBUGF(ctx, 2, "%s must have at least four points in each ring", rttype_name(ctx, s->rttype));
       rterror(ctx, "%s must have at least four points in each ring", rttype_name(ctx, s->rttype));
       return NULL;
     }
@@ -322,7 +322,7 @@ static RTPOLY* rtpoly_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
     /* Add ring to polygon */
     if ( rtpoly_add_ring(ctx, poly, pa) == RT_FAILURE )
     {
-      RTDEBUG(2, "Unable to add ring to polygon");
+      RTDEBUG(ctx, 2, "Unable to add ring to polygon");
       rterror(ctx, "Unable to add ring to polygon");
     }
 
@@ -340,14 +340,14 @@ static RTCOLLECTION* rtmultipoint_from_twkb_state(const RTCTX *ctx, twkb_parse_s
   RTGEOM *geom = NULL;
   RTCOLLECTION *col = rtcollection_construct_empty(ctx, s->rttype, SRID_UNKNOWN, s->has_z, s->has_m);
 
-  RTDEBUG(2,"Entering rtmultipoint_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering rtmultipoint_from_twkb_state");
 
   if ( s->is_empty )
     return col;
 
   /* Read number of geometries */
   ngeoms = twkb_parse_state_uvarint(ctx, s);
-  RTDEBUGF(4,"Number of geometries %d", ngeoms);
+  RTDEBUGF(ctx, 4,"Number of geometries %d", ngeoms);
 
   /* It has an idlist, we need to skip that */
   if ( s->has_idlist )
@@ -378,7 +378,7 @@ static RTCOLLECTION* rtmultiline_from_twkb_state(const RTCTX *ctx, twkb_parse_st
   RTGEOM *geom = NULL;
   RTCOLLECTION *col = rtcollection_construct_empty(ctx, s->rttype, SRID_UNKNOWN, s->has_z, s->has_m);
 
-  RTDEBUG(2,"Entering rtmultilinestring_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering rtmultilinestring_from_twkb_state");
 
   if ( s->is_empty )
     return col;
@@ -386,7 +386,7 @@ static RTCOLLECTION* rtmultiline_from_twkb_state(const RTCTX *ctx, twkb_parse_st
   /* Read number of geometries */
   ngeoms = twkb_parse_state_uvarint(ctx, s);
 
-  RTDEBUGF(4,"Number of geometries %d",ngeoms);
+  RTDEBUGF(ctx, 4,"Number of geometries %d",ngeoms);
 
   /* It has an idlist, we need to skip that */
   if ( s->has_idlist )
@@ -417,14 +417,14 @@ static RTCOLLECTION* rtmultipoly_from_twkb_state(const RTCTX *ctx, twkb_parse_st
   RTGEOM *geom = NULL;
   RTCOLLECTION *col = rtcollection_construct_empty(ctx, s->rttype, SRID_UNKNOWN, s->has_z, s->has_m);
 
-  RTDEBUG(2,"Entering rtmultipolygon_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering rtmultipolygon_from_twkb_state");
 
   if ( s->is_empty )
     return col;
 
   /* Read number of geometries */
   ngeoms = twkb_parse_state_uvarint(ctx, s);
-  RTDEBUGF(4,"Number of geometries %d",ngeoms);
+  RTDEBUGF(ctx, 4,"Number of geometries %d",ngeoms);
 
   /* It has an idlist, we need to skip that */
   if ( s->has_idlist )
@@ -456,7 +456,7 @@ static RTCOLLECTION* rtcollection_from_twkb_state(const RTCTX *ctx, twkb_parse_s
   RTGEOM *geom = NULL;
   RTCOLLECTION *col = rtcollection_construct_empty(ctx, s->rttype, SRID_UNKNOWN, s->has_z, s->has_m);
 
-  RTDEBUG(2,"Entering rtcollection_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering rtcollection_from_twkb_state");
 
   if ( s->is_empty )
     return col;
@@ -464,7 +464,7 @@ static RTCOLLECTION* rtcollection_from_twkb_state(const RTCTX *ctx, twkb_parse_s
   /* Read number of geometries */
   ngeoms = twkb_parse_state_uvarint(ctx, s);
 
-  RTDEBUGF(4,"Number of geometries %d",ngeoms);
+  RTDEBUGF(ctx, 4,"Number of geometries %d",ngeoms);
 
   /* It has an idlist, we need to skip that */
   if ( s->has_idlist )
@@ -490,7 +490,7 @@ static RTCOLLECTION* rtcollection_from_twkb_state(const RTCTX *ctx, twkb_parse_s
 
 static void header_from_twkb_state(const RTCTX *ctx, twkb_parse_state *s)
 {
-  RTDEBUG(2,"Entering magicbyte_from_twkb_state");
+  RTDEBUG(ctx, 2,"Entering magicbyte_from_twkb_state");
 
   uint8_t extended_dims;
 
@@ -659,8 +659,8 @@ RTGEOM* rtgeom_from_twkb(const RTCTX *ctx, uint8_t *twkb, size_t twkb_size, char
   int64_t coords[TWKB_IN_MAXCOORDS] = {0, 0, 0, 0};
   twkb_parse_state s;
 
-  RTDEBUG(2,"Entering rtgeom_from_twkb");
-  RTDEBUGF(4,"twkb_size: %d",(int) twkb_size);
+  RTDEBUG(ctx, 2,"Entering rtgeom_from_twkb");
+  RTDEBUGF(ctx, 4,"twkb_size: %d",(int) twkb_size);
 
   /* Zero out the state */
   memset(&s, 0, sizeof(twkb_parse_state));

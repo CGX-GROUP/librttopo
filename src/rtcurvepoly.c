@@ -77,21 +77,21 @@ int rtcurvepoly_add_ring(const RTCTX *ctx, RTCURVEPOLY *poly, RTGEOM *ring)
   /* Can't do anything with NULLs */
   if( ! poly || ! ring )
   {
-    RTDEBUG(4,"NULL inputs!!! quitting");
+    RTDEBUG(ctx, 4,"NULL inputs!!! quitting");
     return RT_FAILURE;
   }
 
   /* Check that we're not working with garbage */
   if ( poly->rings == NULL && (poly->nrings || poly->maxrings) )
   {
-    RTDEBUG(4,"mismatched nrings/maxrings");
+    RTDEBUG(ctx, 4,"mismatched nrings/maxrings");
     rterror(ctx, "Curvepolygon is in inconsistent state. Null memory but non-zero collection counts.");
   }
 
   /* Check that we're adding an allowed ring type */
   if ( ! ( ring->type == RTLINETYPE || ring->type == RTCIRCSTRINGTYPE || ring->type == RTCOMPOUNDTYPE ) )
   {
-    RTDEBUGF(4,"got incorrect ring type: %s",rttype_name(ctx, ring->type));
+    RTDEBUGF(ctx, 4,"got incorrect ring type: %s",rttype_name(ctx, ring->type));
     return RT_FAILURE;
   }
 
@@ -116,7 +116,7 @@ int rtcurvepoly_add_ring(const RTCTX *ctx, RTCURVEPOLY *poly, RTGEOM *ring)
   {
     if ( poly->rings[i] == ring )
     {
-      RTDEBUGF(4, "Found duplicate geometry in collection %p == %p", poly->rings[i], ring);
+      RTDEBUGF(ctx, 4, "Found duplicate geometry in collection %p == %p", poly->rings[i], ring);
       return RT_SUCCESS;
     }
   }

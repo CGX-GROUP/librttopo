@@ -98,7 +98,7 @@ int rtcompound_add_rtgeom(const RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom)
   /* Empty things can't continuously join up with other things */
   if ( rtgeom_is_empty(ctx, geom) )
   {
-    RTDEBUG(4, "Got an empty component for a compound curve!");
+    RTDEBUG(ctx, 4, "Got an empty component for a compound curve!");
     return RT_FAILURE;
   }
 
@@ -115,8 +115,8 @@ int rtcompound_add_rtgeom(const RTCTX *ctx, RTCOMPOUND *comp, RTGEOM *geom)
 
     if ( !(FP_EQUALS(first.x,last.x) && FP_EQUALS(first.y,last.y)) )
     {
-      RTDEBUG(4, "Components don't join up end-to-end!");
-      RTDEBUGF(4, "first pt (%g %g %g %g) last pt (%g %g %g %g)", first.x, first.y, first.z, first.m, last.x, last.y, last.z, last.m);
+      RTDEBUG(ctx, 4, "Components don't join up end-to-end!");
+      RTDEBUGF(ctx, 4, "first pt (%g %g %g %g) last pt (%g %g %g %g)", first.x, first.y, first.z, first.m, last.x, last.y, last.z, last.m);
       return RT_FAILURE;
     }
   }

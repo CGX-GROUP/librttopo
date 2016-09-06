@@ -244,7 +244,7 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
     rt_getPoint4d_p(ctx, ipa, i+1, &p2);
     double dist;
     dist = distance2d_pt_seg(ctx, (RTPOINT2D*)&pt, (RTPOINT2D*)&p1, (RTPOINT2D*)&p2);
-    RTDEBUGF(4, " Distance of point %g %g to segment %g %g, %g %g: %g", pt.x, pt.y, p1.x, p1.y, p2.x, p2.y, dist);
+    RTDEBUGF(ctx, 4, " Distance of point %g %g to segment %g %g, %g %g: %g", pt.x, pt.y, p1.x, p1.y, p2.x, p2.y, dist);
     if (i==0 || dist < mindist )
     {
       mindist = dist;
@@ -254,8 +254,8 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
     p1 = p2;
   }
 
-  RTDEBUGF(3, "Closest segment: %d", seg);
-  RTDEBUGF(3, "mindist: %g", mindist);
+  RTDEBUGF(ctx, 3, "Closest segment: %d", seg);
+  RTDEBUGF(ctx, 3, "mindist: %g", mindist);
 
   /* No intersection */
   if ( mindist > 0 ) return 0;
@@ -278,7 +278,7 @@ rtline_split_by_point_to(const RTCTX *ctx, const RTLINE* rtline_in, const RTPOIN
   pt_projected.x = pt.x;
   pt_projected.y = pt.y;
 
-  RTDEBUGF(3, "Projected point:(%g %g), seg:%d, p1:(%g %g), p2:(%g %g)", pt_projected.x, pt_projected.y, seg, p1.x, p1.y, p2.x, p2.y);
+  RTDEBUGF(ctx, 3, "Projected point:(%g %g), seg:%d, p1:(%g %g), p2:(%g %g)", pt_projected.x, pt_projected.y, seg, p1.x, p1.y, p2.x, p2.y);
 
   /* When closest point == an endpoint, this is a boundary intersection */
   if ( ( (seg == nsegs-1) && p4d_same(ctx, &pt_projected, &p2) ) ||

@@ -154,7 +154,7 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
   {
     rt_getPoint2d_p(ctx, pa, i, &p);
     geod_polygon_addpoint(&gd, &poly, p.y, p.x);
-    RTDEBUGF(4, "geod_polygon_addpoint %d: %.12g %.12g", i, p.y, p.x);
+    RTDEBUGF(ctx, 4, "geod_polygon_addpoint %d: %.12g %.12g", i, p.y, p.x);
   }
   i = geod_polygon_compute(&gd, &poly, 0, 1, &area, 0);
   if ( i != pa->npoints - 1 )
@@ -162,7 +162,7 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
     rterror(ctx, "ptarray_area_spheroid: different number of points %d vs %d",
         i, pa->npoints - 1);
   }
-  RTDEBUGF(4, "geod_polygon_compute area: %.12g", area);
+  RTDEBUGF(ctx, 4, "geod_polygon_compute area: %.12g", area);
   return fabs(area);
 }
 
@@ -466,26 +466,26 @@ static double spheroid_striparea(const RTCTX *ctx, const GEOGRAPHIC_POINT *a, co
   mL.lon = FP_MIN(A.lon, B.lon);
   nR.lat = FP_MIN(A.lat, B.lat);
   nR.lon = FP_MAX(A.lon, B.lon);
-  RTDEBUGF(4, "mL (%.12g %.12g)", mL.lat, mL.lon);
-  RTDEBUGF(4, "nR (%.12g %.12g)", nR.lat, nR.lon);
+  RTDEBUGF(ctx, 4, "mL (%.12g %.12g)", mL.lat, mL.lon);
+  RTDEBUGF(ctx, 4, "nR (%.12g %.12g)", nR.lat, nR.lon);
   baseArea = spheroid_boundingbox_area(ctx, &mL, &nR, spheroid);
-  RTDEBUGF(4, "baseArea %.12g", baseArea);
+  RTDEBUGF(ctx, 4, "baseArea %.12g", baseArea);
 
   mL.lat = FP_MIN(A.lat, B.lat);
   mL.lon = FP_MIN(A.lon, B.lon);
   nR.lat = FP_MAX(A.lat, B.lat);
   nR.lon = FP_MAX(A.lon, B.lon);
-  RTDEBUGF(4, "mL (%.12g %.12g)", mL.lat, mL.lon);
-  RTDEBUGF(4, "nR (%.12g %.12g)", nR.lat, nR.lon);
+  RTDEBUGF(ctx, 4, "mL (%.12g %.12g)", mL.lat, mL.lon);
+  RTDEBUGF(ctx, 4, "nR (%.12g %.12g)", nR.lat, nR.lon);
   topArea = spheroid_boundingbox_area(ctx, &mL, &nR, spheroid);
-  RTDEBUGF(4, "topArea %.12g", topArea);
+  RTDEBUGF(ctx, 4, "topArea %.12g", topArea);
 
   deltaLng = B.lon - A.lon;
-  RTDEBUGF(4, "deltaLng %.12g", deltaLng);
+  RTDEBUGF(ctx, 4, "deltaLng %.12g", deltaLng);
   bE = spheroid_parallel_arc_length(ctx, A.lat, deltaLng, spheroid);
   tE = spheroid_parallel_arc_length(ctx, B.lat, deltaLng, spheroid);
-  RTDEBUGF(4, "bE %.12g", bE);
-  RTDEBUGF(4, "tE %.12g", tE);
+  RTDEBUGF(ctx, 4, "bE %.12g", bE);
+  RTDEBUGF(ctx, 4, "tE %.12g", tE);
 
   ratio = (bE + tE)/tE;
   sign = signum(B.lon - A.lon);
@@ -519,7 +519,7 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
   if ( gbox2d.ymax < 0.0 )
     in_south = RT_TRUE;
 
-  RTDEBUGF(4, "gbox2d.ymax %.12g", gbox2d.ymax);
+  RTDEBUGF(ctx, 4, "gbox2d.ymax %.12g", gbox2d.ymax);
 
   /* Tolerance for strip area calculation */
   if ( in_south )
@@ -542,7 +542,7 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
     GEOGRAPHIC_POINT a1, b1;
     double strip_area = 0.0;
     double delta_lon = 0.0;
-    RTDEBUGF(4, "edge #%d", i);
+    RTDEBUGF(ctx, 4, "edge #%d", i);
 
     rt_getPoint2d_p(ctx, pa, i, &p);
     geographic_point_init(ctx, p.x, p.y, &b);
@@ -557,9 +557,9 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
       b1.lat = -1.0 * b1.lat;
     }
 
-    RTDEBUGF(4, "in_south %d", in_south);
+    RTDEBUGF(ctx, 4, "in_south %d", in_south);
 
-    RTDEBUGF(4, "crosses_dateline(ctx, a, b) %d", crosses_dateline(ctx, &a, &b) );
+    RTDEBUGF(ctx, 4, "crosses_dateline(ctx, a, b) %d", crosses_dateline(ctx, &a, &b) );
 
     if ( crosses_dateline(ctx, &a, &b) )
     {
@@ -570,27 +570,27 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
       else
         shift = (M_PI - b1.lon) + 0.088; /* About 5deg more */
 
-      RTDEBUGF(4, "shift: %.8g", shift);
-      RTDEBUGF(4, "before shift a1(%.8g %.8g) b1(%.8g %.8g)", a1.lat, a1.lon, b1.lat, b1.lon);
+      RTDEBUGF(ctx, 4, "shift: %.8g", shift);
+      RTDEBUGF(ctx, 4, "before shift a1(%.8g %.8g) b1(%.8g %.8g)", a1.lat, a1.lon, b1.lat, b1.lon);
       point_shift(ctx, &a1, shift);
       point_shift(ctx, &b1, shift);
-      RTDEBUGF(4, "after shift a1(%.8g %.8g) b1(%.8g %.8g)", a1.lat, a1.lon, b1.lat, b1.lon);
+      RTDEBUGF(ctx, 4, "after shift a1(%.8g %.8g) b1(%.8g %.8g)", a1.lat, a1.lon, b1.lat, b1.lon);
 
     }
 
 
     delta_lon = fabs(b1.lon - a1.lon);
 
-    RTDEBUGF(4, "a1(%.18g %.18g) b1(%.18g %.18g)", a1.lat, a1.lon, b1.lat, b1.lon);
-    RTDEBUGF(4, "delta_lon %.18g", delta_lon);
-    RTDEBUGF(4, "delta_lon_tolerance %.18g", delta_lon_tolerance);
+    RTDEBUGF(ctx, 4, "a1(%.18g %.18g) b1(%.18g %.18g)", a1.lat, a1.lon, b1.lat, b1.lon);
+    RTDEBUGF(ctx, 4, "delta_lon %.18g", delta_lon);
+    RTDEBUGF(ctx, 4, "delta_lon_tolerance %.18g", delta_lon_tolerance);
 
     if ( delta_lon > 0.0 )
     {
       if ( delta_lon < delta_lon_tolerance )
       {
         strip_area = spheroid_striparea(ctx, &a1, &b1, latitude_min, spheroid);
-        RTDEBUGF(4, "strip_area %.12g", strip_area);
+        RTDEBUGF(ctx, 4, "strip_area %.12g", strip_area);
         area += strip_area;
       }
       else
@@ -600,24 +600,24 @@ static double ptarray_area_spheroid(const RTCTX *ctx, const RTPOINTARRAY *pa, co
         double distance = spheroid_distance(ctx, &a1, &b1, spheroid);
         double pDistance = 0.0;
         int j = 0;
-        RTDEBUGF(4, "step %.18g", step);
-        RTDEBUGF(4, "distance %.18g", distance);
+        RTDEBUGF(ctx, 4, "step %.18g", step);
+        RTDEBUGF(ctx, 4, "distance %.18g", distance);
         step = distance / step;
-        RTDEBUGF(4, "step %.18g", step);
+        RTDEBUGF(ctx, 4, "step %.18g", step);
         p = a1;
         while (pDistance < (distance - step * 1.01))
         {
           double azimuth = spheroid_direction(ctx, &p, &b1, spheroid);
           j++;
-          RTDEBUGF(4, "  iteration %d", j);
-          RTDEBUGF(4, "  azimuth %.12g", azimuth);
+          RTDEBUGF(ctx, 4, "  iteration %d", j);
+          RTDEBUGF(ctx, 4, "  azimuth %.12g", azimuth);
           pDistance = pDistance + step;
-          RTDEBUGF(4, "  pDistance %.12g", pDistance);
+          RTDEBUGF(ctx, 4, "  pDistance %.12g", pDistance);
           spheroid_project(ctx, &p, spheroid, step, azimuth, &q);
           strip_area = spheroid_striparea(ctx, &p, &q, latitude_min, spheroid);
-          RTDEBUGF(4, "  strip_area %.12g", strip_area);
+          RTDEBUGF(ctx, 4, "  strip_area %.12g", strip_area);
           area += strip_area;
-          RTDEBUGF(4, "  area %.12g", area);
+          RTDEBUGF(ctx, 4, "  area %.12g", area);
           p.lat = q.lat;
           p.lon = q.lon;
         }

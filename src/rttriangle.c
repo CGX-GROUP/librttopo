@@ -99,7 +99,7 @@ void printRTTRIANGLE(const RTCTX *ctx, RTTRIANGLE *triangle)
 RTTRIANGLE *
 rttriangle_clone(const RTCTX *ctx, const RTTRIANGLE *g)
 {
-  RTDEBUGF(2, "rttriangle_clone called with %p", g);
+  RTDEBUGF(ctx, 2, "rttriangle_clone called with %p", g);
   return (RTTRIANGLE *)rtline_clone(ctx, (const RTLINE *)g);
 }
 
@@ -128,7 +128,7 @@ char
 rttriangle_same(const RTCTX *ctx, const RTTRIANGLE *t1, const RTTRIANGLE *t2)
 {
   char r = ptarray_same(ctx, t1->points, t2->points);
-  RTDEBUGF(5, "returning %d", r);
+  RTDEBUGF(ctx, 5, "returning %d", r);
   return r;
 }
 

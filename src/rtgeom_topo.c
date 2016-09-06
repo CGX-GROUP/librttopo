@@ -50,14 +50,14 @@
 #endif
 
 /* TODO: move this to rtgeom_log.h */
-#define RTDEBUGG(level, geom, msg) \
+#define RTDEBUGG(ctx, level, geom, msg) \
   if (RTGEOM_DEBUG_LEVEL >= level) \
   do { \
     size_t sz; \
-    char *wkt1 = rtgeom_to_wkt(iface->ctx, geom, RTWKT_EXTENDED, 15, &sz); \
+    char *wkt1 = rtgeom_to_wkt(ctx, geom, RTWKT_EXTENDED, 15, &sz); \
     /* char *wkt1 = rtgeom_to_hexwkb(iface->ctx, geom, RTWKT_EXTENDED, &sz); */ \
-    RTDEBUGF(level, msg ": %s", wkt1); \
-    rtfree(iface->ctx, wkt1); \
+    RTDEBUGF(ctx, level, msg ": %s", wkt1); \
+    rtfree(ctx, wkt1); \
   } while (0);
 
 
@@ -465,12 +465,12 @@ _rtt_toposnap(const RTCTX *ctx, RTGEOM *src, RTGEOM *tgt, double tol)
       changed = ( rtgeom_count_vertices(ctx, tmp2) != rtgeom_count_vertices(ctx, tmp) );
     }
 #endif /* GEOS_NUMERIC_VERSION < 30309 */
-    RTDEBUGF(2, "After iteration %d, geometry changed ? %d (%d vs %d vertices)", iterations, changed, rtgeom_count_vertices(ctx, tmp2), rtgeom_count_vertices(ctx, tmp));
+    RTDEBUGF(ctx, 2, "After iteration %d, geometry changed ? %d (%d vs %d vertices)", iterations, changed, rtgeom_count_vertices(ctx, tmp2), rtgeom_count_vertices(ctx, tmp));
     if ( tmp != src ) rtgeom_free(ctx, tmp);
     tmp = tmp2;
   } while ( changed && iterations <= maxiterations );
 
-  RTDEBUGF(1, "It took %d/%d iterations to properly snap",
+  RTDEBUGF(ctx, 1, "It took %d/%d iterations to properly snap",
               iterations, maxiterations);
 
   return tmp;
@@ -641,7 +641,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
   /* loop over each node within the edge's gbox */
   nodes = rtt_be_getNodeWithinBox2D( topo, edgebox, &num_nodes,
                                             RTT_COL_NODE_ALL, 0 );
-  RTDEBUGF(1, "rtt_be_getNodeWithinBox2D returned %d nodes", num_nodes);
+  RTDEBUGF(iface->ctx, 1, "rtt_be_getNodeWithinBox2D returned %d nodes", num_nodes);
   if ( num_nodes == -1 ) {
     GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
     GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
@@ -682,7 +682,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
 
   /* loop over each edge within the edge's gbox */
   edges = rtt_be_getEdgeWithinBox2D( topo, edgebox, &num_edges, RTT_COL_EDGE_ALL, 0 );
-  RTDEBUGF(1, "rtt_be_getEdgeWithinBox2D returned %d edges", num_edges);
+  RTDEBUGF(iface->ctx, 1, "rtt_be_getEdgeWithinBox2D returned %d edges", num_edges);
   if ( num_edges == -1 ) {
     GEOSPreparedGeom_destroy_r(iface->ctx->gctx, prepared_edge);
     GEOSGeom_destroy_r(iface->ctx->gctx, edgegg);
@@ -714,7 +714,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
       return -1;
     }
 
-    RTDEBUGF(2, "Edge %d converted to GEOS", edge_id);
+    RTDEBUGF(iface->ctx, 2, "Edge %d converted to GEOS", edge_id);
 
     /* check if the edge crosses our edge (not boundary-boundary) */
 
@@ -728,7 +728,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
       return -1;
     }
 
-    RTDEBUGF(2, "Edge %d relate pattern is %s", edge_id, relate);
+    RTDEBUGF(iface->ctx, 2, "Edge %d relate pattern is %s", edge_id, relate);
 
     match = GEOSRelatePatternMatch_r(iface->ctx->gctx, relate, "F********");
     if ( match ) {
@@ -793,7 +793,7 @@ _rtt_CheckEdgeCrossing( RTT_TOPOLOGY* topo,
       return -1;
     }
 
-    RTDEBUGF(2, "Edge %d analisys completed, it does no harm", edge_id);
+    RTDEBUGF(iface->ctx, 2, "Edge %d analisys completed, it does no harm", edge_id);
 
     GEOSFree_r(iface->ctx->gctx, relate);
     GEOSGeom_destroy_r(iface->ctx->gctx, eegg);
@@ -984,12 +984,12 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
 
   /* Get edge */
   i = 1;
-  RTDEBUG(1, "calling rtt_be_getEdgeById");
+  RTDEBUG(iface->ctx, 1, "calling rtt_be_getEdgeById");
   *oldedge = rtt_be_getEdgeById(topo, &edge, &i, RTT_COL_EDGE_ALL);
-  RTDEBUGF(1, "rtt_be_getEdgeById returned %p", *oldedge);
+  RTDEBUGF(iface->ctx, 1, "rtt_be_getEdgeById returned %p", *oldedge);
   if ( ! *oldedge )
   {
-    RTDEBUGF(1, "rtt_be_getEdgeById returned NULL and set i=%d", i);
+    RTDEBUGF(iface->ctx, 1, "rtt_be_getEdgeById returned NULL and set i=%d", i);
     if ( i == -1 )
     {
       rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
@@ -1015,15 +1015,15 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
    */
   if ( ! skipISOChecks )
   {
-    RTDEBUG(1, "calling rtt_be_ExistsCoincidentNode");
+    RTDEBUG(iface->ctx, 1, "calling rtt_be_ExistsCoincidentNode");
     if ( rtt_be_ExistsCoincidentNode(topo, pt) ) /*x*/
     {
-      RTDEBUG(1, "rtt_be_ExistsCoincidentNode returned");
+      RTDEBUG(iface->ctx, 1, "rtt_be_ExistsCoincidentNode returned");
       _rtt_release_edges(iface->ctx, *oldedge, 1);
       rterror(iface->ctx, "SQL/MM Spatial exception - coincident node");
       return NULL;
     }
-    RTDEBUG(1, "rtt_be_ExistsCoincidentNode returned");
+    RTDEBUG(iface->ctx, 1, "rtt_be_ExistsCoincidentNode returned");
   }
 
   /* Split edge */
@@ -1052,7 +1052,7 @@ _rtt_EdgeSplit( RTT_TOPOLOGY* topo, RTT_ELEMID edge, RTPOINT* pt, int skipISOChe
   {
   size_t sz;
   char *wkt = rtgeom_to_wkt(iface->ctx, (RTGEOM*)split_col, RTWKT_EXTENDED, 2, &sz);
-  RTDEBUGF(1, "returning split col: %s", wkt);
+  RTDEBUGF(iface->ctx, 1, "returning split col: %s", wkt);
   rtfree(iface->ctx, wkt);
   }
 #endif
@@ -1454,11 +1454,11 @@ _rtt_FirstDistinctVertex2D(const RTCTX *ctx, const RTPOINTARRAY* pa, RTPOINT2D *
     inc = -1;
   }
 
-  RTDEBUGF(1, "first point is index %d", from);
+  RTDEBUGF(ctx, 1, "first point is index %d", from);
   fp = *ref; /* rt_getPoint2d_p(ctx, pa, from, &fp); */
   for ( i = from+inc; i != toofar; i += inc )
   {
-    RTDEBUGF(1, "testing point %d", i);
+    RTDEBUGF(ctx, 1, "testing point %d", i);
     rt_getPoint2d_p(ctx, pa, i, op); /* pick next point */
     if ( p2d_same(ctx, op, &fp) ) continue; /* equal to startpoint */
     /* this is a good one, neither same of start nor of end point */
@@ -1489,7 +1489,7 @@ _rtt_InitEdgeEndByLine(const RTCTX *ctx, edgeend *fee, edgeend *lee, RTLINE *edg
   lee->cwFace = lee->ccwFace = -1;
 
   /* Compute azimuth of first edge end */
-  RTDEBUG(1, "computing azimuth of first edge end");
+  RTDEBUG(ctx, 1, "computing azimuth of first edge end");
   if ( ! _rtt_FirstDistinctVertex2D(ctx, pa, fp, 0, 1, &pt) )
   {
     rterror(ctx, "Invalid edge (no two distinct vertices exist)");
@@ -1500,11 +1500,11 @@ _rtt_InitEdgeEndByLine(const RTCTX *ctx, edgeend *fee, edgeend *lee, RTLINE *edg
             fp->x, fp->y, pt.x, pt.y);
     return -2;
   }
-  RTDEBUGF(1, "azimuth of first edge end [%g %g,%g %g] is %g",
+  RTDEBUGF(ctx, 1, "azimuth of first edge end [%g %g,%g %g] is %g",
             fp->x, fp->y, pt.x, pt.y, fee->myaz);
 
   /* Compute azimuth of second edge end */
-  RTDEBUG(1, "computing azimuth of second edge end");
+  RTDEBUG(ctx, 1, "computing azimuth of second edge end");
   if ( ! _rtt_FirstDistinctVertex2D(ctx, pa, lp, pa->npoints-1, -1, &pt) )
   {
     rterror(ctx, "Invalid edge (no two distinct vertices exist)");
@@ -1515,7 +1515,7 @@ _rtt_InitEdgeEndByLine(const RTCTX *ctx, edgeend *fee, edgeend *lee, RTLINE *edg
             lp->x, lp->y, pt.x, pt.y);
     return -2;
   }
-  RTDEBUGF(1, "azimuth of last edge end [%g %g,%g %g] is %g",
+  RTDEBUGF(ctx, 1, "azimuth of last edge end [%g %g,%g %g] is %g",
             lp->x, lp->y, pt.x, pt.y, lee->myaz);
 
   return 0;
@@ -1553,13 +1553,13 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     if ( azdif < 0 ) azdif += 2 * M_PI;
     minaz = maxaz = azdif;
     /* TODO: set nextCW/nextCCW/cwFace/ccwFace to other->something ? */
-    RTDEBUGF(1, "Other edge end has cwFace=%d and ccwFace=%d",
+    RTDEBUGF(iface->ctx, 1, "Other edge end has cwFace=%d and ccwFace=%d",
                 other->cwFace, other->ccwFace);
   } else {
     minaz = maxaz = -1;
   }
 
-  RTDEBUGF(1, "Looking for edges incident to node %" RTTFMT_ELEMID
+  RTDEBUGF(iface->ctx, 1, "Looking for edges incident to node %" RTTFMT_ELEMID
               " and adjacent to azimuth %g", node, data->myaz);
 
   /* Get incident edges */
@@ -1569,7 +1569,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     return 0;
   }
 
-  RTDEBUGF(1, "getEdgeByNode returned %d edges, minaz=%g, maxaz=%g",
+  RTDEBUGF(iface->ctx, 1, "getEdgeByNode returned %d edges, minaz=%g, maxaz=%g",
               numedges, minaz, maxaz);
 
   /* For each incident edge-end (1 or 2): */
@@ -1603,7 +1603,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     if ( edge->start_node == node ) {
       rt_getPoint2d_p(iface->ctx, pa, 0, &p1);
       rt_getPoint2d_p(iface->ctx, pa, 1, &p2);
-      RTDEBUGF(1, "edge %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "edge %" RTTFMT_ELEMID
                   " starts on node %" RTTFMT_ELEMID
                   ", edgeend is %g,%g-%g,%g",
                   edge->edge_id, node, p1.x, p1.y, p2.x, p2.y);
@@ -1616,7 +1616,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         return -1;
       }}
       azdif = az - data->myaz;
-      RTDEBUGF(1, "azimuth of edge %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "azimuth of edge %" RTTFMT_ELEMID
                   ": %g (diff: %g)", edge->edge_id, az, azdif);
 
       if ( azdif < 0 ) azdif += 2 * M_PI;
@@ -1625,7 +1625,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         data->nextCW = data->nextCCW = edge->edge_id; /* outgoing */
         data->cwFace = edge->face_left;
         data->ccwFace = edge->face_right;
-        RTDEBUGF(1, "new nextCW and nextCCW edge is %" RTTFMT_ELEMID
+        RTDEBUGF(iface->ctx, 1, "new nextCW and nextCCW edge is %" RTTFMT_ELEMID
                     ", outgoing, "
                     "with face_left %" RTTFMT_ELEMID " and face_right %" RTTFMT_ELEMID
                     " (face_right is new ccwFace, face_left is new cwFace)",
@@ -1635,7 +1635,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         if ( azdif < minaz ) {
           data->nextCW = edge->edge_id; /* outgoing */
           data->cwFace = edge->face_left;
-          RTDEBUGF(1, "new nextCW edge is %" RTTFMT_ELEMID
+          RTDEBUGF(iface->ctx, 1, "new nextCW edge is %" RTTFMT_ELEMID
                       ", outgoing, "
                       "with face_left %" RTTFMT_ELEMID " and face_right %" RTTFMT_ELEMID
                       " (previous had minaz=%g, face_left is new cwFace)",
@@ -1646,7 +1646,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         else if ( azdif > maxaz ) {
           data->nextCCW = edge->edge_id; /* outgoing */
           data->ccwFace = edge->face_right;
-          RTDEBUGF(1, "new nextCCW edge is %" RTTFMT_ELEMID
+          RTDEBUGF(iface->ctx, 1, "new nextCCW edge is %" RTTFMT_ELEMID
                       ", outgoing, "
                       "with face_left %" RTTFMT_ELEMID " and face_right %" RTTFMT_ELEMID
                       " (previous had maxaz=%g, face_right is new ccwFace)",
@@ -1660,7 +1660,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     if ( edge->end_node == node ) {
       rt_getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p1);
       rt_getPoint2d_p(iface->ctx, pa, pa->npoints-2, &p2);
-      RTDEBUGF(1, "edge %" RTTFMT_ELEMID " ends on node %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "edge %" RTTFMT_ELEMID " ends on node %" RTTFMT_ELEMID
                   ", edgeend is %g,%g-%g,%g",
                   edge->edge_id, node, p1.x, p1.y, p2.x, p2.y);
       if ( ! azimuth_pt_pt(iface->ctx, &p1, &p2, &az) ) {{
@@ -1672,7 +1672,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         return -1;
       }}
       azdif = az - data->myaz;
-      RTDEBUGF(1, "azimuth of edge %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "azimuth of edge %" RTTFMT_ELEMID
                   ": %g (diff: %g)", edge->edge_id, az, azdif);
       if ( azdif < 0 ) azdif += 2 * M_PI;
       if ( minaz == -1 ) {
@@ -1680,7 +1680,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         data->nextCW = data->nextCCW = -edge->edge_id; /* incoming */
         data->cwFace = edge->face_right;
         data->ccwFace = edge->face_left;
-        RTDEBUGF(1, "new nextCW and nextCCW edge is %" RTTFMT_ELEMID
+        RTDEBUGF(iface->ctx, 1, "new nextCW and nextCCW edge is %" RTTFMT_ELEMID
                     ", incoming, "
                     "with face_left %" RTTFMT_ELEMID " and face_right %" RTTFMT_ELEMID
                     " (face_right is new cwFace, face_left is new ccwFace)",
@@ -1690,7 +1690,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         if ( azdif < minaz ) {
           data->nextCW = -edge->edge_id; /* incoming */
           data->cwFace = edge->face_right;
-          RTDEBUGF(1, "new nextCW edge is %" RTTFMT_ELEMID
+          RTDEBUGF(iface->ctx, 1, "new nextCW edge is %" RTTFMT_ELEMID
                       ", incoming, "
                       "with face_left %" RTTFMT_ELEMID " and face_right %" RTTFMT_ELEMID
                       " (previous had minaz=%g, face_right is new cwFace)",
@@ -1701,7 +1701,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
         else if ( azdif > maxaz ) {
           data->nextCCW = -edge->edge_id; /* incoming */
           data->ccwFace = edge->face_left;
-          RTDEBUGF(1, "new nextCCW edge is %" RTTFMT_ELEMID
+          RTDEBUGF(iface->ctx, 1, "new nextCCW edge is %" RTTFMT_ELEMID
                       ", outgoing, from start point, "
                       "with face_left %" RTTFMT_ELEMID " and face_right %" RTTFMT_ELEMID
                       " (previous had maxaz=%g, face_left is new ccwFace)",
@@ -1716,7 +1716,7 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
   }
   if ( numedges ) _rtt_release_edges(iface->ctx, edges, numedges);
 
-  RTDEBUGF(1, "edges adjacent to azimuth %g"
+  RTDEBUGF(iface->ctx, 1, "edges adjacent to azimuth %g"
               " (incident to node %" RTTFMT_ELEMID ")"
               ": CW:%" RTTFMT_ELEMID "(%g) CCW:%" RTTFMT_ELEMID "(%g)",
               data->myaz, node, data->nextCW, minaz,
@@ -1818,19 +1818,19 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
             sedge, rtt_be_lastErrorMessage(topo->be_iface));
     return -2;
   }
-  RTDEBUGF(1, "getRingEdges returned %d edges", num_signed_edge_ids);
+  RTDEBUGF(iface->ctx, 1, "getRingEdges returned %d edges", num_signed_edge_ids);
 
   /* You can't get to the other side of an edge forming a ring */
   for (i=0; i<num_signed_edge_ids; ++i) {
     if ( signed_edge_ids[i] == -sedge ) {
       /* No split here */
-      RTDEBUG(1, "not a ring");
+      RTDEBUG(iface->ctx, 1, "not a ring");
       rtfree(iface->ctx,  signed_edge_ids );
       return 0;
     }
   }
 
-  RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " split face %" RTTFMT_ELEMID " (mbr_only:%d)",
+  RTDEBUGF(iface->ctx, 1, "Edge %" RTTFMT_ELEMID " split face %" RTTFMT_ELEMID " (mbr_only:%d)",
            sedge, face, mbr_only);
 
   /* Construct a polygon using edges of the ring */
@@ -1874,7 +1874,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   for ( i=0; i<num_signed_edge_ids; ++i )
   {
     RTT_ELEMID eid = signed_edge_ids[i];
-    RTDEBUGF(1, "Edge %d in ring of edge %" RTTFMT_ELEMID " is edge %" RTTFMT_ELEMID,
+    RTDEBUGF(iface->ctx, 1, "Edge %d in ring of edge %" RTTFMT_ELEMID " is edge %" RTTFMT_ELEMID,
                 i, sedge, eid);
     RTT_ISO_EDGE *edge = NULL;
     RTPOINTARRAY *epa;
@@ -1923,7 +1923,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   RTPOLY* shell = rtpoly_construct(iface->ctx, 0, 0, 1, points);
 
   int isccw = ptarray_isccw(iface->ctx, pa);
-  RTDEBUGF(1, "Ring of edge %" RTTFMT_ELEMID " is %sclockwise",
+  RTDEBUGF(iface->ctx, 1, "Ring of edge %" RTTFMT_ELEMID " is %sclockwise",
               sedge, isccw ? "counter" : "");
   const RTGBOX* shellbox = rtgeom_get_bbox(iface->ctx, rtpoly_as_rtgeom(iface->ctx, shell));
 
@@ -1938,7 +1938,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       /* Face on the left side of this ring is the universe face.
        * Next call (for the other side) should create the split face
        */
-      RTDEBUG(1, "The left face of this clockwise ring is the universe, "
+      RTDEBUG(iface->ctx, 1, "The left face of this clockwise ring is the universe, "
                  "won't create a new face there");
       return -1;
     }
@@ -2034,11 +2034,11 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   /* We want the new face to be on the left, if possible */
   if ( face != 0 && ! isccw ) { /* ring is clockwise in a real face */
     /* face shrinked, must update all non-contained edges and nodes */
-    RTDEBUG(1, "New face is on the outside of the ring, updating rings in former shell");
+    RTDEBUG(iface->ctx, 1, "New face is on the outside of the ring, updating rings in former shell");
     newface_outside = 1;
     /* newface is outside */
   } else {
-    RTDEBUG(1, "New face is on the inside of the ring, updating forward edges in new ring");
+    RTDEBUG(iface->ctx, 1, "New face is on the inside of the ring, updating forward edges in new ring");
     newface_outside = 0;
     /* newface is inside */
   }
@@ -2058,7 +2058,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
     rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -2;
   }
-  RTDEBUGF(1, "rtt_be_getEdgeByFace returned %d edges", numfaceedges);
+  RTDEBUGF(iface->ctx, 1, "rtt_be_getEdgeByFace returned %d edges", numfaceedges);
   GEOSGeometry *shellgg = 0;
   const GEOSPreparedGeometry* prepshell = 0;
   shellgg = RTGEOM2GEOS(iface->ctx,  rtpoly_as_rtgeom(iface->ctx, shell), 0);
@@ -2105,7 +2105,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
         if ( seid == e->edge_id )
         {
           /* IDEA: remove entry from signed_edge_ids ? */
-          RTDEBUGF(1, "Edge %d is a forward edge of the new ring", e->edge_id);
+          RTDEBUGF(iface->ctx, 1, "Edge %d is a forward edge of the new ring", e->edge_id);
           forward_edges[forward_edges_count].edge_id = e->edge_id;
           forward_edges[forward_edges_count++].face_left = newface.face_id;
           found++;
@@ -2114,7 +2114,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
         else if ( -seid == e->edge_id )
         {
           /* IDEA: remove entry from signed_edge_ids ? */
-          RTDEBUGF(1, "Edge %d is a backward edge of the new ring", e->edge_id);
+          RTDEBUGF(iface->ctx, 1, "Edge %d is a backward edge of the new ring", e->edge_id);
           backward_edges[backward_edges_count].edge_id = e->edge_id;
           backward_edges[backward_edges_count++].face_right = newface.face_id;
           found++;
@@ -2178,7 +2178,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
         rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_get_last_geos_error(iface->ctx));
         return -2;
       }
-      RTDEBUGF(1, "Edge %d %scontained in new ring", e->edge_id,
+      RTDEBUGF(iface->ctx, 1, "Edge %d %scontained in new ring", e->edge_id,
                   (contains?"":"not "));
 
       /* (2.2) skip edges (NOT, if newface_outside) contained in shell */
@@ -2186,7 +2186,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       {
         if ( contains )
         {
-          RTDEBUGF(1, "Edge %d contained in an hole of the new face",
+          RTDEBUGF(iface->ctx, 1, "Edge %d contained in an hole of the new face",
                       e->edge_id);
           continue;
         }
@@ -2195,7 +2195,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       {
         if ( ! contains )
         {
-          RTDEBUGF(1, "Edge %d not contained in the face shell",
+          RTDEBUGF(iface->ctx, 1, "Edge %d not contained in the face shell",
                       e->edge_id);
           continue;
         }
@@ -2204,7 +2204,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       /* (2.3) push to forward_edges if left_face = oface */
       if ( e->face_left == face )
       {
-        RTDEBUGF(1, "Edge %d has new face on the left side", e->edge_id);
+        RTDEBUGF(iface->ctx, 1, "Edge %d has new face on the left side", e->edge_id);
         forward_edges[forward_edges_count].edge_id = e->edge_id;
         forward_edges[forward_edges_count++].face_left = newface.face_id;
       }
@@ -2212,7 +2212,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       /* (2.4) push to backward_edges if right_face = oface */
       if ( e->face_right == face )
       {
-        RTDEBUGF(1, "Edge %d has new face on the right side", e->edge_id);
+        RTDEBUGF(iface->ctx, 1, "Edge %d has new face on the right side", e->edge_id);
         backward_edges[backward_edges_count].edge_id = e->edge_id;
         backward_edges[backward_edges_count++].face_right = newface.face_id;
       }
@@ -2309,14 +2309,14 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
         rterror(iface->ctx, "GEOS exception on PreparedContains: %s", rtgeom_get_last_geos_error(iface->ctx));
         return -2;
       }
-      RTDEBUGF(1, "Node %d is %scontained in new ring, newface is %s",
+      RTDEBUGF(iface->ctx, 1, "Node %d is %scontained in new ring, newface is %s",
                   n->node_id, contains ? "" : "not ",
                   newface_outside ? "outside" : "inside" );
       if ( newface_outside )
       {
         if ( contains )
         {
-          RTDEBUGF(1, "Node %d contained in an hole of the new face",
+          RTDEBUGF(iface->ctx, 1, "Node %d contained in an hole of the new face",
                       n->node_id);
           continue;
         }
@@ -2325,7 +2325,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       {
         if ( ! contains )
         {
-          RTDEBUGF(1, "Node %d not contained in the face shell",
+          RTDEBUGF(iface->ctx, 1, "Node %d not contained in the face shell",
                       n->node_id);
           continue;
         }
@@ -2333,7 +2333,7 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
       updated_nodes[nodes_to_update].node_id = n->node_id;
       updated_nodes[nodes_to_update++].containing_face =
                                        newface.face_id;
-      RTDEBUGF(1, "Node %d will be updated", n->node_id);
+      RTDEBUGF(iface->ctx, 1, "Node %d will be updated", n->node_id);
     }
     _rtt_release_nodes(iface->ctx, nodes, numisonodes);
     if ( nodes_to_update )
@@ -2424,7 +2424,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
             p1.x, p1.y, pn.x, pn.y);
     return -1;
   }
-  RTDEBUGF(1, "edge's start node is %g,%g", p1.x, p1.y);
+  RTDEBUGF(iface->ctx, 1, "edge's start node is %g,%g", p1.x, p1.y);
 
   /* Compute azimuth of last edge end on end node */
   rt_getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p2);
@@ -2435,7 +2435,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
             p2.x, p2.y, pn.x, pn.y);
     return -1;
   }
-  RTDEBUGF(1, "edge's end node is %g,%g", p2.x, p2.y);
+  RTDEBUGF(iface->ctx, 1, "edge's end node is %g,%g", p2.x, p2.y);
 
   /*
    * Check endpoints existance, match with Curve geometry
@@ -2474,7 +2474,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
       }
     }
 
-    RTDEBUGF(1, "Node %d, with geom %p (looking for %d and %d)",
+    RTDEBUGF(iface->ctx, 1, "Node %d, with geom %p (looking for %d and %d)",
              node->node_id, node->geom, start_node, end_node);
     if ( node->node_id == start_node ) {
       start_node_geom = node->geom;
@@ -2554,7 +2554,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     span.was_isolated = 0;
     newedge.next_right = span.nextCW ? span.nextCW : -newedge.edge_id;
     prev_left = span.nextCCW ? -span.nextCCW : newedge.edge_id;
-    RTDEBUGF(1, "New edge %d is connected on start node, "
+    RTDEBUGF(iface->ctx, 1, "New edge %d is connected on start node, "
                 "next_right is %d, prev_left is %d",
                 newedge.edge_id, newedge.next_right, prev_left);
     if ( newedge.face_right == -1 ) {
@@ -2567,7 +2567,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     span.was_isolated = 1;
     newedge.next_right = isclosed ? -newedge.edge_id : newedge.edge_id;
     prev_left = isclosed ? newedge.edge_id : -newedge.edge_id;
-    RTDEBUGF(1, "New edge %d is isolated on start node, "
+    RTDEBUGF(iface->ctx, 1, "New edge %d is isolated on start node, "
                 "next_right is %d, prev_left is %d",
                 newedge.edge_id, newedge.next_right, prev_left);
   }
@@ -2578,7 +2578,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     epan.was_isolated = 0;
     newedge.next_left = epan.nextCW ? epan.nextCW : newedge.edge_id;
     prev_right = epan.nextCCW ? -epan.nextCCW : -newedge.edge_id;
-    RTDEBUGF(1, "New edge %d is connected on end node, "
+    RTDEBUGF(iface->ctx, 1, "New edge %d is connected on end node, "
                 "next_left is %d, prev_right is %d",
                 newedge.edge_id, newedge.next_left, prev_right);
     if ( newedge.face_right == -1 ) {
@@ -2609,7 +2609,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     epan.was_isolated = 1;
     newedge.next_left = isclosed ? newedge.edge_id : -newedge.edge_id;
     prev_right = isclosed ? -newedge.edge_id : newedge.edge_id;
-    RTDEBUGF(1, "New edge %d is isolated on end node, "
+    RTDEBUGF(iface->ctx, 1, "New edge %d is isolated on end node, "
                 "next_left is %d, prev_right is %d",
                 newedge.edge_id, newedge.next_left, prev_right);
   }
@@ -2742,7 +2742,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
 
   if ( ! isclosed && ( epan.was_isolated || span.was_isolated ) )
   {
-    RTDEBUG(1, "New edge is dangling, so it cannot split any face");
+    RTDEBUG(iface->ctx, 1, "New edge is dangling, so it cannot split any face");
     return newedge.edge_id; /* no split */
   }
 
@@ -2755,7 +2755,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   {
     newface1 = _rtt_AddFaceSplit( topo, -newedge.edge_id, newedge.face_left, 0 );
     if ( newface1 == 0 ) {
-      RTDEBUG(1, "New edge does not split any face");
+      RTDEBUG(iface->ctx, 1, "New edge does not split any face");
       return newedge.edge_id; /* no split */
     }
   }
@@ -2765,7 +2765,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   if ( modFace )
   {
     if ( newface == 0 ) {
-      RTDEBUG(1, "New edge does not split any face");
+      RTDEBUG(iface->ctx, 1, "New edge does not split any face");
       return newedge.edge_id; /* no split */
     }
 
@@ -2849,7 +2849,7 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
     /* Face has no valid boundary edges, we'll return EMPTY, see
      * https://trac.osgeo.org/postgis/ticket/3221 */
     if ( numfaceedges ) rtfree(iface->ctx, geoms);
-    RTDEBUG(1, "_rtt_FaceByEdges returning empty polygon");
+    RTDEBUG(iface->ctx, 1, "_rtt_FaceByEdges returning empty polygon");
     return rtpoly_as_rtgeom(iface->ctx,
             rtpoly_construct_empty(iface->ctx, topo->srid, topo->hasZ, 0)
            );
@@ -2866,7 +2866,7 @@ _rtt_FaceByEdges(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edges, int numfaceedges)
   {
   size_t sz;
   char *wkt = rtgeom_to_wkt(iface->ctx, outg, RTWKT_EXTENDED, 2, &sz);
-  RTDEBUGF(1, "_rtt_FaceByEdges returning area: %s", wkt);
+  RTDEBUGF(iface->ctx, 1, "_rtt_FaceByEdges returning area: %s", wkt);
   rtfree(iface->ctx, wkt);
   }
 #endif
@@ -2957,7 +2957,7 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
   /* Get starting ring point */
   rt_getPoint2d_p(ctx, ring, from, &p1);
 
-  RTDEBUGF(1, "Ring's 'from' point (%d) is %g,%g", from, p1.x, p1.y);
+  RTDEBUGF(ctx, 1, "Ring's 'from' point (%d) is %g,%g", from, p1.x, p1.y);
 
   /* find the edges defining the next portion of ring starting from
    * vertex "from" */
@@ -2973,7 +2973,7 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
     /* Skip if the edge is a dangling one */
     if ( isoe->face_left == isoe->face_right )
     {
-      RTDEBUGF(3, "_rtt_FindNextRingEdge: edge %" RTTFMT_ELEMID
+      RTDEBUGF(ctx, 3, "_rtt_FindNextRingEdge: edge %" RTTFMT_ELEMID
                   " has same face (%" RTTFMT_ELEMID
                   ") on both sides, skipping",
                   isoe->edge_id, isoe->face_left);
@@ -2982,7 +2982,7 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
 
 #if 0
     size_t sz;
-    RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " is %s",
+    RTDEBUGF(ctx, 1, "Edge %" RTTFMT_ELEMID " is %s",
                 isoe->edge_id,
                 rtgeom_to_wkt(ctx, rtline_as_rtgeom(ctx, edge), RTWKT_EXTENDED, 2, &sz));
 #endif
@@ -2990,35 +2990,35 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
     /* ptarray_remove_repeated_points ? */
 
     rt_getPoint2d_p(ctx, epa, 0, &p2);
-    RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'first' point is %g,%g",
+    RTDEBUGF(ctx, 1, "Edge %" RTTFMT_ELEMID " 'first' point is %g,%g",
                 isoe->edge_id, p2.x, p2.y);
-    RTDEBUGF(1, "Rings's 'from' point is still %g,%g", p1.x, p1.y);
+    RTDEBUGF(ctx, 1, "Rings's 'from' point is still %g,%g", p1.x, p1.y);
     if ( p2d_same(ctx, &p1, &p2) )
     {
-      RTDEBUG(1, "p2d_same(ctx, p1,p2) returned true");
-      RTDEBUGF(1, "First point of edge %" RTTFMT_ELEMID
+      RTDEBUG(ctx, 1, "p2d_same(ctx, p1,p2) returned true");
+      RTDEBUGF(ctx, 1, "First point of edge %" RTTFMT_ELEMID
                   " matches ring vertex %d", isoe->edge_id, from);
       /* first point matches, let's check next non-equal one */
       for ( j=1; j<epa->npoints; ++j )
       {
         rt_getPoint2d_p(ctx, epa, j, &p2);
-        RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'next' point %d is %g,%g",
+        RTDEBUGF(ctx, 1, "Edge %" RTTFMT_ELEMID " 'next' point %d is %g,%g",
                     isoe->edge_id, j, p2.x, p2.y);
         /* we won't check duplicated edge points */
         if ( p2d_same(ctx, &p1, &p2) ) continue;
         /* we assume there are no duplicated points in ring */
         rt_getPoint2d_p(ctx, ring, from+1, &pt);
-        RTDEBUGF(1, "Ring's point %d is %g,%g",
+        RTDEBUGF(ctx, 1, "Ring's point %d is %g,%g",
                     from+1, pt.x, pt.y);
         match = p2d_same(ctx, &pt, &p2);
         break; /* we want to check a single non-equal next vertex */
       }
 #if RTGEOM_DEBUG_LEVEL > 0
       if ( match ) {
-        RTDEBUGF(1, "Prev point of edge %" RTTFMT_ELEMID
+        RTDEBUGF(ctx, 1, "Prev point of edge %" RTTFMT_ELEMID
                     " matches ring vertex %d", isoe->edge_id, from+1);
       } else {
-        RTDEBUGF(1, "Prev point of edge %" RTTFMT_ELEMID
+        RTDEBUGF(ctx, 1, "Prev point of edge %" RTTFMT_ELEMID
                     " does not match ring vertex %d", isoe->edge_id, from+1);
       }
 #endif
@@ -3026,26 +3026,26 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
 
     if ( ! match )
     {
-      RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " did not match as forward",
+      RTDEBUGF(ctx, 1, "Edge %" RTTFMT_ELEMID " did not match as forward",
                  isoe->edge_id);
       rt_getPoint2d_p(ctx, epa, epa->npoints-1, &p2);
-      RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'last' point is %g,%g",
+      RTDEBUGF(ctx, 1, "Edge %" RTTFMT_ELEMID " 'last' point is %g,%g",
                   isoe->edge_id, p2.x, p2.y);
       if ( p2d_same(ctx, &p1, &p2) )
       {
-        RTDEBUGF(1, "Last point of edge %" RTTFMT_ELEMID
+        RTDEBUGF(ctx, 1, "Last point of edge %" RTTFMT_ELEMID
                     " matches ring vertex %d", isoe->edge_id, from);
         /* last point matches, let's check next non-equal one */
         for ( j=epa->npoints-2; j>=0; --j )
         {
           rt_getPoint2d_p(ctx, epa, j, &p2);
-          RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " 'prev' point %d is %g,%g",
+          RTDEBUGF(ctx, 1, "Edge %" RTTFMT_ELEMID " 'prev' point %d is %g,%g",
                       isoe->edge_id, j, p2.x, p2.y);
           /* we won't check duplicated edge points */
           if ( p2d_same(ctx, &p1, &p2) ) continue;
           /* we assume there are no duplicated points in ring */
           rt_getPoint2d_p(ctx, ring, from+1, &pt);
-          RTDEBUGF(1, "Ring's point %d is %g,%g",
+          RTDEBUGF(ctx, 1, "Ring's point %d is %g,%g",
                       from+1, pt.x, pt.y);
           match = p2d_same(ctx, &pt, &p2);
           break; /* we want to check a single non-equal next vertex */
@@ -3053,10 +3053,10 @@ _rtt_FindNextRingEdge(const RTCTX *ctx, const RTPOINTARRAY *ring, int from,
       }
 #if RTGEOM_DEBUG_LEVEL > 0
       if ( match ) {
-        RTDEBUGF(1, "Prev point of edge %" RTTFMT_ELEMID
+        RTDEBUGF(ctx, 1, "Prev point of edge %" RTTFMT_ELEMID
                     " matches ring vertex %d", isoe->edge_id, from+1);
       } else {
-        RTDEBUGF(1, "Prev point of edge %" RTTFMT_ELEMID
+        RTDEBUGF(ctx, 1, "Prev point of edge %" RTTFMT_ELEMID
                     " does not match ring vertex %d", isoe->edge_id, from+1);
       }
 #endif
@@ -3149,7 +3149,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
   {
   size_t sz;
   char *wkt = rtgeom_to_wkt(iface->ctx, face, RTWKT_EXTENDED, 6, &sz);
-  RTDEBUGF(1, "Geometry of face %" RTTFMT_ELEMID " is: %s",
+  RTDEBUGF(ctx, 1, "Geometry of face %" RTTFMT_ELEMID " is: %s",
               face_id, wkt);
   rtfree(iface->ctx, wkt);
   }
@@ -3175,11 +3175,11 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
     RTT_ISO_EDGE *nextedge;
     RTLINE *nextline;
 
-    RTDEBUGF(1, "Ring %d has %d points", i, ring->npoints);
+    RTDEBUGF(iface->ctx, 1, "Ring %d has %d points", i, ring->npoints);
 
     while ( j < ring->npoints-1 )
     {
-      RTDEBUGF(1, "Looking for edge covering ring %d from vertex %d",
+      RTDEBUGF(iface->ctx, 1, "Looking for edge covering ring %d from vertex %d",
                   i, j);
 
       int edgeno = _rtt_FindNextRingEdge(iface->ctx, ring, j, edges, numfaceedges);
@@ -3197,7 +3197,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
       nextedge = &(edges[edgeno]);
       nextline = nextedge->geom;
 
-      RTDEBUGF(1, "Edge %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "Edge %" RTTFMT_ELEMID
                   " covers ring %d from vertex %d to %d",
                   nextedge->edge_id, i, j, j + nextline->points->npoints - 1);
 
@@ -3205,7 +3205,7 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
       {
       size_t sz;
       char *wkt = rtgeom_to_wkt(iface->ctx, rtline_as_rtgeom(iface->ctx, nextline), RTWKT_EXTENDED, 6, &sz);
-      RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " is %s",
+      RTDEBUGF(iface->ctx, 1, "Edge %" RTTFMT_ELEMID " is %s",
                   nextedge->edge_id, wkt);
       rtfree(iface->ctx, wkt);
       }
@@ -3229,19 +3229,19 @@ rtt_GetFaceEdges(RTT_TOPOLOGY* topo, RTT_ELEMID face_id, RTT_ELEMID **out )
     {{
       RTT_ELEMID minid = 0;
       int minidx = 0;
-      RTDEBUGF(1, "Looking for smallest id among the %d edges "
+      RTDEBUGF(iface->ctx, 1, "Looking for smallest id among the %d edges "
                   "composing ring %d", (nseid-prevseid), i);
       for ( j=prevseid; j<nseid; ++j )
       {
         RTT_ELEMID id = llabs(seid[j]);
-        RTDEBUGF(1, "Abs id of edge in pos %d is %" RTTFMT_ELEMID, j, id);
+        RTDEBUGF(iface->ctx, 1, "Abs id of edge in pos %d is %" RTTFMT_ELEMID, j, id);
         if ( ! minid || id < minid )
         {
           minid = id;
           minidx = j;
         }
       }
-      RTDEBUGF(1, "Smallest id is %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "Smallest id is %" RTTFMT_ELEMID
                   " at position %d", minid, minidx);
       if ( minidx != prevseid )
       {
@@ -3336,7 +3336,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   oldedge = rtt_be_getEdgeById(topo, &edge_id, &i, RTT_COL_EDGE_ALL);
   if ( ! oldedge )
   {
-    RTDEBUGF(1, "rtt_ChangeEdgeGeom: "
+    RTDEBUGF(iface->ctx, 1, "rtt_ChangeEdgeGeom: "
                 "rtt_be_getEdgeById returned NULL and set i=%d", i);
     if ( i == -1 )
     {
@@ -3358,7 +3358,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     }
   }
 
-  RTDEBUGF(1, "rtt_ChangeEdgeGeom: "
+  RTDEBUGF(iface->ctx, 1, "rtt_ChangeEdgeGeom: "
               "old edge has %d points, new edge has %d points",
               oldedge->geom->points->npoints, geom->points->npoints);
 
@@ -3435,7 +3435,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     return -1;
   }
 
-  RTDEBUG(1, "rtt_ChangeEdgeGeom: "
+  RTDEBUG(iface->ctx, 1, "rtt_ChangeEdgeGeom: "
              "edge crossing check passed ");
 
   /*
@@ -3454,7 +3454,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   int numnodes;
   nodes = rtt_be_getNodeWithinBox2D(topo, &mbox, &numnodes,
                                           RTT_COL_NODE_ALL, 0);
-  RTDEBUGF(1, "rtt_be_getNodeWithinBox2D returned %d nodes", numnodes);
+  RTDEBUGF(iface->ctx, 1, "rtt_be_getNodeWithinBox2D returned %d nodes", numnodes);
   if ( numnodes == -1 ) {
     _rtt_release_edges(iface->ctx, oldedge, 1);
     rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
@@ -3531,7 +3531,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   }}
   if ( numnodes ) _rtt_release_nodes(iface->ctx, nodes, numnodes);
 
-  RTDEBUG(1, "nodes containment check passed");
+  RTDEBUG(iface->ctx, 1, "nodes containment check passed");
 
   /*
    * Check edge adjacency before
@@ -3548,7 +3548,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   _rtt_FindAdjacentEdges( topo, oldedge->end_node, &epan_pre,
                                   isclosed ? &span_pre : NULL, edge_id );
 
-  RTDEBUGF(1, "edges adjacent to old edge are %" RTTFMT_ELEMID
+  RTDEBUGF(iface->ctx, 1, "edges adjacent to old edge are %" RTTFMT_ELEMID
               " and %" RTTFMT_ELEMID " (first point), %" RTTFMT_ELEMID
               " and %" RTTFMT_ELEMID " (last point)" RTTFMT_ELEMID,
               span_pre.nextCW, span_pre.nextCCW,
@@ -3586,7 +3586,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   _rtt_FindAdjacentEdges( topo, oldedge->end_node, &epan_post,
                           isclosed ? &span_post : NULL, edge_id );
 
-  RTDEBUGF(1, "edges adjacent to new edge are %" RTTFMT_ELEMID
+  RTDEBUGF(iface->ctx, 1, "edges adjacent to new edge are %" RTTFMT_ELEMID
               " and %" RTTFMT_ELEMID " (first point), %" RTTFMT_ELEMID
               " and %" RTTFMT_ELEMID " (last point)" RTTFMT_ELEMID,
               span_pre.nextCW, span_pre.nextCCW,
@@ -3641,7 +3641,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     {
     size_t sz;
     char *wkt = rtgeom_to_wkt(iface->ctx, nface1, RTWKT_EXTENDED, 2, &sz);
-    RTDEBUGF(1, "new geometry of face left (%d): %s", (int)oldedge->face_left, wkt);
+    RTDEBUGF(iface->ctx, 1, "new geometry of face left (%d): %s", (int)oldedge->face_left, wkt);
     rtfree(iface->ctx, wkt);
     }
 #endif
@@ -3666,7 +3666,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     {
     size_t sz;
     char *wkt = rtgeom_to_wkt(iface->ctx, nface2, RTWKT_EXTENDED, 2, &sz);
-    RTDEBUGF(1, "new geometry of face right (%d): %s", (int)oldedge->face_right, wkt);
+    RTDEBUGF(iface->ctx, 1, "new geometry of face right (%d): %s", (int)oldedge->face_right, wkt);
     rtfree(iface->ctx, wkt);
     }
 #endif
@@ -3674,7 +3674,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     faces[facestoupdate].face_id = oldedge->face_right;
     faces[facestoupdate++].mbr = nface2->bbox; /* ownership left to nface */
   }
-  RTDEBUGF(1, "%d faces to update", facestoupdate);
+  RTDEBUGF(iface->ctx, 1, "%d faces to update", facestoupdate);
   if ( facestoupdate )
   {
     i = rtt_be_updateFacesById( topo, &(faces[0]), facestoupdate );
@@ -3693,7 +3693,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   if ( nface1 ) rtgeom_free(iface->ctx, nface1);
   if ( nface2 ) rtgeom_free(iface->ctx, nface2);
 
-  RTDEBUG(1, "all done, cleaning up edges");
+  RTDEBUG(iface->ctx, 1, "all done, cleaning up edges");
 
   _rtt_release_edges(iface->ctx, oldedge, 1);
   return 0; /* success */
@@ -3990,7 +3990,7 @@ _rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
   edge = rtt_be_getEdgeById(topo, &edge_id, &i, RTT_COL_EDGE_ALL);
   if ( ! edge )
   {
-    RTDEBUGF(1, "rtt_be_getEdgeById returned NULL and set i=%d", i);
+    RTDEBUGF(iface->ctx, 1, "rtt_be_getEdgeById returned NULL and set i=%d", i);
     if ( i == -1 )
     {
       rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
@@ -4018,7 +4018,7 @@ _rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
     return -1;
   }
 
-  RTDEBUG(1, "Updating next_{right,left}_face of ring edges...");
+  RTDEBUG(iface->ctx, 1, "Updating next_{right,left}_face of ring edges...");
 
   /* Update edge linking */
 
@@ -4078,7 +4078,7 @@ _rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
 
   if ( nedge_left )
   {
-    RTDEBUGF(1, "updating %d 'next_left' edges", nedge_left);
+    RTDEBUGF(iface->ctx, 1, "updating %d 'next_left' edges", nedge_left);
     /* update edges in upd_edge_left set next_left */
     i = rtt_be_updateEdgesById(topo, &(upd_edge_left[0]), nedge_left,
                                RTT_COL_EDGE_NEXT_LEFT);
@@ -4092,7 +4092,7 @@ _rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
   }
   if ( nedge_right )
   {
-    RTDEBUGF(1, "updating %d 'next_right' edges", nedge_right);
+    RTDEBUGF(iface->ctx, 1, "updating %d 'next_right' edges", nedge_right);
     /* update edges in upd_edge_right set next_right */
     i = rtt_be_updateEdgesById(topo, &(upd_edge_right[0]), nedge_right,
                                RTT_COL_EDGE_NEXT_RIGHT);
@@ -4104,7 +4104,7 @@ _rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
       return -1;
     }
   }
-  RTDEBUGF(1, "releasing %d updateable edges in %p", nedges, upd_edge);
+  RTDEBUGF(iface->ctx, 1, "releasing %d updateable edges in %p", nedges, upd_edge);
   rtfree(iface->ctx, upd_edge);
 
   /* Id of face that will take up all the space previously
@@ -4122,14 +4122,14 @@ _rtt_RemEdge(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, int modFace )
     if ( edge->face_left == 0 || edge->face_right == 0 )
     {
       floodface = 0;
-      RTDEBUG(1, "floodface is universe");
+      RTDEBUG(iface->ctx, 1, "floodface is universe");
     }
     else
     {
       /* we choose right face as the face that will remain
        * to be symmetric with ST_AddEdgeModFace */
       floodface = edge->face_right;
-      RTDEBUGF(1, "floodface is %" RTTFMT_ELEMID, floodface);
+      RTDEBUGF(iface->ctx, 1, "floodface is %" RTTFMT_ELEMID, floodface);
       /* update mbr of floodface as union of mbr of both faces */
       face_ids[0] = edge->face_left;
       face_ids[1] = edge->face_right;
@@ -4931,7 +4931,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
   }
   id = 0; /* or it'll be -1 for not found */
 
-  RTDEBUG(1, "No face properly contains query point,"
+  RTDEBUG(iface->ctx, 1, "No face properly contains query point,"
              " looking for edges");
 
   /* Not in a face, may be in universe or on edge, let's check
@@ -4962,7 +4962,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
     /* don't consider dangling edges */
     if ( e->face_left == e->face_right )
     {
-      RTDEBUGF(1, "Edge %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "Edge %" RTTFMT_ELEMID
                   " is dangling, won't consider it", e->edge_id);
       continue;
     }
@@ -4970,7 +4970,7 @@ rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol)
     geom = rtline_as_rtgeom(iface->ctx, e->geom);
     dist = rtgeom_mindistance2d_tolerance(iface->ctx, geom, qp, tol);
 
-    RTDEBUGF(1, "Distance from edge %" RTTFMT_ELEMID
+    RTDEBUGF(iface->ctx, 1, "Distance from edge %" RTTFMT_ELEMID
                 " is %g (tol=%g)", e->edge_id, dist, tol);
 
     /* we won't consider edges too far */
@@ -5064,7 +5064,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   /* Get tolerance, if 0 was given */
   if ( ! tol ) tol = _RTT_MINTOLERANCE( topo, pt );
 
-  RTDEBUGG(1, pt, "Adding point");
+  RTDEBUGG(iface->ctx, 1, pt, "Adding point");
 
   /*
   -- 1. Check if any existing node is closer than the given precision
@@ -5080,7 +5080,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   }
   if ( num )
   {
-    RTDEBUGF(1, "New point is within %.15g units of %d nodes", tol, num);
+    RTDEBUGF(iface->ctx, 1, "New point is within %.15g units of %d nodes", tol, num);
     /* Order by distance if there are more than a single return */
     if ( num > 1 )
     {{
@@ -5089,7 +5089,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       {
         sorted[i].ptr = nodes+i;
         sorted[i].score = rtgeom_mindistance2d(iface->ctx, rtpoint_as_rtgeom(iface->ctx, nodes[i].geom), pt);
-        RTDEBUGF(1, "Node %" RTTFMT_ELEMID " distance: %.15g",
+        RTDEBUGF(iface->ctx, 1, "Node %" RTTFMT_ELEMID " distance: %.15g",
           ((RTT_ISO_NODE*)(sorted[i].ptr))->node_id, sorted[i].score);
       }
       qsort(sorted, num, sizeof(scored_pointer), compare_scored_pointer);
@@ -5140,7 +5140,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   }
   if ( num )
   {
-  RTDEBUGF(1, "New point is within %.15g units of %d edges", tol, num);
+  RTDEBUGF(iface->ctx, 1, "New point is within %.15g units of %d edges", tol, num);
 
   /* Order by distance if there are more than a single return */
   if ( num > 1 )
@@ -5151,7 +5151,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     {
       sorted[i].ptr = edges+i;
       sorted[i].score = rtgeom_mindistance2d(iface->ctx, rtline_as_rtgeom(iface->ctx, edges[i].geom), pt);
-      RTDEBUGF(1, "Edge %" RTTFMT_ELEMID " distance: %.15g",
+      RTDEBUGF(iface->ctx, 1, "Edge %" RTTFMT_ELEMID " distance: %.15g",
         ((RTT_ISO_EDGE*)(sorted[i].ptr))->edge_id, sorted[i].score);
     }
     qsort(sorted, num, sizeof(scored_pointer), compare_scored_pointer);
@@ -5183,7 +5183,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
     GEOSGeometry *prjg, *gg;
     RTT_ELEMID edge_id = e->edge_id;
 
-    RTDEBUGF(1, "Splitting edge %" RTTFMT_ELEMID, edge_id);
+    RTDEBUGF(iface->ctx, 1, "Splitting edge %" RTTFMT_ELEMID, edge_id);
 
     /* project point to line, split edge by point */
     prj = rtgeom_closest_point(iface->ctx, g, pt);
@@ -5240,7 +5240,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       RTLINE *snapline;
       RTPOINT4D p1, p2;
 
-      RTDEBUGF(1, "Edge %" RTTFMT_ELEMID
+      RTDEBUGF(iface->ctx, 1, "Edge %" RTTFMT_ELEMID
                   " does not contain projected point to it",
                   edge_id);
 
@@ -5248,7 +5248,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
        * an edge that contains the projected point, if possible */
       if ( i+1 < num )
       {
-        RTDEBUG(1, "But there's another to check");
+        RTDEBUG(iface->ctx, 1, "But there's another to check");
         rtgeom_free(iface->ctx, prj);
         continue;
       }
@@ -5263,7 +5263,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       snapedge = _rtt_toposnap(iface->ctx, g, prj, snaptol);
       snapline = rtgeom_as_rtline(iface->ctx, snapedge);
 
-      RTDEBUGF(1, "Edge snapped with tolerance %g", snaptol);
+      RTDEBUGF(iface->ctx, 1, "Edge snapped with tolerance %g", snaptol);
 
       /* TODO: check if snapping did anything ? */
 #if RTGEOM_DEBUG_LEVEL > 0
@@ -5271,7 +5271,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       size_t sz;
       char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
       char *wkt2 = rtgeom_to_wkt(iface->ctx, snapedge, RTWKT_EXTENDED, 15, &sz);
-      RTDEBUGF(1, "Edge %s snapped became %s", wkt1, wkt2);
+      RTDEBUGF(iface->ctx, 1, "Edge %s snapped became %s", wkt1, wkt2);
       rtfree(iface->ctx, wkt1);
       rtfree(iface->ctx, wkt2);
       }
@@ -5284,12 +5284,12 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       */
       rt_getPoint4d_p(iface->ctx, e->geom->points, 0, &p1);
       rt_getPoint4d_p(iface->ctx, snapline->points, 0, &p2);
-      RTDEBUGF(1, "Edge first point is %g %g, "
+      RTDEBUGF(iface->ctx, 1, "Edge first point is %g %g, "
                   "snapline first point is %g %g",
                   p1.x, p1.y, p2.x, p2.y);
       if ( p1.x != p2.x || p1.y != p2.y )
       {
-        RTDEBUG(1, "Snapping moved first point, re-adding it");
+        RTDEBUG(iface->ctx, 1, "Snapping moved first point, re-adding it");
         if ( RT_SUCCESS != ptarray_insert_point(iface->ctx, snapline->points, &p1, 0) )
         {
           rtgeom_free(iface->ctx, prj);
@@ -5302,14 +5302,14 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
         {
         size_t sz;
         char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
-        RTDEBUGF(1, "Tweaked snapline became %s", wkt1);
+        RTDEBUGF(iface->ctx, 1, "Tweaked snapline became %s", wkt1);
         rtfree(iface->ctx, wkt1);
         }
 #endif
       }
 #if RTGEOM_DEBUG_LEVEL > 0
       else {
-        RTDEBUG(1, "Snapping did not move first point");
+        RTDEBUG(iface->ctx, 1, "Snapping did not move first point");
       }
 #endif
 
@@ -5330,7 +5330,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
       size_t sz;
       char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
       char *wkt2 = rtgeom_to_wkt(iface->ctx, prj, RTWKT_EXTENDED, 15, &sz);
-      RTDEBUGF(1, "Edge %s contains projected point %s", wkt1, wkt2);
+      RTDEBUGF(iface->ctx, 1, "Edge %s contains projected point %s", wkt1, wkt2);
       rtfree(iface->ctx, wkt1);
       rtfree(iface->ctx, wkt2);
     }}
@@ -5468,8 +5468,8 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   RTPOINT4D p4d;
   int nn, i;
 
-  RTDEBUGG(1, rtline_as_rtgeom(iface->ctx, edge), "_lwtAddLineEdge");
-  RTDEBUGF(1, "_lwtAddLineEdge with tolerance %g", tol);
+  RTDEBUGG(iface->ctx, 1, rtline_as_rtgeom(iface->ctx, edge), "_lwtAddLineEdge");
+  RTDEBUGF(iface->ctx, 1, "_lwtAddLineEdge with tolerance %g", tol);
 
   start_point = rtline_get_rtpoint(iface->ctx, edge, 0);
   if ( ! start_point )
@@ -5543,7 +5543,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
     {
       rtcollection_free(iface->ctx, col);
       rtgeom_free(iface->ctx, tmp);
-      RTDEBUG(1, "Made-valid snapped edge collapsed");
+      RTDEBUG(iface->ctx, 1, "Made-valid snapped edge collapsed");
       return 0;
     }
 
@@ -5564,7 +5564,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
     edge = rtgeom_as_rtline(iface->ctx, tmp);
     if ( ! edge )
     {
-      RTDEBUGF(1, "Made-valid snapped edge collapsed to %s",
+      RTDEBUGF(iface->ctx, 1, "Made-valid snapped edge collapsed to %s",
                   rttype_name(iface->ctx, rtgeom_get_type(iface->ctx, tmp)));
       rtgeom_free(iface->ctx, tmp);
       return 0;
@@ -5573,7 +5573,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
 
   /* check if the so-snapped edge _now_ exists */
   id = _rtt_GetEqualEdge ( topo, edge );
-  RTDEBUGF(1, "_rtt_GetEqualEdge returned %" RTTFMT_ELEMID, id);
+  RTDEBUGF(iface->ctx, 1, "_rtt_GetEqualEdge returned %" RTTFMT_ELEMID, id);
   if ( id == -1 )
   {
     rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal rterror */
@@ -5592,14 +5592,14 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   if ( tol )
   {{
     tmp2 = rtline_remove_repeated_points(iface->ctx, edge, tol);
-    RTDEBUGG(1, tmp2, "Repeated-point removed");
+    RTDEBUGG(iface->ctx, 1, tmp2, "Repeated-point removed");
     edge = rtgeom_as_rtline(iface->ctx, tmp2);
     rtgeom_free(iface->ctx, tmp);
     tmp = tmp2;
 
     /* check if the so-decimated edge _now_ exists */
     id = _rtt_GetEqualEdge ( topo, edge );
-    RTDEBUGF(1, "_rtt_GetEqualEdge returned %" RTTFMT_ELEMID, id);
+    RTDEBUGF(iface->ctx, 1, "_rtt_GetEqualEdge returned %" RTTFMT_ELEMID, id);
     if ( id == -1 )
     {
       rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal lwerror */
@@ -5614,7 +5614,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
 
   /* TODO: skip checks ? */
   id = rtt_AddEdgeModFace( topo, nid[0], nid[1], edge, 0 );
-  RTDEBUGF(1, "rtt_AddEdgeModFace returned %" RTTFMT_ELEMID, id);
+  RTDEBUGF(iface->ctx, 1, "rtt_AddEdgeModFace returned %" RTTFMT_ELEMID, id);
   if ( id == -1 )
   {
     rtgeom_free(iface->ctx, tmp); /* probably too late, due to internal rterror */
@@ -5669,28 +5669,28 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
   /* Get tolerance, if 0 was given */
   if ( ! tol ) tol = _RTT_MINTOLERANCE( topo, (RTGEOM*)line );
-  RTDEBUGF(1, "Working tolerance:%.15g", tol);
-  RTDEBUGF(1, "Input line has srid=%d", line->srid);
+  RTDEBUGF(iface->ctx, 1, "Working tolerance:%.15g", tol);
+  RTDEBUGF(iface->ctx, 1, "Input line has srid=%d", line->srid);
 
   /* Remove consecutive vertices below given tolerance upfront */
   if ( tol )
   {{
     RTLINE *clean = rtgeom_as_rtline(iface->ctx, rtline_remove_repeated_points(iface->ctx, line, tol));
     tmp = rtline_as_rtgeom(iface->ctx, clean); /* NOTE: might collapse to non-simple */
-    RTDEBUGG(1, tmp, "Repeated-point removed");
+    RTDEBUGG(iface->ctx, 1, tmp, "Repeated-point removed");
   }} else tmp=(RTGEOM*)line;
 
   /* 1. Self-node */
   noded = rtgeom_node(iface->ctx, (RTGEOM*)tmp);
   if ( tmp != (RTGEOM*)line ) rtgeom_free(iface->ctx, tmp);
   if ( ! noded ) return NULL; /* should have called rterror already */
-  RTDEBUGG(1, noded, "Noded");
+  RTDEBUGG(iface->ctx, 1, noded, "Noded");
 
   qbox = *rtgeom_get_bbox(iface->ctx,  rtline_as_rtgeom(iface->ctx, line) );
-  RTDEBUGF(1, "Line BOX is %.15g %.15g, %.15g %.15g", qbox.xmin, qbox.ymin,
+  RTDEBUGF(iface->ctx, 1, "Line BOX is %.15g %.15g, %.15g %.15g", qbox.xmin, qbox.ymin,
                                           qbox.xmax, qbox.ymax);
   gbox_expand(iface->ctx, &qbox, tol);
-  RTDEBUGF(1, "BOX expanded by %g is %.15g %.15g, %.15g %.15g",
+  RTDEBUGF(iface->ctx, 1, "BOX expanded by %g is %.15g %.15g, %.15g %.15g",
               tol, qbox.xmin, qbox.ymin, qbox.xmax, qbox.ymax);
 
   /* 2. Node to edges falling within tol distance */
@@ -5701,7 +5701,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
     rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return NULL;
   }
-  RTDEBUGF(1, "Line bbox intersects %d edges bboxes", num);
+  RTDEBUGF(iface->ctx, 1, "Line bbox intersects %d edges bboxes", num);
   if ( num )
   {{
     /* collect those whose distance from us is < tol */
@@ -5722,41 +5722,41 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
       RTGEOM *snapped;
       RTGEOM *set1, *set2;
 
-      RTDEBUGF(1, "Line intersects %d edges", nn);
+      RTDEBUGF(iface->ctx, 1, "Line intersects %d edges", nn);
 
       col = rtcollection_construct(iface->ctx, RTCOLLECTIONTYPE, topo->srid,
                                    NULL, nn, nearby);
       iedges = rtcollection_as_rtgeom(iface->ctx, col);
-      RTDEBUGG(1, iedges, "Collected edges");
-      RTDEBUGF(1, "Snapping noded, with srid=%d "
+      RTDEBUGG(iface->ctx, 1, iedges, "Collected edges");
+      RTDEBUGF(iface->ctx, 1, "Snapping noded, with srid=%d "
                   "to interesecting edges, with srid=%d",
                   noded->srid, iedges->srid);
       snapped = _rtt_toposnap(iface->ctx, noded, iedges, tol);
       rtgeom_free(iface->ctx, noded);
-      RTDEBUGG(1, snapped, "Snapped");
-      RTDEBUGF(1, "Diffing snapped, with srid=%d "
+      RTDEBUGG(iface->ctx, 1, snapped, "Snapped");
+      RTDEBUGF(iface->ctx, 1, "Diffing snapped, with srid=%d "
                   "and interesecting edges, with srid=%d",
                   snapped->srid, iedges->srid);
       noded = rtgeom_difference(iface->ctx, snapped, iedges);
-      RTDEBUGG(1, noded, "Differenced");
-      RTDEBUGF(1, "Intersecting snapped, with srid=%d "
+      RTDEBUGG(iface->ctx, 1, noded, "Differenced");
+      RTDEBUGF(iface->ctx, 1, "Intersecting snapped, with srid=%d "
                   "and interesecting edges, with srid=%d",
                   snapped->srid, iedges->srid);
       set1 = rtgeom_intersection(iface->ctx, snapped, iedges);
-      RTDEBUGG(1, set1, "Intersected");
+      RTDEBUGG(iface->ctx, 1, set1, "Intersected");
       rtgeom_free(iface->ctx, snapped);
-      RTDEBUGF(1, "Linemerging set1, with srid=%d", set1->srid);
+      RTDEBUGF(iface->ctx, 1, "Linemerging set1, with srid=%d", set1->srid);
       set2 = rtgeom_linemerge(iface->ctx, set1);
-      RTDEBUGG(1, set2, "Linemerged");
-      RTDEBUGG(1, noded, "Noded");
+      RTDEBUGG(iface->ctx, 1, set2, "Linemerged");
+      RTDEBUGG(iface->ctx, 1, noded, "Noded");
       rtgeom_free(iface->ctx, set1);
-      RTDEBUGF(1, "Unioning noded, with srid=%d "
+      RTDEBUGF(iface->ctx, 1, "Unioning noded, with srid=%d "
                   "and set2, with srid=%d", noded->srid, set2->srid);
       set1 = rtgeom_union(iface->ctx, noded, set2);
       rtgeom_free(iface->ctx, set2);
       rtgeom_free(iface->ctx, noded);
       noded = set1;
-      RTDEBUGG(1, set1, "Unioned");
+      RTDEBUGG(iface->ctx, 1, set1, "Unioned");
 
       /* will not release the geoms array */
       rtcollection_release(iface->ctx, col);
@@ -5774,7 +5774,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
     rterror(iface->ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return NULL;
   }
-  RTDEBUGF(1, "Line bbox intersects %d nodes bboxes", num);
+  RTDEBUGF(iface->ctx, 1, "Line bbox intersects %d nodes bboxes", num);
   if ( num )
   {{
     /* collect those whose distance from us is < tol */
@@ -5794,26 +5794,26 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
       RTGEOM *inodes; /* just an alias for col */
       RTGEOM *tmp;
 
-      RTDEBUGF(1, "Line intersects %d nodes", nn);
+      RTDEBUGF(iface->ctx, 1, "Line intersects %d nodes", nn);
 
       col = rtcollection_construct(iface->ctx, RTMULTIPOINTTYPE, topo->srid,
                                    NULL, nn, nearby);
       inodes = rtcollection_as_rtgeom(iface->ctx, col);
 
-      RTDEBUGG(1, inodes, "Collected nodes");
+      RTDEBUGG(iface->ctx, 1, inodes, "Collected nodes");
 
       /* TODO: consider snapping once against all elements
        *      (rather than once with edges and once with nodes) */
       tmp = _rtt_toposnap(iface->ctx, noded, inodes, tol);
       rtgeom_free(iface->ctx, noded);
       noded = tmp;
-      RTDEBUGG(1, noded, "Node-snapped");
+      RTDEBUGG(iface->ctx, 1, noded, "Node-snapped");
 
       tmp = _rtt_split_by_nodes(iface->ctx, noded, inodes);
           /* rtgeom_split(iface->ctx, noded, inodes); */
       rtgeom_free(iface->ctx, noded);
       noded = tmp;
-      RTDEBUGG(1, noded, "Node-split");
+      RTDEBUGG(iface->ctx, 1, noded, "Node-split");
 
       /* will not release the geoms array */
       rtcollection_release(iface->ctx, col);
@@ -5826,32 +5826,32 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
       tmp = rtgeom_unaryunion(iface->ctx, noded);
       rtgeom_free(iface->ctx, noded);
       noded = tmp;
-      RTDEBUGG(1, noded, "Unary-unioned");
+      RTDEBUGG(iface->ctx, 1, noded, "Unary-unioned");
 
     }}
     rtfree(iface->ctx, nearby);
     _rtt_release_nodes(iface->ctx, nodes, num);
   }}
 
-  RTDEBUGG(1, noded, "Finally-noded");
+  RTDEBUGG(iface->ctx, 1, noded, "Finally-noded");
 
   /* 3. For each (now-noded) segment, insert an edge */
   col = rtgeom_as_rtcollection(iface->ctx, noded);
   if ( col )
   {
-    RTDEBUG(1, "Noded line was a collection");
+    RTDEBUG(iface->ctx, 1, "Noded line was a collection");
     geoms = col->geoms;
     ngeoms = col->ngeoms;
   }
   else
   {
-    RTDEBUG(1, "Noded line was a single geom");
+    RTDEBUG(iface->ctx, 1, "Noded line was a single geom");
     geomsbuf[0] = noded;
     geoms = geomsbuf;
     ngeoms = 1;
   }
 
-  RTDEBUGF(1, "Line was split into %d edges", ngeoms);
+  RTDEBUGF(iface->ctx, 1, "Line was split into %d edges", ngeoms);
 
   /* TODO: refactor to first add all nodes (re-snapping edges if
    * needed) and then check all edges for existing already
@@ -5869,13 +5869,13 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
     {
       size_t sz;
       char *wkt1 = rtgeom_to_wkt(iface->ctx, g, RTWKT_EXTENDED, 15, &sz);
-      RTDEBUGF(1, "Component %d of split line is: %s", i, wkt1);
+      RTDEBUGF(iface->ctx, 1, "Component %d of split line is: %s", i, wkt1);
       rtfree(iface->ctx, wkt1);
     }
 #endif
 
     id = _rtt_AddLineEdge( topo, rtgeom_as_rtline(iface->ctx, g), tol );
-    RTDEBUGF(1, "_rtt_AddLineEdge returned %" RTTFMT_ELEMID, id);
+    RTDEBUGF(iface->ctx, 1, "_rtt_AddLineEdge returned %" RTTFMT_ELEMID, id);
     if ( id < 0 )
     {
       rtgeom_free(iface->ctx, noded);
@@ -5884,16 +5884,16 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
     }
     if ( ! id )
     {
-      RTDEBUGF(1, "Component %d of split line collapsed", i);
+      RTDEBUGF(iface->ctx, 1, "Component %d of split line collapsed", i);
       continue;
     }
 
-    RTDEBUGF(1, "Component %d of split line is edge %" RTTFMT_ELEMID,
+    RTDEBUGF(iface->ctx, 1, "Component %d of split line is edge %" RTTFMT_ELEMID,
                   i, id);
     ids[num++] = id; /* TODO: skip duplicates */
   }
 
-  RTDEBUGG(1, noded, "Noded before free");
+  RTDEBUGG(iface->ctx, 1, noded, "Noded before free");
   rtgeom_free(iface->ctx, noded);
 
   /* TODO: XXX remove duplicated ids if not done before */
@@ -5918,7 +5918,7 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
 
   /* Get tolerance, if 0 was given */
   if ( ! tol ) tol = _RTT_MINTOLERANCE( topo, (RTGEOM*)poly );
-  RTDEBUGF(1, "Working tolerance:%.15g", tol);
+  RTDEBUGF(iface->ctx, 1, "Working tolerance:%.15g", tol);
 
   /* Add each ring as an edge */
   for ( i=0; i<poly->nrings; ++i )

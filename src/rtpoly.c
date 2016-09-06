@@ -367,7 +367,7 @@ RTPOLY* rtpoly_simplify(const RTCTX *ctx, const RTPOLY *ipoly, double dist, int 
   int i;
   RTPOLY *opoly = rtpoly_construct_empty(ctx, ipoly->srid, RTFLAGS_GET_Z(ipoly->flags), RTFLAGS_GET_M(ipoly->flags));
 
-  RTDEBUGF(2, "%s: simplifying polygon with %d rings", __func__, ipoly->nrings);
+  RTDEBUGF(ctx, 2, "%s: simplifying polygon with %d rings", __func__, ipoly->nrings);
 
   if ( rtpoly_is_empty(ctx, ipoly) )
   {
@@ -387,12 +387,12 @@ RTPOLY* rtpoly_simplify(const RTCTX *ctx, const RTPOLY *ipoly, double dist, int 
 
     opts = ptarray_simplify(ctx, ipoly->rings[i], dist, minvertices);
 
-    RTDEBUGF(3, "ring%d simplified from %d to %d points", i, ipoly->rings[i]->npoints, opts->npoints);
+    RTDEBUGF(ctx, 3, "ring%d simplified from %d to %d points", i, ipoly->rings[i]->npoints, opts->npoints);
 
     /* Less points than are needed to form a closed ring, we can't use this */
     if ( opts->npoints < 4 )
     {
-      RTDEBUGF(3, "ring%d skipped (% pts)", i, opts->npoints);
+      RTDEBUGF(ctx, 3, "ring%d skipped (% pts)", i, opts->npoints);
       ptarray_free(ctx, opts);
       if ( i ) continue;
       else break; /* Don't scan holes if shell is collapsed */
@@ -406,7 +406,7 @@ RTPOLY* rtpoly_simplify(const RTCTX *ctx, const RTPOLY *ipoly, double dist, int 
     }
   }
 
-  RTDEBUGF(3, "simplified polygon with %d rings", ipoly->nrings);
+  RTDEBUGF(ctx, 3, "simplified polygon with %d rings", ipoly->nrings);
   opoly->type = ipoly->type;
 
   if( rtpoly_is_empty(ctx, opoly) )
@@ -460,7 +460,7 @@ rtpoly_perimeter(const RTCTX *ctx, const RTPOLY *poly)
   double result=0.0;
   int i;
 
-  RTDEBUGF(2, "in rtgeom_polygon_perimeter (%d rings)", poly->nrings);
+  RTDEBUGF(ctx, 2, "in rtgeom_polygon_perimeter (%d rings)", poly->nrings);
 
   for (i=0; i<poly->nrings; i++)
     result += ptarray_length(ctx, poly->rings[i]);
@@ -478,7 +478,7 @@ rtpoly_perimeter_2d(const RTCTX *ctx, const RTPOLY *poly)
   double result=0.0;
   int i;
 
-  RTDEBUGF(2, "in rtgeom_polygon_perimeter (%d rings)", poly->nrings);
+  RTDEBUGF(ctx, 2, "in rtgeom_polygon_perimeter (%d rings)", poly->nrings);
 
   for (i=0; i<poly->nrings; i++)
     result += ptarray_length_2d(ctx, poly->rings[i]);
@@ -555,7 +555,7 @@ RTPOLY* rtpoly_grid(const RTCTX *ctx, const RTPOLY *poly, const gridspec *grid)
   double minvisiblearea = grid->xsize * grid->ysize;
 #endif
 
-  RTDEBUGF(3, "rtpoly_grid: applying grid to polygon with %d rings", poly->nrings);
+  RTDEBUGF(ctx, 3, "rtpoly_grid: applying grid to polygon with %d rings", poly->nrings);
 
   opoly = rtpoly_construct_empty(ctx, poly->srid, rtgeom_has_z(ctx, (RTGEOM*)poly), rtgeom_has_m(ctx, (RTGEOM*)poly));
 
@@ -571,7 +571,7 @@ RTPOLY* rtpoly_grid(const RTCTX *ctx, const RTPOLY *poly, const gridspec *grid)
     {
       ptarray_free(ctx, newring);
 
-      RTDEBUGF(3, "grid_polygon3d: ring%d skipped ( <4 pts )", ri);
+      RTDEBUGF(ctx, 3, "grid_polygon3d: ring%d skipped ( <4 pts )", ri);
 
       if ( ri ) continue;
       else break; /* this is the external ring, no need to work on holes */
@@ -584,7 +584,7 @@ RTPOLY* rtpoly_grid(const RTCTX *ctx, const RTPOLY *poly, const gridspec *grid)
     }
   }
 
-  RTDEBUGF(3, "rtpoly_grid: simplified polygon with %d rings", opoly->nrings);
+  RTDEBUGF(ctx, 3, "rtpoly_grid: simplified polygon with %d rings", opoly->nrings);
 
   if ( ! opoly->nrings )
   {

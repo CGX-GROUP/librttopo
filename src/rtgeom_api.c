@@ -256,13 +256,13 @@ rt_getPoint4d_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT4D *op)
   }
 #endif
 
-  RTDEBUG(4, "rt_getPoint4d_p called.");
+  RTDEBUG(ctx, 4, "rt_getPoint4d_p called.");
 
   /* Get a pointer to nth point offset and zmflag */
   ptr=rt_getPoint_internal(ctx, pa, n);
   zmflag=RTFLAGS_GET_ZM(pa->flags);
 
-  RTDEBUGF(4, "ptr %p, zmflag %d", ptr, zmflag);
+  RTDEBUGF(ctx, 4, "ptr %p, zmflag %d", ptr, zmflag);
 
   switch (zmflag)
   {
@@ -339,12 +339,12 @@ rt_getPoint3dz_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DZ *op
 
   if ( (n<0) || (n>=pa->npoints))
   {
-    RTDEBUGF(4, "%d out of numpoint range (%d)", n, pa->npoints);
+    RTDEBUGF(ctx, 4, "%d out of numpoint range (%d)", n, pa->npoints);
     return 0; /*error */
   }
 #endif
 
-  RTDEBUGF(2, "rt_getPoint3dz_p called on array of %d-dimensions / %u pts",
+  RTDEBUGF(ctx, 2, "rt_getPoint3dz_p called on array of %d-dimensions / %u pts",
            RTFLAGS_NDIMS(pa->flags), pa->npoints);
 
   /* Get a pointer to nth point offset */
@@ -395,7 +395,7 @@ rt_getPoint3dm_p(const RTCTX *ctx, const RTPOINTARRAY *pa, int n, RTPOINT3DM *op
   }
 #endif
 
-  RTDEBUGF(2, "rt_getPoint3dm_p(ctx, %d) called on array of %d-dimensions / %u pts",
+  RTDEBUGF(ctx, 2, "rt_getPoint3dm_p(ctx, %d) called on array of %d-dimensions / %u pts",
            n, RTFLAGS_NDIMS(pa->flags), pa->npoints);
 
 

@@ -440,7 +440,7 @@ int rt_arc_calculate_gbox_cartesian_2d(const RTCTX *ctx, const RTPOINT2D *A1, co
   int A2_side;
   double radius_A;
 
-  RTDEBUG(2, "rt_arc_calculate_gbox_cartesian_2d called.");
+  RTDEBUG(ctx, 2, "rt_arc_calculate_gbox_cartesian_2d called.");
 
   radius_A = rt_arc_center(ctx, A1, A2, A3, &C);
 
@@ -506,7 +506,7 @@ static int rt_arc_calculate_gbox_cartesian(const RTCTX *ctx, const RTPOINT4D *p1
 {
   int rv;
 
-  RTDEBUG(2, "rt_arc_calculate_gbox_cartesian called.");
+  RTDEBUG(ctx, 2, "rt_arc_calculate_gbox_cartesian called.");
 
   rv = rt_arc_calculate_gbox_cartesian_2d(ctx, (RTPOINT2D*)p1, (RTPOINT2D*)p2, (RTPOINT2D*)p3, gbox);
     gbox->zmin = FP_MIN(p1->z, p3->z);
@@ -529,7 +529,7 @@ int ptarray_calculate_gbox_cartesian(const RTCTX *ctx, const RTPOINTARRAY *pa, R
   has_z = RTFLAGS_GET_Z(pa->flags);
   has_m = RTFLAGS_GET_M(pa->flags);
   gbox->flags = gflags(ctx, has_z, has_m, 0);
-  RTDEBUGF(4, "ptarray_calculate_gbox Z: %d M: %d", has_z, has_m);
+  RTDEBUGF(ctx, 4, "ptarray_calculate_gbox Z: %d M: %d", has_z, has_m);
 
   rt_getPoint4d_p(ctx, pa, 0, &p);
   gbox->xmin = gbox->xmax = p.x;
@@ -655,7 +655,7 @@ static int rtcollection_calculate_gbox_cartesian(const RTCTX *ctx, RTCOLLECTION 
 int rtgeom_calculate_gbox_cartesian(const RTCTX *ctx, const RTGEOM *rtgeom, RTGBOX *gbox)
 {
   if ( ! rtgeom ) return RT_FAILURE;
-  RTDEBUGF(4, "rtgeom_calculate_gbox got type (%d) - %s", rtgeom->type, rttype_name(ctx, rtgeom->type));
+  RTDEBUGF(ctx, 4, "rtgeom_calculate_gbox got type (%d) - %s", rtgeom->type, rttype_name(ctx, rtgeom->type));
 
   switch (rtgeom->type)
   {

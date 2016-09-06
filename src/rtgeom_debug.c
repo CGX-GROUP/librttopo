@@ -44,7 +44,7 @@ rtgeom_flagchars(const RTCTX *ctx, RTGEOM *rtg)
   if ( rtg->srid != SRID_UNKNOWN ) tflags[flagno++] = 'S';
   tflags[flagno] = '\0';
 
-  RTDEBUGF(4, "Flags: %s - returning %p", rtg->flags, tflags);
+  RTDEBUGF(ctx, 4, "Flags: %s - returning %p", rtg->flags, tflags);
 
   return tflags;
 }
@@ -95,7 +95,7 @@ rtcollection_summary(const RTCTX *ctx, RTCOLLECTION *col, int offset)
   char *pad="";
   char *zmflags = rtgeom_flagchars(ctx, (RTGEOM*)col);
 
-  RTDEBUG(2, "rtcollection_summary called");
+  RTDEBUG(ctx, 2, "rtcollection_summary called");
 
   result = (char *)rtalloc(ctx, size);
 
@@ -110,14 +110,14 @@ rtcollection_summary(const RTCTX *ctx, RTCOLLECTION *col, int offset)
     size += strlen(tmp)+1;
     result = rtrealloc(ctx, result, size);
 
-    RTDEBUGF(4, "Reallocated %d bytes for result", size);
+    RTDEBUGF(ctx, 4, "Reallocated %d bytes for result", size);
     if ( i > 0 ) strcat(result,nl);
 
     strcat(result, tmp);
     rtfree(ctx, tmp);
   }
 
-  RTDEBUG(3, "rtcollection_summary returning");
+  RTDEBUG(ctx, 3, "rtcollection_summary returning");
 
   return result;
 }
@@ -133,7 +133,7 @@ rtpoly_summary(const RTCTX *ctx, RTPOLY *poly, int offset)
   static char *nl = "\n";
   char *zmflags = rtgeom_flagchars(ctx, (RTGEOM*)poly);
 
-  RTDEBUG(2, "rtpoly_summary called");
+  RTDEBUG(ctx, 2, "rtpoly_summary called");
 
   result = (char *)rtalloc(ctx, size);
 
@@ -150,7 +150,7 @@ rtpoly_summary(const RTCTX *ctx, RTPOLY *poly, int offset)
     strcat(result,tmp);
   }
 
-  RTDEBUG(3, "rtpoly_summary returning");
+  RTDEBUG(ctx, 3, "rtpoly_summary returning");
 
   return result;
 }
