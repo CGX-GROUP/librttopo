@@ -1034,7 +1034,7 @@ RTT_ELEMID rtt_GetFaceByPoint(RTT_TOPOLOGY *topo, RTPOINT *pt, double tol);
  *
  * @param topo the topology to operate on
  * @param point the point to add
- * @param tol snap tolerance, the topology tolerance will be used if 0
+ * @param tol snap tolerance, the topology tolerance will be used if -1
  *
  * @return identifier of added (or pre-existing) node or -1 on error
  *         (librtgeom error handler will be invoked with error message)
@@ -1049,7 +1049,7 @@ RTT_ELEMID rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol);
  *
  * @param topo the topology to operate on
  * @param line the line to add
- * @param tol snap tolerance, the topology tolerance will be used if 0
+ * @param tol snap tolerance, the topology tolerance will be used if -1
  * @param nedges output parameter, will be set to number of edges the
  *               line was split into, or -1 on error
  *               (librtgeom error handler will be invoked with error message)
@@ -1071,7 +1071,7 @@ RTT_ELEMID* rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol,
  *
  * @param topo the topology to operate on
  * @param poly the polygon to add
- * @param tol snap tolerance, the topology tolerance will be used if 0
+ * @param tol snap tolerance, the topology tolerance will be used if -1
  * @param nfaces output parameter, will be set to number of faces the
  *               polygon was split into, or -1 on error
  *               (librtgeom error handler will be invoked with error message)

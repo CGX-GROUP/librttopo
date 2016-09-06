@@ -5028,7 +5028,7 @@ _rtt_minTolerance(const RTCTX *ctx,  RTGEOM *g )
 }
 
 #define _RTT_MINTOLERANCE( topo, geom ) ( \
-  topo->precision ?  topo->precision : _rtt_minTolerance(topo->be_iface->ctx, geom) )
+  topo->precision >= 0 ?  topo->precision : _rtt_minTolerance(topo->be_iface->ctx, geom) )
 
 typedef struct scored_pointer_t {
   void *ptr;
@@ -5061,8 +5061,8 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   RTT_ELEMID id = 0;
   scored_pointer *sorted;
 
-  /* Get tolerance, if 0 was given */
-  if ( ! tol ) tol = _RTT_MINTOLERANCE( topo, pt );
+  /* Get tolerance, if -1 was given */
+  if ( tol == -1 ) tol = _RTT_MINTOLERANCE( topo, pt );
 
   RTDEBUGG(1, pt, "Adding point");
 
@@ -5667,8 +5667,8 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
   *nedges = -1; /* error condition, by default */
 
-  /* Get tolerance, if 0 was given */
-  if ( ! tol ) tol = _RTT_MINTOLERANCE( topo, (RTGEOM*)line );
+  /* Get tolerance, if -1 was given */
+  if ( tol == -1 ) tol = _RTT_MINTOLERANCE( topo, (RTGEOM*)line );
   RTDEBUGF(1, "Working tolerance:%.15g", tol);
   RTDEBUGF(1, "Input line has srid=%d", line->srid);
 
@@ -5916,8 +5916,8 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
   const GEOSPreparedGeometry *ppoly;
   GEOSGeometry *polyg;
 
-  /* Get tolerance, if 0 was given */
-  if ( ! tol ) tol = _RTT_MINTOLERANCE( topo, (RTGEOM*)poly );
+  /* Get tolerance, if -1 was given */
+  if ( tol == -1 ) tol = _RTT_MINTOLERANCE( topo, (RTGEOM*)poly );
   RTDEBUGF(1, "Working tolerance:%.15g", tol);
 
   /* Add each ring as an edge */
