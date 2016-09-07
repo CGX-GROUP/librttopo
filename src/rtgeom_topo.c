@@ -2358,6 +2358,13 @@ _rtt_AddFaceSplit( RTT_TOPOLOGY* topo,
   return newface.face_id;
 }
 
+/**
+ * @param modFace can be
+ *    0 - have two new faces replace a splitted face
+ *    1 - modify a splitted face, adding a new one
+ *   -1 - do not check at all for face splitting
+ *
+ */
 static RTT_ELEMID
 _rtt_AddEdge( RTT_TOPOLOGY* topo,
               RTT_ELEMID start_node, RTT_ELEMID end_node,
@@ -2738,7 +2745,9 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
     }
   }
 
-  /* Check face splitting */
+  /* Check face splitting, if required */
+
+  if ( modFace > -1 ) {
 
   if ( ! isclosed && ( epan.was_isolated || span.was_isolated ) )
   {
@@ -2805,6 +2814,8 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
       }
     }
   }
+
+  } // end of face split checking
 
   return newedge.edge_id;
 }
@@ -5455,9 +5466,16 @@ _rtt_GetEqualEdge( RTT_TOPOLOGY *topo, RTLINE *edge )
 /*
  * Add a pre-noded pre-split line edge. Used by rtt_AddLine
  * Return edge id, 0 if none added (empty edge), -1 on error
+ *
+ * @param handleFaceSplit if non-zero the code will check
+ *        if the newly added edge would split a face and if so
+ *        would create new faces accordingly. Otherwise it will
+ *        set left_face and right_face to null (-1)
+ *
  */
 static RTT_ELEMID
-_rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
+_rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol,
+                  int handleFaceSplit )
 {
   const RTT_BE_IFACE *iface = topo->be_iface;
   RTCOLLECTION *col;
@@ -5614,7 +5632,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol )
   }}
 
   /* TODO: skip checks ? */
-  id = rtt_AddEdgeModFace( topo, nid[0], nid[1], edge, 0 );
+  id = _rtt_AddEdge( topo, nid[0], nid[1], edge, 0, handleFaceSplit ?  1 : -1 );
   RTDEBUGF(iface->ctx, 1, "rtt_AddEdgeModFace returned %" RTTFMT_ELEMID, id);
   if ( id == -1 )
   {
@@ -5650,8 +5668,15 @@ _rtt_split_by_nodes(const RTCTX *ctx, const RTGEOM *g, const RTGEOM *nodes)
   return bg;
 }
 
-RTT_ELEMID*
-rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
+/*
+ * @param handleFaceSplit if non-zero the code will check
+ *        if the newly added edge would split a face and if so
+ *        would create new faces accordingly. Otherwise it will
+ *        set left_face and right_face to null (-1)
+ */
+static RTT_ELEMID*
+_rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges,
+             int handleFaceSplit)
 {
   const RTT_BE_IFACE *iface = topo->be_iface;
   RTGEOM *geomsbuf[1];
@@ -5877,7 +5902,7 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
     }
 #endif
 
-    id = _rtt_AddLineEdge( topo, rtgeom_as_rtline(iface->ctx, g), tol );
+    id = _rtt_AddLineEdge( topo, rtgeom_as_rtline(iface->ctx, g), tol, handleFaceSplit );
     RTDEBUGF(iface->ctx, 1, "_rtt_AddLineEdge returned %" RTTFMT_ELEMID, id);
     if ( id < 0 )
     {
@@ -5903,6 +5928,18 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 
   *nedges = num;
   return ids;
+}
+
+RTT_ELEMID*
+rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
+{
+  return _rtt_AddLine(topo, line, tol, nedges, 1);
+}
+
+RTT_ELEMID*
+rtt_AddLineNoFace(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
+{
+  return _rtt_AddLine(topo, line, tol, nedges, 0);
 }
 
 RTT_ELEMID*
