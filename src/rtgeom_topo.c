@@ -546,9 +546,17 @@ rtt_FreeTopology( RTT_TOPOLOGY* topo )
   rtfree(iface->ctx, topo);
 }
 
-RTT_ELEMID
-rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
-                RTPOINT* pt, int skipISOChecks )
+/**
+ * @param checkFace if non zero will check the given face
+ *        for really containing the point or determine the
+ *        face when given face is -1. Use 0 to simply use
+ *        the given face value, no matter what (effectively
+ *        allowing adding a non-isolated point when used
+ *        with face=-1).
+ */
+static RTT_ELEMID
+_rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
+                RTPOINT* pt, int skipISOChecks, int checkFace )
 {
   RTT_ELEMID foundInFace = -1;
   const RTT_BE_IFACE *iface = topo->be_iface;
@@ -567,7 +575,7 @@ rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
     }
   }
 
-  if ( face == -1 || ! skipISOChecks )
+  if ( checkFace && ( face == -1 || ! skipISOChecks ) )
   {
     foundInFace = rtt_be_getFaceContainingPoint(topo, pt); /*x*/
     if ( foundInFace == -2 ) {
@@ -601,6 +609,13 @@ rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
   }
 
   return node.node_id;
+}
+
+RTT_ELEMID
+rtt_AddIsoNode( RTT_TOPOLOGY* topo, RTT_ELEMID face,
+                RTPOINT* pt, int skipISOChecks )
+{
+  return _rtt_AddIsoNode( topo, face, pt, skipISOChecks, 1 );
 }
 
 /* Check that an edge does not cross an existing node or edge
@@ -2633,7 +2648,7 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
             newedge.face_left, newedge.face_right);
     return -1;
   }
-  else if ( newedge.face_left == -1 && modFace > -1 )
+  else if ( newedge.face_left == -1 )
   {
     rterror(iface->ctx, "Could not derive edge face from linked primitives:"
             " invalid topology ?");
@@ -5059,8 +5074,13 @@ compare_scored_pointer(const void *si1, const void *si2)
     return 0;
 }
 
-RTT_ELEMID
-rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
+/*
+ * @param findFace if non-zero the code will determine which face
+ *        contains the given point (unless it is known to be NOT
+ *        isolated)
+ */
+static RTT_ELEMID
+_rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol, int findFace)
 {
   int num, i;
   double mindist = FLT_MAX;
@@ -5382,7 +5402,7 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   {
     /* The point is isolated, add it as such */
     /* TODO: pass 1 as last argument (skipChecks) ? */
-    id = rtt_AddIsoNode(topo, -1, point, 0);
+    id = _rtt_AddIsoNode(topo, -1, point, 0, findFace);
     if ( -1 == id )
     {
       /* should have invoked rterror already, leaking memory */
@@ -5392,6 +5412,12 @@ rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
   }
 
   return id;
+}
+
+RTT_ELEMID
+rtt_AddPoint(RTT_TOPOLOGY* topo, RTPOINT* point, double tol)
+{
+  return _rtt_AddPoint( topo, point, tol, 1 );
 }
 
 /* Return identifier of an equal edge, 0 if none or -1 on error
@@ -5496,7 +5522,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol,
     rtnotice(iface->ctx, "Empty component of noded line");
     return 0; /* must be empty */
   }
-  nid[0] = rtt_AddPoint( topo, start_point, tol );
+  nid[0] = _rtt_AddPoint( topo, start_point, tol, handleFaceSplit );
   rtpoint_free(iface->ctx, start_point); /* too late if rtt_AddPoint calls rterror */
   if ( nid[0] == -1 ) return -1; /* rterror should have been called */
 
@@ -5507,7 +5533,7 @@ _rtt_AddLineEdge( RTT_TOPOLOGY* topo, RTLINE* edge, double tol,
             "after successfully getting first point !?");
     return -1;
   }
-  nid[1] = rtt_AddPoint( topo, end_point, tol );
+  nid[1] = _rtt_AddPoint( topo, end_point, tol, handleFaceSplit );
   rtpoint_free(iface->ctx, end_point); /* too late if rtt_AddPoint calls rterror */
   if ( nid[1] == -1 ) return -1; /* rterror should have been called */
 
