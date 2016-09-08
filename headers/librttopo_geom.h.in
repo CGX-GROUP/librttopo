@@ -208,18 +208,6 @@ void rtgeom_finish(RTCTX *ctx);
 /** Return rtgeom version string (not to be freed) */
 const char* rtgeom_version(void);
 
-
-/**
-* Return a valid SRID from an arbitrary integer
-* Raises a notice if what comes out is different from
-* what went in.
-* Raises an error if SRID value is out of bounds.
-*/
-extern int clamp_srid(const RTCTX *ctx, int srid);
-
-/* Raise an rterror if srids do not match */
-void error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2);
-
 /**
  * This functions are called by programs which want to set up
  * custom handling for error reporting

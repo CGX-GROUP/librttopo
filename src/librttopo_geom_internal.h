@@ -456,6 +456,18 @@ int ptarrayarc_contains_point_partial(const RTCTX *ctx, const RTPOINTARRAY *pa, 
 int rtcompound_contains_point(const RTCTX *ctx, const RTCOMPOUND *comp, const RTPOINT2D *pt);
 int rtgeom_contains_point(const RTCTX *ctx, const RTGEOM *geom, const RTPOINT2D *pt);
 
+
+/**
+* Return a valid SRID from an arbitrary integer
+* Raises a notice if what comes out is different from
+* what went in.
+* Raises an error if SRID value is out of bounds.
+*/
+extern int clamp_srid(const RTCTX *ctx, int srid);
+
+/* Raise an rterror if srids do not match */
+void error_if_srid_mismatch(const RTCTX *ctx, int srid1, int srid2);
+
 /**
 * Split a line by a point and push components to the provided multiline.
 * If the point doesn't split the line, push nothing to the container.
