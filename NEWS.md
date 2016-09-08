@@ -8,6 +8,9 @@ YYYY-MM-DD
 
  * New Features *
 
+ - Function rtt_AddLineNoFace, to add lines w/out determining new
+   faces (WARNING: leaves topology in an invalid state)
+
 Release 1.0.0
 2016-05-19
 
