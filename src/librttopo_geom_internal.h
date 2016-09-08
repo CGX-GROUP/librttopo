@@ -175,6 +175,14 @@ struct RTCTX_T {
   void * debug_logger_arg;
 };
 
+typedef struct
+{
+  double xmin, ymin, zmin;
+  double xmax, ymax, zmax;
+  int32_t srid;
+}
+BOX3D;
+
 /*
 * Internal prototypes
 */
@@ -513,5 +521,20 @@ int ptarray_npoints_in_rect(const RTCTX *ctx, const RTPOINTARRAY *pa, const RTGB
 int gbox_contains_point2d(const RTCTX *ctx, const RTGBOX *g, const RTPOINT2D *p);
 int rtpoly_contains_point(const RTCTX *ctx, const RTPOLY *poly, const RTPOINT2D *pt);
 double distance2d_pt_seg(const RTCTX *ctx, const RTPOINT2D *p, const RTPOINT2D *A, const RTPOINT2D *B);
+
+/*------------------------------------------------------
+ * other stuff
+ *
+ * handle the double-to-float conversion.  The results of this
+ * will usually be a slightly bigger box because of the difference
+ * between float8 and float4 representations.
+ */
+
+extern BOX3D* box3d_from_gbox(const RTCTX *ctx, const RTGBOX *gbox);
+extern RTGBOX* box3d_to_gbox(const RTCTX *ctx, const BOX3D *b3d);
+void expand_box3d(BOX3D *box, double d);
+extern void printBOX3D(const RTCTX *ctx, BOX3D *b);
+
+
 
 #endif /* _LIBRTGEOM_INTERNAL_H */

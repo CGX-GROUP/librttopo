@@ -257,15 +257,6 @@ typedef struct {
   double afac, bfac, cfac, dfac, efac, ffac, gfac, hfac, ifac, xoff, yoff, zoff;
 } RTAFFINE;
 
-/******************************************************************/
-
-typedef struct
-{
-  double xmin, ymin, zmin;
-  double xmax, ymax, zmax;
-  int32_t srid;
-}
-BOX3D;
 
 /******************************************************************
 * RTGBOX structure.
@@ -1053,20 +1044,6 @@ RTCOLLECTION* rtcollection_extract(const RTCTX *ctx, RTCOLLECTION *col, int type
 */
 extern void rtgeom_set_srid(const RTCTX *ctx, RTGEOM *geom, int srid);
 
-/*------------------------------------------------------
- * other stuff
- *
- * handle the double-to-float conversion.  The results of this
- * will usually be a slightly bigger box because of the difference
- * between float8 and float4 representations.
- */
-
-extern BOX3D* box3d_from_gbox(const RTCTX *ctx, const RTGBOX *gbox);
-extern RTGBOX* box3d_to_gbox(const RTCTX *ctx, const BOX3D *b3d);
-
-void expand_box3d(BOX3D *box, double d);
-
-
 /****************************************************************
  * MEMORY MANAGEMENT
  ****************************************************************/
@@ -1118,7 +1095,6 @@ extern void rtgeom_release(const RTCTX *ctx, RTGEOM *rtgeom);
 * Utility
 ****************************************************************/
 
-extern void printBOX3D(const RTCTX *ctx, BOX3D *b);
 extern void printPA(const RTCTX *ctx, RTPOINTARRAY *pa);
 extern void printRTPOINT(const RTCTX *ctx, RTPOINT *point);
 extern void printRTLINE(const RTCTX *ctx, RTLINE *line);
