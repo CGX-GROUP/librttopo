@@ -3653,7 +3653,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
   RTT_ISO_FACE faces[2];
   RTGEOM *nface1 = NULL;
   RTGEOM *nface2 = NULL;
-  if ( oldedge->face_left != 0 )
+  if ( oldedge->face_left > 0 )
   {
     nface1 = rtt_GetFaceGeometry(topo, oldedge->face_left);
     if ( ! nface1 )
@@ -3676,7 +3676,7 @@ rtt_ChangeEdgeGeom(RTT_TOPOLOGY* topo, RTT_ELEMID edge_id, RTLINE *geom)
     /* ownership left to nface */
     faces[facestoupdate++].mbr = nface1->bbox;
   }
-  if ( oldedge->face_right != 0
+  if ( oldedge->face_right > 0
        /* no need to update twice the same face.. */
        && oldedge->face_right != oldedge->face_left )
   {
