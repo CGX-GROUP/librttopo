@@ -6103,3 +6103,883 @@ rtt_AddPolygon(RTT_TOPOLOGY* topo, RTPOLY* poly, double tol, int* nfaces)
 
   return ids;
 }
+
+/*
+ *---- polygonizer
+ */
+
+/* An array of pointers to EDGERING structures */
+typedef struct RTT_ISO_EDGE_TABLE_T {
+  RTT_ISO_EDGE *edges;
+  int size;
+} RTT_ISO_EDGE_TABLE;
+
+static int
+compare_iso_edges_by_id(const void *si1, const void *si2)
+{
+	int a = ((RTT_ISO_EDGE *)si1)->edge_id;
+	int b = ((RTT_ISO_EDGE *)si2)->edge_id;
+	if ( a < b )
+		return -1;
+	else if ( a > b )
+		return 1;
+	else
+		return 0;
+}
+
+static RTT_ISO_EDGE *
+_rtt_getIsoEdgeById(RTT_ISO_EDGE_TABLE *tab, RTT_ELEMID id)
+{
+  RTT_ISO_EDGE key;
+  key.edge_id = id;
+
+  void *match = bsearch( &key, tab->edges, tab->size,
+                     sizeof(RTT_ISO_EDGE),
+                     compare_iso_edges_by_id);
+  return match;
+}
+
+typedef struct RTT_EDGERING_ELEM_T {
+  /* externally owned */
+  RTT_ISO_EDGE *edge;
+  int left;
+} RTT_EDGERING_ELEM;
+
+/* A ring of edges */
+typedef struct RTT_EDGERING_T {
+  /* Signed edge identifiers
+   * positive ones are walked in their direction, negative ones
+   * in the opposite direction */
+  RTT_EDGERING_ELEM **elems;
+  /* Number of edges in the ring */
+  int size;
+  int capacity;
+  /* Bounding box of the ring */
+  RTGBOX *env;
+  /* Bounding box of the ring in GEOS format (for STRTree) */
+  GEOSGeometry *genv;
+} RTT_EDGERING;
+
+#define RTT_EDGERING_INIT(c, a) { \
+  (a)->size = 0; \
+  (a)->capacity = 1; \
+  (a)->elems = rtalloc((c), sizeof(RTT_EDGERING_ELEM *) * (a)->capacity); \
+  (a)->env = NULL; \
+  (a)->genv = NULL; \
+}
+
+#define RTT_EDGERING_PUSH(c, a, r) { \
+  if ( (a)->size + 1 > (a)->capacity ) { \
+    (a)->capacity *= 2; \
+    (a)->elems = rtrealloc((c), (a)->elems, sizeof(RTT_EDGERING_ELEM *) * (a)->capacity); \
+  } \
+  /* rtdebug(1, "adding elem %d (%p) of edgering %p", (a)->size, (r), (a)); */ \
+  (a)->elems[(a)->size++] = (r); \
+}
+
+#define RTT_EDGERING_CLEAN(c, a) { \
+  int i; for (i=0; i<(a)->size; ++i) { \
+    if ( (a)->elems[i] ) { \
+      /* rtdebug(1, "freeing elem %d (%p) of edgering %p", i, (a)->elems[i], (a)); */ \
+      rtfree(ctx,(a)->elems[i]); \
+    } \
+  } \
+  if ( (a)->elems ) { rtfree(ctx,(a)->elems); (a)->elems = NULL; } \
+  (a)->size = 0; \
+  (a)->capacity = 0; \
+  if ( (a)->env ) { rtfree(ctx,(a)->env); (a)->env = NULL; } \
+  if ( (a)->genv ) { GEOSGeom_destroy_r( (c)->gctx, (a)->genv); (a)->genv = NULL; } \
+}
+
+/* An array of pointers to EDGERING structures */
+typedef struct RTT_EDGERING_ARRAY_T {
+  RTT_EDGERING **rings;
+  int size;
+  int capacity;
+  GEOSSTRtree* tree;
+} RTT_EDGERING_ARRAY;
+
+#define RTT_EDGERING_ARRAY_INIT(c, a) { \
+  (a)->size = 0; \
+  (a)->capacity = 1; \
+  (a)->rings = rtalloc((c), sizeof(RTT_EDGERING *) * (a)->capacity); \
+  (a)->tree = NULL; \
+}
+
+/* WARNING: use of 'j' is intentional, no to clash with
+ * 'i' used in RTT_EDGERING_CLEAN */
+#define RTT_EDGERING_ARRAY_CLEAN(c, a) { \
+  int j; for (j=0; j<(a)->size; ++j) { \
+    RTT_EDGERING_CLEAN((c), (a)->rings[j]); \
+  } \
+  if ( (a)->capacity ) rtfree(ctx,(a)->rings); \
+  if ( (a)->tree ) { \
+    GEOSSTRtree_destroy_r( (c)->gctx, (a)->tree ); \
+    (a)->tree = NULL; \
+  } \
+}
+
+#define RTT_EDGERING_ARRAY_PUSH(c, a, r) { \
+  if ( (a)->size + 1 > (a)->capacity ) { \
+    (a)->capacity *= 2; \
+    (a)->rings = rtrealloc((c), (a)->rings, sizeof(RTT_EDGERING *) * (a)->capacity); \
+  } \
+  (a)->rings[(a)->size++] = (r); \
+}
+
+typedef struct RTT_EDGERING_POINT_ITERATOR_T {
+  RTT_EDGERING *ring;
+  RTT_EDGERING_ELEM *curelem;
+  int curelemidx;
+  int curidx;
+} RTT_EDGERING_POINT_ITERATOR;
+
+static int
+_rtt_EdgeRingIterator_next(const RTCTX *ctx, RTT_EDGERING_POINT_ITERATOR *it, RTPOINT2D *pt)
+{
+  RTT_EDGERING_ELEM *el = it->curelem;
+  RTPOINTARRAY *pa;
+
+  if ( ! el ) return 0; /* finished */
+
+  pa = el->edge->geom->points;
+
+  int tonext = 0;
+  RTDEBUGF(ctx, 3, "iterator fetching idx %d from pa of %d points", it->curidx, pa->npoints);
+  rt_getPoint2d_p(ctx,pa, it->curidx, pt);
+  if ( el->left ) {
+    it->curidx++;
+    if ( it->curidx >= pa->npoints ) tonext = 1;
+  } else {
+    it->curidx--;
+    if ( it->curidx < 0 ) tonext = 1;
+  }
+
+  if ( tonext )
+  {
+    RTDEBUG(ctx, 3, "iterator moving to next element");
+    it->curelemidx++;
+    if ( it->curelemidx < it->ring->size )
+    {
+      el = it->curelem = it->ring->elems[it->curelemidx];
+      it->curidx = el->left ? 0 : el->edge->geom->points->npoints - 1;
+    }
+    else
+    {
+      it->curelem = NULL;
+    }
+  }
+
+  return 1;
+}
+
+/* Release return with rtfree */
+static RTT_EDGERING_POINT_ITERATOR *
+_rtt_EdgeRingIterator_begin(const RTCTX *ctx, RTT_EDGERING *er)
+{
+  RTT_EDGERING_POINT_ITERATOR *ret = rtalloc(ctx, sizeof(RTT_EDGERING_POINT_ITERATOR));
+  ret->ring = er;
+  if ( er->size ) ret->curelem = er->elems[0];
+  else ret->curelem = NULL;
+  ret->curelemidx = 0;
+  ret->curidx = ret->curelem->left ? 0 : ret->curelem->edge->geom->points->npoints - 1;
+  return ret;
+}
+
+/* Identifier for a placeholder face that will be
+ * used to mark hole rings */
+#define RTT_HOLES_FACE_PLACEHOLDER INT32_MIN
+
+static int
+_rtt_FetchNextUnvisitedEdge(RTT_TOPOLOGY *topo, RTT_ISO_EDGE_TABLE *etab, int from)
+{
+  while (
+    from < etab->size &&
+    etab->edges[from].face_left != -1 &&
+    etab->edges[from].face_right != -1
+  ) from++;
+  return from < etab->size ? from : -1;
+}
+
+static RTT_ISO_EDGE *
+_rtt_FetchAllEdges(RTT_TOPOLOGY *topo, int *numedges)
+{
+  RTT_ISO_EDGE *edge;
+  int fields = RTT_COL_EDGE_ALL;
+  int nelems = 1;
+  RTGBOX qbox;
+  const RTCTX *ctx = topo->be_iface->ctx;
+
+  qbox.xmin = qbox.ymin = -DBL_MAX;
+  qbox.xmax = qbox.ymax = DBL_MAX;
+  edge = rtt_be_getEdgeWithinBox2D( topo, &qbox, &nelems, fields, 0);
+  if ( nelems == -1 ) {
+    rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    return NULL;
+  }
+  *numedges = nelems;
+  return edge;
+}
+
+/* Update the side face of given ring edges
+ *
+ * Edge identifiers are signed, those with negative identifier
+ * need to be updated their right_face, those with positive
+ * identifier need to be updated their left_face.
+ *
+ * @param face identifier of the face bound by the ring
+ * @return 0 on success, -1 on error
+ */
+static int
+_rtt_UpdateEdgeRingSideFace(RTT_TOPOLOGY *topo, RTT_EDGERING *ring,
+                            RTT_ELEMID face)
+{
+  RTT_ISO_EDGE *forward_edges = NULL;
+  int forward_edges_count = 0;
+  RTT_ISO_EDGE *backward_edges = NULL;
+  int backward_edges_count = 0;
+  int i, ret;
+  const RTCTX *ctx = topo->be_iface->ctx;
+
+  /* Make a list of forward_edges and backward_edges */
+
+  forward_edges = rtalloc(ctx, sizeof(RTT_ISO_EDGE) * ring->size);
+  forward_edges_count = 0;
+  backward_edges = rtalloc(ctx, sizeof(RTT_ISO_EDGE) * ring->size);
+  backward_edges_count = 0;
+
+  for ( i=0; i<ring->size; ++i )
+  {
+    RTT_EDGERING_ELEM *elem = ring->elems[i];
+    RTT_ISO_EDGE *edge = elem->edge;
+    RTT_ELEMID id = edge->edge_id;
+    if ( elem->left )
+    {
+      RTDEBUGF(ctx, 3, "Forward edge %d is %d", forward_edges_count, id);
+      forward_edges[forward_edges_count].edge_id = id;
+      forward_edges[forward_edges_count++].face_left = face;
+      edge->face_left = face;
+    }
+    else
+    {
+      RTDEBUGF(ctx, 3, "Backward edge %d is %d", forward_edges_count, id);
+      backward_edges[backward_edges_count].edge_id = id;
+      backward_edges[backward_edges_count++].face_right = face;
+      edge->face_right = face;
+    }
+  }
+
+  /* Update forward edges */
+  if ( forward_edges_count )
+  {
+    ret = rtt_be_updateEdgesById(topo, forward_edges,
+                                 forward_edges_count,
+                                 RTT_COL_EDGE_FACE_LEFT);
+    if ( ret == -1 )
+    {
+      rtfree(ctx, forward_edges );
+      rtfree(ctx, backward_edges );
+      rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      return -1;
+    }
+    if ( ret != forward_edges_count )
+    {
+      rtfree(ctx, forward_edges );
+      rtfree(ctx, backward_edges );
+      rterror(ctx, "Unexpected error: %d edges updated when expecting %d (forward)",
+              ret, forward_edges_count);
+      return -1;
+    }
+  }
+
+  /* Update backward edges */
+  if ( backward_edges_count )
+  {
+    ret = rtt_be_updateEdgesById(topo, backward_edges,
+                                 backward_edges_count,
+                                 RTT_COL_EDGE_FACE_RIGHT);
+    if ( ret == -1 )
+    {
+      rtfree(ctx, forward_edges );
+      rtfree(ctx, backward_edges );
+      rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      return -1;
+    }
+    if ( ret != backward_edges_count )
+    {
+      rtfree(ctx, forward_edges );
+      rtfree(ctx, backward_edges );
+      rterror(ctx, "Unexpected error: %d edges updated when expecting %d (backward)",
+              ret, backward_edges_count);
+      return -1;
+    }
+  }
+
+  rtfree(ctx, forward_edges );
+  rtfree(ctx, backward_edges );
+
+  return 0;
+}
+
+/*
+ * @param side 1 for left side, -1 for right side
+ */
+static RTT_EDGERING *
+_rtt_BuildEdgeRing(RTT_TOPOLOGY *topo, RTT_ISO_EDGE_TABLE *edges,
+                   RTT_ISO_EDGE *edge, int side)
+{
+  RTT_EDGERING *ring;
+  RTT_EDGERING_ELEM *elem;
+  RTT_ISO_EDGE *cur;
+  int curside;
+  const RTCTX *ctx = topo->be_iface->ctx;
+
+  ring = rtalloc(ctx, sizeof(RTT_EDGERING));
+  RTT_EDGERING_INIT(ctx, ring);
+
+  cur = edge;
+  curside = side;
+
+  RTDEBUGF(ctx, 2, "Building rings for edge %d (side %d)", cur->edge_id, side);
+
+  do {
+    RTT_ELEMID next;
+
+    elem = rtalloc(ctx, sizeof(RTT_EDGERING_ELEM));
+    elem->edge = cur;
+    elem->left = ( curside == 1 );
+
+    /* Mark edge as "visited" */
+    if ( elem->left ) cur->face_left = RTT_HOLES_FACE_PLACEHOLDER;
+    else cur->face_right = RTT_HOLES_FACE_PLACEHOLDER;
+
+    RTT_EDGERING_PUSH(ctx, ring, elem);
+    next = elem->left ? cur->next_left : cur->next_right;
+
+    RTDEBUGF(ctx, 3, " next edge is %d", next);
+
+    if ( next > 0 ) curside = 1;
+    else { curside = -1; next = -next; }
+    cur = _rtt_getIsoEdgeById(edges, next);
+    if ( ! cur )
+    {
+      rterror(ctx, "Could not find edge with id %d", next);
+      break;
+    }
+  } while (cur != edge || curside != side);
+
+  RTDEBUGF(ctx, 1, "Ring for edge %d has %d elems", edge->edge_id, ring->size);
+
+  return ring;
+}
+
+static double
+_rtt_EdgeRingSignedArea(const RTCTX *ctx, RTT_EDGERING_POINT_ITERATOR *it)
+{
+	RTPOINT2D P1;
+	RTPOINT2D P2;
+	RTPOINT2D P3;
+	double sum = 0.0;
+	double x0, x, y1, y2;
+
+  if ( ! _rtt_EdgeRingIterator_next(ctx, it, &P1) ) return 0.0;
+  if ( ! _rtt_EdgeRingIterator_next(ctx, it, &P2) ) return 0.0;
+
+  RTDEBUG(ctx, 2, "_rtt_EdgeRingSignedArea");
+
+  x0 = P1.x;
+  while ( _rtt_EdgeRingIterator_next(ctx, it, &P3)  )
+  {
+    x = P2.x - x0;
+    y1 = P3.y;
+    y2 = P1.y;
+    sum += x * (y2-y1);
+
+    /* Move forwards! */
+    P1 = P2;
+    P2 = P3;
+  }
+
+	return sum / 2.0;
+}
+
+
+/* Return 1 for true, 0 for false */
+static int
+_rtt_EdgeRingIsCCW(const RTCTX *ctx, RTT_EDGERING *ring)
+{
+  double sa;
+
+  RTDEBUGF(ctx, 2, "_rtt_EdgeRingIsCCW, ring has %d elems", ring->size);
+  RTT_EDGERING_POINT_ITERATOR *it = _rtt_EdgeRingIterator_begin(ctx, ring);
+  sa = _rtt_EdgeRingSignedArea(ctx, it);
+  RTDEBUGF(ctx, 2, "_rtt_EdgeRingIsCCW, signed area is %g", sa);
+  rtfree(ctx,it);
+  if ( sa >= 0 ) return 0;
+  else return 1;
+}
+
+static int
+_rtt_EdgeRingCrossingCount(const RTCTX *ctx, const RTPOINT2D *p, RTT_EDGERING_POINT_ITERATOR *it)
+{
+	int cn = 0;    /* the crossing number counter */
+	RTPOINT2D v1, v2;
+#ifndef RELAX
+  RTPOINT2D v0;
+#endif
+
+  if ( ! _rtt_EdgeRingIterator_next(ctx, it, &v1) ) return cn;
+  v0 = v1;
+	while ( _rtt_EdgeRingIterator_next(ctx, it, &v2) )
+	{
+		double vt;
+
+		/* edge from vertex i to vertex i+1 */
+		if
+		(
+		    /* an upward crossing */
+		    ((v1.y <= p->y) && (v2.y > p->y))
+		    /* a downward crossing */
+		    || ((v1.y > p->y) && (v2.y <= p->y))
+		)
+		{
+
+			vt = (double)(p->y - v1.y) / (v2.y - v1.y);
+
+			/* P->x <intersect */
+			if (p->x < v1.x + vt * (v2.x - v1.x))
+			{
+				/* a valid crossing of y=p->y right of p->x */
+				++cn;
+			}
+		}
+		v1 = v2;
+	}
+
+	RTDEBUGF(ctx, 3, "_rtt_EdgeRingCrossingCount returning %d", cn);
+
+#ifndef RELAX
+  if ( memcmp(&v1, &v0, sizeof(RTPOINT2D)) )
+  {
+    rterror(ctx, "_rtt_EdgeRingCrossingCount: V[n] != V[0] (%g %g != %g %g)",
+      v1.x, v1.y, v0.x, v0.y);
+    return -1;
+  }
+#endif
+
+  return cn;
+}
+
+/* Return 1 for true, 0 for false */
+static int
+_rtt_EdgeRingContainsPoint(const RTCTX *ctx, RTT_EDGERING *ring, RTPOINT2D *p)
+{
+  int cn = 0;
+
+  RTT_EDGERING_POINT_ITERATOR *it = _rtt_EdgeRingIterator_begin(ctx, ring);
+  cn = _rtt_EdgeRingCrossingCount(ctx, p, it);
+  rtfree(ctx, it);
+	return (cn&1);    /* 0 if even (out), and 1 if odd (in) */
+}
+
+static RTGBOX *
+_rtt_EdgeRingGetBbox(const RTCTX *ctx, RTT_EDGERING *ring)
+{
+  int i;
+
+  if ( ! ring->env )
+  {
+    RTDEBUGF(ctx, 2, "Computing RTGBOX for ring %p", ring);
+    for (i=0; i<ring->size; ++i)
+    {
+      RTT_EDGERING_ELEM *elem = ring->elems[i];
+      RTLINE *g = elem->edge->geom;
+      const RTGBOX *newbox = rtgeom_get_bbox(ctx, rtline_as_rtgeom(ctx, g));
+      if ( ! i ) ring->env = gbox_clone( ctx, newbox );
+      else gbox_merge( ctx, newbox, ring->env );
+    }
+  }
+
+  return ring->env;
+}
+
+static RTT_ELEMID
+_rtt_EdgeRingGetFace(RTT_EDGERING *ring)
+{
+  RTT_EDGERING_ELEM *el = ring->elems[0];
+  return el->left ? el->edge->face_left : el->edge->face_right;
+}
+
+
+/*
+ * Register a face on an edge side
+ *
+ * Create and register face to shell (CCW) walks,
+ * register arbitrary negative face_id to CW rings.
+ *
+ * Push CCW rings to shells, CW rings to holes.
+ *
+ * The ownership of the "geom" and "ids" members of the
+ * RTT_EDGERING pushed to the given RTT_EDGERING_ARRAYS
+ * are transferred to caller.
+ *
+ * @param side 1 for left side, -1 for right side
+ *
+ * @param holes an array where holes will be pushed
+ *
+ * @param shells an array where shells will be pushed
+ *
+ * @param registered id of registered face. It will be a negative number
+ *  for holes or isolated edge strips (still registered in the face
+ *  table, but only temporary).
+ *
+ * @return 0 on success, -1 on error.
+ *
+ */
+static int
+_rtt_RegisterFaceOnEdgeSide(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edge,
+                            int side, RTT_ISO_EDGE_TABLE *edges,
+                            RTT_EDGERING_ARRAY *holes,
+                            RTT_EDGERING_ARRAY *shells,
+                            RTT_ELEMID *registered)
+{
+  const RTT_BE_IFACE *iface = topo->be_iface;
+  int sedge = edge->edge_id * side;
+  /* this is arbitrary, could be taken as parameter */
+  static const int placeholder_faceid = RTT_HOLES_FACE_PLACEHOLDER;
+  RTT_EDGERING *ring;
+  const RTCTX *ctx = topo->be_iface->ctx;
+
+  /* Get edge ring */
+  ring = _rtt_BuildEdgeRing(topo, edges, edge, side);
+
+	RTDEBUG(ctx, 2, "Ring built, calling EdgeRingIsCCW");
+
+  /* Compute winding (CW or CCW?) */
+  int isccw = _rtt_EdgeRingIsCCW(ctx, ring);
+
+  if ( isccw )
+  {
+    /* Create new face */
+    RTT_ISO_FACE newface;
+
+    RTDEBUGF(ctx, 1, "Ring of edge %d is a shell", sedge);
+
+    newface.mbr = _rtt_EdgeRingGetBbox(ctx, ring);
+
+    newface.face_id = -1;
+    /* Insert the new face */
+    int ret = rtt_be_insertFaces( topo, &newface, 1 );
+    newface.mbr = NULL;
+    if ( ret == -1 )
+    {
+      rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+      return -1;
+    }
+    if ( ret != 1 )
+    {
+      rterror(ctx, "Unexpected error: %d faces inserted when expecting 1", ret);
+      return -1;
+    }
+    /* return new face_id */
+    *registered = newface.face_id;
+    RTT_EDGERING_ARRAY_PUSH(ctx, shells, ring);
+
+    /* update ring edges set new face_id on resp. side to *registered */
+    ret = _rtt_UpdateEdgeRingSideFace(topo, ring, *registered);
+    if ( ret )
+    {
+        rterror(ctx, "Errors updating edgering side face: %s",
+                rtt_be_lastErrorMessage(iface));
+        return -1;
+    }
+
+  }
+  else /* cw, so is an hole */
+  {
+    RTDEBUGF(ctx, 1, "Ring of edge %d is a hole", sedge);
+    *registered = placeholder_faceid;
+    RTT_EDGERING_ARRAY_PUSH(ctx, holes, ring);
+  }
+
+  return 0;
+}
+
+typedef struct RING_ACCUMULATOR_T {
+  RTT_EDGERING_ARRAY *target;
+  const RTCTX *ctx;
+} RING_ACCUMULATOR;
+
+static void
+_rtt_AccumulateCanditates(void* item, void* userdata)
+{
+  RING_ACCUMULATOR *acc = userdata;
+  RTT_EDGERING_ARRAY *candidates = acc->target;
+  const RTCTX *ctx = acc->ctx;
+  RTT_EDGERING *sring = item;
+  RTT_EDGERING_ARRAY_PUSH(ctx, candidates, sring);
+}
+
+static RTT_ELEMID
+_rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
+                            RTT_EDGERING_ARRAY *shells)
+{
+  RTT_ELEMID foundInFace = -1;
+  int i;
+  const RTGBOX *minenv = NULL;
+  RTPOINT2D pt;
+  RTGBOX testbox;
+  GEOSGeometry *ghole;
+  const RTCTX *ctx = topo->be_iface->ctx;
+
+  rt_getPoint2d_p(ctx, ring->elems[0]->edge->geom->points, 0, &pt );
+
+  gbox_init(ctx, &testbox);
+  testbox.xmin = testbox.xmax = pt.x;
+  testbox.ymin = testbox.ymax = pt.y;
+
+  /* Create a GEOS Point from a vertex of the hole ring */
+  {
+    RTPOINT *point = rtpoint_make2d(ctx, topo->srid, pt.x, pt.y);
+    ghole = RTGEOM2GEOS(ctx,  rtpoint_as_rtgeom(ctx, point), 1 );
+    rtpoint_free(ctx, point);
+    if ( ! ghole ) {
+      rterror(ctx, "Could not convert edge geometry to GEOS: %s", rtgeom_get_last_geos_error(ctx));
+      return -1;
+    }
+  }
+
+  /* Build STRtree of shell envelopes */
+  if ( ! shells->tree )
+  {
+    static const int STRTREE_NODE_CAPACITY = 10;
+    RTDEBUG(ctx, 1, "Building STRtree");
+	  shells->tree = GEOSSTRtree_create_r(ctx->gctx, STRTREE_NODE_CAPACITY);
+    if (shells->tree == NULL)
+    {
+      rterror(ctx, "Could not create GEOS STRTree: %s", rtgeom_get_last_geos_error(ctx));
+      return -1;
+    }
+    for (i=0; i<shells->size; ++i)
+    {
+      RTT_EDGERING *sring = shells->rings[i];
+      const RTGBOX* shellbox = _rtt_EdgeRingGetBbox(ctx, sring);
+      RTDEBUGF(ctx, 2, "RTGBOX of shell %p for edge %d is %g %g,%g %g",
+        sring, sring->elems[0]->edge->edge_id, shellbox->xmin,
+        shellbox->ymin, shellbox->xmax, shellbox->ymax);
+      RTPOINTARRAY *pa = ptarray_construct(ctx, 0, 0, 2);
+      RTPOINT4D pt;
+      RTLINE *diag;
+      pt.x = shellbox->xmin;
+      pt.y = shellbox->ymin;
+      ptarray_set_point4d(ctx, pa, 0, &pt);
+      pt.x = shellbox->xmax;
+      pt.y = shellbox->ymax;
+      ptarray_set_point4d(ctx, pa, 1, &pt);
+      diag = rtline_construct(ctx, topo->srid, NULL, pa);
+      /* Record just envelope in ggeom */
+      /* making valid, probably not needed */
+      sring->genv = RTGEOM2GEOS(ctx, rtline_as_rtgeom(ctx, diag), 1 );
+      rtline_free(ctx, diag);
+      GEOSSTRtree_insert_r(ctx->gctx, shells->tree, sring->genv, sring);
+    }
+    RTDEBUG(ctx, 1, "STRtree build completed");
+  }
+
+  RTT_EDGERING_ARRAY candidates;
+  RING_ACCUMULATOR accumulator;
+  accumulator.target = &candidates;
+  accumulator.ctx = ctx;
+  RTT_EDGERING_ARRAY_INIT(ctx, &candidates);
+	GEOSSTRtree_query_r(ctx->gctx, shells->tree, ghole, &_rtt_AccumulateCanditates, &accumulator);
+  RTDEBUGF(ctx, 1, "Found %d candidate shells for containement of ring %d point",
+          candidates.size, ring->elems[0]->edge->edge_id);
+
+  /* TODO: sort candidates by bounding box size */
+
+  for (i=0; i<candidates.size; ++i)
+  {
+    RTT_EDGERING *sring = candidates.rings[i];
+    const RTGBOX* shellbox = _rtt_EdgeRingGetBbox(ctx, sring);
+    int contains = 0;
+
+    if ( sring->elems[0]->edge->edge_id == ring->elems[0]->edge->edge_id )
+    {
+      RTDEBUGF(ctx, 1, "Shell %d is on other side of ring", _rtt_EdgeRingGetFace(sring));
+      continue;
+    }
+
+    /* Skip if test point is not in shellbox */
+    if ( ! gbox_contains_2d(ctx, shellbox, &testbox) )
+    {
+      /* TODO: skip this, should never happen, as we're candidates! */
+      RTDEBUGF(ctx, 1, "Bbox of shell %d does not contain bbox of ring point", _rtt_EdgeRingGetFace(sring));
+      continue;
+    }
+
+    /* Skip test if a containing shell was already found
+     * and this shell's bbox is not contained in the other */
+    if ( minenv && ! gbox_contains_2d(ctx, minenv, shellbox) )
+    {
+      RTDEBUGF(ctx, 2, "Bbox of shell %d (face %d) not contained by bbox "
+                  "of last shell found to contain the point",
+                  i, _rtt_EdgeRingGetFace(sring));
+      continue;
+    }
+
+    contains = _rtt_EdgeRingContainsPoint(ctx, sring, &pt);
+    if ( contains )
+    {
+      /* Continue until all shells are tested, as we want to
+       * use the one with the smallest bounding box */
+      /* IDEA: sort shells by bbox size, stopping on first match */
+      RTDEBUGF(ctx, 1, "Shell %d contains hole of edge %d",
+               _rtt_EdgeRingGetFace(sring),
+               ring->elems[0]->edge->edge_id);
+      minenv = shellbox;
+      foundInFace = _rtt_EdgeRingGetFace(sring);
+    }
+  }
+  if ( foundInFace == -1 ) foundInFace = 0;
+
+  candidates.size = 0; /* Avoid destroying the actual shell rings */
+  RTT_EDGERING_ARRAY_CLEAN(ctx, &candidates);
+
+  GEOSGeom_destroy_r(ctx->gctx, ghole);
+
+  return foundInFace;
+}
+
+/*
+ * Determine and register all topology faces:
+ *
+ *  - Determines which faces are generated by existing
+ *    edges.
+ *  - Creates face records with correct mbr
+ *  - Update edge left/right face attributes
+ *
+ *  Precondition:
+ *     - the topology edges are correctly linked
+ *
+ *  Postconditions:
+ *     - all left/right face attributes of edges
+ *       reference faces with correct mbr.
+ *
+ *  Notes:
+ *     - does not attempt to assign isolated nodes to their
+ *       containing faces
+ *     - does not remove existing face records
+ *     - loads in memory all the topology edges
+ */
+void
+rtt_Polygonize(RTT_TOPOLOGY* topo)
+{
+  /*
+     Iteratively:
+       Fetch next edge with null left-or-right face
+       For each NULL side:
+         Find ring on its side
+         If ring is CCW:
+            create a new face, assign to the ring edges' appropriate side
+         If ring is CW (face needs to be same of external):
+            assign a negative face_id the ring edges' appropriate side
+     Now for each edge with a negative face_id on the side:
+       Find containing face (mbr cache and all)
+       Update with id of containing face
+   */
+
+  const RTT_BE_IFACE *iface = topo->be_iface;
+  RTT_ISO_EDGE *edge;
+  RTT_ISO_EDGE_TABLE edgetable;
+  RTT_EDGERING_ARRAY holes, shells;
+  int i;
+  int err = 0;
+  const RTCTX *ctx = iface->ctx;
+
+  RTT_EDGERING_ARRAY_INIT(ctx, &holes);
+  RTT_EDGERING_ARRAY_INIT(ctx, &shells);
+
+  edgetable.edges = _rtt_FetchAllEdges(topo, &(edgetable.size));
+  if ( ! edgetable.edges ) return; /* error shoul have been printed already */
+
+  /* Sort edges by ID (to allow btree searches) */
+  qsort(edgetable.edges, edgetable.size, sizeof(RTT_ISO_EDGE), compare_iso_edges_by_id);
+
+  /* Mark all edges as unvisited */
+  for (i=0; i<edgetable.size; ++i)
+    edgetable.edges[i].face_left = edgetable.edges[i].face_right = -1;
+
+  i = 0;
+  while (1)
+  {
+    i = _rtt_FetchNextUnvisitedEdge(topo, &edgetable, i);
+    if ( i < 0 ) break; /* end of unvisited */
+    edge = &(edgetable.edges[i]);
+
+    RTT_ELEMID newface = -1;
+
+    RTDEBUGF(ctx, 1, "Next face-missing edge has id:%d, face_left:%d, face_right:%d",
+               edge->edge_id, edge->face_left, edge->face_right);
+    if ( edge->face_left == -1 )
+    {
+      err = _rtt_RegisterFaceOnEdgeSide(topo, edge, 1, &edgetable,
+                                        &holes, &shells, &newface);
+      if ( err ) break;
+      RTDEBUGF(ctx, 1, "New face on the left of edge %d is %d",
+                 edge->edge_id, newface);
+      edge->face_left = newface;
+    }
+    if ( edge->face_right == -1 )
+    {
+      err = _rtt_RegisterFaceOnEdgeSide(topo, edge, -1, &edgetable,
+                                        &holes, &shells, &newface);
+      if ( err ) break;
+      RTDEBUGF(ctx, 1, "New face on the right of edge %d is %d",
+                 edge->edge_id, newface);
+      edge->face_right = newface;
+    }
+  }
+
+  if ( err )
+  {
+      rterror(ctx, "Errors fetching or registering face-missing edges: %s",
+              rtt_be_lastErrorMessage(iface));
+      return;
+  }
+
+  RTDEBUGF(ctx, 1, "Found %d holes and %d shells", holes.size, shells.size);
+
+  /* TODO: sort holes by pt.x, sort shells by bbox.xmin */
+
+  /* Assign shells to holes */
+  for (i=0; i<holes.size; ++i)
+  {
+    RTT_ELEMID containing_face;
+    RTT_EDGERING *ring = holes.rings[i];
+
+    containing_face = _rtt_FindFaceContainingRing(topo, ring, &shells);
+    RTDEBUGF(ctx, 1, "Ring %d contained by face %" RTTFMT_ELEMID, i, containing_face);
+    if ( containing_face == -1 )
+    {
+      rterror(ctx, "Errors finding face containing ring: %s",
+              rtt_be_lastErrorMessage(iface));
+      return;
+    }
+    int ret = _rtt_UpdateEdgeRingSideFace(topo, holes.rings[i], containing_face);
+    if ( ret )
+    {
+      rterror(ctx, "Errors updating edgering side face: %s",
+              rtt_be_lastErrorMessage(iface));
+      return;
+    }
+  }
+
+  RTDEBUG(ctx, 1, "All holes assigned, cleaning up");
+
+  _rtt_release_edges(ctx, edgetable.edges, edgetable.size);
+
+  /* delete all shell and hole EDGERINGS */
+  RTT_EDGERING_ARRAY_CLEAN( ctx, &holes );
+  RTT_EDGERING_ARRAY_CLEAN( ctx, &shells );
+
+}
