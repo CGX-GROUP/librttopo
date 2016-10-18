@@ -10,7 +10,7 @@ librttopo_la_SOURCES = box2d.c bytebuffer.c g_box.c \
 	rtcompound.c rtcurvepoly.c rtgeodetic.c \
 	rtgeom_api.c rtgeom.c rtgeom_debug.c rtgeom_geos.c \
 	rtgeom_geos_clean.c rtgeom_geos_node.c rtgeom_geos_split.c \
-	rtgeom_topo.c rthomogenize.c rtin_geojson.c rtin_twkb.c \
+	rtgeom_tpsnap.c rtgeom_topo.c rthomogenize.c rtin_geojson.c rtin_twkb.c \
 	rtin_wkb.c rtiterator.c rtlinearreferencing.c rtline.c \
 	rtmcurve.c rtmline.c rtmpoint.c rtmpoly.c rtmsurface.c \
 	rtout_encoded_polyline.c rtout_geojson.c rtout_gml.c \

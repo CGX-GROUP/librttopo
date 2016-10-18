@@ -94,4 +94,24 @@ struct RTT_TOPOLOGY_T
   int hasZ;
 };
 
+/************************************************************************
+ *
+ * Backend interaction wrappers
+ *
+ ************************************************************************/
+
+RTT_ISO_EDGE*
+rtt_be_getEdgeWithinBox2D( const RTT_TOPOLOGY* topo,
+                           const RTGBOX* box, int* numelems, int fields,
+                           int limit );
+
+/************************************************************************
+ *
+ * Utility functions
+ *
+ ************************************************************************/
+
+void
+rtt_release_edges(const RTCTX *ctx, RTT_ISO_EDGE *edges, int num_edges);
+
 #endif /* LIBRTGEOM_TOPO_INTERNAL_H */
