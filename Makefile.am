@@ -12,11 +12,15 @@ EXTRA_DIST = \
   nmake.opt \
 	README.md
 
+CLEANFILES = \
+  ChangeLog
+
 AUTOMAKE_OPTIONS = dist-zip foreign
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rttopo.pc
 
 ChangeLog:
-	cd $(srcdir) && git2cl > $@
+	owd=$${PWD}; cd $(srcdir) && git2cl > $${owd}/$@
 
+.PHONY: ChangeLog
