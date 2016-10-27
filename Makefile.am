@@ -3,7 +3,6 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src headers
 
 EXTRA_DIST = \
-  ChangeLog \
   CREDITS \
   doc/BUILDING-ON-WINDOWS.md \
   doc/DATASTORES.md \
@@ -12,15 +11,19 @@ EXTRA_DIST = \
   nmake.opt \
 	README.md
 
-CLEANFILES = \
-  ChangeLog
-
 AUTOMAKE_OPTIONS = dist-zip foreign
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rttopo.pc
 
-ChangeLog:
-	owd=$${PWD}; cd $(srcdir) && git2cl > $${owd}/$@
+dist-hook: gen-ChangeLog
 
-.PHONY: ChangeLog
+gen-ChangeLog:
+	cd $(distdir) && owd=`pwd` && \
+	cd ../ && cd $(srcdir) && \
+  if test -d .git; then \
+    git2cl > $${owd}/ChangeLog; \
+  elif test -f ChangeLog; then \
+    cp ChangeLog $${owd}/ChangeLog; \
+	fi
+
