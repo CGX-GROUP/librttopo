@@ -734,7 +734,7 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
 
 /* public, exported */
 RTGEOM *
-rtgeom_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
+rtt_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
                          double tssnap, int iterate, int remove_vertices)
 {
   rtgeom_tpsnap_state state;
@@ -760,4 +760,3 @@ rtgeom_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
 
   return gtmp;
 }
-
