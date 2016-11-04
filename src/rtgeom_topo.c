@@ -6870,8 +6870,13 @@ _rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
  *       containing faces
  *     - does not remove existing face records
  *     - loads in memory all the topology edges
+ *
+ * @param topo the topology to operate on
+ *
+ * @return 0 on success, -1 on error
+ *         (librtgeom error handler will be invoked with error message)
  */
-void
+int
 rtt_Polygonize(RTT_TOPOLOGY* topo)
 {
   /*
@@ -6900,7 +6905,10 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
   RTT_EDGERING_ARRAY_INIT(ctx, &shells);
 
   edgetable.edges = _rtt_FetchAllEdges(topo, &(edgetable.size));
-  if ( ! edgetable.edges ) return; /* error shoul have been printed already */
+  if ( ! edgetable.edges ) {
+    /* error should have been printed already */
+    return -1;
+  }
 
   /* Sort edges by ID (to allow btree searches) */
   qsort(edgetable.edges, edgetable.size, sizeof(RTT_ISO_EDGE), compare_iso_edges_by_id);
@@ -6944,7 +6952,7 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
   {
       rterror(ctx, "Errors fetching or registering face-missing edges: %s",
               rtt_be_lastErrorMessage(iface));
-      return;
+      return -1;
   }
 
   RTDEBUGF(ctx, 1, "Found %d holes and %d shells", holes.size, shells.size);
@@ -6963,14 +6971,14 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
     {
       rterror(ctx, "Errors finding face containing ring: %s",
               rtt_be_lastErrorMessage(iface));
-      return;
+      return -1;
     }
     int ret = _rtt_UpdateEdgeRingSideFace(topo, holes.rings[i], containing_face);
     if ( ret )
     {
       rterror(ctx, "Errors updating edgering side face: %s",
               rtt_be_lastErrorMessage(iface));
-      return;
+      return -1;
     }
   }
 
@@ -6982,4 +6990,5 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
   RTT_EDGERING_ARRAY_CLEAN( ctx, &holes );
   RTT_EDGERING_ARRAY_CLEAN( ctx, &shells );
 
+  return 0;
 }
