@@ -2489,10 +2489,11 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
       }
       else if ( newedge.face_left != node->containing_face )
       {
-        _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
         rterror(iface->ctx, "SQL/MM Spatial exception - geometry crosses an edge"
                 " (endnodes in faces %" RTTFMT_ELEMID " and %" RTTFMT_ELEMID ")",
                 newedge.face_left, node->containing_face);
+        _rtt_release_nodes(iface->ctx, endpoints, num_nodes);
+        return -1;
       }
     }
 
