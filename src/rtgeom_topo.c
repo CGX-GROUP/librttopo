@@ -6902,6 +6902,8 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
   int err = 0;
   const RTCTX *ctx = iface->ctx;
 
+  _rtt_EnsureGeos(iface->ctx);
+
   RTT_EDGERING_ARRAY_INIT(ctx, &holes);
   RTT_EDGERING_ARRAY_INIT(ctx, &shells);
 
