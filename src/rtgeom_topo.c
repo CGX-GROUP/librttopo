@@ -6212,6 +6212,7 @@ typedef struct RTT_EDGERING_ARRAY_T {
 #define RTT_EDGERING_ARRAY_CLEAN(c, a) { \
   int j; for (j=0; j<(a)->size; ++j) { \
     RTT_EDGERING_CLEAN((c), (a)->rings[j]); \
+    rtfree( (c), (a)->rings[j]); \
   } \
   if ( (a)->capacity ) rtfree(ctx,(a)->rings); \
   if ( (a)->tree ) { \
@@ -6464,6 +6465,7 @@ _rtt_BuildEdgeRing(RTT_TOPOLOGY *topo, RTT_ISO_EDGE_TABLE *edges,
     cur = _rtt_getIsoEdgeById(edges, next);
     if ( ! cur )
     {
+      RTT_EDGERING_CLEAN(ctx, ring);
       rterror(ctx, "Could not find edge with id %d", next);
       break;
     }
@@ -6674,11 +6676,13 @@ _rtt_RegisterFaceOnEdgeSide(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edge,
     newface.mbr = NULL;
     if ( ret == -1 )
     {
+      RTT_EDGERING_CLEAN(ctx, ring);
       rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
       return -1;
     }
     if ( ret != 1 )
     {
+      RTT_EDGERING_CLEAN(ctx, ring);
       rterror(ctx, "Unexpected error: %d faces inserted when expecting 1", ret);
       return -1;
     }
@@ -6998,6 +7002,9 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
 
   if ( err )
   {
+      rtt_release_edges(ctx, edgetable.edges, edgetable.size);
+      RTT_EDGERING_ARRAY_CLEAN( ctx, &holes );
+      RTT_EDGERING_ARRAY_CLEAN( ctx, &shells );
       rterror(ctx, "Errors fetching or registering face-missing edges: %s",
               rtt_be_lastErrorMessage(iface));
       return -1;
@@ -7017,6 +7024,9 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
     RTDEBUGF(ctx, 1, "Ring %d contained by face %" RTTFMT_ELEMID, i, containing_face);
     if ( containing_face == -1 )
     {
+      rtt_release_edges(ctx, edgetable.edges, edgetable.size);
+      RTT_EDGERING_ARRAY_CLEAN( ctx, &holes );
+      RTT_EDGERING_ARRAY_CLEAN( ctx, &shells );
       rterror(ctx, "Errors finding face containing ring: %s",
               rtt_be_lastErrorMessage(iface));
       return -1;
@@ -7024,6 +7034,9 @@ rtt_Polygonize(RTT_TOPOLOGY* topo)
     int ret = _rtt_UpdateEdgeRingSideFace(topo, holes.rings[i], containing_face);
     if ( ret )
     {
+      rtt_release_edges(ctx, edgetable.edges, edgetable.size);
+      RTT_EDGERING_ARRAY_CLEAN( ctx, &holes );
+      RTT_EDGERING_ARRAY_CLEAN( ctx, &shells );
       rterror(ctx, "Errors updating edgering side face: %s",
               rtt_be_lastErrorMessage(iface));
       return -1;
