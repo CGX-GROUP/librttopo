@@ -258,7 +258,7 @@ _rt_extract_vertices_within_dist(rtgeom_tpsnap_state *state,
     RT_SNAPV_ARRAY *vset, RTLINE *edge, RTPOINTARRAY *pa)
 {
   int i;
-  RTPOINTARRAY *epa; /* edge's point array */
+  RTPOINTARRAY *epa = edge->points; /* edge's point array */
   const RTT_TOPOLOGY *topo = state->topo;
   const RTCTX *ctx = topo->be_iface->ctx;
 
