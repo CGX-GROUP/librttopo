@@ -683,7 +683,11 @@ _rtgeom_tpsnap_ptarray_add(const RTCTX *ctx, RTPOINTARRAY *pa,
       return -1;
     }
     RTDEBUGF(ctx, 1, "vertices within dist: %d", vset.size);
-    if ( vset.size < 2 ) break;
+    if ( vset.size < 2 ) {
+      RT_SNAPV_ARRAY_CLEAN(ctx, &vset);
+      RT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
+      break;
+    }
 
     ret = _rt_make_sorted_vertices_pairs(ctx, &vset, &vplist);
     if ( ret < 0 ) {
