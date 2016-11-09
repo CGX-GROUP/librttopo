@@ -6876,7 +6876,7 @@ _rtt_CheckFacesExist(RTT_TOPOLOGY *topo)
     rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
     return -1;
   }
-  _rtt_release_faces(ctx, faces, nelems);
+  if ( faces ) _rtt_release_faces(ctx, faces, nelems);
   return nelems;
 }
 
