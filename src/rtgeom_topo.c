@@ -6868,7 +6868,6 @@ _rtt_CheckFacesExist(RTT_TOPOLOGY *topo)
   int nelems = 1;
   RTGBOX qbox;
   const RTCTX *ctx = topo->be_iface->ctx;
-  int foundNonUniverse = 0;
 
   qbox.xmin = qbox.ymin = -DBL_MAX;
   qbox.xmax = qbox.ymax = DBL_MAX;
