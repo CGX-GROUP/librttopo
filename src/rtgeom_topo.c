@@ -6733,15 +6733,13 @@ _rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
   int i;
   const RTGBOX *minenv = NULL;
   RTPOINT2D pt;
-  RTGBOX testbox;
+  const RTGBOX *testbox;
   GEOSGeometry *ghole;
   const RTCTX *ctx = topo->be_iface->ctx;
 
   rt_getPoint2d_p(ctx, ring->elems[0]->edge->geom->points, 0, &pt );
 
-  gbox_init(ctx, &testbox);
-  testbox.xmin = testbox.xmax = pt.x;
-  testbox.ymin = testbox.ymax = pt.y;
+  testbox = _rtt_EdgeRingGetBbox(ctx, ring);
 
   /* Create a GEOS Point from a vertex of the hole ring */
   {
@@ -6815,7 +6813,7 @@ _rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
     }
 
     /* Skip if test point is not in shellbox */
-    if ( ! gbox_contains_2d(ctx, shellbox, &testbox) )
+    if ( ! gbox_contains_2d(ctx, shellbox, testbox) )
     {
       /* TODO: skip this, should never happen, as we're candidates! */
       RTDEBUGF(ctx, 1, "Bbox of shell %d does not contain bbox of ring point", _rtt_EdgeRingGetFace(sring));
