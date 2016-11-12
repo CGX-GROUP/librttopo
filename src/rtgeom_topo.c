@@ -5963,9 +5963,49 @@ rtt_AddLine(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
   return _rtt_AddLine(topo, line, tol, nedges, 1);
 }
 
+/*
+ * @return -1 on error (and report error),
+ *          1 if faces beside the universal one exist
+ *          0 otherwise
+ */
+static int
+_rtt_CheckFacesExist(RTT_TOPOLOGY *topo)
+{
+  RTT_ISO_FACE *faces;
+  int fields = RTT_COL_FACE_FACE_ID;
+  int nelems = 1;
+  RTGBOX qbox;
+  const RTCTX *ctx = topo->be_iface->ctx;
+
+  qbox.xmin = qbox.ymin = -DBL_MAX;
+  qbox.xmax = qbox.ymax = DBL_MAX;
+  faces = rtt_be_getFaceWithinBox2D( topo, &qbox, &nelems, fields, 1);
+  if ( nelems == -1 ) {
+    rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
+    return -1;
+  }
+  if ( faces ) _rtt_release_faces(ctx, faces, nelems);
+  return nelems;
+}
+
 RTT_ELEMID*
 rtt_AddLineNoFace(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
 {
+  /*
+   Check if Topology already contains some Face
+   (ignoring the Universal Face)
+  */
+  const RTT_BE_IFACE *iface = topo->be_iface;
+  int numfaces = _rtt_CheckFacesExist(topo);
+  if ( numfaces != 0 ) {
+    if ( numfaces > 0 ) {
+      /* Faces exist */
+      rterror(iface->ctx, "rtt_AddLineNoFace - table <topo>Face is not empty.");
+    }
+    /* Backend error, message should have been printed already */
+    return NULL;
+  }
+  
   return _rtt_AddLine(topo, line, tol, nedges, 0);
 }
 
@@ -6851,31 +6891,6 @@ _rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
   GEOSGeom_destroy_r(ctx->gctx, ghole);
 
   return foundInFace;
-}
-
-/*
- * @return -1 on error (and report error),
- *          1 if faces beside the universal one exist
- *          0 otherwise
- */
-static int
-_rtt_CheckFacesExist(RTT_TOPOLOGY *topo)
-{
-  RTT_ISO_FACE *faces;
-  int fields = RTT_COL_FACE_FACE_ID;
-  int nelems = 1;
-  RTGBOX qbox;
-  const RTCTX *ctx = topo->be_iface->ctx;
-
-  qbox.xmin = qbox.ymin = -DBL_MAX;
-  qbox.xmax = qbox.ymax = DBL_MAX;
-  faces = rtt_be_getFaceWithinBox2D( topo, &qbox, &nelems, fields, 1);
-  if ( nelems == -1 ) {
-    rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));
-    return -1;
-  }
-  if ( faces ) _rtt_release_faces(ctx, faces, nelems);
-  return nelems;
 }
 
 /*
