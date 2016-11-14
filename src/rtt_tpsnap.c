@@ -81,7 +81,7 @@ typedef struct {
 #define RTT_SNAPV_ARRAY_PUSH(c, a, r) { \
   if ( (a)->size + 1 > (a)->capacity ) { \
     (a)->capacity *= 2; \
-    (a)->pts = rtrealloc((c), (a)->pts, sizeof(RT_SNAPV *) * (a)->capacity); \
+    (a)->pts = rtrealloc((c), (a)->pts, sizeof(RT_SNAPV) * (a)->capacity); \
   } \
   (a)->pts[(a)->size++] = (r); \
 }
