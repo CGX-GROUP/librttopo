@@ -56,22 +56,22 @@ typedef struct {
   /* Closest segment in input pointarray (0-based index) */
   int segno;
   double dist;
-} RT_SNAPV;
+} RTT_SNAPV;
 
-/* An array of RT_SNAPV structs */
+/* An array of RTT_SNAPV structs */
 typedef struct {
-  RT_SNAPV *pts;
+  RTT_SNAPV *pts;
   int size;
   int capacity;
-} RT_SNAPV_ARRAY;
+} RTT_SNAPV_ARRAY;
 
-#define RT_SNAPV_ARRAY_INIT(c, a) { \
+#define RTT_SNAPV_ARRAY_INIT(c, a) { \
   (a)->size = 0; \
   (a)->capacity = 1; \
-  (a)->pts = rtalloc((c), sizeof(RT_SNAPV) * (a)->capacity); \
+  (a)->pts = rtalloc((c), sizeof(RTT_SNAPV) * (a)->capacity); \
 }
 
-#define RT_SNAPV_ARRAY_CLEAN(c, a) { \
+#define RTT_SNAPV_ARRAY_CLEAN(c, a) { \
   rtfree((c), (a)->pts); \
   (a)->pts = NULL; \
   (a)->size = 0; \
@@ -81,49 +81,49 @@ typedef struct {
 #define RTT_SNAPV_ARRAY_PUSH(c, a, r) { \
   if ( (a)->size + 1 > (a)->capacity ) { \
     (a)->capacity *= 2; \
-    (a)->pts = rtrealloc((c), (a)->pts, sizeof(RT_SNAPV) * (a)->capacity); \
+    (a)->pts = rtrealloc((c), (a)->pts, sizeof(RTT_SNAPV) * (a)->capacity); \
   } \
   (a)->pts[(a)->size++] = (r); \
 }
 
 /* A pair of points with their distance */
 typedef struct {
-  RT_SNAPV *p1;
-  RT_SNAPV *p2;
+  RTT_SNAPV *p1;
+  RTT_SNAPV *p2;
   double totdist; /* sum of the two points distances */
   double segdist; /* between the two points */
-} RT_VPAIR;
+} RTT_VPAIR;
 
-/* An array of RT_VPAIR structs */
+/* An array of RTT_VPAIR structs */
 typedef struct {
-  RT_VPAIR *pts;
+  RTT_VPAIR *pts;
   int size;
   int capacity;
-} RT_VPAIR_ARRAY;
+} RTT_VPAIR_ARRAY;
 
-#define RT_VPAIR_ARRAY_INIT(c, a) { \
+#define RTT_VPAIR_ARRAY_INIT(c, a) { \
   (a)->size = 0; \
   (a)->capacity = 1; \
-  (a)->pts = rtalloc((c), sizeof(RT_VPAIR) * (a)->capacity); \
+  (a)->pts = rtalloc((c), sizeof(RTT_VPAIR) * (a)->capacity); \
 }
 
-#define RT_VPAIR_ARRAY_CLEAN(c, a) { \
+#define RTT_VPAIR_ARRAY_CLEAN(c, a) { \
   rtfree((c), (a)->pts); \
   (a)->pts = NULL; \
   (a)->size = 0; \
   (a)->capacity = 0; \
 }
 
-#define RT_VPAIR_ARRAY_INIT(c, a) { \
+#define RTT_VPAIR_ARRAY_INIT(c, a) { \
   (a)->size = 0; \
   (a)->capacity = 1; \
-  (a)->pts = rtalloc((c), sizeof(RT_VPAIR) * (a)->capacity); \
+  (a)->pts = rtalloc((c), sizeof(RTT_VPAIR) * (a)->capacity); \
 }
 
-#define RT_VPAIR_ARRAY_PUSH(c, a, r) { \
+#define RTT_VPAIR_ARRAY_PUSH(c, a, r) { \
   if ( (a)->size + 1 > (a)->capacity ) { \
     (a)->capacity *= 2; \
-    (a)->pts = rtrealloc((c), (a)->pts, sizeof(RT_VPAIR *) * (a)->capacity); \
+    (a)->pts = rtrealloc((c), (a)->pts, sizeof(RTT_VPAIR *) * (a)->capacity); \
   } \
   (a)->pts[(a)->size++] = (r); \
 }
@@ -260,14 +260,14 @@ _rt_find_closest_segment(const RTCTX *ctx, RTPOINT2D *pt, RTPOINTARRAY *pa,
  */
 static int
 _rt_extract_vertices_within_dist(rtgeom_tpsnap_state *state,
-    RT_SNAPV_ARRAY *vset, RTLINE *edge, RTPOINTARRAY *pa)
+    RTT_SNAPV_ARRAY *vset, RTLINE *edge, RTPOINTARRAY *pa)
 {
   int i;
   RTPOINTARRAY *epa = edge->points; /* edge's point array */
   const RTT_TOPOLOGY *topo = state->topo;
   const RTCTX *ctx = topo->be_iface->ctx;
 
-  RT_SNAPV vert;
+  RTT_SNAPV vert;
   for (i=0; i<epa->npoints; ++i)
   {
     int ret;
@@ -296,7 +296,7 @@ _rt_extract_vertices_within_dist(rtgeom_tpsnap_state *state,
  */
 static int
 _rt_find_vertices_within_dist(
-      RT_SNAPV_ARRAY *vset, RTPOINTARRAY *pa,
+      RTT_SNAPV_ARRAY *vset, RTPOINTARRAY *pa,
       rtgeom_tpsnap_state *state)
 {
   int num_edges;
@@ -324,8 +324,8 @@ _rt_find_vertices_within_dist(
 static int
 compare_vpairs(const void *si1, const void *si2)
 {
-  RT_VPAIR *a = (RT_VPAIR *)si1;
-  RT_VPAIR *b = (RT_VPAIR *)si2;
+  RTT_VPAIR *a = (RTT_VPAIR *)si1;
+  RTT_VPAIR *b = (RTT_VPAIR *)si2;
 
   if ( a->totdist < b->totdist )
     return -1;
@@ -352,8 +352,8 @@ compare_vpairs(const void *si1, const void *si2)
  */
 static int
 _rt_make_sorted_vertices_pairs(const RTCTX *ctx,
-      RT_SNAPV_ARRAY *vset,
-      RT_VPAIR_ARRAY *vplist)
+      RTT_SNAPV_ARRAY *vset,
+      RTT_VPAIR_ARRAY *vplist)
 {
   int i, j, ret;
   DISTPTS dl;
@@ -362,19 +362,19 @@ _rt_make_sorted_vertices_pairs(const RTCTX *ctx,
   {
     for (j=i+1; j<vset->size; ++j)
     {
-      RT_VPAIR pair;
+      RTT_VPAIR pair;
       pair.p1 = &(vset->pts[i]);
       pair.p2 = &(vset->pts[j]);
       ret = rt_dist2d_pt_pt(ctx, &(pair.p1->pt), &(pair.p2->pt), &dl);
       pair.segdist = dl.distance;
       pair.totdist = pair.p1->dist + pair.p2->dist;
       if ( ret == RT_FALSE ) return -1;
-      RT_VPAIR_ARRAY_PUSH(ctx, vplist, pair);
+      RTT_VPAIR_ARRAY_PUSH(ctx, vplist, pair);
     }
   }
 
   /* Now sort it */
-  qsort(vplist, vplist->size, sizeof(RT_VPAIR), compare_vpairs);
+  qsort(vplist, vplist->size, sizeof(RTT_VPAIR), compare_vpairs);
 
   return 0;
 }
@@ -573,7 +573,7 @@ _rt_segment_covered(rtgeom_tpsnap_state *state,
 */
 static int
 _rt_snap_to_valid_vertex(const RTCTX *ctx, RTPOINTARRAY *pa,
-  const RT_SNAPV *v, rtgeom_tpsnap_state *state)
+  const RTT_SNAPV *v, rtgeom_tpsnap_state *state)
 {
   int ret;
   RTPOINT4D p, sp1, sp2, proj;
@@ -608,7 +608,7 @@ _rt_snap_to_valid_vertex(const RTCTX *ctx, RTPOINTARRAY *pa,
  */
 static int
 _rt_snap_to_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
-  RT_VPAIR *pair, rtgeom_tpsnap_state *state)
+  RTT_VPAIR *pair, rtgeom_tpsnap_state *state)
 {
   int snapCount = 0, ret;
 
@@ -644,14 +644,14 @@ _rt_snap_to_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
 /* @return 0 if no valid snap was found, <0 on error, >0 if snapped */
 static int
 _rt_snap_to_first_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
-  RT_VPAIR_ARRAY *vplist, rtgeom_tpsnap_state *state)
+  RTT_VPAIR_ARRAY *vplist, rtgeom_tpsnap_state *state)
 {
   int foundSnap = 0;
   int i;
 
   for (i=0; i<vplist->size; ++i)
   {
-    RT_VPAIR *pair = &(vplist->pts[i]);
+    RTT_VPAIR *pair = &(vplist->pts[i]);
     foundSnap = _rt_snap_to_valid_pair(ctx, pa, pair, state);
     if ( foundSnap ) break;
   }
@@ -674,30 +674,30 @@ _rtgeom_tpsnap_ptarray_add(const RTCTX *ctx, RTPOINTARRAY *pa,
   while (lookingForSnap)
   {
     int foundSnap;
-    RT_SNAPV_ARRAY vset;
-    RT_VPAIR_ARRAY vplist;
+    RTT_SNAPV_ARRAY vset;
+    RTT_VPAIR_ARRAY vplist;
 
     lookingForSnap = 0;
-    RT_SNAPV_ARRAY_INIT(ctx, &vset);
-    RT_VPAIR_ARRAY_INIT(ctx, &vplist);
+    RTT_SNAPV_ARRAY_INIT(ctx, &vset);
+    RTT_VPAIR_ARRAY_INIT(ctx, &vplist);
 
     ret = _rt_find_vertices_within_dist(&vset, pa, state);
     if ( ret < 0 ) {
-      RT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-      RT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
+      RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
+      RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
       return -1;
     }
     RTDEBUGF(ctx, 1, "vertices within dist: %d", vset.size);
     if ( vset.size < 2 ) {
-      RT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-      RT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
+      RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
+      RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
       break;
     }
 
     ret = _rt_make_sorted_vertices_pairs(ctx, &vset, &vplist);
     if ( ret < 0 ) {
-      RT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-      RT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
+      RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
+      RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
       return -1;
     }
     RTDEBUGF(ctx, 1, "vertices pairs: %d", vplist->size);
@@ -705,8 +705,8 @@ _rtgeom_tpsnap_ptarray_add(const RTCTX *ctx, RTPOINTARRAY *pa,
     foundSnap = _rt_snap_to_first_valid_pair(ctx, pa, &vplist, state);
     RTDEBUGF(ctx, 1, "foundSnap: %d", foundSnap);
 
-    RT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-    RT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
+    RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
+    RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
 
     if ( foundSnap < 0 ) return foundSnap; /* error */
     if ( foundSnap && state->iterate ) {
