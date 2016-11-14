@@ -374,7 +374,7 @@ _rt_make_sorted_vertices_pairs(const RTCTX *ctx,
   }
 
   /* Now sort it */
-  qsort(vplist, vplist->size, sizeof(RTT_VPAIR), compare_vpairs);
+  qsort(vplist->pts, vplist->size, sizeof(RTT_VPAIR), compare_vpairs);
 
   return 0;
 }
