@@ -6183,6 +6183,7 @@ _rtt_getIsoEdgeById(RTT_ISO_EDGE_TABLE *tab, RTT_ELEMID id)
 typedef struct RTT_EDGERING_ELEM_T {
   /* externally owned */
   RTT_ISO_EDGE *edge;
+  /* 0 if false, 1 if true */
   int left;
 } RTT_EDGERING_ELEM;
 
@@ -6706,7 +6707,7 @@ _rtt_RegisterFaceOnEdgeSide(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edge,
     /* Create new face */
     RTT_ISO_FACE newface;
 
-    RTDEBUGF(ctx, 1, "Ring of edge %d is a shell", sedge);
+    RTDEBUGF(ctx, 1, "Ring of edge %d is a shell (shell %d)", sedge, shells->size);
 
     newface.mbr = _rtt_EdgeRingGetBbox(ctx, ring);
 
@@ -6742,7 +6743,7 @@ _rtt_RegisterFaceOnEdgeSide(RTT_TOPOLOGY *topo, RTT_ISO_EDGE *edge,
   }
   else /* cw, so is an hole */
   {
-    RTDEBUGF(ctx, 1, "Ring of edge %d is a hole", sedge);
+    RTDEBUGF(ctx, 1, "Ring of edge %d is a hole (hole %d)", sedge, holes->size);
     *registered = placeholder_faceid;
     RTT_EDGERING_ARRAY_PUSH(ctx, holes, ring);
   }
@@ -6835,8 +6836,8 @@ _rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
   accumulator.ctx = ctx;
   RTT_EDGERING_ARRAY_INIT(ctx, &candidates);
 	GEOSSTRtree_query_r(ctx->gctx, shells->tree, ghole, &_rtt_AccumulateCanditates, &accumulator);
-  RTDEBUGF(ctx, 1, "Found %d candidate shells for containement of ring %d point",
-          candidates.size, ring->elems[0]->edge->edge_id);
+  RTDEBUGF(ctx, 1, "Found %d candidate shells containing first point of ring's originating edge %d",
+          candidates.size, ring->elems[0]->edge->edge_id * ( ring->elems[0]->left ? 1 : -1 ) );
 
   /* TODO: sort candidates by bounding box size */
 
