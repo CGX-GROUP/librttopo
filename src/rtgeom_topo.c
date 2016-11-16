@@ -6849,15 +6849,24 @@ _rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
 
     if ( sring->elems[0]->edge->edge_id == ring->elems[0]->edge->edge_id )
     {
-      RTDEBUGF(ctx, 1, "Shell %d is on other side of ring", _rtt_EdgeRingGetFace(sring));
+      RTDEBUGF(ctx, 1, "Shell %d is on other side of ring",
+               _rtt_EdgeRingGetFace(sring));
       continue;
     }
 
-    /* Skip if test point is not in shellbox */
+    /* The hole envelope cannot equal the shell envelope */
+    if ( gbox_same(ctx, shellbox, testbox) )
+    {
+      RTDEBUGF(1, "Bbox of shell %d equals that of hole ring",
+               _rtt_EdgeRingGetFace(sring));
+      continue;
+    }
+
+    /* Skip if ring box is not in shell box */
     if ( ! gbox_contains_2d(ctx, shellbox, testbox) )
     {
-      /* TODO: skip this, should never happen, as we're candidates! */
-      RTDEBUGF(ctx, 1, "Bbox of shell %d does not contain bbox of ring point", _rtt_EdgeRingGetFace(sring));
+      RTDEBUGF(ctx, 1, "Bbox of shell %d does not contain bbox of ring point",
+               _rtt_EdgeRingGetFace(sring));
       continue;
     }
 
