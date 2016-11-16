@@ -6005,7 +6005,7 @@ rtt_AddLineNoFace(RTT_TOPOLOGY* topo, RTLINE* line, double tol, int* nedges)
     /* Backend error, message should have been printed already */
     return NULL;
   }
-  
+
   return _rtt_AddLine(topo, line, tol, nedges, 0);
 }
 
@@ -6511,7 +6511,7 @@ _rtt_BuildEdgeRing(RTT_TOPOLOGY *topo, RTT_ISO_EDGE_TABLE *edges,
     }
   } while (cur != edge || curside != side);
 
-  RTDEBUGF(ctx, 1, "Ring for edge %d has %d elems", edge->edge_id, ring->size);
+  RTDEBUGF(ctx, 1, "Ring for edge %d has %d elems", edge->edge_id*side, ring->size);
 
   return ring;
 }
