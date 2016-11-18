@@ -6350,12 +6350,9 @@ _rtt_FetchAllEdges(RTT_TOPOLOGY *topo, int *numedges)
   RTT_ISO_EDGE *edge;
   int fields = RTT_COL_EDGE_ALL;
   int nelems = 1;
-  RTGBOX qbox;
   const RTCTX *ctx = topo->be_iface->ctx;
 
-  qbox.xmin = qbox.ymin = -DBL_MAX;
-  qbox.xmax = qbox.ymax = DBL_MAX;
-  edge = rtt_be_getEdgeWithinBox2D( topo, &qbox, &nelems, fields, 0);
+  edge = rtt_be_getEdgeWithinBox2D( topo, NULL, &nelems, fields, 0);
   *numedges = nelems;
   if ( nelems == -1 ) {
     rterror(ctx, "Backend error: %s", rtt_be_lastErrorMessage(topo->be_iface));

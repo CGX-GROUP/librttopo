@@ -6,6 +6,9 @@ YYYY-MM-DD
  - Support for tolerance/precision=0 added, -1 is the new value
    for automatic computation of minimal tolerance.
 
+ - The getEdgeWithinBox2D backend callback needs to support a NULL
+   value as BBOX pointer (to return all edges)
+
  # New Features
 
  - Function `rtt_AddLineNoFace`, to add lines w/out determining new
