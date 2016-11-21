@@ -468,7 +468,7 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
     for (j=0; j<num_edges; ++j)
     {
       RTLINE *E = edges[j].geom;
-      RTPOINT4D p, sp1, sp2, proj;
+      RTPOINT4D V4d, Ep1, Ep2, proj;
       int segno;
       double dist;
 
@@ -479,13 +479,13 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       if ( dist > state->tssnap ) continue;
 
       /* Let *Proj* be the closest point in *E* to *V* */
-      p.x = V.x; p.y = V.y; p.m = p.z = 0.0;
-      rt_getPoint4d_p(ctx, E->points, segno, &sp1);
-      rt_getPoint4d_p(ctx, E->points, segno+1, &sp2);
-      closest_point_on_segment(ctx, &p, &sp1, &sp2, &proj);
+      V4d.x = V.x; V4d.y = V.y; V4d.m = V4d.z = 0.0;
+      rt_getPoint4d_p(ctx, E->points, segno, &Ep1);
+      rt_getPoint4d_p(ctx, E->points, segno+1, &Ep2);
+      closest_point_on_segment(ctx, &V4d, &Ep1, &Ep2, &proj);
 
       /* Closest point here matches segment endpoint */
-      if ( p4d_same(ctx, &p, &sp1) || p4d_same(ctx, &p, &sp2) ) {
+      if ( p4d_same(ctx, &V4d, &Ep1) || p4d_same(ctx, &V4d, &Ep2) ) {
         continue;
       }
 
