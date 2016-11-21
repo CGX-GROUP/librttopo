@@ -439,6 +439,9 @@ rtgeom_visit_lines(const RTCTX *ctx, RTGEOM *rtgeom,
 /*
  * Vertex removal phase
  *
+ * Remove internal vertices of `pa` that are within state.tssnap
+ * distance from edges of state.topo topology.
+ *
  * @return 0 on success, -1 on error.
  */
 static int
