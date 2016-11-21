@@ -237,7 +237,10 @@ ptarray_to_GEOSCoordSeq(const RTCTX *ctx, const RTPOINTARRAY *pa)
     dims = 3;
 
   if ( ! (sq = GEOSCoordSeq_create_r(ctx->gctx, pa->npoints, dims)) )
+  {
     rterror(ctx, "Error creating GEOS Coordinate Sequence");
+    return NULL;
+  }
 
   for ( i=0; i < pa->npoints; i++ )
   {
@@ -257,9 +260,15 @@ ptarray_to_GEOSCoordSeq(const RTCTX *ctx, const RTPOINTARRAY *pa)
     /* Make sure we don't pass any infinite values down into GEOS */
     /* GEOS 3.3+ is supposed to  handle this stuff OK */
     if ( isinf(p2d->x) || isinf(p2d->y) || (dims == 3 && isinf(p3d->z)) )
+    {
       rterror(ctx, "Infinite coordinate value found in geometry.");
+      return NULL;
+    }
     if ( isnan(p2d->x) || isnan(p2d->y) || (dims == 3 && isnan(p3d->z)) )
+    {
       rterror(ctx, "NaN coordinate value found in geometry.");
+      return NULL;
+    }
 #endif
 
     GEOSCoordSeq_setX_r(ctx->gctx, sq, i, p2d->x);
