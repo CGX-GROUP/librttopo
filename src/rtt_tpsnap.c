@@ -758,6 +758,8 @@ rtt_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
   state.workext = *rtgeom_get_bbox(ctx, gin);
   state.workedges = NULL;
 
+  rtgeom_geos_ensure_init(ctx);
+
   ret = rtgeom_visit_lines(ctx, gtmp, _rtgeom_tpsnap_ptarray, &state);
 
   rtgeom_tpsnap_state_destroy(&state);
