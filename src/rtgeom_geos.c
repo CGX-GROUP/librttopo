@@ -256,21 +256,6 @@ ptarray_to_GEOSCoordSeq(const RTCTX *ctx, const RTPOINTARRAY *pa)
       RTDEBUGF(ctx, 4, "Point: %g,%g", p2d->x, p2d->y);
     }
 
-#if RTGEOM_GEOS_VERSION < 33
-    /* Make sure we don't pass any infinite values down into GEOS */
-    /* GEOS 3.3+ is supposed to  handle this stuff OK */
-    if ( isinf(p2d->x) || isinf(p2d->y) || (dims == 3 && isinf(p3d->z)) )
-    {
-      rterror(ctx, "Infinite coordinate value found in geometry.");
-      return NULL;
-    }
-    if ( isnan(p2d->x) || isnan(p2d->y) || (dims == 3 && isnan(p3d->z)) )
-    {
-      rterror(ctx, "NaN coordinate value found in geometry.");
-      return NULL;
-    }
-#endif
-
     GEOSCoordSeq_setX_r(ctx->gctx, sq, i, p2d->x);
     GEOSCoordSeq_setY_r(ctx->gctx, sq, i, p2d->y);
 
@@ -384,23 +369,13 @@ RTGEOM2GEOS(const RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
     RTPOLY *rtpoly = NULL;
     RTLINE *rtl = NULL;
     RTCOLLECTION *rtc = NULL;
-#if RTGEOM_GEOS_VERSION < 33
-    RTPOINTARRAY *pa = NULL;
-#endif
 
   case RTPOINTTYPE:
     rtp = (RTPOINT *)rtgeom;
 
     if ( rtgeom_is_empty(ctx, rtgeom) )
     {
-#if RTGEOM_GEOS_VERSION < 33
-      pa = ptarray_construct_empty(ctx, rtgeom_has_z(ctx, rtgeom), rtgeom_has_m(ctx, rtgeom), 2);
-      sq = ptarray_to_GEOSCoordSeq(ctx, pa);
-      shell = GEOSGeom_createLinearRing_r(ctx->gctx, sq);
-      g = GEOSGeom_createPolygon_r(ctx->gctx, shell, NULL, 0);
-#else
       g = GEOSGeom_createEmptyPolygon_r(ctx->gctx);
-#endif
     }
     else
     {
@@ -436,14 +411,7 @@ RTGEOM2GEOS(const RTCTX *ctx, const RTGEOM *rtgeom, int autofix)
     rtpoly = (RTPOLY *)rtgeom;
     if ( rtgeom_is_empty(ctx, rtgeom) )
     {
-#if RTGEOM_GEOS_VERSION < 33
-      RTPOINTARRAY *pa = ptarray_construct_empty(ctx, rtgeom_has_z(ctx, rtgeom), rtgeom_has_m(ctx, rtgeom), 2);
-      sq = ptarray_to_GEOSCoordSeq(ctx, pa);
-      shell = GEOSGeom_createLinearRing_r(ctx->gctx, sq);
-      g = GEOSGeom_createPolygon_r(ctx->gctx, shell, NULL, 0);
-#else
       g = GEOSGeom_createEmptyPolygon_r(ctx->gctx);
-#endif
     }
     else
     {
@@ -1448,14 +1416,6 @@ rtgeom_geos_noop(const RTCTX *ctx, const RTGEOM* geom_in)
 RTGEOM*
 rtgeom_snap(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double tolerance)
 {
-#if RTGEOM_GEOS_VERSION < 33
-  rterror(ctx, "The GEOS version this rtgeom library "
-          "was compiled against (%d) doesn't support "
-          "'Snap' function (3.3.0+ required)",
-          RTGEOM_GEOS_VERSION);
-  return NULL;
-#else /* RTGEOM_GEOS_VERSION >= 33 */
-
   int srid, is3d;
   GEOSGeometry *g1, *g2, *g3;
   RTGEOM* out;
@@ -1505,20 +1465,11 @@ rtgeom_snap(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2, double t
   GEOSGeom_destroy_r(ctx->gctx, g3);
 
   return out;
-
-#endif /* RTGEOM_GEOS_VERSION >= 33 */
 }
 
 RTGEOM*
 rtgeom_sharedpaths(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
 {
-#if RTGEOM_GEOS_VERSION < 33
-  rterror(ctx, "The GEOS version this postgis binary "
-          "was compiled against (%d) doesn't support "
-          "'SharedPaths' function (3.3.0+ required)",
-          RTGEOM_GEOS_VERSION);
-  return NULL;
-#else /* RTGEOM_GEOS_VERSION >= 33 */
   GEOSGeometry *g1, *g2, *g3;
   RTGEOM *out;
   int is3d, srid;
@@ -1567,15 +1518,11 @@ rtgeom_sharedpaths(const RTCTX *ctx, const RTGEOM* geom1, const RTGEOM* geom2)
   }
 
   return out;
-#endif /* RTGEOM_GEOS_VERSION >= 33 */
 }
 
 RTGEOM*
 rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quadsegs, int joinStyle, double mitreLimit)
 {
-#if RTGEOM_GEOS_VERSION < 32
-  rterror(ctx, "rtgeom_offsetcurve: GEOS 3.2 or higher required");
-#else
   GEOSGeometry *g1, *g3;
   RTGEOM *rtgeom_result;
   RTGEOM *rtgeom_in = rtline_as_rtgeom(ctx, rtline);
@@ -1589,14 +1536,7 @@ rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quad
     return NULL;
   }
 
-#if RTGEOM_GEOS_VERSION < 33
-  /* Size is artays positive for GEOSSingleSidedBuffer, and a flag determines left/right */
-  g3 = GEOSSingleSidedBuffer_r(ctx->gctx, g1, size < 0 ? -size : size,
-                             quadsegs, joinStyle, mitreLimit,
-                             size < 0 ? 0 : 1);
-#else
   g3 = GEOSOffsetCurve_r(ctx->gctx, g1, size, quadsegs, joinStyle, mitreLimit);
-#endif
   /* Don't need input geometry anymore */
   GEOSGeom_destroy_r(ctx->gctx, g1);
 
@@ -1619,8 +1559,6 @@ rtgeom_offsetcurve(const RTCTX *ctx, const RTLINE *rtline, double size, int quad
   }
 
   return rtgeom_result;
-
-#endif /* RTGEOM_GEOS_VERSION < 32 */
 }
 
 RTTIN * rttin_from_geos(const RTCTX *ctx, const GEOSGeometry *geom, int want3d) {
@@ -1688,11 +1626,9 @@ RTTIN * rttin_from_geos(const RTCTX *ctx, const GEOSGeometry *geom, int want3d) 
 /*
  * output = 1 for edges, 2 for TIN, 0 for polygons
  */
-RTGEOM* rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *rtgeom_in, double tolerance, int output) {
-#if RTGEOM_GEOS_VERSION < 34
-  rterror(ctx, "rtgeom_delaunay_triangulation: GEOS 3.4 or higher required");
-  return NULL;
-#else
+RTGEOM*
+rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *rtgeom_in, double tolerance, int output)
+{
   GEOSGeometry *g1, *g3;
   RTGEOM *rtgeom_result;
 
@@ -1744,6 +1680,4 @@ RTGEOM* rtgeom_delaunay_triangulation(const RTCTX *ctx, const RTGEOM *rtgeom_in,
   }
 
   return rtgeom_result;
-
-#endif /* RTGEOM_GEOS_VERSION < 34 */
 }
