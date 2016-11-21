@@ -480,8 +480,8 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
 
       /* Let *Proj* be the closest point in *E* to *V* */
       p.x = V.x; p.y = V.y; p.m = p.z = 0.0;
-      rt_getPoint4d_p(ctx, pa, segno, &sp1);
-      rt_getPoint4d_p(ctx, pa, segno+1, &sp2);
+      rt_getPoint4d_p(ctx, E->points, segno, &sp1);
+      rt_getPoint4d_p(ctx, E->points, segno+1, &sp2);
       closest_point_on_segment(ctx, &p, &sp1, &sp2, &proj);
 
       /* Closest point here matches segment endpoint */
