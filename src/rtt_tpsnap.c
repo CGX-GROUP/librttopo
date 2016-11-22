@@ -703,7 +703,7 @@ _rtgeom_tpsnap_ptarray_add(const RTCTX *ctx, RTPOINTARRAY *pa,
       RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
       return -1;
     }
-    RTDEBUGF(ctx, 1, "vertices pairs: %d", vplist->size);
+    RTDEBUGF(ctx, 1, "vertices pairs: %d", vplist.size);
 
     foundSnap = _rt_snap_to_first_valid_pair(ctx, pa, &vplist, state);
     RTDEBUGF(ctx, 1, "foundSnap: %d", foundSnap);
