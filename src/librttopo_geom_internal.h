@@ -30,7 +30,6 @@
 #ifndef _LIBRTGEOM_INTERNAL_H
 #define _LIBRTGEOM_INTERNAL_H 1
 
-#include "rttopo_config.h"
 #include "librttopo_geom.h"
 
 #include "rtgeom_log.h"
