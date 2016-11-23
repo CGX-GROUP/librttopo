@@ -20,10 +20,11 @@ AC_DEFINE_UNQUOTED([LIBRTGEOM_VERSION], ["$VERSION"], [rtgeom version])
 AC_SUBST([LIBRTGEOM_VERSION])
 AH_TEMPLATE([RTGEOM_GEOS_VERSION],
             [RTTOPO GEOS version.])
-AH_TEMPLATE([RTGEOM_DEBUG_LEVEL],
-            [RTGEOM Debug Level.])
-AC_DEFINE(RTGEOM_DEBUG_LEVEL)
-AC_DEFINE_UNQUOTED([RTGEOM_DEBUG_LEVEL], [0], [debug level])
+
+AC_ARG_ENABLE([debug], AC_HELP_STRING([--enable-debug], [Enable verbose debugging messages]),
+  [RTGEOM_DEBUG_LEVEL=4], [RTGEOM_DEBUG_LEVEL=0])
+AC_DEFINE_UNQUOTED([RTGEOM_DEBUG_LEVEL], [$RTGEOM_DEBUG_LEVEL], [RTGEOM Debug level])
+
 
 # Checks for header files.
 AC_CHECK_HEADERS(stdlib.h,, [AC_MSG_ERROR([cannot find stdlib.h, bailing out])])
