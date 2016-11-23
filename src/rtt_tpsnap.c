@@ -467,7 +467,7 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
     RTPOINT2D V;
     rt_getPoint2d_p(ctx, pa, i, &V);
 
-    RTDEBUGF(ctx, 2, "Analyzing internal vertex POINT(%g %g)", V.x, V.y);
+    RTDEBUGF(ctx, 2, "Analyzing internal vertex POINT(%.15g %.15g)", V.x, V.y);
 
     /* For each edge *E* of *Eset* */
     for (j=0; j<num_edges; ++j)
@@ -495,7 +495,7 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       rt_getPoint4d_p(ctx, E->points, segno+1, &Ep2);
       closest_point_on_segment(ctx, &V4d, &Ep1, &Ep2, &proj);
 
-      RTDEBUGF(ctx, 2, " Closest point on edge segment LINESTRING(%g %g, %g %g) is POINT(%g %g)",
+      RTDEBUGF(ctx, 2, " Closest point on edge segment LINESTRING(%.15g %.15g, %.15g %.15g) is POINT(%.15g %.15g)",
         Ep1.x, Ep1.y, Ep2.x, Ep2.y, proj.x, proj.y);
 
       /* Closest point here matches segment endpoint */
@@ -598,13 +598,13 @@ _rt_snap_to_valid_vertex(const RTCTX *ctx, RTPOINTARRAY *pa,
   rt_getPoint4d_p(ctx, pa, v->segno, &sp1);
   rt_getPoint4d_p(ctx, pa, v->segno+1, &sp2);
 
-  RTDEBUGF(ctx, 2, "Analyzing snap vertex POINT(%g %g)", p.x, p.y);
-  RTDEBUGF(ctx, 2, " Closest segment %d is LINESTRING(%g %g, %g %g)",
+  RTDEBUGF(ctx, 2, "Analyzing snap vertex POINT(%.15g %.15g)", p.x, p.y);
+  RTDEBUGF(ctx, 2, " Closest segment %d is LINESTRING(%.15g %.15g, %.15g %.15g)",
     v->segno, sp1.x, sp1.y, sp2.x, sp2.y);
 
   closest_point_on_segment(ctx, &p, &sp1, &sp2, &proj);
 
-  RTDEBUGF(ctx, 2, " Closest point on segment is POINT(%g %g)",
+  RTDEBUGF(ctx, 2, " Closest point on segment is POINT(%.15g %.15g)",
     proj.x, proj.y);
 
 
@@ -626,7 +626,7 @@ _rt_snap_to_valid_vertex(const RTCTX *ctx, RTPOINTARRAY *pa,
   }
 
   /* Snap ! */
-  RTDEBUGF(ctx, 2, "Snapping input segment %d to POINT(%g %g)",
+  RTDEBUGF(ctx, 2, "Snapping input segment %d to POINT(%.15g %.15g)",
     v->segno, p.x, p.y);
   ret = ptarray_insert_point(ctx, pa, &p, v->segno+1);
   if ( ret == RT_FAILURE ) return -1;
