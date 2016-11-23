@@ -499,7 +499,7 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
         Ep1.x, Ep1.y, Ep2.x, Ep2.y, proj.x, proj.y);
 
       /* Closest point here matches segment endpoint */
-      if ( p4d_same(ctx, &V4d, &Ep1) || p4d_same(ctx, &V4d, &Ep2) ) {
+      if ( p4d_same(ctx, &proj, &Ep1) || p4d_same(ctx, &proj, &Ep2) ) {
         RTDEBUG(ctx, 2, " Closest point on edge matches segment endpoint");
         continue;
       }
