@@ -33,10 +33,12 @@
 #include <string.h>
 #include <ctype.h> /* for tolower */
 
-/* Global variables */
 #include "rttopo_config.h"
+/*#define RTGEOM_DEBUG_LEVEL 1*/
 #include "librttopo_geom_internal.h"
 #include "rtgeom_log.h"
+
+/* Global variables */
 
 /* Default allocators */
 static void * default_allocator(size_t size);
