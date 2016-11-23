@@ -66,53 +66,6 @@ static char *rtgeomTypeName[] =
 };
 
 /*
- * Default rtnotice/rterror handlers
- *
- * Since variadic functions cannot pass their parameters directly, we need
- * wrappers for these functions to convert the arguments into a va_list
- * structure.
- */
-
-void
-rtnotice(const RTCTX *ctx, const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start(ap, fmt);
-
-  /* Call the supplied function */
-  (*ctx->notice_logger)(fmt, ap, ctx->notice_logger_arg);
-
-  va_end(ap);
-}
-
-void
-rterror(const RTCTX *ctx, const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start(ap, fmt);
-
-  /* Call the supplied function */
-  (*ctx->error_logger)(fmt, ap, ctx->error_logger_arg);
-
-  va_end(ap);
-}
-
-void
-rtdebug(const RTCTX *ctx, int level, const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start(ap, fmt);
-
-  /* Call the supplied function */
-  (*ctx->debug_logger)(level, fmt, ap, ctx->debug_logger_arg);
-
-  va_end(ap);
-}
-
-/*
  * Default allocators
  *
  * We include some default allocators that use malloc/free/realloc
@@ -139,6 +92,14 @@ default_reallocator(void *mem, size_t size)
   void *ret = realloc(mem, size);
   return ret;
 }
+
+/*
+ * Default rtnotice/rterror handlers
+ *
+ * Since variadic functions cannot pass their parameters directly, we need
+ * wrappers for these functions to convert the arguments into a va_list
+ * structure.
+ */
 
 static void
 default_noticereporter(const char *fmt, va_list ap, void *arg)
@@ -228,6 +189,47 @@ rtgeom_set_debug_logger(RTCTX *ctx, rtdebuglogger logger, void *arg)
   ctx->debug_logger = logger;
   ctx->debug_logger_arg = arg;
 }
+
+void
+rtnotice(const RTCTX *ctx, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start(ap, fmt);
+
+  /* Call the supplied function */
+  (*ctx->notice_logger)(fmt, ap, ctx->notice_logger_arg);
+
+  va_end(ap);
+}
+
+void
+rterror(const RTCTX *ctx, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start(ap, fmt);
+
+  /* Call the supplied function */
+  (*ctx->error_logger)(fmt, ap, ctx->error_logger_arg);
+
+  va_end(ap);
+}
+
+void
+rtdebug(const RTCTX *ctx, int level, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start(ap, fmt);
+
+  /* Call the supplied function */
+  (*ctx->debug_logger)(level, fmt, ap, ctx->debug_logger_arg);
+
+  va_end(ap);
+}
+
+
 
 const char*
 rttype_name(const RTCTX *ctx, uint8_t type)
