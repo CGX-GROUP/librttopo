@@ -22,7 +22,7 @@
  *
  **********************************************************************/
 
-
+#include "rttopo_config.h"
 
 #include "librttopo_geom.h"
 #include "rtgeom_geos.h"
