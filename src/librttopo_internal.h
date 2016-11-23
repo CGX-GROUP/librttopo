@@ -27,7 +27,6 @@
 #ifndef LIBRTGEOM_TOPO_INTERNAL_H
 #define LIBRTGEOM_TOPO_INTERNAL_H 1
 
-#include "rttopo_config.h"
 #include "geos_c.h"
 
 #include "librttopo_geom.h"
