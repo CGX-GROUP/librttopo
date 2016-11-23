@@ -33,6 +33,7 @@
 * BNF SVG Path: <http://www.w3.org/TR/SVG/paths.html#PathDataBNF>
 **********************************************************************/
 
+#include "rttopo_config.h"
 #include "librttopo_geom_internal.h"
 
 static char * assvg_point(const RTCTX *ctx, const RTPOINT *point, int relative, int precision);

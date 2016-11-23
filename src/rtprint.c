@@ -25,6 +25,7 @@
 
 
 
+#include "rttopo_config.h"
 #include <stdio.h>
 #include <string.h>
 #include "librttopo_geom_internal.h"

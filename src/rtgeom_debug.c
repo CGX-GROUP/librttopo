@@ -24,6 +24,7 @@
 
 
 
+#include "rttopo_config.h"
 #include "rtgeom_log.h"
 #include "librttopo_geom.h"
 

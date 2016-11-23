@@ -27,6 +27,7 @@
 #if !HAVE_ISFINITE
 #endif
 
+#include "rttopo_config.h"
 #include "librttopo_geom_internal.h"
 #include "rtgeom_log.h"
 #include <stdlib.h>

@@ -24,6 +24,7 @@
 
 
 
+#include "rttopo_config.h"
 #include "rtout_twkb.h"
 
 /*

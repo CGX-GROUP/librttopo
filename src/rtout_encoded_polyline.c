@@ -24,6 +24,7 @@
 
 
 
+#include "rttopo_config.h"
 #include "stringbuffer.h"
 #include "librttopo_geom_internal.h"
 
