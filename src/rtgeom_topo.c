@@ -6854,7 +6854,7 @@ _rtt_FindFaceContainingRing(RTT_TOPOLOGY* topo, RTT_EDGERING *ring,
     /* The hole envelope cannot equal the shell envelope */
     if ( gbox_same(ctx, shellbox, testbox) )
     {
-      RTDEBUGF(1, "Bbox of shell %d equals that of hole ring",
+      RTDEBUGF(ctx, 1, "Bbox of shell %d equals that of hole ring",
                _rtt_EdgeRingGetFace(sring));
       continue;
     }
