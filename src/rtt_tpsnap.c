@@ -31,7 +31,7 @@
 
 #include "rttopo_config.h"
 
-/*#define RTGEOM_DEBUG_LEVEL 1*/
+/*#define RTGEOM_DEBUG_LEVEL 4*/
 #include "rtgeom_log.h"
 
 #include "librttopo_geom.h"
@@ -467,6 +467,8 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
     RTPOINT2D V;
     rt_getPoint2d_p(ctx, pa, i, &V);
 
+    RTDEBUGF(ctx, 2, "Analyzing internal vertex POINT(%g %g)", V.x, V.y);
+
     /* For each edge *E* of *Eset* */
     for (j=0; j<num_edges; ++j)
     {
@@ -479,7 +481,13 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       if ( ret < 0 ) return ret; /* error */
 
       /* Edge is too far */
-      if ( dist > state->tssnap ) continue;
+      if ( dist > state->tssnap ) {
+        RTDEBUGF(ctx, 2, " Vertex is too far (%g) from edge %d", dist, edges[j].edge_id);
+        continue;
+      }
+
+      RTDEBUGF(ctx, 2, " Vertex within distance from segment %d of edge %d",
+        segno, edges[j].edge_id);
 
       /* Let *Proj* be the closest point in *E* to *V* */
       V4d.x = V.x; V4d.y = V.y; V4d.m = V4d.z = 0.0;
@@ -487,12 +495,17 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       rt_getPoint4d_p(ctx, E->points, segno+1, &Ep2);
       closest_point_on_segment(ctx, &V4d, &Ep1, &Ep2, &proj);
 
+      RTDEBUGF(ctx, 2, " Closest point on edge segment LINESTRING(%g %g, %g %g) is POINT(%g %g)",
+        Ep1.x, Ep1.y, Ep2.x, Ep2.y, proj.x, proj.y);
+
       /* Closest point here matches segment endpoint */
       if ( p4d_same(ctx, &V4d, &Ep1) || p4d_same(ctx, &V4d, &Ep2) ) {
+        RTDEBUG(ctx, 2, " Closest point on edge matches segment endpoint");
         continue;
       }
 
       /* Remove vertex *V* from *Gcomp* */
+      RTDEBUG(ctx, 2, " Removing internal point");
       ret = ptarray_remove_point(ctx, pa, i);
       if ( ret == RT_FAILURE ) return -1;
       /* rewind i */
