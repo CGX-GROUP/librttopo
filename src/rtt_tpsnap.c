@@ -580,26 +580,42 @@ _rt_snap_to_valid_vertex(const RTCTX *ctx, RTPOINTARRAY *pa,
 {
   int ret;
   RTPOINT4D p, sp1, sp2, proj;
+
   p.x = v->pt.x; p.y = v->pt.y; p.m = p.z = 0.0;
   rt_getPoint4d_p(ctx, pa, v->segno, &sp1);
   rt_getPoint4d_p(ctx, pa, v->segno+1, &sp2);
+
+  RTDEBUGF(ctx, 2, "Analyzing snap vertex POINT(%g %g)", p.x, p.y);
+  RTDEBUGF(ctx, 2, " Closest segment %d is LINESTRING(%g %g, %g %g)",
+    v->segno, sp1.x, sp1.y, sp2.x, sp2.y);
+
   closest_point_on_segment(ctx, &p, &sp1, &sp2, &proj);
 
+  RTDEBUGF(ctx, 2, " Closest point on segment is POINT(%g %g)",
+    proj.x, proj.y);
+
+
   /* Check if closest point matches segment endpoint (could be cached) */
-  if ( p4d_same(ctx, &p, &sp1) || p4d_same(ctx, &p, &sp2) ) {
+  if ( p4d_same(ctx, &proj, &sp1) || p4d_same(ctx, &proj, &sp2) )
+  {
+    RTDEBUG(ctx, 2, " Closest point matches a segment's endpoint");
     return 0;
   }
 
   /* Skip if closest segment is covered by topo-ref */
   ret = _rt_segment_covered(state, &sp1, &sp2);
   if ( ret == -1 ) return -1;
-  if ( ret == 1 ) {
+  if ( ret == 1 )
+  {
+    RTDEBUG(ctx, 2, " Closest segment is covered by topo edges");
     /* it is covered */
     return 0;
   }
 
   /* Snap ! */
-  ret = ptarray_insert_point(ctx, pa, &p, 0);
+  RTDEBUGF(ctx, 2, "Snapping input segment %d to POINT(%g %g)",
+    v->segno, p.x, p.y);
+  ret = ptarray_insert_point(ctx, pa, &p, v->segno+1);
   if ( ret == RT_FAILURE ) return -1;
 
   return 1;
@@ -753,6 +769,9 @@ rtt_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
   const RTCTX *ctx = topo->be_iface->ctx;
   RTGEOM *gtmp = rtgeom_clone_deep(ctx, gin);
   int ret;
+
+  RTDEBUGF(ctx, 1, "snapping: tol %g, iterate %d, remove %d",
+    tssnap, iterate, remove_vertices);
 
   state.topo = topo;
   state.tssnap = tssnap;
