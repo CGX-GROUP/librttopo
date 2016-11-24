@@ -505,7 +505,8 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       }
 
       /* Remove vertex *V* from *Gcomp* */
-      RTDEBUG(ctx, 2, " Removing internal point");
+      RTDEBUGF(ctx, 1, " Removing internal point POINT(%.14g %.15g)",
+        V.x, V.y);
       ret = ptarray_remove_point(ctx, pa, i);
       if ( ret == RT_FAILURE ) return -1;
       /* rewind i */
@@ -761,13 +762,14 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
   int ret;
   rtgeom_tpsnap_state *state = udata;
 
+  ret = _rtgeom_tpsnap_ptarray_add(ctx, pa, state);
+
   if ( state->remove_vertices )
   {
     ret = _rtgeom_tpsnap_ptarray_remove(ctx, pa, state);
     if ( ret != 0 ) return ret;
   }
 
-  ret = _rtgeom_tpsnap_ptarray_add(ctx, pa, state);
   return ret;
 
 }
