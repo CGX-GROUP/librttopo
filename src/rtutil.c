@@ -34,7 +34,7 @@
 #include <ctype.h> /* for tolower */
 
 #include "rttopo_config.h"
-/*#define RTGEOM_DEBUG_LEVEL 1*/
+/*#define RTGEOM_DEBUG_LEVEL 4*/
 #include "librttopo_geom_internal.h"
 #include "rtgeom_log.h"
 

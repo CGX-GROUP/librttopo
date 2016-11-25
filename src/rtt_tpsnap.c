@@ -442,7 +442,7 @@ rtgeom_visit_lines(const RTCTX *ctx, RTGEOM *rtgeom,
  * Remove internal vertices of `pa` that are within state.tssnap
  * distance from edges of state.topo topology.
  *
- * @return 0 on success, -1 on error.
+ * @return -1 on error, number of points removed on success
  */
 static int
 _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
@@ -451,6 +451,7 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
   int num_edges, i, j, ret;
   const RTT_ISO_EDGE *edges;
   const RTT_TOPOLOGY *topo = state->topo;
+  int removed = 0;
 
   /* Let *Eset* be the set of edges of *Topo-ref*
    *             with distance from *Gcomp* <= *TSsnap*
@@ -511,11 +512,13 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       if ( ret == RT_FAILURE ) return -1;
       /* rewind i */
       --i;
+      /* increment removed count */
+      ++removed;
       break;
     }
   }
 
-  return 0;
+  return removed;
 }
 
 /* Return NULL on error, or a GEOSGeometry on success */
@@ -762,15 +765,18 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
   int ret;
   rtgeom_tpsnap_state *state = udata;
 
-  ret = _rtgeom_tpsnap_ptarray_add(ctx, pa, state);
+  do {
+    ret = _rtgeom_tpsnap_ptarray_add(ctx, pa, state);
+    if ( ret == -1 ) return -1;
 
-  if ( state->remove_vertices )
-  {
-    ret = _rtgeom_tpsnap_ptarray_remove(ctx, pa, state);
-    if ( ret != 0 ) return ret;
-  }
+    if ( state->remove_vertices )
+    {
+      ret = _rtgeom_tpsnap_ptarray_remove(ctx, pa, state);
+      if ( ret == -1 ) return -1;
+    }
+  } while (ret && state->iterate);
 
-  return ret;
+  return 0;
 
 }
 
