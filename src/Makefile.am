@@ -1,6 +1,6 @@
 
 AM_CPPFLAGS = -I$(top_builddir)/src
-AM_CPPFLAGS += -I$(top_builddir)/headers
+AM_CPPFLAGS += -I$(top_builddir)/headers -I$(top_srcdir)/headers
 
 lib_LTLIBRARIES = librttopo.la
 
