@@ -21,8 +21,20 @@ AC_SUBST([LIBRTGEOM_VERSION])
 AH_TEMPLATE([RTGEOM_GEOS_VERSION],
             [RTTOPO GEOS version.])
 
-AC_ARG_ENABLE([debug], AC_HELP_STRING([--enable-debug], [Enable verbose debugging messages]),
-  [RTGEOM_DEBUG_LEVEL=4], [RTGEOM_DEBUG_LEVEL=0])
+AC_ARG_ENABLE([debug], AC_HELP_STRING([--enable-debug@<:@=LEVEL@:>@],
+  [Enable debugging messages up to LEVEL (4 if omitted)]),
+  [
+if test "$enableval" = "no"; then
+  RTGEOM_DEBUG_LEVEL=0;
+else
+  if test "$enableval" = "yes"; then
+    RTGEOM_DEBUG_LEVEL=4;
+  else
+    RTGEOM_DEBUG_LEVEL=$enableval;
+  fi;
+fi
+  ],
+  [RTGEOM_DEBUG_LEVEL=0])
 AC_DEFINE_UNQUOTED([RTGEOM_DEBUG_LEVEL], [$RTGEOM_DEBUG_LEVEL], [RTGEOM Debug level])
 
 
