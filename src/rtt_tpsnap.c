@@ -689,7 +689,11 @@ _rt_snap_to_first_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
   {
     RTT_VPAIR *pair = &(vplist->pts[i]);
     foundSnap = _rt_snap_to_valid_pair(ctx, pa, pair, state);
-    if ( foundSnap ) break;
+    if ( foundSnap ) {
+      RTDEBUGF(ctx, 1, "pair %d/%d contained %d valid snaps",
+        i, vplist->size, foundSnap);
+      break;
+    }
   }
 
   return foundSnap;
