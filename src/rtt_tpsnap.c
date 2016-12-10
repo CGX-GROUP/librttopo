@@ -176,8 +176,8 @@ rtgeom_tpsnap_state_get_edges(rtgeom_tpsnap_state *state, int *num_edges)
 }
 
 /*
- * Write number of edges in *num_edges, -1 on error.
- * @return edges, or NULL if none-or-error (look *num_edges to tell)
+ * Expand working extent to include new point.
+ * Resets working edges if new point expands the last used bounding box.
  */
 static void
 rtgeom_tpsnap_state_expand_workext_to_include(rtgeom_tpsnap_state *state,
