@@ -462,19 +462,24 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
     return -1;
   }
 
+  RTDEBUG(ctx, 1, "vertices removal phase starts");
+
   /* For each non-endpoint vertex *V* of *Gcomp* */
   for (i=1; i<pa->npoints-1; ++i)
   {
     RTPOINT2D V;
+    RTLINE *closest_segment_edge = NULL;
+    int closest_segment_number;
+    double closest_segment_distance = state->tssnap+1;
+
     rt_getPoint2d_p(ctx, pa, i, &V);
 
     RTDEBUGF(ctx, 2, "Analyzing internal vertex POINT(%.15g %.15g)", V.x, V.y);
 
-    /* For each edge *E* of *Eset* */
+    /* Find closest edge segment */
     for (j=0; j<num_edges; ++j)
     {
       RTLINE *E = edges[j].geom;
-      RTPOINT4D V4d, Ep1, Ep2, proj;
       int segno;
       double dist;
 
@@ -490,10 +495,23 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       RTDEBUGF(ctx, 2, " Vertex within distance from segment %d of edge %d",
         segno, edges[j].edge_id);
 
-      /* Let *Proj* be the closest point in *E* to *V* */
+      if ( dist < closest_segment_distance )
+      {
+        closest_segment_edge = E;
+        closest_segment_number = segno;
+        closest_segment_distance = dist;
+      }
+    }
+
+    if ( closest_segment_edge )
+    {{
+      RTPOINT4D V4d, Ep1, Ep2, proj;
+      RTPOINTARRAY *epa = closest_segment_edge->points;
+
+      /* Let *Proj* be the closest point in *closest_segment_edge* to *V* */
       V4d.x = V.x; V4d.y = V.y; V4d.m = V4d.z = 0.0;
-      rt_getPoint4d_p(ctx, E->points, segno, &Ep1);
-      rt_getPoint4d_p(ctx, E->points, segno+1, &Ep2);
+      rt_getPoint4d_p(ctx, epa, closest_segment_number, &Ep1);
+      rt_getPoint4d_p(ctx, epa, closest_segment_number+1, &Ep2);
       closest_point_on_segment(ctx, &V4d, &Ep1, &Ep2, &proj);
 
       RTDEBUGF(ctx, 2, " Closest point on edge segment LINESTRING(%.15g %.15g, %.15g %.15g) is POINT(%.15g %.15g)",
@@ -515,8 +533,10 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       /* increment removed count */
       ++removed;
       break;
-    }
+    }}
   }
+
+  RTDEBUGF(ctx, 1, "vertices removal phase ended (%d removed)", removed);
 
   return removed;
 }
@@ -711,6 +731,8 @@ _rtgeom_tpsnap_ptarray_add(const RTCTX *ctx, RTPOINTARRAY *pa,
 {
   int ret;
   int lookingForSnap = 1;
+
+  RTDEBUG(ctx, 1, "vertices addition phase starts");
   while (lookingForSnap)
   {
     int foundSnap;
@@ -753,6 +775,7 @@ _rtgeom_tpsnap_ptarray_add(const RTCTX *ctx, RTPOINTARRAY *pa,
       lookingForSnap = 1;
     }
   }
+  RTDEBUG(ctx, 1, "vertices addition phase ends");
 
   return 0;
 }
