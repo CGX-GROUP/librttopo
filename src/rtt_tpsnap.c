@@ -792,6 +792,8 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
   int ret;
   rtgeom_tpsnap_state *state = udata;
 
+  RTDEBUGF(ctx, 1, "Snapping pointarray with %d points", pa->npoints);
+
   do {
     ret = _rtgeom_tpsnap_ptarray_add(ctx, pa, state);
     if ( ret == -1 ) return -1;
@@ -802,6 +804,8 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
       if ( ret == -1 ) return -1;
     }
   } while (ret && state->iterate);
+
+  RTDEBUGF(ctx, 1, "Snapped pointarray has %d points", pa->npoints);
 
   return 0;
 
