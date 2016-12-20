@@ -532,7 +532,6 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       --i;
       /* increment removed count */
       ++removed;
-      break;
     }}
   }
 
