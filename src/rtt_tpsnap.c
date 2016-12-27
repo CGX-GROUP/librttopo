@@ -336,10 +336,12 @@ compare_vpairs(const void *si1, const void *si2)
   else if ( a->totdist > b->totdist )
     return 1;
 
+/*
   if ( a->segdist < b->segdist )
     return -1;
   else if ( a->segdist > b->segdist )
     return 1;
+*/
 
   return 0;
 }
@@ -364,6 +366,7 @@ _rt_make_sorted_vertices_pairs(const RTCTX *ctx,
   rt_dist2d_distpts_init(ctx, &dl, DIST_MIN);
   for (i=0; i<vset->size; ++i)
   {
+#if 0
     for (j=i+1; j<vset->size; ++j)
     {
       RTT_VPAIR pair;
@@ -375,6 +378,16 @@ _rt_make_sorted_vertices_pairs(const RTCTX *ctx,
       if ( ret == RT_FALSE ) return -1;
       RTT_VPAIR_ARRAY_PUSH(ctx, vplist, pair);
     }
+#else
+      RTT_VPAIR pair;
+      pair.p1 = &(vset->pts[i]);
+      pair.p2 = pair.p1;
+      //ret = rt_dist2d_pt_pt(ctx, &(pair.p1->pt), &(pair.p2->pt), &dl);
+      pair.segdist = 0; //dl.distance;
+      pair.totdist = pair.p1->dist;
+      //if ( ret == RT_FALSE ) return -1;
+      RTT_VPAIR_ARRAY_PUSH(ctx, vplist, pair);
+#endif
   }
 
   /* Now sort it */
@@ -680,13 +693,16 @@ _rt_snap_to_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
     rtgeom_tpsnap_state_expand_workext_to_include(state,
       &(pair->p1->pt));
 
+#if 0
     /* Recompute distance from second point, if first was snapped */
     ret = _rt_find_closest_segment(ctx, &(pair->p2->pt), pa,
               &(pair->p2->segno), &(pair->p2->dist));
     if ( ret < 0 ) return ret; /* error */
+#endif
 
   }
 
+#if 0
   ret = _rt_snap_to_valid_vertex(ctx, pa, pair->p2, state);
   if ( ret < 0 ) return ret;
   snapCount += ret;
@@ -696,6 +712,7 @@ _rt_snap_to_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
     rtgeom_tpsnap_state_expand_workext_to_include(state,
       &(pair->p2->pt));
   }
+#endif
 
   return snapCount;
 }
