@@ -336,6 +336,16 @@ compare_vpairs(const void *si1, const void *si2)
   else if ( a->totdist > b->totdist )
     return 1;
 
+  if ( a->p1->pt.x < b->p1->pt.x )
+    return -1;
+  else if ( a->p1->pt.x > b->p1->pt.x )
+    return 1;
+
+  if ( a->p1->pt.y < b->p1->pt.y )
+    return -1;
+  else if ( a->p1->pt.y > b->p1->pt.y )
+    return 1;
+
 /*
   if ( a->segdist < b->segdist )
     return -1;
