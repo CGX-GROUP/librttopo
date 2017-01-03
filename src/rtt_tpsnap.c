@@ -86,48 +86,6 @@ typedef struct {
   (a)->pts[(a)->size++] = (r); \
 }
 
-/* A pair of points with their distance */
-typedef struct {
-  RTT_SNAPV *p1;
-  RTT_SNAPV *p2;
-  double totdist; /* sum of the two points distances */
-  double segdist; /* between the two points */
-} RTT_VPAIR;
-
-/* An array of RTT_VPAIR structs */
-typedef struct {
-  RTT_VPAIR *pts;
-  int size;
-  int capacity;
-} RTT_VPAIR_ARRAY;
-
-#define RTT_VPAIR_ARRAY_INIT(c, a) { \
-  (a)->size = 0; \
-  (a)->capacity = 1; \
-  (a)->pts = rtalloc((c), sizeof(RTT_VPAIR) * (a)->capacity); \
-}
-
-#define RTT_VPAIR_ARRAY_CLEAN(c, a) { \
-  rtfree((c), (a)->pts); \
-  (a)->pts = NULL; \
-  (a)->size = 0; \
-  (a)->capacity = 0; \
-}
-
-#define RTT_VPAIR_ARRAY_INIT(c, a) { \
-  (a)->size = 0; \
-  (a)->capacity = 1; \
-  (a)->pts = rtalloc((c), sizeof(RTT_VPAIR) * (a)->capacity); \
-}
-
-#define RTT_VPAIR_ARRAY_PUSH(c, a, r) { \
-  if ( (a)->size + 1 > (a)->capacity ) { \
-    (a)->capacity *= 2; \
-    (a)->pts = rtrealloc((c), (a)->pts, sizeof(RTT_VPAIR) * (a)->capacity); \
-  } \
-  (a)->pts[(a)->size++] = (r); \
-}
-
 typedef struct
 {
 
@@ -326,82 +284,25 @@ _rt_find_vertices_within_dist(
 }
 
 static int
-compare_vpairs(const void *si1, const void *si2)
+compare_snapv(const void *si1, const void *si2)
 {
-  RTT_VPAIR *a = (RTT_VPAIR *)si1;
-  RTT_VPAIR *b = (RTT_VPAIR *)si2;
+  RTT_SNAPV *a = (RTT_SNAPV *)si1;
+  RTT_SNAPV *b = (RTT_SNAPV *)si2;
 
-  if ( a->totdist < b->totdist )
+  if ( a->dist < b->dist )
     return -1;
-  else if ( a->totdist > b->totdist )
+  else if ( a->dist > b->dist )
     return 1;
 
-  if ( a->p1->pt.x < b->p1->pt.x )
+  if ( a->pt.x < b->pt.x )
     return -1;
-  else if ( a->p1->pt.x > b->p1->pt.x )
+  else if ( a->pt.x > b->pt.x )
     return 1;
 
-  if ( a->p1->pt.y < b->p1->pt.y )
+  if ( a->pt.y < b->pt.y )
     return -1;
-  else if ( a->p1->pt.y > b->p1->pt.y )
+  else if ( a->pt.y > b->pt.y )
     return 1;
-
-/*
-  if ( a->segdist < b->segdist )
-    return -1;
-  else if ( a->segdist > b->segdist )
-    return 1;
-*/
-
-  return 0;
-}
-
-/*
- * Let *VPlist* be a list of all vertices pairs (*VP*) in *Vset*
- * For each element *VP* in *VPlist*:
- *   Let *VP.TotDist* be the sum of the distances of each of the vertices in *VP*
- *   Let *VP.SegDist* be the distances between the two vertices in *VP*
- * Order *VPlist* by growing *VP.TotDist*, *VP.SegDist*
- *
- * @return 0 on success, -1 on error.
- *
- */
-static int
-_rt_make_sorted_vertices_pairs(const RTCTX *ctx,
-      RTT_SNAPV_ARRAY *vset,
-      RTT_VPAIR_ARRAY *vplist)
-{
-  int i, j, ret;
-  DISTPTS dl;
-  rt_dist2d_distpts_init(ctx, &dl, DIST_MIN);
-  for (i=0; i<vset->size; ++i)
-  {
-#if 0
-    for (j=i+1; j<vset->size; ++j)
-    {
-      RTT_VPAIR pair;
-      pair.p1 = &(vset->pts[i]);
-      pair.p2 = &(vset->pts[j]);
-      ret = rt_dist2d_pt_pt(ctx, &(pair.p1->pt), &(pair.p2->pt), &dl);
-      pair.segdist = dl.distance;
-      pair.totdist = pair.p1->dist + pair.p2->dist;
-      if ( ret == RT_FALSE ) return -1;
-      RTT_VPAIR_ARRAY_PUSH(ctx, vplist, pair);
-    }
-#else
-      RTT_VPAIR pair;
-      pair.p1 = &(vset->pts[i]);
-      pair.p2 = pair.p1;
-      //ret = rt_dist2d_pt_pt(ctx, &(pair.p1->pt), &(pair.p2->pt), &dl);
-      pair.segdist = 0; //dl.distance;
-      pair.totdist = pair.p1->dist;
-      //if ( ret == RT_FALSE ) return -1;
-      RTT_VPAIR_ARRAY_PUSH(ctx, vplist, pair);
-#endif
-  }
-
-  /* Now sort it */
-  qsort(vplist->pts, vplist->size, sizeof(RTT_VPAIR), compare_vpairs);
 
   return 0;
 }
@@ -685,63 +586,26 @@ _rt_snap_to_valid_vertex(const RTCTX *ctx, RTPOINTARRAY *pa,
 
 }
 
-/*
- * @return 0 if no valid snap was found, <0 on error, >0 if snapped
- */
-static int
-_rt_snap_to_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
-  RTT_VPAIR *pair, rtgeom_tpsnap_state *state)
-{
-  int snapCount = 0, ret;
-
-  ret = _rt_snap_to_valid_vertex(ctx, pa, pair->p1, state);
-  if ( ret < 0 ) return ret;
-  snapCount += ret;
-
-  if ( ret ) {
-    /* Expand working extent */
-    rtgeom_tpsnap_state_expand_workext_to_include(state,
-      &(pair->p1->pt));
-
-#if 0
-    /* Recompute distance from second point, if first was snapped */
-    ret = _rt_find_closest_segment(ctx, &(pair->p2->pt), pa,
-              &(pair->p2->segno), &(pair->p2->dist));
-    if ( ret < 0 ) return ret; /* error */
-#endif
-
-  }
-
-#if 0
-  ret = _rt_snap_to_valid_vertex(ctx, pa, pair->p2, state);
-  if ( ret < 0 ) return ret;
-  snapCount += ret;
-
-  if ( ret ) {
-    /* Expand working extent */
-    rtgeom_tpsnap_state_expand_workext_to_include(state,
-      &(pair->p2->pt));
-  }
-#endif
-
-  return snapCount;
-}
-
 /* @return 0 if no valid snap was found, <0 on error, >0 if snapped */
 static int
-_rt_snap_to_first_valid_pair(const RTCTX *ctx, RTPOINTARRAY *pa,
-  RTT_VPAIR_ARRAY *vplist, rtgeom_tpsnap_state *state)
+_rt_snap_to_first_valid_vertex(const RTCTX *ctx, RTPOINTARRAY *pa,
+  RTT_SNAPV_ARRAY *vset, rtgeom_tpsnap_state *state)
 {
   int foundSnap = 0;
   int i;
 
-  for (i=0; i<vplist->size; ++i)
+  for (i=0; i<vset->size; ++i)
   {
-    RTT_VPAIR *pair = &(vplist->pts[i]);
-    foundSnap = _rt_snap_to_valid_pair(ctx, pa, pair, state);
+    RTT_SNAPV *v = &(vset->pts[i]);
+    foundSnap = _rt_snap_to_valid_vertex(ctx, pa, v, state);
     if ( foundSnap ) {
-      RTDEBUGF(ctx, 1, "pair %d/%d contained %d valid snaps",
-        i, vplist->size, foundSnap);
+      if ( foundSnap < 0 ) {
+        RTDEBUGF(ctx, 1, "vertex %d/%d triggered an error while snapping",
+          i, vset->size);
+        return -1;
+      }
+      RTDEBUGF(ctx, 1, "vertex %d/%d was a valid snap",
+        i, vset->size);
       break;
     }
   }
@@ -767,38 +631,27 @@ _rtgeom_tpsnap_ptarray_add(const RTCTX *ctx, RTPOINTARRAY *pa,
   {
     int foundSnap;
     RTT_SNAPV_ARRAY vset;
-    RTT_VPAIR_ARRAY vplist;
 
     lookingForSnap = 0;
     RTT_SNAPV_ARRAY_INIT(ctx, &vset);
-    RTT_VPAIR_ARRAY_INIT(ctx, &vplist);
 
     ret = _rt_find_vertices_within_dist(&vset, pa, state);
     if ( ret < 0 ) {
       RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-      RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
       return -1;
     }
     RTDEBUGF(ctx, 1, "vertices within dist: %d", vset.size);
-    if ( vset.size < 2 ) {
+    if ( vset.size < 1 ) {
       RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-      RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
       break;
     }
 
-    ret = _rt_make_sorted_vertices_pairs(ctx, &vset, &vplist);
-    if ( ret < 0 ) {
-      RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-      RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
-      return -1;
-    }
-    RTDEBUGF(ctx, 1, "vertices pairs: %d", vplist.size);
+    qsort(vset.pts, vset.size, sizeof(RTT_SNAPV), compare_snapv);
 
-    foundSnap = _rt_snap_to_first_valid_pair(ctx, pa, &vplist, state);
+    foundSnap = _rt_snap_to_first_valid_vertex(ctx, pa, &vset, state);
     RTDEBUGF(ctx, 1, "foundSnap: %d", foundSnap);
 
     RTT_SNAPV_ARRAY_CLEAN(ctx, &vset);
-    RTT_VPAIR_ARRAY_CLEAN(ctx, &vplist);
 
     if ( foundSnap < 0 ) return foundSnap; /* error */
     if ( foundSnap && state->iterate ) {
