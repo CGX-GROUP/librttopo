@@ -102,6 +102,7 @@ typedef struct
    * will be updated as needed as snapping occurs
    */
   RTGBOX workext;
+  RTGBOX expanded_workext;
 
   /*
    * Edges within workext,
@@ -121,10 +122,8 @@ static const RTT_ISO_EDGE *
 rtgeom_tpsnap_state_get_edges(rtgeom_tpsnap_state *state, int *num_edges)
 {
   if ( ! state->workedges ) {
-    RTGBOX qbox = state->workext;
-    gbox_expand(state->topo->be_iface->ctx, &qbox, state->tssnap);
     state->workedges = rtt_be_getEdgeWithinBox2D(state->topo,
-              &qbox,
+              &state->expanded_workext,
               &state->num_workedges,
               RTT_COL_EDGE_ALL, 0);
   }
@@ -152,6 +151,8 @@ rtgeom_tpsnap_state_expand_workext_to_include(rtgeom_tpsnap_state *state,
   p3d.z = 0.0;
 
   gbox_merge_point3d(ctx, &p3d, &state->workext);
+  state->expanded_workext = state->workext;
+  gbox_expand(ctx, &(state->expanded_workext), state->tssnap);
 
   /* Reset workedges */
   if ( state->workedges ) {
@@ -202,9 +203,9 @@ _rt_find_closest_segment(const RTCTX *ctx, RTPOINT2D *pt, RTPOINTARRAY *pa,
       return -1;
     }
 
-    /* Segment is too far, check next */
     if ( dl.distance < *dist )
     {
+      /* Segment is closest so far */
       *segno = j;
       *dist = dl.distance;
     }
@@ -235,6 +236,16 @@ _rt_extract_vertices_within_dist(rtgeom_tpsnap_state *state,
     int ret;
 
     rt_getPoint2d_p(ctx, edge->points, i, &(vert.pt));
+
+    /* skip if not covered by expanded_workext */
+    if ( vert.pt.x < state->expanded_workext.xmin ||
+         vert.pt.x > state->expanded_workext.xmax ||
+         vert.pt.y < state->expanded_workext.ymin ||
+         vert.pt.y > state->expanded_workext.ymax )
+    {
+      RTDEBUGF(ctx, 3, "skip point %g,%g outside expanded workext %g,%g,%g,%g", vert.pt.x, vert.pt.y, state->expanded_workext.xmin,state->expanded_workext.ymin,state->expanded_workext.xmax,state->expanded_workext.ymax);
+      continue;
+    }
 
     ret = _rt_find_closest_segment(ctx, &(vert.pt), pa, &vert.segno, &vert.dist);
     if ( ret == -1 ) return -1;
@@ -675,6 +686,11 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
   int ret;
   rtgeom_tpsnap_state *state = udata;
 
+  /* Set work extent to that of the POINTARRAY bounding box */
+  ptarray_calculate_gbox_cartesian(ctx, pa, &(state->workext));
+  state->expanded_workext = state->workext;
+  gbox_expand(ctx, &(state->expanded_workext), state->tssnap);
+
   RTDEBUGF(ctx, 1, "Snapping pointarray with %d points", pa->npoints);
 
   do {
@@ -712,7 +728,6 @@ rtt_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
   state.tssnap = tssnap;
   state.iterate = iterate;
   state.remove_vertices = remove_vertices;
-  state.workext = *rtgeom_get_bbox(ctx, gin);
   state.workedges = NULL;
 
   rtgeom_geos_ensure_init(ctx);
