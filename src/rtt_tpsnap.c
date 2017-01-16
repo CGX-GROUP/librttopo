@@ -192,7 +192,7 @@ _rt_find_closest_segment(const RTCTX *ctx, RTPOINT2D *pt, RTPOINTARRAY *pa,
   rt_dist2d_distpts_init(ctx, &dl, DIST_MIN);
 
   /* Find closest segment */
-  rt_getPoint2d_p(ctx, pa, j, &s0);
+  rt_getPoint2d_p(ctx, pa, 0, &s0);
   for (j=0; j<pa->npoints-1; ++j)
   {
     rt_getPoint2d_p(ctx, pa, j+1, &s1);
