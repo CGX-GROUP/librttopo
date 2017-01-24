@@ -1418,21 +1418,22 @@ RTGEOM* rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID face);
 /*
  * rtt_tpsnap - snap geometry to topology
  *
- * Uses Trevisani-Peri algorithm version 12 as reported here:
+ * Uses Trevisani-Peri algorithm version 13 as reported here:
  * https://git.osgeo.org/gogs/rttopo/librttopo/wiki/SnapToTopo-algorithm
  *
  * @param topo the reference topology
  * @param gin the input geometry
- * @param tssnap snap tolerance
+ * @param tolerance_snap snap tolerance
+ * @param tolerance_removal removal tolerance (use -1 to skip removal phase)
  * @param iterate if non zero, allows snapping to more than a single vertex,
  *                iteratively
- * @param remove_vertices if non zero, makes an initial pass removing
- *                        vertices within tolerance
  *
  * @return a new geometry, or NULL on error
  *
  */
 RTGEOM* rtt_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
-                   double tssnap, int iterate, int remove_vertices);
+                   double tolerance_snap,
+                   double tolerance_removal,
+                   int iterate);
 
 #endif /* LIBRTGEOM_TOPO_H */

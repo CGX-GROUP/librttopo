@@ -93,9 +93,9 @@ typedef struct
    * Input parameters / configuration
    */
   const RTT_TOPOLOGY *topo;
-  double tssnap;
+  double tolerance_snap;
+  double tolerance_removal;
   int iterate;
-  int remove_vertices;
 
   /*
    * Extent of the geometry being snapped,
@@ -152,7 +152,7 @@ rtgeom_tpsnap_state_expand_workext_to_include(rtgeom_tpsnap_state *state,
 
   gbox_merge_point3d(ctx, &p3d, &state->workext);
   state->expanded_workext = state->workext;
-  gbox_expand(ctx, &(state->expanded_workext), state->tssnap);
+  gbox_expand(ctx, &(state->expanded_workext), state->tolerance_snap);
 
   /* Reset workedges */
   if ( state->workedges ) {
@@ -217,7 +217,7 @@ _rt_find_closest_segment(const RTCTX *ctx, RTPOINT2D *pt, RTPOINTARRAY *pa,
 }
 
 /*
- * Extract from edge all vertices where distance from pa <= tssnap
+ * Extract from edge all vertices where distance from pa <= tolerance_snap
  *
  * @return -1 on error, 0 on success
  */
@@ -250,7 +250,7 @@ _rt_extract_vertices_within_dist(rtgeom_tpsnap_state *state,
     ret = _rt_find_closest_segment(ctx, &(vert.pt), pa, &vert.segno, &vert.dist);
     if ( ret == -1 ) return -1;
 
-    if ( vert.dist <= state->tssnap )
+    if ( vert.dist <= state->tolerance_snap )
     {
       /* push vert to array */
       RTT_SNAPV_ARRAY_PUSH(ctx, vset, vert);
@@ -263,7 +263,7 @@ _rt_extract_vertices_within_dist(rtgeom_tpsnap_state *state,
 
 /*
  * Find all topology edge vertices where distance from
- * given pointarray <= tssnap
+ * given pointarray <= tolerance_snap
  *
  * @return -1 on error, 0 on success
  */
@@ -378,7 +378,7 @@ rtgeom_visit_lines(const RTCTX *ctx, RTGEOM *rtgeom,
 /*
  * Vertex removal phase
  *
- * Remove internal vertices of `pa` that are within state.tssnap
+ * Remove internal vertices of `pa` that are within state.tolerance_snap
  * distance from edges of state.topo topology.
  *
  * @return -1 on error, number of points removed on success
@@ -409,7 +409,7 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
     RTPOINT2D V;
     RTLINE *closest_segment_edge = NULL;
     int closest_segment_number;
-    double closest_segment_distance = state->tssnap+1;
+    double closest_segment_distance = state->tolerance_removal+1;
 
     rt_getPoint2d_p(ctx, pa, i, &V);
 
@@ -426,7 +426,7 @@ _rtgeom_tpsnap_ptarray_remove(const RTCTX *ctx, RTPOINTARRAY *pa,
       if ( ret < 0 ) return ret; /* error */
 
       /* Edge is too far */
-      if ( dist > state->tssnap ) {
+      if ( dist > state->tolerance_removal ) {
         RTDEBUGF(ctx, 2, " Vertex is too far (%g) from edge %d", dist, edges[j].edge_id);
         continue;
       }
@@ -689,7 +689,7 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
   /* Set work extent to that of the POINTARRAY bounding box */
   ptarray_calculate_gbox_cartesian(ctx, pa, &(state->workext));
   state->expanded_workext = state->workext;
-  gbox_expand(ctx, &(state->expanded_workext), state->tssnap);
+  gbox_expand(ctx, &(state->expanded_workext), state->tolerance_snap);
 
   RTDEBUGF(ctx, 1, "Snapping pointarray with %d points", pa->npoints);
 
@@ -697,7 +697,7 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
     ret = _rtgeom_tpsnap_ptarray_add(ctx, pa, state);
     if ( ret == -1 ) return -1;
 
-    if ( state->remove_vertices )
+    if ( state->tolerance_removal >= 0 )
     {
       ret = _rtgeom_tpsnap_ptarray_remove(ctx, pa, state);
       if ( ret == -1 ) return -1;
@@ -714,7 +714,9 @@ _rtgeom_tpsnap_ptarray(const RTCTX *ctx, RTPOINTARRAY *pa,
 /* public, exported */
 RTGEOM *
 rtt_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
-                         double tssnap, int iterate, int remove_vertices)
+                         double tolerance_snap,
+                         double tolerance_removal,
+                         int iterate)
 {
   rtgeom_tpsnap_state state;
   const RTCTX *ctx = topo->be_iface->ctx;
@@ -722,12 +724,12 @@ rtt_tpsnap(RTT_TOPOLOGY *topo, const RTGEOM *gin,
   int ret;
 
   RTDEBUGF(ctx, 1, "snapping: tol %g, iterate %d, remove %d",
-    tssnap, iterate, remove_vertices);
+    tolerance_snap, iterate, remove_vertices);
 
   state.topo = topo;
-  state.tssnap = tssnap;
+  state.tolerance_snap = tolerance_snap;
+  state.tolerance_removal = tolerance_removal;
   state.iterate = iterate;
-  state.remove_vertices = remove_vertices;
   state.workedges = NULL;
 
   rtgeom_geos_ensure_init(ctx);
