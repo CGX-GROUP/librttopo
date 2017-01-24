@@ -1418,7 +1418,7 @@ RTGEOM* rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID face);
 /*
  * rtt_tpsnap - snap geometry to topology
  *
- * Uses Trevisani-Peri algorithm version 11 as reported here:
+ * Uses Trevisani-Peri algorithm version 12 as reported here:
  * https://git.osgeo.org/gogs/rttopo/librttopo/wiki/SnapToTopo-algorithm
  *
  * @param topo the reference topology
