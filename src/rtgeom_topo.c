@@ -1511,11 +1511,13 @@ _rtt_InitEdgeEndByLine(const RTCTX *ctx, edgeend *fee, edgeend *lee, RTLINE *edg
     return -1;
   }
   if ( ! azimuth_pt_pt(ctx, fp, &pt, &(fee->myaz)) ) {
-    rterror(ctx, "error computing azimuth of first edgeend [%g %g,%g %g]",
+    rterror(ctx, "error computing azimuth of first edgeend"
+            " [%.15g %.15g,%.15g %.15g]",
             fp->x, fp->y, pt.x, pt.y);
     return -2;
   }
-  RTDEBUGF(ctx, 1, "azimuth of first edge end [%g %g,%g %g] is %g",
+  RTDEBUGF(ctx, 1, "azimuth of first edge end"
+            " [%.15g %.15g,%.15g %.15g] is %.15g",
             fp->x, fp->y, pt.x, pt.y, fee->myaz);
 
   /* Compute azimuth of second edge end */
@@ -1526,11 +1528,13 @@ _rtt_InitEdgeEndByLine(const RTCTX *ctx, edgeend *fee, edgeend *lee, RTLINE *edg
     return -1;
   }
   if ( ! azimuth_pt_pt(ctx, lp, &pt, &(lee->myaz)) ) {
-    rterror(ctx, "error computing azimuth of last edgeend [%g %g,%g %g]",
+    rterror(ctx, "error computing azimuth of last segment"
+            " [%.15g %.15g,%.15g %.15g]",
             lp->x, lp->y, pt.x, pt.y);
     return -2;
   }
-  RTDEBUGF(ctx, 1, "azimuth of last edge end [%g %g,%g %g] is %g",
+  RTDEBUGF(ctx, 1, "azimuth of last edge end"
+            " [%.15g %.15g,%.15g %.15g] is %.15g",
             lp->x, lp->y, pt.x, pt.y, lee->myaz);
 
   return 0;
@@ -1620,13 +1624,14 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
       rt_getPoint2d_p(iface->ctx, pa, 1, &p2);
       RTDEBUGF(iface->ctx, 1, "edge %" RTTFMT_ELEMID
                   " starts on node %" RTTFMT_ELEMID
-                  ", edgeend is %g,%g-%g,%g",
+                  ", edgeend is %.15g %.15g,%.15g %.15g",
                   edge->edge_id, node, p1.x, p1.y, p2.x, p2.y);
       if ( ! azimuth_pt_pt(iface->ctx, &p1, &p2, &az) ) {{
         RTT_ELEMID id = edge->edge_id;
         rtt_release_edges(iface->ctx, edges, numedges);
         rtgeom_free(iface->ctx, cleangeom);
-        rterror(iface->ctx, "error computing azimuth of edge %d first edgeend [%g,%g-%g,%g]",
+        rterror(iface->ctx, "error computing azimuth of edge %d first segment"
+                " [%.15g %.15g,%.15g,%.15g]",
                 id, p1.x, p1.y, p2.x, p2.y);
         return -1;
       }}
@@ -1675,14 +1680,16 @@ _rtt_FindAdjacentEdges( RTT_TOPOLOGY* topo, RTT_ELEMID node, edgeend *data,
     if ( edge->end_node == node ) {
       rt_getPoint2d_p(iface->ctx, pa, pa->npoints-1, &p1);
       rt_getPoint2d_p(iface->ctx, pa, pa->npoints-2, &p2);
-      RTDEBUGF(iface->ctx, 1, "edge %" RTTFMT_ELEMID " ends on node %" RTTFMT_ELEMID
-                  ", edgeend is %g,%g-%g,%g",
+      RTDEBUGF(iface->ctx, 1, "edge %" RTTFMT_ELEMID
+                  " ends on node %" RTTFMT_ELEMID
+                  ", edgeend is %.15g %.15g,%.15g %.15g",
                   edge->edge_id, node, p1.x, p1.y, p2.x, p2.y);
       if ( ! azimuth_pt_pt(iface->ctx, &p1, &p2, &az) ) {{
         RTT_ELEMID id = edge->edge_id;
         rtt_release_edges(iface->ctx, edges, numedges);
         rtgeom_free(iface->ctx, cleangeom);
-        rterror(iface->ctx, "error computing azimuth of edge %d last edgeend [%g,%g-%g,%g]",
+        rterror(iface->ctx, "error computing azimuth of edge %d last segment"
+                " [%.15g %.15g,%.15g %.15g]",
                 id, p1.x, p1.y, p2.x, p2.y);
         return -1;
       }}
@@ -2442,7 +2449,8 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   }
   if ( ! azimuth_pt_pt(iface->ctx, &p1, &pn, &span.myaz) ) {
     rtgeom_free(iface->ctx, cleangeom);
-    rterror(iface->ctx, "error computing azimuth of first edgeend [%g,%g-%g,%g]",
+    rterror(iface->ctx, "error computing azimuth of first segment"
+            " [%.15g %.15g,%.15g %.15g]",
             p1.x, p1.y, pn.x, pn.y);
     return -1;
   }
@@ -2453,7 +2461,8 @@ _rtt_AddEdge( RTT_TOPOLOGY* topo,
   rt_getPoint2d_p(iface->ctx, pa, pa->npoints-2, &pn);
   rtgeom_free(iface->ctx, cleangeom);
   if ( ! azimuth_pt_pt(iface->ctx, &p2, &pn, &epan.myaz) ) {
-    rterror(iface->ctx, "error computing azimuth of last edgeend [%g,%g-%g,%g]",
+    rterror(iface->ctx, "error computing azimuth of last segment"
+            " [%.15g %.15g,%.15g %.15g]",
             p2.x, p2.y, pn.x, pn.y);
     return -1;
   }
