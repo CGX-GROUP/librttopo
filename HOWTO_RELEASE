@@ -1,9 +1,7 @@
 - Set version in configure.ac
 - Tweak -version-info in src/Makefile.am
 - Run make distcheck, fix if needed
-- Commit all of the above
-- Regenerate ChangeLog (make cl) and commit again
-- Commit and push to repository, confirm bots are all happy
+- Commit all of the above, confirm bots are all happy
 - Add annotated tag: git tag -sa librttopo-<version>
 - Push annotated tag to repository: git push <remote> librttopo-<version>
 - Create release artifacts: make dist
