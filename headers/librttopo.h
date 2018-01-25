@@ -1,7 +1,7 @@
 /**********************************************************************
  *
  * rttopo - topology library
- * http://git.osgeo.org/gogs/rttopo/librttopo
+ * http://git.osgeo.org/gitea/rttopo/librttopo
  *
  * rttopo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1419,7 +1419,7 @@ RTGEOM* rtt_GetFaceGeometry(RTT_TOPOLOGY* topo, RTT_ELEMID face);
  * rtt_tpsnap - snap geometry to topology
  *
  * Uses Trevisani-Peri algorithm version 13 as reported here:
- * https://git.osgeo.org/gogs/rttopo/librttopo/wiki/SnapToTopo-algorithm
+ * https://git.osgeo.org/gitea/rttopo/librttopo/wiki/SnapToTopo-algorithm
  *
  * @param topo the reference topology
  * @param gin the input geometry

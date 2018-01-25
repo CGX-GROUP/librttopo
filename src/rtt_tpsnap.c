@@ -1,7 +1,7 @@
 /**********************************************************************
  *
  * rttopo - topology library
- * http://git.osgeo.org/gogs/rttopo/librttopo
+ * http://git.osgeo.org/gitea/rttopo/librttopo
  *
  * rttopo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  * Implementation of Trevisani-Peri snap algoritm
  *
  * See
- * https://git.osgeo.org/gogs/rttopo/librttopo/wiki/SnapToTopo-algorithm
+ * https://git.osgeo.org/gitea/rttopo/librttopo/wiki/SnapToTopo-algorithm
  *
  **********************************************************************
  *

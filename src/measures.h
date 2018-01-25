@@ -1,7 +1,7 @@
 /**********************************************************************
  *
  * rttopo - topology library
- * http://git.osgeo.org/gogs/rttopo/librttopo
+ * http://git.osgeo.org/gitea/rttopo/librttopo
  *
  * rttopo is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 /**********************************************************************
  *
  * rttopo - topology library
- * http://git.osgeo.org/gogs/rttopo/librttopo
+ * http://git.osgeo.org/gitea/rttopo/librttopo
  * Copyright 2010 Nicklas Avén
  *
  * This is free software; you can redistribute and/or modify it under
