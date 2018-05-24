@@ -23,7 +23,7 @@ The RT Topology Library was funded by "Regione Toscana - SITA"
 (CIG: 6445512CC1), which also funded many improvements in the
 originating liblwgeom.
 
-Official code repository is [https://git.osgeo.org/gitea/rttopo/librttopo](https://git.osgeo.org/gitea/rttopo/librttopo).
+Official code repository is https://git.osgeo.org/gitea/rttopo/librttopo
 
 A mirror exists at https://gitlab.com/rttopo/rttopo, automatically
 updated on every push to the official repository.
