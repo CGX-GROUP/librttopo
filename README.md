@@ -5,7 +5,7 @@ RT Topology Library
 
 | OSGeo | GitLab |
 |:---   |:---    |
-| [![Build Status](https://drone.osgeo.org/api/badges/rttopo/librttopo/status.svg)] (https://drone.osgeo.org/rttopo/librttopo) | [![Gitlab-CI](https://gitlab.com/rttopo/rttopo/badges/master/build.svg)] (https://gitlab.com/rttopo/rttopo/commits/master) |
+| [![Build Status](https://dronie.osgeo.org/api/badges/rttopo/librttopo/status.svg?branch=master)] (https://dronie.osgeo.org/rttopo/librttopo?branch=master) | [![Gitlab-CI](https://gitlab.com/rttopo/rttopo/badges/master/build.svg)] (https://gitlab.com/rttopo/rttopo/commits/master) |
 
 
 ## About
