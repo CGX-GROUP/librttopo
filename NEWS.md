@@ -1,5 +1,5 @@
-Release 1.1.0-dev
-YYYY-MM-DD
+Release 1.1.0
+2019-07-27
 
  # Important / Breaking Changes
 
