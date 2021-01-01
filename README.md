@@ -1,12 +1,10 @@
-RT Topology Library
-===================
+# RT Topology Library
 
 ## Build status
 
 | OSGeo | GitLab |
 |:---   |:---    |
 | [![Build Status](https://dronie.osgeo.org/api/badges/rttopo/librttopo/status.svg?branch=master)] (https://dronie.osgeo.org/rttopo/librttopo?branch=master) | [![Gitlab-CI](https://gitlab.com/rttopo/rttopo/badges/master/build.svg)] (https://gitlab.com/rttopo/rttopo/commits/master) |
-
 
 ## About
 
@@ -37,11 +35,13 @@ https://lists.osgeo.org/mailman/listinfo/librttopo-dev
 
 Using Autotools:
 
+``` sh
     ./autogen.sh # in ${srcdir}, if obtained from GIT
     ${srcdir}/configure # in build dir
     make # build
     make check # test
     make install # or install-strip
+```
 
 ### Microsoft Windows
 
@@ -58,7 +58,7 @@ The contract for each callback is fully specified in the header.
 The callbacks are as simple as possible while still allowing for
 backend-specific optimizations.
 
-The backend interface is an opaque object and callabcks are registered
-into it using free functions. This is to allow for modifying the required
+The backend interface is an opaque object and callbacks are registered
+into it using free functions. This is to support modifying the required
 set of callbacks between versions of the library without breaking backward
 compatibility.
