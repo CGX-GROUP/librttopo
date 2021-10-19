@@ -18,7 +18,7 @@ LIBOBJ	 = src\box2d.obj src\bytebuffer.obj src\g_box.obj \
 	src\rtout_wkt.obj src\rtout_x3d.obj src\rtpoint.obj src\rtpoly.obj src\rtprint.obj \
 	src\rtpsurface.obj src\rtspheroid.obj src\rtstroke.obj src\rttin.obj src\rttree.obj \
 	src\rttriangle.obj src\rtutil.obj src\stringbuffer.obj src\varint.obj \
-    src\rtt_tpsnap.obj
+	src\rtt_tpsnap.obj
 
 LIBRTTOPO_DLL	 	       =	librttopo$(VERSION).dll
 
