@@ -75,6 +75,7 @@ rtgeom_to_x3d3(const RTCTX *ctx, const RTGEOM *geom, char *srs, int precision, i
     return ret;
   }
 
+
 /* end patch */
 
   switch (type)
