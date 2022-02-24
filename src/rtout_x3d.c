@@ -67,10 +67,10 @@ rtgeom_to_x3d3(const RTCTX *ctx, const RTGEOM *geom, char *srs, int precision, i
 /* https://trac.osgeo.org/postgis/ticket/3704 */
 
 /* Empty string for empties */
-  if( lwgeom_is_empty(geom) )
+  if( rtgeom_is_empty(ctx, geom) )
   {
     char *ret = NULL;
-    ret = lwalloc(1);
+    ret = rtalloc(ctx, 1);
     ret[0] = '\0';
     return ret;
   }
