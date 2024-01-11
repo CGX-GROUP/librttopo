@@ -110,8 +110,6 @@ char * pointarray_to_encoded_polyline(const RTCTX *ctx, const RTPOINTARRAY *pa, 
        each value with 0x20 if another bit chunk follows and add 63*/
       int nextValue = (0x20 | (numberToEncode & 0x1f)) + 63;
       stringbuffer_aprintf(ctx, sb, "%c", (char)nextValue);
-      if(92 == nextValue)
-        stringbuffer_aprintf(ctx, sb, "%c", (char)nextValue);
 
       /* Break the binary value out into 5-bit chunks */
       numberToEncode >>= 5;
@@ -119,8 +117,6 @@ char * pointarray_to_encoded_polyline(const RTCTX *ctx, const RTPOINTARRAY *pa, 
 
     numberToEncode += 63;
     stringbuffer_aprintf(ctx, sb, "%c", (char)numberToEncode);
-    if(92 == numberToEncode)
-      stringbuffer_aprintf(ctx, sb, "%c", (char)numberToEncode);
   }
 
   rtfree(ctx, delta);
