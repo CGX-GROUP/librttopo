@@ -4,7 +4,7 @@
 
 | OSGeo | GitLab |
 |:---   |:---    |
-| [![Build Status](https://dronie.osgeo.org/api/badges/rttopo/librttopo/status.svg?branch=master)](https://dronie.osgeo.org/rttopo/librttopo?branch=master) | [![Gitlab-CI](https://gitlab.com/rttopo/rttopo/badges/master/build.svg)](https://gitlab.com/rttopo/rttopo/commits/master) |
+| [![dronie](https://dronie.osgeo.org/api/badges/rttopo/librttopo/status.svg?branch=master)](https://dronie.osgeo.org/rttopo/librttopo?branch=master) | [![gitlab](https://gitlab.com/rttopo/rttopo/badges/master/pipeline.svg)](https://gitlab.com/rttopo/rttopo/commits/master) |
 
 ## About
 
