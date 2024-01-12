@@ -4,6 +4,6 @@ pipeline:
     image: docker.kbt.io/librttopo/build-test:debian-sid
     commands:
       - ./autogen.sh
-      - ./configure
+      - ./configure CFLAGS="-Wall"
       - make
       - make distcheck
